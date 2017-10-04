@@ -341,9 +341,9 @@
     <Compile Include="Migrations\201709231340508_FixPersonicx.Designer.cs">
       <DependentUpon>201709231340508_FixPersonicx.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201709251847010_AddNcoaHistory.cs" />
-    <Compile Include="Migrations\201709251847010_AddNcoaHistory.Designer.cs">
-      <DependentUpon>201709251847010_AddNcoaHistory.cs</DependentUpon>
+    <Compile Include="Migrations\201710041707331_NcoaModels.cs" />
+    <Compile Include="Migrations\201710041707331_NcoaModels.Designer.cs">
+      <DependentUpon>201710041707331_NcoaModels.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\RockMigrationSQL.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -2750,8 +2750,8 @@
     <EmbeddedResource Include="Migrations\201709231340508_FixPersonicx.resx">
       <DependentUpon>201709231340508_FixPersonicx.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201709251847010_AddNcoaHistory.resx">
-      <DependentUpon>201709251847010_AddNcoaHistory.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201710041707331_NcoaModels.resx">
+      <DependentUpon>201710041707331_NcoaModels.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\Version 6.0\Version 1.6.0\201609282147388_WaitList.resx">
       <DependentUpon>201609282147388_WaitList.cs</DependentUpon>

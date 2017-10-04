@@ -46,7 +46,7 @@ namespace RockWeb.Blocks.Examples
         protected override void OnInit( EventArgs e )
         {
             base.OnInit( e );
-
+            Server.ScriptTimeout = 1500;
         }
 
         /// <summary>

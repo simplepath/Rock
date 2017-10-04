@@ -22,7 +22,7 @@ namespace Rock.Migrations
     /// <summary>
     ///
     /// </summary>
-    public partial class AddNcoaHistory : Rock.Migrations.RockMigration
+    public partial class NcoaModels : Rock.Migrations.RockMigration
     {
         /// <summary>
         /// Operations to be performed during the upgrade process.
@@ -71,13 +71,10 @@ namespace Rock.Migrations
                 .PrimaryKey(t => t.Id)
                 .ForeignKey("dbo.PersonAlias", t => t.CreatedByPersonAliasId)
                 .ForeignKey("dbo.PersonAlias", t => t.ModifiedByPersonAliasId)
-                .ForeignKey("dbo.PersonAlias", t => t.PersonAliasId)
-                .Index(t => t.PersonAliasId)
                 .Index(t => t.CreatedByPersonAliasId)
                 .Index(t => t.ModifiedByPersonAliasId)
                 .Index(t => t.Guid, unique: true);
-
-            RockMigrationHelper.AddGlobalAttribute( Rock.SystemGuid.FieldType.DECIMAL, null, null, "Move Distance to Inactivate", "The distance that someone must move before they will be automatically inactivated by the NCOA process. Set this number to a very high number (9999999) to disable the Inactivation.", 0, "", "538CE5DD-10AE-4232-B655-EAC0FCB54A50", "MoveDistanceToInactivate" );
+            
         }
         
         /// <summary>
@@ -85,13 +82,11 @@ namespace Rock.Migrations
         /// </summary>
         public override void Down()
         {
-            DropForeignKey("dbo.NcoaHistory", "PersonAliasId", "dbo.PersonAlias");
             DropForeignKey("dbo.NcoaHistory", "ModifiedByPersonAliasId", "dbo.PersonAlias");
             DropForeignKey("dbo.NcoaHistory", "CreatedByPersonAliasId", "dbo.PersonAlias");
             DropIndex("dbo.NcoaHistory", new[] { "Guid" });
             DropIndex("dbo.NcoaHistory", new[] { "ModifiedByPersonAliasId" });
             DropIndex("dbo.NcoaHistory", new[] { "CreatedByPersonAliasId" });
-            DropIndex("dbo.NcoaHistory", new[] { "PersonAliasId" });
             DropTable("dbo.NcoaHistory");
         }
     }

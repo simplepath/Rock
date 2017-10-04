@@ -7,13 +7,13 @@ namespace Rock.Migrations
     using System.Resources;
     
     [GeneratedCode("EntityFramework.Migrations", "6.1.3-40302")]
-    public sealed partial class AddNcoaHistory : IMigrationMetadata
+    public sealed partial class NcoaModels : IMigrationMetadata
     {
-        private readonly ResourceManager Resources = new ResourceManager(typeof(AddNcoaHistory));
+        private readonly ResourceManager Resources = new ResourceManager(typeof(NcoaModels));
         
         string IMigrationMetadata.Id
         {
-            get { return "201709251847010_AddNcoaHistory"; }
+            get { return "201710041707331_NcoaModels"; }
         }
         
         string IMigrationMetadata.Source
