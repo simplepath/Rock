@@ -367,7 +367,7 @@ namespace Rock.Model
         /// <summary>
         /// Invalid
         /// </summary>
-        InValid = 0,
+        Invalid = 0,
 
         /// <summary>
         /// Valid

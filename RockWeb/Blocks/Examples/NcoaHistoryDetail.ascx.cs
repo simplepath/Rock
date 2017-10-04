@@ -135,7 +135,7 @@ namespace RockWeb.Blocks.Examples
 
                     if ( !string.IsNullOrEmpty( record.Vacant ) && record.Vacant.ToUpper() == "Y" )
                     {
-                        ncoaHistory.AddressStatus = AddressStatus.InValid;
+                        ncoaHistory.AddressStatus = AddressStatus.Invalid;
                         ncoaHistory.AddressInvalidReason = AddressInvalidReason.Vacant;
                         ncoaIsValid = true;
                     }
@@ -144,7 +144,7 @@ namespace RockWeb.Blocks.Examples
                         if ( record.RecordType.ToUpper() == "A" && !string.IsNullOrEmpty( record.AddressStatus ) && record.AddressStatus.ToUpper() == "N" )
                         {
                             ncoaHistory.NcoaType = NcoaType.NoMove;
-                            ncoaHistory.AddressStatus = AddressStatus.InValid;
+                            ncoaHistory.AddressStatus = AddressStatus.Invalid;
                             ncoaHistory.AddressInvalidReason = AddressInvalidReason.NotFound;
                             ncoaIsValid = true;
                         }
