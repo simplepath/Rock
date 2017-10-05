@@ -129,7 +129,9 @@ namespace RockWeb.Blocks.Examples
                         PersonAliasId = record.PersonAliasId,
                         FamilyId = record.FamilyId,
                         NcoaRunDateTime = RockDateTime.Now,
+                        LocationId = record.LocationId
                     };
+                    SetPreviousAddress( record, ncoaHistory );
 
                     if ( !string.IsNullOrEmpty( record.Vacant ) && record.Vacant.ToUpper() == "Y" )
                     {
@@ -148,7 +150,6 @@ namespace RockWeb.Blocks.Examples
                         }
                         else if ( record.RecordType.ToUpper() == "C" && !IsAddressSame( record ) )
                         {
-                            SetPreviousAddress( record, ncoaHistory );
                             SetNewAddress( record, ncoaHistory );
                             ncoaHistory.NcoaType = NcoaType.Move;
                             ncoaHistory.MoveDistance = record.MoveDistance;
@@ -199,7 +200,6 @@ namespace RockWeb.Blocks.Examples
                         {
                             ncoaHistory.NcoaType = NcoaType.Month48Move;
                             ncoaHistory.AddressStatus = AddressStatus.Valid;
-                            SetPreviousAddress( record, ncoaHistory );
                             ncoaIsValid = true;
                         }
 
@@ -328,6 +328,7 @@ namespace RockWeb.Blocks.Examples
             {
 
                 Map( m => m.PersonAliasId ).Name( "input_PersonAliasId" );
+                Map( m => m.LocationId ).Name( "input_LocationId" );
                 Map( m => m.OriginalStreet1 ).Name( "input_Street1" );
                 Map( m => m.OriginalStreet2 ).Name( "input_Street2" );
                 Map( m => m.OriginalCity ).Name( "input_City" );
@@ -364,6 +365,14 @@ namespace RockWeb.Blocks.Examples
             /// The family group identifier.
             /// </value>
             public int FamilyId { get; set; }
+
+            /// <summary>
+            /// Gets or sets the location identifier.
+            /// </summary>
+            /// <value>
+            /// The location identifier.
+            /// </value>
+            public int? LocationId { get; set; }
 
             /// <summary>
             /// Gets or sets the move type value identifier.

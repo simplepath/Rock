@@ -36,6 +36,7 @@ namespace Rock.Migrations
                         Id = c.Int(nullable: false, identity: true),
                         PersonAliasId = c.Int(nullable: false),
                         FamilyId = c.Int(nullable: false),
+                        LocationId = c.Int(),
                         MoveType = c.Int(nullable: false),
                         NcoaType = c.Int(nullable: false),
                         AddressStatus = c.Int(nullable: false),
@@ -74,7 +75,8 @@ namespace Rock.Migrations
                 .Index(t => t.CreatedByPersonAliasId)
                 .Index(t => t.ModifiedByPersonAliasId)
                 .Index(t => t.Guid, unique: true);
-            
+
+            RockMigrationHelper.AddGlobalAttribute( Rock.SystemGuid.FieldType.DECIMAL, null, null, "Move Distance to Inactivate", "The distance that someone must move before they will be automatically inactivated by the NCOA process. Set this number to a very high number (9999999) to disable the Inactivation.", 0, "", "538CE5DD-10AE-4232-B655-EAC0FCB54A50", "MoveDistanceToInactivate" );
         }
         
         /// <summary>

@@ -57,6 +57,15 @@ namespace Rock.Model
         public int FamilyId { get; set; }
 
         /// <summary>
+        /// Gets or sets the location identifier.
+        /// </summary>
+        /// <value>
+        /// The location identifier.
+        /// </value>
+        [DataMember]
+        public int? LocationId { get; set; }
+
+        /// <summary>
         /// Gets or sets the move type value identifier.
         /// </summary>
         /// <value>

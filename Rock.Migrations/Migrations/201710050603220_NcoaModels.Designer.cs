@@ -13,7 +13,7 @@ namespace Rock.Migrations
         
         string IMigrationMetadata.Id
         {
-            get { return "201710041707331_NcoaModels"; }
+            get { return "201710050603220_NcoaModels"; }
         }
         
         string IMigrationMetadata.Source
