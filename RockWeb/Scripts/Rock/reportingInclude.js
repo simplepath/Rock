@@ -148,6 +148,20 @@
                     return title + ' is ' + selectedItems
                 },
 
+                //
+                formatFilterForGroupMemberField: function (title, $selectedContent)
+                {
+                  var selectedItems = '';
+                  $('input:checked', $selectedContent).each(
+                      function ()
+                      {
+                        selectedItems += selectedItems == '' ? '' : ' or ';
+                        selectedItems += ' \'' + $(this).parent().text() + '\'';
+                      });
+
+                  return title + ' is ' + selectedItems
+                },
+
                 // NOTE: this is specifically for the Rock.Reporting.DataFilter.Person.InGroupFilter component
                 formatFilterForGroupFilterField: function (title, $selectedContent) {
                     var groupNames = $('.js-group-picker', $selectedContent).find('.selected-names').text();
