@@ -30,9 +30,10 @@ namespace Rock.Model
     /// <summary>
     /// Represents an event item for one or more event calendars.
     /// </summary>
+    [RockDomain( "Event" )]
     [Table( "EventItem" )]
     [DataContract]
-    public partial class EventItem : Model<EventItem>
+    public partial class EventItem : Model<EventItem>, IHasActiveFlag
     {
         /// <summary>
         /// Gets or sets the Name of the EventItem. This property is required.
@@ -170,6 +171,7 @@ namespace Rock.Model
         /// <value>
         /// A collection containing a collection of the <see cref="Rock.Model.EventItemAudience">EventItemAudiences</see> that belong to this EventItem.
         /// </value>
+        [LavaInclude]
         public virtual ICollection<EventItemAudience> EventItemAudiences
         {
             get { return _calendarItemAudiences ?? ( _calendarItemAudiences = new Collection<EventItemAudience>() ); }

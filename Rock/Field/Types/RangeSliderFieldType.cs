@@ -84,7 +84,7 @@ namespace Rock.Field.Types
             if ( controls != null && controls.Count == 2 )
             {
                 var nbMin = controls[0] as NumberBox;
-                var nbMax = controls[0] as NumberBox;
+                var nbMax = controls[1] as NumberBox;
                 if ( nbMin != null )
                 {
                     configurationValues["min"].Value = nbMin.Text;
@@ -109,7 +109,7 @@ namespace Rock.Field.Types
             if ( controls != null && controls.Count == 2 && configurationValues != null )
             {
                 var nbMin = controls[0] as NumberBox;
-                var nbMax = controls[0] as NumberBox;
+                var nbMax = controls[1] as NumberBox;
                 if ( nbMin != null && configurationValues.ContainsKey( "min" ) )
                 {
                     nbMin.Text = configurationValues["min"].Value;
@@ -150,23 +150,6 @@ namespace Rock.Field.Types
             }
 
             return null;
-        }
-
-        #endregion
-
-        #region Formatting
-
-        /// <summary>
-        /// Formats the value as HTML.
-        /// </summary>
-        /// <param name="parentControl">The parent control.</param>
-        /// <param name="value">The value.</param>
-        /// <param name="configurationValues">The configuration values.</param>
-        /// <param name="condensed">if set to <c>true</c> [condsed].</param>
-        /// <returns></returns>
-        public override string FormatValueAsHtml( Control parentControl, string value, Dictionary<string, ConfigurationValue> configurationValues, bool condensed = false )
-        {
-            return value;
         }
 
         #endregion

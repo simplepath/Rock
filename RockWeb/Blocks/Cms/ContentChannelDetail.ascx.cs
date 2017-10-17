@@ -113,6 +113,10 @@ namespace RockWeb.Blocks.Cms
     $('.js-content-channel-enable-rss').change( function() {
         $(this).closest('div.form-group').siblings('div.js-content-channel-rss').slideToggle()
     });
+
+    $('.js-content-channel-enable-tags').change( function() {
+        $(this).closest('div.form-group').siblings('div.js-content-channel-tags').slideToggle()
+    });
 ";
             ScriptManager.RegisterStartupScript( cbEnableRss, cbEnableRss.GetType(), "enable-rss", script, true );
 
@@ -238,7 +242,7 @@ namespace RockWeb.Blocks.Cms
                     channel.ContentChannelTypeId.ToString() != ddlChannelType.SelectedValue && 
                     channel.Items.Any() )
                 {
-                    maContentChannelWarning.Show( "Changing the content type will result in all of this channel\\'s items losing any data that is specific to the original content type!", ModalAlertType.Warning );
+                    maContentChannelWarning.Show( "Changing the content type will result in all of this channel's items losing any data that is specific to the original content type!", ModalAlertType.Warning );
                 }
             }
 
@@ -247,8 +251,24 @@ namespace RockWeb.Blocks.Cms
                 channel = new ContentChannel();
             }
 
+            UpdateControlsForContentChannelType( channel );
+        }
+
+        /// <summary>
+        /// Updates the type of the controls for content channel.
+        /// </summary>
+        /// <param name="channel">The channel.</param>
+        private void UpdateControlsForContentChannelType( ContentChannel channel )
+        {
             AddAttributeControls( channel );
 
+            int contentChannelTypeId = ddlChannelType.SelectedValueAsInt() ?? 0;
+            var contentChannelType = new ContentChannelTypeService( new RockContext() ).Get( contentChannelTypeId );
+            if ( contentChannelType != null )
+            {
+                ddlContentControlType.Visible = !contentChannelType.DisableContentField;
+                cbRequireApproval.Visible = !contentChannelType.DisableStatus;
+            }
         }
 
         /// <summary>
@@ -293,7 +313,9 @@ namespace RockWeb.Blocks.Cms
                 contentChannel.ContentControlType = ddlContentControlType.SelectedValueAsEnum<ContentControlType>();
                 contentChannel.RootImageDirectory = tbRootImageDirectory.Visible ? tbRootImageDirectory.Text : string.Empty;
                 contentChannel.IconCssClass = tbIconCssClass.Text;
-                contentChannel.RequiresApproval = cbRequireApproval.Checked;
+
+                // the cbRequireApproval will be hidden if contentChannelType.DisableStatus == True
+                contentChannel.RequiresApproval = cbRequireApproval.Visible && cbRequireApproval.Checked;
                 contentChannel.IsIndexEnabled = cbIndexChannel.Checked;
                 contentChannel.ItemsManuallyOrdered = cbItemsManuallyOrdered.Checked;
                 contentChannel.ChildItemsManuallyOrdered = cbChildItemsManuallyOrdered.Checked;
@@ -302,6 +324,8 @@ namespace RockWeb.Blocks.Cms
                 contentChannel.ItemUrl = tbItemUrl.Text;
                 contentChannel.TimeToLive = nbTimetoLive.Text.AsIntegerOrNull();
                 contentChannel.ItemUrl = tbContentChannelItemPublishingPoint.Text;
+                contentChannel.IsTaggingEnabled = cbEnableTag.Checked;
+                contentChannel.ItemTagCategoryId = cbEnableTag.Checked ? cpCategory.SelectedValueAsInt() : (int?)null;
 
                 contentChannel.ChildContentChannels = new List<ContentChannel>();
                 contentChannel.ChildContentChannels.Clear();
@@ -350,6 +374,9 @@ namespace RockWeb.Blocks.Cms
                 pageReference.Parameters.AddOrReplace( "contentChannelId", contentChannel.Id.ToString() );
                 Response.Redirect( pageReference.BuildUrl(), false );
             }
+
+            // flush cache
+            ContentChannelCache.Flush( contentChannel.Id );
 
         }
 
@@ -675,7 +702,7 @@ namespace RockWeb.Blocks.Cms
                 {
                     if ( contentChannel.AttributeValues.ContainsKey( attribute.Key ) )
                     {
-                        string value = attribute.FieldType.Field.FormatValueAsHtml( null,
+                        string value = attribute.FieldType.Field.FormatValueAsHtml( null, attribute.EntityTypeId, contentChannel.Id,
                             contentChannel.AttributeValues[attribute.Key].Value, attribute.QualifierValues, false );
                         descriptionListLeft.Add( attribute.Name, value );
                     }
@@ -718,8 +745,12 @@ namespace RockWeb.Blocks.Cms
                 cbChildItemsManuallyOrdered.Checked = contentChannel.ChildItemsManuallyOrdered;
                 cbEnableRss.Checked = contentChannel.EnableRss;
                 tbContentChannelItemPublishingPoint.Text = contentChannel.ItemUrl;
+                cbEnableTag.Checked = contentChannel.IsTaggingEnabled;
+                cpCategory.SetValue( contentChannel.ItemTagCategoryId );
 
                 divRss.Attributes["style"] = cbEnableRss.Checked ? "display:block" : "display:none";
+                divTag.Attributes["style"] = cbEnableTag.Checked ? "display:block" : "display:none";
+
                 tbChannelUrl.Text = contentChannel.ChannelUrl;
                 tbItemUrl.Text = contentChannel.ItemUrl;
                 nbTimetoLive.Text = ( contentChannel.TimeToLive ?? 0 ).ToString();
@@ -728,7 +759,7 @@ namespace RockWeb.Blocks.Cms
                 contentChannel.ChildContentChannels.ToList().ForEach( a => ChildContentChannelsList.Add( a.Id ) );
                 BindChildContentChannelsGrid();
 
-                AddAttributeControls( contentChannel );
+                UpdateControlsForContentChannelType( contentChannel );
 
                 // load attribute data 
                 ItemAttributesState = new List<Attribute>();

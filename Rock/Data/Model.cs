@@ -17,7 +17,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Data.Entity.ModelConfiguration;
 using System.Linq;
 using System.Data.Services;
 using System.Runtime.Serialization;
@@ -226,6 +225,14 @@ namespace Rock.Data
         }
 
         /// <summary>
+        /// Posts the save changes.
+        /// </summary>
+        /// <param name="dbContext">The database context.</param>
+        public virtual void PostSaveChanges( Rock.Data.DbContext dbContext )
+        {
+        }
+
+        /// <summary>
         /// Gets the created audit HTML.
         /// </summary>
         /// <param name="rootUrl">The root URL.</param>
@@ -259,7 +266,7 @@ namespace Rock.Data
             if ( personAlias != null &&
                 personAlias.Person != null )
             {
-                sb.AppendFormat( "<a href={0}/Person/{1}>{2}</a>", rootUrl, personAlias.PersonId, personAlias.Person.FullName );
+                sb.AppendFormat( "<a href={0}Person/{1}>{2}</a>", rootUrl, personAlias.PersonId, personAlias.Person.FullName );
 
                 if ( dateTime.HasValue )
                 {
@@ -493,7 +500,7 @@ namespace Rock.Data
                                     return ( (Rock.Field.ILinkableFieldType)field ).UrlLink( value, attribute.QualifierValues );
                                 }
 
-                                return field.FormatValue( null, value, attribute.QualifierValues, false );
+                                return field.FormatValue( null, attribute.EntityTypeId, this.Id, value, attribute.QualifierValues, false );
                             }
                         }
                     }

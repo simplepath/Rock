@@ -30,9 +30,10 @@ namespace Rock.Model
     /// <summary>
     /// 
     /// </summary>
+    [RockDomain( "Event" )]
     [Table( "RegistrationTemplate" )]
     [DataContract]
-    public partial class RegistrationTemplate : Model<RegistrationTemplate>, ICategorized
+    public partial class RegistrationTemplate : Model<RegistrationTemplate>, IHasActiveFlag, ICategorized
     {
 
         #region Entity Properties
@@ -212,6 +213,45 @@ namespace Rock.Model
         /// </value>
         [DataMember]
         public string ReminderEmailTemplate { get; set; }
+
+        /// <summary>
+        /// Gets or sets the name of the wait list transition from.
+        /// </summary>
+        /// <value>
+        /// The name of the wait list transition from.
+        /// </value>
+        [DataMember]
+        [MaxLength( 200 )]
+        public string WaitListTransitionFromName { get; set; }
+
+        /// <summary>
+        /// Gets or sets the wait list transition from email.
+        /// </summary>
+        /// <value>
+        /// The wait list transition from email.
+        /// </value>
+        [DataMember]
+        [MaxLength( 200 )]
+        public string WaitListTransitionFromEmail { get; set; }
+
+        /// <summary>
+        /// Gets or sets the wait list transition subject.
+        /// </summary>
+        /// <value>
+        /// The wait list transition subject.
+        /// </value>
+        [DataMember]
+        [MaxLength( 200 )]
+        public string WaitListTransitionSubject { get; set; }
+
+        /// <summary>
+        /// Gets or sets the wait list transition email template.
+        /// </summary>
+        /// <value>
+        /// The wait list transition email template.
+        /// </value>
+        [DataMember]
+        public string WaitListTransitionEmailTemplate { get; set; }
 
         /// <summary>
         /// Gets or sets the set cost on instance.
@@ -475,6 +515,7 @@ namespace Rock.Model
         /// <value>
         /// The <see cref="Rock.Model.Page" /> entity for the parent Page
         /// </value>
+        [LavaInclude]
         public virtual Category Category { get; set; }
 
         /// <summary>
@@ -483,6 +524,7 @@ namespace Rock.Model
         /// <value>
         /// The type of the group.
         /// </value>
+        [LavaInclude]
         public virtual GroupType GroupType { get; set; }
 
         /// <summary>
@@ -539,13 +581,14 @@ namespace Rock.Model
             set { _fees = value; }
         }
         private ICollection<RegistrationTemplateFee> _fees;
-        
+
         /// <summary>
         /// Gets or sets the collection of the current page's child pages.
         /// </summary>
         /// <value>
         /// Collection of child pages
         /// </value>
+        [LavaInclude]
         public virtual ICollection<RegistrationInstance> Instances
         {
             get { return _registrationInstances ?? ( _registrationInstances = new Collection<RegistrationInstance>() ); }

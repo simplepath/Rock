@@ -24,8 +24,10 @@
                     format: dateFormat,
                     autoclose: true,
                     todayBtn: true,
-                    startView: options.startView || 'month',
-                    todayHighlight: options.todayHighlight || true
+                    forceParse: options.forceParse,
+                    endDate: options.endDate || new Date(8640000000000000),
+                    startView: options.startView,
+                    todayHighlight: options.todayHighlight
                 });
 
                 // if the guest clicks the addon select all the text in the input
@@ -39,7 +41,10 @@
                     if ($(this).is(':checked')) {
                         $dateOffsetlabel.show();
                         $dateOffsetBox.show();
-                        $textBox.val('');
+
+                        // set textbox val to something instead of empty string so that validation doesn't complain
+                        $textBox.val('current');
+
                         $textBox.prop('disabled', true);
                         $textBox.addClass('aspNetDisabled');
 
@@ -47,6 +52,10 @@
                         $dateOffsetlabel.hide();
                         $dateOffsetBox.hide();
                         $textBox.prop('disabled', false);
+                        
+                        // set textbox val to empty string so that validation will work again (if it is enabled)
+                        $textBox.val('');
+
                         $textBox.removeClass('aspNetDisabled');
                     }
                 });

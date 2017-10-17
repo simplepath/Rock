@@ -84,14 +84,14 @@ namespace RockWeb.Blocks.Groups
 </div>
 
 {% if LinkedPages.GroupDetailPage and LinkedPages.GroupDetailPage != '' %}
-    <a class='btn btn-xs btn-action margin-r-sm' href='|{{ LinkedPages.GroupDetailPage }}|?GroupId={{ Group.Id }}'>View {{ Group.GroupType.GroupTerm }}</a>
+    <a class='btn btn-xs btn-action margin-r-sm' href='{{ LinkedPages.GroupDetailPage }}?GroupId={{ Group.Id }}'>View {{ Group.GroupType.GroupTerm }}</a>
 {% endif %}
 
 {% if LinkedPages.RegisterPage and LinkedPages.RegisterPage != '' %}
     {% if LinkedPages.RegisterPage contains '?' %}
-        <a class='btn btn-xs btn-action' href='{{ LinkedPages.RegisterPage }}&GroupId={{ Group.Id }}'>Register</a>
+        <a class='btn btn-xs btn-action' href='{{ LinkedPages.RegisterPage }}&GroupGuid={{ Group.Guid }}'>Register</a>
     {% else %}
-        <a class='btn btn-xs btn-action' href='{{ LinkedPages.RegisterPage }}?GroupId={{ Group.Id }}'>Register</a>
+        <a class='btn btn-xs btn-action' href='{{ LinkedPages.RegisterPage }}?GroupGuid={{ Group.Guid }}'>Register</a>
     {% endif %}
 {% endif %}
 ", "CustomSetting" )]
@@ -107,6 +107,7 @@ namespace RockWeb.Blocks.Groups
     [BooleanField( "Show Grid", "", false, "CustomSetting" )]
     [BooleanField( "Show Schedule", "", false, "CustomSetting" )]
     [BooleanField( "Show Proximity", "", false, "CustomSetting" )]
+    [BooleanField( "Show Campus", "", false, "CustomSetting" )]
     [BooleanField( "Show Count", "", false, "CustomSetting" )]
     [BooleanField( "Show Age", "", false, "CustomSetting" )]
     [BooleanField( "Show Description", "", true, "CustomSetting" )]
@@ -288,14 +289,14 @@ namespace RockWeb.Blocks.Groups
 
             SetAttributeValue( "GroupType", GetGroupTypeGuid( gtpGroupType.SelectedGroupTypeId ) );
             SetAttributeValue( "GeofencedGroupType", GetGroupTypeGuid( gtpGeofenceGroupType.SelectedGroupTypeId ) );
-            if ( cblSchedule.Visible )
+
+            var schFilters = new List<string>();
+            if ( rblFilterDOW.Visible )
             {
-                SetAttributeValue( "ScheduleFilters", cblSchedule.Items.Cast<ListItem>().Where( i => i.Selected ).Select( i => i.Value ).ToList().AsDelimited( "," ) );
+                schFilters.Add( rblFilterDOW.SelectedValue );
+                schFilters.Add( cbFilterTimeOfDay.Checked ? "Time" : "" );
             }
-            else
-            {
-                SetAttributeValue( "ScheduleFilters", string.Empty );
-            }
+            SetAttributeValue( "ScheduleFilters", schFilters.Where( f => f != "" ).ToList().AsDelimited( "," ) );
 
             SetAttributeValue( "DisplayCampusFilter", cbFilterCampus.Checked.ToString() );
             SetAttributeValue( "EnableCampusContext", cbCampusContext.Checked.ToString() );
@@ -307,15 +308,14 @@ namespace RockWeb.Blocks.Groups
             SetAttributeValue( "ShowFence", cbShowFence.Checked.ToString() );
             SetAttributeValue( "PolygonColors", vlPolygonColors.Value );
             SetAttributeValue( "MapInfo", ceMapInfo.Text );
-            SetAttributeValue( "MapInfoDebug", cbMapInfoDebug.Checked.ToString() );
 
             SetAttributeValue( "ShowLavaOutput", cbShowLavaOutput.Checked.ToString() );
             SetAttributeValue( "LavaOutput", ceLavaOutput.Text );
-            SetAttributeValue( "LavaOutputDebug", cbLavaOutputDebug.Checked.ToString() );
 
             SetAttributeValue( "ShowGrid", cbShowGrid.Checked.ToString() );
             SetAttributeValue( "ShowSchedule", cbShowSchedule.Checked.ToString() );
             SetAttributeValue( "ShowDescription", cbShowDescription.Checked.ToString() );
+            SetAttributeValue( "ShowCampus", cbShowCampus.Checked.ToString() );
             SetAttributeValue( "ShowProximity", cbProximity.Checked.ToString() );
             SetAttributeValue( "SortByDistance", cbSortByDistance.Checked.ToString() );
             SetAttributeValue( "PageSizes", tbPageSizes.Text );
@@ -370,9 +370,10 @@ namespace RockWeb.Blocks.Groups
         /// <param name="e">The <see cref="RowEventArgs"/> instance containing the event data.</param>
         protected void gGroups_RowSelected( object sender, RowEventArgs e )
         {
-            if ( !NavigateToLinkedPage( "GroupDetailPage", "GroupId", e.RowKeyId ) )
+            if (!NavigateToLinkedPage("GroupDetailPage", "GroupId", e.RowKeyId))
             {
                 ShowResults();
+                ScriptManager.RegisterStartupScript(pnlMap, pnlMap.GetType(), "group-finder-row-selected", "openInfoWindowById("+e.RowKeyId+");", true);
             }
         }
 
@@ -383,10 +384,21 @@ namespace RockWeb.Blocks.Groups
         /// <param name="e">The <see cref="RowEventArgs"/> instance containing the event data.</param>
         void registerColumn_Click( object sender, RowEventArgs e )
         {
-            _urlParms.Add( "GroupId", e.RowKeyId.ToString() );
-            if ( !NavigateToLinkedPage( "RegisterPage", _urlParms ) )
+            using ( var rockContext = new RockContext() )
             {
-                ShowResults();
+                var group = new GroupService( rockContext ).Get( e.RowKeyId );
+                if ( group != null )
+                {
+                    _urlParms.Add( "GroupGuid", group.Guid.ToString() );
+                    if ( !NavigateToLinkedPage( "RegisterPage", _urlParms ) )
+                    {
+                        ShowResults();
+                    }
+                }
+                else
+                {
+                    ShowResults();
+                }
             }
         }
 
@@ -421,18 +433,16 @@ namespace RockWeb.Blocks.Groups
             BindGroupType( gtpGroupType, groupTypes, "GroupType" );
             BindGroupType( gtpGeofenceGroupType, groupTypes, "GeofencedGroupType" );
 
-            string scheduleFilters = GetAttributeValue( "ScheduleFilters" );
-            if ( !string.IsNullOrEmpty( scheduleFilters ) )
+            var scheduleFilters = GetAttributeValue( "ScheduleFilters" ).SplitDelimitedValues( false ).ToList();
+            if ( scheduleFilters.Contains("Day") )
             {
-                foreach ( string val in scheduleFilters.SplitDelimitedValues() )
-                {
-                    var li = cblSchedule.Items.FindByValue( val );
-                    if ( li != null )
-                    {
-                        li.Selected = true;
-                    }
-                }
+                rblFilterDOW.SetValue( "Day" );
             }
+            else if ( scheduleFilters.Contains( "Days"))
+            {
+                rblFilterDOW.SetValue( "Days" );
+            }
+            cbFilterTimeOfDay.Checked = scheduleFilters.Contains( "Time" );
 
             SetGroupTypeOptions();
             foreach ( string attr in GetAttributeValue( "AttributeFilters" ).SplitDelimitedValues() )
@@ -454,15 +464,14 @@ namespace RockWeb.Blocks.Groups
             cbShowFence.Checked = GetAttributeValue( "ShowFence" ).AsBoolean();
             vlPolygonColors.Value = GetAttributeValue( "PolygonColors" );
             ceMapInfo.Text = GetAttributeValue( "MapInfo" );
-            cbMapInfoDebug.Checked = GetAttributeValue( "MapInfoDebug" ).AsBoolean();
 
             cbShowLavaOutput.Checked = GetAttributeValue( "ShowLavaOutput" ).AsBoolean();
             ceLavaOutput.Text = GetAttributeValue( "LavaOutput" );
-            cbLavaOutputDebug.Checked = GetAttributeValue( "LavaOutputDebug" ).AsBoolean();
 
             cbShowGrid.Checked = GetAttributeValue( "ShowGrid" ).AsBoolean();
             cbShowSchedule.Checked = GetAttributeValue( "ShowSchedule" ).AsBoolean();
             cbShowDescription.Checked = GetAttributeValue( "ShowDescription" ).AsBoolean();
+            cbShowCampus.Checked = GetAttributeValue( "ShowCampus" ).AsBoolean();
             cbProximity.Checked = GetAttributeValue( "ShowProximity" ).AsBoolean();
             cbSortByDistance.Checked = GetAttributeValue( "SortByDistance" ).AsBoolean();
             tbPageSizes.Text = GetAttributeValue( "PageSizes" );
@@ -488,7 +497,8 @@ namespace RockWeb.Blocks.Groups
         /// </summary>
         private void SetGroupTypeOptions()
         {
-            cblSchedule.Visible = false;
+            rblFilterDOW.Visible = false;
+            cbFilterTimeOfDay.Visible = false;
 
             // Rebuild the checkbox list settings for both the filter and display in grid attribute lists
             cblAttributes.Items.Clear();
@@ -499,7 +509,9 @@ namespace RockWeb.Blocks.Groups
                 var groupType = GroupTypeCache.Read( gtpGroupType.SelectedGroupTypeId.Value );
                 if ( groupType != null )
                 {
-                    cblSchedule.Visible = ( groupType.AllowedScheduleTypes & ScheduleType.Weekly ) == ScheduleType.Weekly;
+                    bool hasWeeklyschedule = ( groupType.AllowedScheduleTypes & ScheduleType.Weekly ) == ScheduleType.Weekly;
+                    rblFilterDOW.Visible = hasWeeklyschedule;
+                    cbFilterTimeOfDay.Visible = hasWeeklyschedule;
 
                     var group = new Group();
                     group.GroupTypeId = groupType.Id;
@@ -591,7 +603,7 @@ namespace RockWeb.Blocks.Groups
                     // Hide the search button and show the results immediately since there is 
                     // no filter criteria to be entered
                     phFilterControls.Visible = false;
-                    btnSearch.Visible = false;
+                    btnSearch.Visible = GetAttributeValue( "DisplayCampusFilter" ).AsBoolean();
                     pnlResults.Visible = true;
                 }
             }
@@ -649,20 +661,25 @@ namespace RockWeb.Blocks.Groups
         {
             // Clear attribute filter controls and recreate
             phFilterControls.Controls.Clear();
-            string ScheduleFilters = GetAttributeValue( "ScheduleFilters" );
-            if ( !string.IsNullOrEmpty( ScheduleFilters ) )
+            var ScheduleFilters = GetAttributeValue( "ScheduleFilters" ).SplitDelimitedValues().ToList();
+            if ( ScheduleFilters.Contains( "Days" ) )
             {
-                if ( ScheduleFilters.Contains( "Day" ) )
-                {
-                    var control = FieldTypeCache.Read( Rock.SystemGuid.FieldType.DAY_OF_WEEK ).Field.FilterControl( null, "filter_dow", false, Rock.Reporting.FilterMode.SimpleFilter );
-                    AddFilterControl( control, "Day of Week", "The day of week that group meets on." );
-                }
-
-                if ( ScheduleFilters.Contains( "Time" ) )
-                {
-                    var control = FieldTypeCache.Read( Rock.SystemGuid.FieldType.TIME ).Field.FilterControl( null, "filter_time", false, Rock.Reporting.FilterMode.SimpleFilter );
-                    AddFilterControl( control, "Time of Day", "The time of day that group meets." );
-                }
+                var dowsFilterControl = new RockCheckBoxList();
+                dowsFilterControl.ID = "filter_dows";
+                dowsFilterControl.Label = "Day of Week";
+                dowsFilterControl.BindToEnum<DayOfWeek>();
+                dowsFilterControl.RepeatDirection = RepeatDirection.Horizontal;
+                AddFilterControl( dowsFilterControl, "Days of Week", "The day of week that group meets on." );
+            }
+            if ( ScheduleFilters.Contains( "Day" ) )
+            {
+                var control = FieldTypeCache.Read( Rock.SystemGuid.FieldType.DAY_OF_WEEK ).Field.FilterControl( null, "filter_dow", false, Rock.Reporting.FilterMode.SimpleFilter );
+                AddFilterControl( control, "Day of Week", "The day of week that group meets on." );
+            }
+            if ( ScheduleFilters.Contains( "Time" ) )
+            {
+                var control = FieldTypeCache.Read( Rock.SystemGuid.FieldType.TIME ).Field.FilterControl( null, "filter_time", false, Rock.Reporting.FilterMode.SimpleFilter );
+                AddFilterControl( control, "Time of Day", "The time of day that group meets." );
             }
             
             if ( GetAttributeValue( "DisplayCampusFilter" ).AsBoolean() )
@@ -733,6 +750,7 @@ namespace RockWeb.Blocks.Groups
             if ( registerPage.PageId > 0 )
             {
                 var registerColumn = new EditField();
+                registerColumn.ToolTip = "Register";
                 registerColumn.HeaderText = "Register";
                 registerColumn.Click += registerColumn_Click;
                 gGroups.Columns.Add( registerColumn );
@@ -804,7 +822,7 @@ namespace RockWeb.Blocks.Groups
             gGroups.Columns[4].Visible = GetAttributeValue( "ShowAge" ).AsBoolean();
 
             bool showProximity = GetAttributeValue( "ShowProximity" ).AsBoolean();
-            gGroups.Columns[5].Visible = showProximity;  // Distance
+            gGroups.Columns[6].Visible = showProximity;  // Distance
 
             // Get query of groups of the selected group type
             var rockContext = new RockContext();
@@ -815,6 +833,20 @@ namespace RockWeb.Blocks.Groups
 
             var groupParameterExpression = groupService.ParameterExpression;
             var schedulePropertyExpression = Expression.Property( groupParameterExpression, "Schedule" );
+
+            var dowsFilterControl = phFilterControls.FindControl( "filter_dows" ) as RockCheckBoxList;
+            if ( dowsFilterControl != null )
+            {
+                var dows = new List<DayOfWeek>();
+                dowsFilterControl.SelectedValuesAsInt.ForEach( i => dows.Add( (DayOfWeek)i ) );
+
+                if ( dows.Any() )
+                {
+                    groupQry = groupQry.Where( g =>
+                        g.Schedule.WeeklyDayOfWeek.HasValue &&
+                        dows.Contains( g.Schedule.WeeklyDayOfWeek.Value ) );
+                }
+            }
 
             var dowFilterControl = phFilterControls.FindControl( "filter_dow" );
             if ( dowFilterControl != null )
@@ -900,6 +932,8 @@ namespace RockWeb.Blocks.Groups
             {
                 groups = groupQry.OrderBy( g => g.Name ).ToList();
             }
+
+            gGroups.Columns[5].Visible = GetAttributeValue( "ShowCampus" ).AsBoolean() && groups.Any( g => g.CampusId.HasValue );
 
             int? fenceGroupTypeId = GetGroupTypeId( GetAttributeValue( "GeofencedGroupType" ).AsGuidOrNull() );
             bool showMap = GetAttributeValue( "ShowMap" ).AsBoolean();
@@ -1010,7 +1044,7 @@ namespace RockWeb.Blocks.Groups
                 }
 
                 // if not sorting by ColumnClick and SortByDistance, then sort the groups by distance
-                if ( gGroups.SortProperty == null && GetAttributeValue( "SortByDistance" ).AsBoolean() )
+                if ( gGroups.SortProperty == null && showProximity && GetAttributeValue( "SortByDistance" ).AsBoolean() )
                 {
                     // only show groups with a known location, and sort those by distance
                     groups = groups.Where( a => distances.Select( b => b.Key ).Contains( a.Id ) ).ToList();
@@ -1178,6 +1212,7 @@ namespace RockWeb.Blocks.Groups
                         Schedule = g.Schedule,
                         MemberCount = qryMembers.Count(),
                         AverageAge = Math.Round( qryMembers.Select( m => m.Person.BirthDate ).ToList().Select( a => Person.GetAge( a ) ).Average() ?? 0.0D ),
+                        Campus = g.Campus != null ? g.Campus.Name : "",
                         Distance = distances.Where( d => d.Key == g.Id )
                             .Select( d => d.Value ).FirstOrDefault()
                     };
@@ -1381,6 +1416,16 @@ namespace RockWeb.Blocks.Groups
 
         }}
 
+        function openInfoWindowById(id) {{
+            marker = $.grep(allMarkers, function(m) {{ return m.id == id }})[0];
+            openInfoWindow(marker);
+        }}
+
+        function openInfoWindow(marker) {{
+            infoWindow.setContent( $('<div/>').html(marker.info_window).text() );
+            infoWindow.open(map, marker);
+        }}
+
         function addMapItem( i, mapItem, color ) {{
 
             var items = [];
@@ -1400,11 +1445,13 @@ namespace RockWeb.Blocks.Groups
                     new google.maps.Point(10, 34));
 
                 marker = new google.maps.Marker({{
+                    id: mapItem.EntityId,
                     position: position,
                     map: map,
                     title: htmlDecode(mapItem.Name),
                     icon: pinImage,
-                    shadow: pinShadow
+                    shadow: pinShadow,
+                    info_window: mapItem.InfoWindow
                 }});
     
                 items.push(marker);
@@ -1413,8 +1460,7 @@ namespace RockWeb.Blocks.Groups
                 if ( mapItem.InfoWindow != null ) {{ 
                     google.maps.event.addListener(marker, 'click', (function (marker, i) {{
                         return function () {{
-                            infoWindow.setContent( $('<div/>').html(mapItem.InfoWindow).text() );
-                            infoWindow.open(map, marker);
+                            openInfoWindow(marker);
                         }}
                     }})(marker, i));
                 }}
@@ -1525,13 +1571,13 @@ namespace RockWeb.Blocks.Groups
 ";
 
             var locationJson = location != null ?
-                string.Format( "JSON.parse('{0}')", location.ToJson().Replace( Environment.NewLine, "" ).EscapeQuotes().Replace( "\x0A", "" ) ) : "null";
+                string.Format( "JSON.parse('{0}')", location.ToJson().Replace( Environment.NewLine, "" ).Replace( "\\", "\\\\" ).EscapeQuotes().Replace( "\x0A", "" ) ) : "null";
 
             var fencesJson = fences != null && fences.Any() ?
-                string.Format( "JSON.parse('{0}')", fences.ToJson().Replace( Environment.NewLine, "" ).EscapeQuotes().Replace( "\x0A", "" ) ) : "null";
+                string.Format( "JSON.parse('{0}')", fences.ToJson().Replace( Environment.NewLine, "" ).Replace( "\\", "\\\\" ).EscapeQuotes().Replace( "\x0A", "" ) ) : "null";
 
             var groupsJson = groups != null && groups.Any() ?
-                string.Format( "JSON.parse('{0}')", groups.ToJson().Replace( Environment.NewLine, "" ).EscapeQuotes().Replace( "\x0A", "" ) ) : "null";
+                string.Format( "JSON.parse('{0}')", groups.ToJson().Replace( Environment.NewLine, "" ).Replace( "\\", "\\\\" ).EscapeQuotes().Replace( "\x0A", "" ) ) : "null";
 
             string mapScript = string.Format( mapScriptFormat,
                 locationJson,       // 0

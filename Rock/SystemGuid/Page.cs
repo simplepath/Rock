@@ -361,6 +361,11 @@ namespace Rock.SystemGuid
         public const string CONNECTIONS = "530860ED-BC73-4A43-8E7C-69533EF2B6AD";
 
         /// <summary>
+        /// The connection request detail page guid
+        /// </summary>
+        public const string CONNECTION_REQUEST_DETAIL = "50f04e77-8d3b-4268-80ab-bc15dd6cb262";
+
+        /// <summary>
         /// Gets the Contact Us page guid
         /// ParentPage: Connect
         /// </summary>
@@ -527,6 +532,11 @@ namespace Rock.SystemGuid
         /// ParentPage: Scheduled Transaction
         /// </summary>
         public const string EDIT_SCHEDULED_TRANSACTION_SCHEDULED_TRANSACTION = "F1C3BBD3-EE91-4DDD-8880-1542EBCD8041";
+
+        /// <summary>
+        /// Gets the Email Analytics page guid
+        /// </summary>
+        public const string EMAIL_ANALYTICS = "DF014200-72A3-48A0-A953-E594E5410E36";
 
         /// <summary>
         /// Gets the Email Preference page guid

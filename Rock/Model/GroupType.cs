@@ -23,6 +23,8 @@ using System.Data.Entity.ModelConfiguration;
 using System.Linq;
 using System.Runtime.Serialization;
 using Rock.Data;
+using Rock.UniversalSearch;
+using Rock.UniversalSearch.IndexModels;
 
 namespace Rock.Model
 {
@@ -31,6 +33,7 @@ namespace Rock.Model
     /// Represents a type or category of <see cref="Rock.Model.Group">Groups</see> in Rock.  A GroupType is also used to configure how Groups that belong to a GroupType will operate
     /// and how they will interact with other components of Rock.
     /// </summary>
+    [RockDomain( "Group" )]
     [Table( "GroupType" )]
     [DataContract]
     public partial class GroupType : Model<GroupType>, IOrdered
@@ -194,6 +197,15 @@ namespace Rock.Model
         public bool ShowConnectionStatus { get; set; }
 
         /// <summary>
+        /// Gets or sets a value indicating whether to show the Person's martial status as a column in the Group Member Grid
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if [show marital status]; otherwise, <c>false</c>.
+        /// </value>
+        [DataMember]
+        public bool ShowMaritalStatus { get; set; }
+
+        /// <summary>
         /// Gets or sets the <see cref="Rock.Model.AttendanceRule"/> that indicates how attendance is managed a <see cref="Rock.Model.Group"/> of this GroupType
         /// </summary>
         /// <value>
@@ -352,6 +364,7 @@ namespace Rock.Model
         /// <value>
         /// A collection containing a collection of the <see cref="Rock.Model.Group">Groups</see> that belong to this GroupType.
         /// </value>
+        [LavaInclude]
         public virtual ICollection<Group> Groups
         {
             get { return _groups ?? ( _groups = new Collection<Group>() ); }
@@ -467,6 +480,7 @@ namespace Rock.Model
         /// <value>
         /// A <see cref="System.Int32"/> representing the number of <see cref="Rock.Model.Group">Groups</see> that belong to this GroupType.
         /// </value>
+        [LavaInclude]
         public virtual int GroupCount
         {
             get
@@ -496,11 +510,62 @@ namespace Rock.Model
         /// This is similar to a parent or a template GroupType.
         /// </summary>
         /// <value>The <see cref="Rock.Model.GroupType"/> that this GroupType is inheriting settings and properties from.</value>
+        [LavaInclude]
         public virtual GroupType InheritedGroupType { get; set; }
+
+        /// <summary>
+        /// Gets or sets the group requirements for groups of this Group Type (NOTE: Groups also can have additional GroupRequirements )
+        /// </summary>
+        /// <value>
+        /// The group requirements.
+        /// </value>
+        [DataMember]
+        public virtual ICollection<GroupRequirement> GroupRequirements
+        {
+            get { return _groupsRequirements ?? ( _groupsRequirements = new Collection<GroupRequirement>() ); }
+            set { _groupsRequirements = value; }
+        }
+        private ICollection<GroupRequirement> _groupsRequirements;
 
         #endregion
 
         #region Public Methods
+
+        /// <summary>
+        /// Gets a value indicating whether this instance is valid.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if this instance is valid; otherwise, <c>false</c>.
+        /// </value>
+        public override bool IsValid
+        {
+            get
+            {
+                var result = base.IsValid;
+                if ( result )
+                {
+                    // make sure it isn't getting saved with a recursive parent hierarchy
+                    var parentIds = new List<int>();
+                    parentIds.Add( this.Id );
+                    var parent = this.InheritedGroupTypeId.HasValue ? ( this.InheritedGroupType ?? new GroupTypeService( new RockContext() ).Get( this.InheritedGroupTypeId.Value ) ) : null;
+                    while ( parent != null )
+                    {
+                        if ( parentIds.Contains( parent.Id ) )
+                        {
+                            this.ValidationResults.Add( new ValidationResult( "Parent Group Type cannot be a child of this Group Type (recursion)" ) );
+                            return false;
+                        }
+                        else
+                        {
+                            parentIds.Add( parent.Id );
+                            parent = parent.InheritedGroupType;
+                        }
+                    }
+                }
+
+                return result;
+            }
+        }
 
         /// <summary>
         /// Pres the save.
@@ -512,6 +577,40 @@ namespace Rock.Model
             if (state == System.Data.Entity.EntityState.Deleted)
             {
                 ChildGroupTypes.Clear();
+
+                // manually delete any grouprequirements of this grouptype since it can't be cascade deleted
+                var groupRequirementService = new GroupRequirementService( dbContext as RockContext );
+                var groupRequirements = groupRequirementService.Queryable().Where( a => a.GroupTypeId.HasValue && a.GroupTypeId == this.Id ).ToList();
+                if ( groupRequirements.Any() )
+                {
+                    groupRequirementService.DeleteRange( groupRequirements );
+                }
+            }
+
+            // clean up the index
+            if ( state == System.Data.Entity.EntityState.Deleted && IsIndexEnabled )
+            {
+                this.DeleteIndexedDocumentsByGroupType( this.Id );
+            }
+            else if ( state == System.Data.Entity.EntityState.Modified )
+            {
+                // check if indexing is enabled
+                var changeEntry = dbContext.ChangeTracker.Entries<GroupType>().Where( a => a.Entity == this ).FirstOrDefault();
+                if ( changeEntry != null )
+                {
+                    var originalIndexState = (bool)changeEntry.OriginalValues["IsIndexEnabled"];
+
+                    if ( originalIndexState == true && IsIndexEnabled == false )
+                    {
+                        // clear out index items
+                        this.DeleteIndexedDocumentsByGroupType( Id );
+                    }
+                    else if ( IsIndexEnabled == true )
+                    {
+                        // if indexing is enabled then bulk index - needed as an attribute could have changed from IsIndexed
+                        BulkIndexDocumentsByGroupType( Id );
+                    }
+                }
             }
         }
 
@@ -526,6 +625,48 @@ namespace Rock.Model
             return this.Name;
         }
 
+        #endregion
+
+        #region Index Methods
+        /// <summary>
+        /// Deletes the indexed documents by group type.
+        /// </summary>
+        /// <param name="groupTypeId">The group type identifier.</param>
+        public void DeleteIndexedDocumentsByGroupType( int groupTypeId )
+        {
+            var groups = new GroupService( new RockContext() ).Queryable()
+                                    .Where( i => i.GroupTypeId == groupTypeId );
+
+            foreach ( var group in groups )
+            {
+                var indexableGroup = GroupIndex.LoadByModel( group );
+                IndexContainer.DeleteDocument<GroupIndex>( indexableGroup );
+            }
+        }
+
+        /// <summary>
+        /// Bulks the index documents by content channel.
+        /// </summary>
+        /// <param name="groupTypeId">The content channel identifier.</param>
+        public void BulkIndexDocumentsByGroupType( int groupTypeId )
+        {
+            List<GroupIndex> indexableGroups = new List<GroupIndex>();
+
+            // return all approved content channel items that are in content channels that should be indexed
+            RockContext rockContext = new RockContext();
+            var groups = new GroupService( rockContext ).Queryable()
+                                            .Where( g =>
+                                                g.GroupTypeId == groupTypeId
+                                                && g.IsActive);
+
+            foreach ( var group in groups )
+            {
+                var indexableChannelItem = GroupIndex.LoadByModel( group );
+                indexableGroups.Add( indexableChannelItem );
+            }
+
+            IndexContainer.IndexDocuments( indexableGroups );
+        }
         #endregion
     }
 

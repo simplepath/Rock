@@ -20,17 +20,16 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Data.Entity;
-using System.Drawing;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Web.UI;
 using System.Web.UI.HtmlControls;
 using System.Web.UI.WebControls;
-using DotLiquid;
 using OfficeOpenXml;
+using Rock;
 using Rock.Data;
+using Rock.Utility;
 using Rock.Web.Cache;
 
 namespace Rock.Web.UI.Controls
@@ -190,7 +189,7 @@ namespace Rock.Web.UI.Controls
             get
             {
                 object exportSource = this.ViewState["ExportSource"];
-                return exportSource != null ? (ExcelExportSource)exportSource : ExcelExportSource.DataSource;
+                return exportSource != null ? ( ExcelExportSource ) exportSource : ExcelExportSource.DataSource;
             }
 
             set
@@ -212,6 +211,10 @@ namespace Rock.Web.UI.Controls
             get
             {
                 string exportFilename = ViewState["ExportFilename"] as string;
+                if (string.IsNullOrWhiteSpace(exportFilename))
+                {
+                    exportFilename = $"{( Page as RockPage )?.PageTitle}.xlsx";
+                }
                 if ( string.IsNullOrWhiteSpace( exportFilename ) )
                 {
                     exportFilename = "RockExport.xlsx";
@@ -275,7 +278,7 @@ namespace Rock.Web.UI.Controls
             get
             {
                 object displayType = this.ViewState["DisplayType"];
-                return displayType != null ? (GridDisplayType)displayType : GridDisplayType.Full;
+                return displayType != null ? ( GridDisplayType ) displayType : GridDisplayType.Full;
             }
 
             set
@@ -298,7 +301,7 @@ namespace Rock.Web.UI.Controls
         public SortProperty SortProperty
         {
             get { return ViewState["SortProperty"] as SortProperty; }
-            private set { ViewState["SortProperty"] = value; }
+            set { ViewState["SortProperty"] = value; }
         }
 
         /// <summary>
@@ -664,7 +667,7 @@ namespace Rock.Web.UI.Controls
                             }
                             else
                             {
-                                string value = Page.Request.Form[cb.UniqueID.Replace( cb.ID, ( (RockRadioButton)cb ).GroupName )];
+                                string value = Page.Request.Form[cb.UniqueID.Replace( cb.ID, ( ( RockRadioButton ) cb ).GroupName )];
                                 if ( value == cb.ID )
                                 {
                                     col.SelectedKeys.Add( this.DataKeys[row.RowIndex].Value );
@@ -697,8 +700,10 @@ namespace Rock.Web.UI.Controls
 
             string gridSelectCellScriptFormat = @"
    $('#{0} .grid-select-cell').on( 'click', function (event) {{
-  var dataRowIndexValue = $(this).closest('tr').attr('data-row-index');
-  {1}
+  if (!($(event.target).is('a') || $(event.target).parent().is('a'))) {{
+    var dataRowIndexValue = $(this).closest('tr').attr('data-row-index');
+    {1}
+  }}
 }});";
             string gridSelectCellScript = string.Format( gridSelectCellScriptFormat, this.ClientID, clickScript );
             ScriptManager.RegisterStartupScript( this, this.GetType(), "grid-select-cell-script-" + this.ClientID, gridSelectCellScript, true );
@@ -754,19 +759,24 @@ namespace Rock.Web.UI.Controls
         /// <param name="writer">The <see cref="T:System.Web.UI.HtmlTextWriter" /> object that receives the control content.</param>
         public override void RenderControl( HtmlTextWriter writer )
         {
-           
+            var divClasses = new List<string>();
             if ( this.EnableResponsiveTable )
             {
-                writer.AddAttribute( HtmlTextWriterAttribute.Class, "table-responsive" );
+                divClasses.Add( "table-responsive" );
             }
 
             if ( DisplayType == GridDisplayType.Light )
             {
-                writer.AddAttribute( HtmlTextWriterAttribute.Class, "table-no-border" );
+                divClasses.Add( "table-no-border" );
+            }
+
+            if ( divClasses.Any() )
+            {
+                writer.AddAttribute( HtmlTextWriterAttribute.Class, divClasses.AsDelimited( " " ) );
             }
 
             writer.RenderBeginTag( HtmlTextWriterTag.Div );
-            
+
 
             this.AddCssClass( "grid-table" );
             this.AddCssClass( "table" );
@@ -914,7 +924,7 @@ namespace Rock.Web.UI.Controls
                 // get data priority from column
                 if ( column is IPriorityColumn )
                 {
-                    _columnDataPriorities.Add( i, ( (IPriorityColumn)column ).ColumnPriority.ConvertToInt().ToString() );
+                    _columnDataPriorities.Add( i, ( ( IPriorityColumn ) column ).ColumnPriority.ConvertToInt().ToString() );
                 }
                 else
                 {
@@ -947,7 +957,15 @@ namespace Rock.Web.UI.Controls
                 this.AllowCustomPaging = true;
                 var currentPageData = qry.Skip( this.PageIndex * this.PageSize ).Take( this.PageSize ).ToList();
                 this.DataSource = currentPageData;
-                this.VirtualItemCount = qry.Count();
+                if ( currentPageData.Count < this.PageSize )
+                {
+                    // if the current page has fewer records than the page.size, we are on the last page of records, so we can figure out how many records there are without requerying the database
+                    this.VirtualItemCount = ( this.PageIndex * this.PageSize ) + currentPageData.Count;
+                }
+                else
+                {
+                    this.VirtualItemCount = qry.Count();
+                }
 
                 PreDataBound = false;
                 CurrentPageRows = currentPageData.Count();
@@ -1073,7 +1091,7 @@ namespace Rock.Web.UI.Controls
         {
             base.OnRowDataBound( e );
 
-            if ( e.Row.RowType == DataControlRowType.Header)
+            if ( e.Row.RowType == DataControlRowType.Header )
             {
                 //add data priority
                 for ( int i = 0; i < e.Row.Cells.Count; i++ )
@@ -1208,7 +1226,7 @@ namespace Rock.Web.UI.Controls
         /// <param name="e">The <see cref="Rock.Web.UI.Controls.NumericalEventArgs"/> instance containing the event data.</param>
         public void pagerTemplate_NavigateClick( object sender, NumericalEventArgs e )
         {
-            if ( e.Number < 0  )
+            if ( e.Number < 0 )
             {
                 this.PageIndex = 0;
             }
@@ -1216,7 +1234,7 @@ namespace Rock.Web.UI.Controls
             {
                 this.PageIndex = this.PageCount - 1;
             }
-            else 
+            else
             {
                 this.PageIndex = e.Number;
             }
@@ -1299,7 +1317,7 @@ namespace Rock.Web.UI.Controls
 
                     if ( rockPage.Request != null && rockPage.Request.Url != null )
                     {
-                        communication.MediumData.AddOrReplace( "UrlReferrer", rockPage.Request.Url.AbsoluteUri );
+                        communication.UrlReferrer = rockPage.Request.Url.AbsoluteUri;
                     }
 
                     communicationService.Add( communication );
@@ -1325,18 +1343,24 @@ namespace Rock.Web.UI.Controls
                         chunkedPersonIds = personIds.Skip( skipCount ).Take( 1000 );
                     }
 
+                    // NOTE: Set CreatedDateTime, ModifiedDateTime, etc manually set we are using BulkInsert
+                    var currentDateTime = RockDateTime.Now;
+                    var currentPersonAliasId = rockPage.CurrentPersonAliasId;
+
                     var communicationRecipientList = primaryAliasList.Select( a => new Rock.Model.CommunicationRecipient
                     {
                         CommunicationId = communication.Id,
                         PersonAliasId = a.Id,
-                        AdditionalMergeValues = recipients[a.PersonId]
-                    } );
+                        AdditionalMergeValues = recipients[a.PersonId],
+                        CreatedByPersonAliasId = currentPersonAliasId,
+                        ModifiedByPersonAliasId = currentPersonAliasId,
+                        CreatedDateTime = currentDateTime,
+                        ModifiedDateTime = currentDateTime
+                    } ).ToList();
 
+                    // BulkInsert to quickly insert the CommunicationRecipient records. Note: This is much faster, but will bypass EF and Rock processing.
                     var communicationRecipientRockContext = new RockContext();
-
-                    var communicationRecipientService = new Rock.Model.CommunicationRecipientService( communicationRecipientRockContext );
-                    communicationRecipientService.AddRange( communicationRecipientList );
-                    communicationRecipientRockContext.SaveChanges();
+                    communicationRecipientRockContext.BulkInsert( communicationRecipientList );
 
                     // Get the URL to communication page
                     string url = CommunicationPageRoute;
@@ -1381,7 +1405,7 @@ namespace Rock.Web.UI.Controls
         {
             // disable paging if no specific keys where selected (or if no select option is shown)
             bool selectAll = !SelectedKeys.Any();
-            RebindGrid( e, selectAll );
+            RebindGrid( e, selectAll, true );
             int? entitySetId = GetEntitySetFromGrid( e );
             if ( entitySetId.HasValue )
             {
@@ -1429,14 +1453,21 @@ namespace Rock.Web.UI.Controls
             // if the grid has a caption customize on it
             if ( !string.IsNullOrEmpty( this.Caption ) )
             {
-                excel.Workbook.Properties.Title = this.Caption;
                 workSheetName = this.Caption;
                 title = this.Caption;
             }
+            // otherwise use the page title
             else
             {
-                excel.Workbook.Properties.Title = "Rock Export";
+                var pageTitle = ( Page as RockPage )?.PageTitle;
+
+                if ( !string.IsNullOrEmpty( pageTitle ) )
+                {
+                    workSheetName = pageTitle;
+                    title = pageTitle;
+                }
             }
+            excel.Workbook.Properties.Title = title;
 
             // add author info
             Rock.Model.UserLogin userLogin = Rock.Model.UserLoginService.GetCurrentUser();
@@ -1457,7 +1488,8 @@ namespace Rock.Web.UI.Controls
             //// write data to worksheet there are three supported data sources
             //// DataTables, DataViews and ILists
 
-            int rowCounter = 4;
+            var headerRows = 3;
+            int rowCounter = headerRows;
             int columnCounter = 1;
 
             if ( this.ExportSource == ExcelExportSource.ColumnOutput )
@@ -1481,7 +1513,7 @@ namespace Rock.Web.UI.Controls
                 columnCounter = 1;
                 foreach ( var col in gridColumns )
                 {
-                    worksheet.Cells[3, columnCounter].Value = col.Value.HeaderText;
+                    worksheet.Cells[rowCounter, columnCounter].Value = col.Value.HeaderText;
                     columnCounter++;
                 }
 
@@ -1495,6 +1527,7 @@ namespace Rock.Web.UI.Controls
                 var selectedKeys = SelectedKeys.ToList();
                 for ( int i = 0; i < dataItems.Count; i++ )
                 {
+                    rowCounter++;
                     var dataItem = dataItems[i];
                     var gridViewRow = gridViewRows[i];
 
@@ -1527,392 +1560,364 @@ namespace Rock.Web.UI.Controls
                             var textControls = fieldCell.ControlsOfTypeRecursive<Control>().OfType<ITextControl>();
                             if ( textControls.Any() )
                             {
-                                exportValue = textControls.Select( a => a.Text ).Where( t => !string.IsNullOrWhiteSpace( t ) ).ToList().AsDelimited( string.Empty );
+                                exportValue = textControls.Select( a => a.Text ).Where( t => !string.IsNullOrWhiteSpace( t ) ).ToList().AsDelimited( string.Empty ).ReverseCurrencyFormatting();
                             }
                         }
 
-                        SetExcelValue( worksheet.Cells[rowCounter, columnCounter], exportValue );
+                        ExcelHelper.SetExcelValue( worksheet.Cells[rowCounter, columnCounter], exportValue );
 
-                        if ( col.Value is CurrencyField )
+                        // Set the initial column format when processing the first row of data
+                        // This is done here because a value is needed to determine the data types
+                        if ( rowCounter == headerRows + 1 )
                         {
-                            worksheet.Cells[rowCounter, columnCounter].Style.Numberformat.Format = "0.00";
-                        }
-
-                        if ( exportValue != null && exportValue is DateTime )
-                        {
-                            worksheet.Cells[rowCounter, columnCounter].Style.Numberformat.Format = "MM/dd/yyyy hh:mm";
+                            worksheet.Column( columnCounter ).Style.Numberformat.Format = ExcelHelper.DefaultColumnFormat( col.Value, exportValue );
                         }
                     }
+                }
+            }
+            else if ( this.DataSourceAsDataTable != null )
+            {
+                var gridDataFields = this.Columns.OfType<BoundField>().ToList();
+                DataTable data = this.DataSourceAsDataTable;
+                columnCounter = 0;
 
+                // Set up the columns
+                foreach ( DataColumn column in data.Columns )
+                {
+                    columnCounter++;
+
+                    // Print column headings
+                    var gridField = gridDataFields.FirstOrDefault( a => a.DataField == column.ColumnName );
+                    worksheet.Cells[rowCounter, columnCounter].Value = gridField != null ? gridField.HeaderText : column.ColumnName.SplitCase();
+
+                    // Set the initial column format
+                    worksheet.Column( columnCounter ).Style.Numberformat.Format = ExcelHelper.DefaultColumnFormat( column.DataType );
+                }
+
+                // print data
+                foreach ( DataRowView rowView in data.DefaultView )
+                {
                     rowCounter++;
+
+                    for ( int i = 0; i < data.Columns.Count; i++ )
+                    {
+                        var value = rowView.Row[i].ReverseCurrencyFormatting();
+                        int columnIndex = i + 1;
+                        ExcelHelper.SetExcelValue( worksheet.Cells[rowCounter, columnIndex], value );
+
+                        // Update column formatting based on data
+                        ExcelHelper.FinalizeColumnFormat( worksheet, columnIndex, value );
+                    }
                 }
             }
             else
             {
-                if ( this.DataSourceAsDataTable != null )
+                var definedValueFields = this.Columns.OfType<DefinedValueField>().ToList();
+                Dictionary<PropertyInfo, bool> propIsDefinedValueLookup = new Dictionary<PropertyInfo, bool>();
+                Dictionary<BoundField, PropertyInfo> boundFieldPropLookup = new Dictionary<BoundField, PropertyInfo>();
+                var attributeFields = this.Columns.OfType<AttributeField>().ToList();
+                var lavaFields = new List<LavaField>();
+                var visibleFields = new Dictionary<int, DataControlField>();
+
+                int fieldOrder = 0;
+                foreach ( DataControlField dataField in this.Columns )
                 {
-                    var gridDataFields = this.Columns.OfType<BoundField>().ToList();
-                    DataTable data = this.DataSourceAsDataTable;
-
-                    // print headings
-                    foreach ( DataColumn column in data.Columns )
+                    if ( dataField is LavaField )
                     {
-                        var gridField = gridDataFields.FirstOrDefault( a => a.DataField == column.ColumnName );
-                        worksheet.Cells[3, columnCounter].Value = gridField != null ? gridField.HeaderText : column.ColumnName.SplitCase();
-                        columnCounter++;
+                        var lavaField = dataField as LavaField;
+                        lavaFields.Add( lavaField );
+                        visibleFields.Add( fieldOrder++, lavaField );
                     }
-
-                    // print data
-                    foreach ( DataRow row in data.Rows )
+                    if ( dataField is BoundField )
                     {
-                        for ( int i = 0; i < data.Columns.Count; i++ )
-                        {
-                            SetExcelValue( worksheet.Cells[rowCounter, i + 1], row[i] );
-                        }
-
-                        rowCounter++;
+                        var boundField = dataField as BoundField;
+                        visibleFields.Add( fieldOrder++, boundField );
                     }
                 }
-                else
+
+                var oType = GetDataSourceObjectType();
+
+                // get all properties of the objects in the grid
+                IList<PropertyInfo> allprops = new List<PropertyInfo>( oType.GetProperties() );
+
+                // Inspect the collection of Fields that appear in the Grid and add the corresponding data item properties to the set of fields to be exported.
+                // The fields are exported in the same order as they appear in the Grid.
+                var props = new List<PropertyInfo>();
+                foreach ( PropertyInfo prop in allprops )
                 {
-                    var definedValueFields = this.Columns.OfType<DefinedValueField>().ToList();
-                    var attributeFields = this.Columns.OfType<AttributeField>().ToList();
-                    var lavaFields = new List<LiquidField>();
-                    var visibleFields = new Dictionary<int, DataControlField>();
-
-                    int fieldOrder = 0;
-                    foreach( DataControlField dataField in this.Columns )
+                    // skip over virtual properties that aren't shown in the grid since they are probably lazy loaded and it is too late to get them
+                    var getMethod = prop.GetGetMethod();
+                    if ( getMethod.IsVirtual && !getMethod.IsFinal && prop.GetCustomAttributes( typeof( Rock.Data.PreviewableAttribute ) ).Count() == 0 )
                     {
-                        if ( dataField is LiquidField )
+                        continue;
+                    }
+
+                    // Skip the lava property (is added through columns)
+                    if ( prop.Name.StartsWith( "Data_Lava_" ) )
+                    {
+                        continue;
+                    }
+
+                    props.Add( prop );
+                }
+
+                var lavaDataFields = new Dictionary<string, LavaFieldTemplate.DataFieldInfo>();
+
+                // Grid column headings
+                var boundPropNames = new List<string>();
+                foreach ( DataControlField dataField in visibleFields.OrderBy( f => f.Key ).Select( f => f.Value ) )
+                {
+                    worksheet.Cells[rowCounter, columnCounter].Value = dataField.HeaderText;
+
+                    var boundField = dataField as BoundField;
+                    if ( boundField != null )
+                    {
+                        var prop = GetPropertyFromBoundField( props, boundFieldPropLookup, boundField );
+                        if ( prop != null )
                         {
-                            var lavaField = dataField as LiquidField;
-                            lavaFields.Add( lavaField );
-                            visibleFields.Add( fieldOrder++, lavaField );
-                        }
-                        if ( dataField is BoundField )
-                        {
-                            var boundField = dataField as BoundField;
-                            visibleFields.Add( fieldOrder++, boundField );
+                            if ( lavaFields.Any() )
+                            {
+                                var mergeFieldName = boundField.HeaderText.Replace( " ", string.Empty ).RemoveSpecialCharacters();
+                                lavaDataFields.AddOrIgnore( mergeFieldName, new LavaFieldTemplate.DataFieldInfo { PropertyInfo = prop, GridField = boundField } );
+                            }
+
+                            boundPropNames.Add( prop.Name );
+
+                            // Set the initial column format
+                            worksheet.Column( columnCounter ).Style.Numberformat.Format = ExcelHelper.DefaultColumnFormat( prop.PropertyType );
                         }
                     }
 
-                    var oType = GetDataSourceObjectType();
+                    columnCounter++;
+                }
 
-                    // get all properties of the objects in the grid
-                    IList<PropertyInfo> allprops = new List<PropertyInfo>( oType.GetProperties() );
-
-                    // Inspect the collection of Fields that appear in the Grid and add the corresponding data item properties to the set of fields to be exported.
-                    // The fields are exported in the same order as they appear in the Grid.
-                    var props = new List<PropertyInfo>();
-                    foreach ( PropertyInfo prop in allprops )
+                // headings for data not associated with a bound field
+                foreach ( var prop in props.Where( p => !boundPropNames.Contains( p.Name ) ) )
+                {
+                    if ( lavaFields.Any() )
                     {
-                        // skip over virtual properties that aren't shown in the grid since they are probably lazy loaded and it is too late to get them
-                        if ( prop.GetGetMethod().IsVirtual && prop.GetCustomAttributes( typeof( Rock.Data.PreviewableAttribute ) ).Count() == 0 )
-                        {
-                            continue;
-                        }
-
-                        // Skip the lava property (is added through columns)
-                        if ( prop.Name.StartsWith( "Data_Lava_"))
-                        {
-                            continue;
-                        }
-
-                        props.Add( prop );
+                        var mergeFieldName = prop.Name;
+                        lavaDataFields.AddOrIgnore( mergeFieldName, new LavaFieldTemplate.DataFieldInfo { PropertyInfo = prop, GridField = null } );
                     }
 
-                    var lavaDataFields = new Dictionary<string, LiquidFieldTemplate.DataFieldInfo>();
+                    worksheet.Cells[rowCounter, columnCounter].Value = prop.Name.SplitCase();
+                    worksheet.Column( columnCounter ).Style.Numberformat.Format = ExcelHelper.DefaultColumnFormat( prop.PropertyType );
 
-                    // Grid column headings
-                    var boundPropNames = new List<string>();
-                    foreach ( DataControlField dataField in visibleFields.OrderBy( f => f.Key ).Select( f => f.Value ) )
+                    columnCounter++;
+                }
+
+                string appRoot = ( ( RockPage ) Page ).ResolveRockUrl( "~/" );
+                string themeRoot = ( ( RockPage ) Page ).ResolveRockUrl( "~~/" );
+
+                // print data
+                int dataIndex = 0;
+
+                IList data = this.DataSourceAsList;
+
+                var selectedKeys = SelectedKeys.ToList();
+                foreach ( var item in data )
+                {
+                    if ( selectedKeys.Any() && this.DataKeyNames.Count() == 1 )
                     {
-                        worksheet.Cells[3, columnCounter].Value = dataField.HeaderText;
+                        var dataKeyValue = item.GetPropertyValue( this.DataKeyNames[0] );
+                        if ( !selectedKeys.Contains( dataKeyValue ) )
+                        {
+                            // if there are specific rows selected, skip over rows that aren't selected
+                            dataIndex++;
+                            continue;
+                        }
+                    }
+
+                    Rock.Attribute.IHasAttributes dataItemWithAttributes = null;
+                    if ( attributeFields.Any() )
+                    {
+                        // First check to see if there is an object list
+                        if ( ObjectList != null )
+                        {
+                            // If an object list exists, check to see if the associated object has attributes
+                            string key = DataKeys[dataIndex].Value.ToString();
+                            if ( !string.IsNullOrWhiteSpace( key ) && ObjectList.ContainsKey( key ) )
+                            {
+                                dataItemWithAttributes = ObjectList[key] as Rock.Attribute.IHasAttributes;
+                            }
+                        }
+
+                        // Then check if DataItem has attributes
+                        if ( dataItemWithAttributes == null )
+                        {
+                            dataItemWithAttributes = item as Rock.Attribute.IHasAttributes;
+                        }
+
+                        if ( dataItemWithAttributes != null )
+                        {
+                            if ( dataItemWithAttributes.Attributes == null )
+                            {
+                                dataItemWithAttributes.LoadAttributes();
+                            }
+                        }
+                    }
+
+                    columnCounter = 0;
+                    rowCounter++;
+
+                    foreach ( var dataField in visibleFields.OrderBy( f => f.Key ).Select( f => f.Value ) )
+                    {
+                        columnCounter++;
+
+                        var attributeField = dataField as AttributeField;
+                        if ( attributeField != null )
+                        {
+                            bool exists = dataItemWithAttributes.Attributes.ContainsKey( attributeField.DataField );
+                            if ( exists )
+                            {
+                                var attrib = dataItemWithAttributes.Attributes[attributeField.DataField];
+                                string rawValue = dataItemWithAttributes.GetAttributeValue( attributeField.DataField );
+                                string resultHtml = attrib.FieldType.Field.FormatValue( null, attrib.EntityTypeId, dataItemWithAttributes.Id, rawValue, attrib.QualifierValues, false ).ReverseCurrencyFormatting().ToString();
+                                if ( !string.IsNullOrEmpty( resultHtml ) )
+                                {
+                                    worksheet.Cells[rowCounter, columnCounter].Value = resultHtml;
+
+                                    // Update column formatting based on data
+                                    ExcelHelper.FinalizeColumnFormat( worksheet, columnCounter, resultHtml );
+                                }
+                            }
+                            continue;
+                        }
 
                         var boundField = dataField as BoundField;
                         if ( boundField != null )
                         {
-                            var prop = props.FirstOrDefault( p => boundField.DataField == p.Name || boundField.DataField.StartsWith( p.Name + "." ) );
+                            var cell = worksheet.Cells[rowCounter, columnCounter];
+                            var prop = GetPropertyFromBoundField( props, boundFieldPropLookup, boundField );
+                            object exportValue = null;
                             if ( prop != null )
                             {
-                                if ( lavaFields.Any() )
+                                object propValue = prop.GetValue( item, null );
+
+                                if ( dataField is CallbackField )
                                 {
-                                    var mergeFieldName = boundField.HeaderText.Replace( " ", string.Empty ).RemoveSpecialCharacters();
-                                    lavaDataFields.AddOrIgnore( mergeFieldName, new LiquidFieldTemplate.DataFieldInfo { PropertyInfo = prop, GridField = boundField } );
+                                    propValue = ( dataField as CallbackField ).GetFormattedDataValue( propValue );
                                 }
 
-                                boundPropNames.Add( prop.Name );
-                                if ( prop.PropertyType == typeof( DateTime ) || prop.PropertyType == typeof( DateTime? ) )
+                                if ( dataField is LavaBoundField )
                                 {
-                                    worksheet.Column( columnCounter ).Style.Numberformat.Format = "MM/dd/yyyy hh:mm";
+                                    propValue = ( dataField as LavaBoundField ).GetFormattedDataValue( propValue );
+                                }
+
+                                if ( propValue != null )
+                                {
+                                    exportValue = GetExportValue( prop, propValue, IsDefinedValue( definedValueFields, propIsDefinedValueLookup, prop ), cell ).ReverseCurrencyFormatting();
                                 }
                             }
+                            else if ( boundField is PersonField )
+                            {
+                                exportValue = item.GetPropertyValue( boundField.DataField );
+                            }
+
+                            if ( exportValue != null )
+                            {
+                                ExcelHelper.SetExcelValue( cell, exportValue );
+
+                                // Update column formatting based on data
+                                ExcelHelper.FinalizeColumnFormat( worksheet, columnCounter, exportValue );
+                            }
+                            
+                            continue;
                         }
 
-                        columnCounter++;
+                        var lavaField = dataField as LavaField;
+                        if ( lavaField != null )
+                        {
+                            var mergeValues = new Dictionary<string, object>();
+                            foreach ( var dataFieldItem in lavaDataFields )
+                            {
+                                var dataFieldValue = dataFieldItem.Value.PropertyInfo.GetValue( item, null );
+                                if ( dataFieldItem.Value.GridField is DefinedValueField )
+                                {
+                                    var definedValue = ( dataFieldItem.Value.GridField as DefinedValueField ).GetDefinedValue( dataFieldValue );
+                                    dataFieldValue = definedValue != null ? definedValue.Value : null;
+                                }
+                                mergeValues.Add( dataFieldItem.Key, dataFieldValue );
+                            }
+
+                            string resolvedValue = lavaField.LavaTemplate.ResolveMergeFields( mergeValues );
+                            resolvedValue = resolvedValue.Replace( "~~/", themeRoot ).Replace( "~/", appRoot ).ReverseCurrencyFormatting().ToString();
+
+                            if ( !string.IsNullOrEmpty( resolvedValue ) )
+                            {
+                                worksheet.Cells[rowCounter, columnCounter].Value = resolvedValue;
+
+                                // Update column formatting based on data
+                                ExcelHelper.FinalizeColumnFormat( worksheet, columnCounter, resolvedValue );
+                            }
+
+                            continue;
+                        }
                     }
 
-                    // headings for data not associated with a bound field
                     foreach ( var prop in props.Where( p => !boundPropNames.Contains( p.Name ) ) )
                     {
-                        if ( lavaFields.Any() )
-                        {
-                            var mergeFieldName = prop.Name;
-                            lavaDataFields.AddOrIgnore( mergeFieldName, new LiquidFieldTemplate.DataFieldInfo { PropertyInfo = prop, GridField = null } );
-                        }
-
-                        worksheet.Cells[3, columnCounter].Value = prop.Name.SplitCase();
-                        if ( prop.PropertyType == typeof( DateTime ) || prop.PropertyType == typeof( DateTime? ) )
-                        {
-                            worksheet.Column( columnCounter ).Style.Numberformat.Format = "MM/dd/yyyy hh:mm";
-                        }
-
                         columnCounter++;
-                    }
-
-                    string appRoot =  ( (RockPage)Page ).ResolveRockUrl( "~/" );
-                    string themeRoot = ( (RockPage)Page ).ResolveRockUrl( "~~/" );
-
-                    // print data
-                    int dataIndex = 0;
-
-                    IList data = this.DataSourceAsList;
-
-                    var selectedKeys = SelectedKeys.ToList();
-                    foreach ( var item in data )
-                    {
-                        if ( selectedKeys.Any() && this.DataKeyNames.Count() == 1 )
+                        object propValue = prop.GetValue( item, null );
+                        if ( propValue != null )
                         {
-                            var dataKeyValue = item.GetPropertyValue( this.DataKeyNames[0] );
-                            if ( !selectedKeys.Contains( dataKeyValue ) )
-                            {
-                                // if there are specific rows selected, skip over rows that aren't selected
-                                continue;
-                            }
-                        }
-
-                        Rock.Attribute.IHasAttributes dataItemWithAttributes = null;
-                        if ( attributeFields.Any() )
-                        {
-                            // First check to see if there is an object list
-                            if ( ObjectList != null )
-                            {
-                                // If an object list exists, check to see if the associated object has attributes
-                                string key = DataKeys[dataIndex].Value.ToString();
-                                if ( !string.IsNullOrWhiteSpace( key ) && ObjectList.ContainsKey( key ) )
-                                {
-                                    dataItemWithAttributes = ObjectList[key] as Rock.Attribute.IHasAttributes;
-                                }
-                            }
-
-                            // Then check if DataItem has attributes
-                            if ( dataItemWithAttributes == null )
-                            {
-                                dataItemWithAttributes = item as Rock.Attribute.IHasAttributes;
-                            }
-
-                            if ( dataItemWithAttributes != null )
-                            {
-                                if ( dataItemWithAttributes.Attributes == null )
-                                {
-                                    dataItemWithAttributes.LoadAttributes();
-                                }
-                            }
-                        }
-
-                        columnCounter = 0;
-
-                        foreach( var dataField in visibleFields.OrderBy( f => f.Key ).Select( f => f.Value ) )
-                        {
-                            columnCounter++;
-
-                            var attributeField = dataField as AttributeField;
-                            if ( attributeField != null )
-                            {
-                                bool exists = dataItemWithAttributes.Attributes.ContainsKey( attributeField.DataField );
-                                if ( exists )
-                                {
-                                    var attrib = dataItemWithAttributes.Attributes[attributeField.DataField];
-                                    string rawValue = dataItemWithAttributes.GetAttributeValue( attributeField.DataField );
-                                    string resultHtml = attrib.FieldType.Field.FormatValue( null, rawValue, attrib.QualifierValues, false );
-                                    worksheet.Cells[rowCounter, columnCounter].Value = resultHtml;
-                                }
-                                continue;
-                            } 
-                            
-                            var boundField = dataField as BoundField;
-                            if ( boundField != null )
-                            {
-                                var prop = props.FirstOrDefault( p => boundField.DataField == p.Name || boundField.DataField.StartsWith( p.Name + "." ) );
-                                if ( prop != null )
-                                {
-                                    object propValue = prop.GetValue( item, null );
-
-                                    var definedValueAttribute = prop.GetCustomAttributes( typeof( DefinedValueAttribute ), true ).FirstOrDefault();
-
-                                    bool isDefinedValue = ( definedValueAttribute != null || definedValueFields.Any( f => f.DataField == prop.Name ) );
-
-                                    var cell = worksheet.Cells[rowCounter, columnCounter];
-                                    SetExcelValue( cell, this.GetExportValue( prop, propValue, isDefinedValue, cell ) );
-                                }
-                                continue;
-                            }
-
-                            var lavaField = dataField as LiquidField;
-                            if ( lavaField != null )
-                            {
-                                var mergeValues = new Dictionary<string, object>();
-                                foreach ( var dataFieldItem in lavaDataFields )
-                                {
-                                    var dataFieldValue = dataFieldItem.Value.PropertyInfo.GetValue( item, null );
-                                    if ( dataFieldItem.Value.GridField is DefinedValueField )
-                                    {
-                                        var definedValue = ( dataFieldItem.Value.GridField as DefinedValueField ).GetDefinedValue( dataFieldValue );
-                                        dataFieldValue = definedValue != null ? definedValue.Value : null;
-                                    }
-                                    mergeValues.Add( dataFieldItem.Key, dataFieldValue );
-                                }
-
-                                string resolvedValue = lavaField.LiquidTemplate.ResolveMergeFields( mergeValues );
-                                worksheet.Cells[rowCounter, columnCounter].Value = resolvedValue.Replace( "~~/", themeRoot ).Replace( "~/", appRoot );
-
-                                continue;
-                            }
-                        }
-
-                        foreach ( var prop in props.Where( p => !boundPropNames.Contains( p.Name ) ) )
-                        {
-                            columnCounter++;
-                            object propValue = prop.GetValue( item, null );
-
-                            var definedValueAttribute = prop.GetCustomAttributes( typeof( DefinedValueAttribute ), true ).FirstOrDefault();
-
-                            bool isDefinedValue = ( definedValueAttribute != null || definedValueFields.Any( f => f.DataField == prop.Name ) );
-
                             var cell = worksheet.Cells[rowCounter, columnCounter];
-                            SetExcelValue( cell, this.GetExportValue( prop, propValue, isDefinedValue, cell ) );
+                            var exportValue = GetExportValue( prop, propValue, IsDefinedValue( definedValueFields, propIsDefinedValueLookup, prop ), cell ).ReverseCurrencyFormatting();
+                            ExcelHelper.SetExcelValue( cell, exportValue );
+
+                            // Update column formatting based on data
+                            ExcelHelper.FinalizeColumnFormat( worksheet, columnCounter, exportValue );
                         }
-
-                        rowCounter++;
-                        dataIndex++;
                     }
+
+                    dataIndex++;
                 }
             }
 
-            var range = worksheet.Cells[3, 1, rowCounter, columnCounter];
-
-            // use conditionalFormatting to create the alternate row style
-            var conditionalFormatting = range.ConditionalFormatting.AddExpression();
-            conditionalFormatting.Formula = "MOD(ROW()+1,2)=0";
-            conditionalFormatting.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
-            conditionalFormatting.Style.Fill.BackgroundColor.Color = Color.FromArgb( 240, 240, 240 );
-            
-            var table = worksheet.Tables.Add( range, "table1" );
-            
-            // ensure each column in the table has a unique name
-            var columnNames = worksheet.Cells[3, 1, 3, columnCounter].Select( a => new { OrigColumnName = a.Text, Cell = a } ).ToList();
-            columnNames.Reverse();
-            foreach ( var col in columnNames )
-            {
-                int duplicateSuffix = 0;
-                string uniqueName = col.OrigColumnName;
-                
-                // increment the suffix by 1 until there is only one column with that name
-                while ( columnNames.Where(a => a.Cell.Text == uniqueName ).Count() > 1 )
-                {
-                    duplicateSuffix++;
-                    uniqueName = col.OrigColumnName + duplicateSuffix.ToString();
-                    col.Cell.Value = uniqueName;
-                }
-            }
-
-            table.ShowFilter = true;
-            table.TableStyle = OfficeOpenXml.Table.TableStyles.None;
-
-            // format header range
-            using ( ExcelRange r = worksheet.Cells[3, 1, 3, columnCounter] )
-            {
-                r.Style.Font.Bold = true;
-                r.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
-                r.Style.Fill.BackgroundColor.SetColor( Color.FromArgb( 223, 223, 223 ) );
-                r.Style.Font.Color.SetColor( Color.Black );
-                r.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
-            }
-
-            // format and set title
-            worksheet.Cells[1, 1].Value = title;
-            using ( ExcelRange r = worksheet.Cells[1, 1, 1, columnCounter] )
-            {
-                r.Merge = true;
-                r.Style.Font.SetFromFont( new Font( "Calibri", 22, FontStyle.Regular ) );
-                r.Style.Font.Color.SetColor( Color.White );
-                r.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
-                r.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
-                r.Style.Fill.BackgroundColor.SetColor( Color.FromArgb( 34, 41, 55 ) );
-
-                // set border
-                r.Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
-                r.Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
-                r.Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
-                r.Style.Border.Bottom.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
-            }
-
-            // TODO: add image to worksheet
-
-            // freeze panes
-            worksheet.View.FreezePanes( 3, 1 );
-
-            // autofit columns for all cells
-            worksheet.Cells.AutoFitColumns( 0 );
-
-            // add alternating highlights
-
-            // set some footer text
-            worksheet.HeaderFooter.OddHeader.CenteredText = title;
-            worksheet.HeaderFooter.OddFooter.RightAlignedText = string.Format( "Page {0} of {1}", ExcelHeaderFooter.PageNumber, ExcelHeaderFooter.NumberOfPages );
-            byte[] byteArray;
-            using ( MemoryStream ms = new MemoryStream() )
-            {
-                excel.SaveAs( ms );
-                byteArray = ms.ToArray();
-            }
+            worksheet.FormatWorksheet( title, headerRows, rowCounter, columnCounter );
 
             // send the spreadsheet to the browser
-            this.Page.EnableViewState = false;
-            this.Page.Response.Clear();
-            this.Page.Response.ContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-            this.Page.Response.AppendHeader( "Content-Disposition", "attachment; filename=" + filename );
-
-            this.Page.Response.Charset = string.Empty;
-            this.Page.Response.BinaryWrite( byteArray );
-            this.Page.Response.Flush();
-            this.Page.Response.End();
+            excel.SendToBrowser( this.Page, filename );
         }
 
         /// <summary>
-        /// Formats the export value.
+        /// Determines whether [is defined value] [the specified defined value fields].
         /// </summary>
-        /// <param name="range">The range.</param>
-        /// <param name="exportValue">The export value.</param>
-        private void SetExcelValue( ExcelRange range, object exportValue )
+        /// <param name="definedValueFields">The defined value fields.</param>
+        /// <param name="propIsDefinedValueLookup">The property is defined value lookup.</param>
+        /// <param name="prop">The property.</param>
+        /// <returns>
+        ///   <c>true</c> if [is defined value] [the specified defined value fields]; otherwise, <c>false</c>.
+        /// </returns>
+        private static bool IsDefinedValue( List<DefinedValueField> definedValueFields, Dictionary<PropertyInfo, bool> propIsDefinedValueLookup, PropertyInfo prop )
         {
-            if ( exportValue != null &&
-                ( exportValue is decimal || exportValue is decimal? ||
-                exportValue is int || exportValue is int? ||
-                exportValue is double || exportValue is double? ||
-                exportValue is DateTime || exportValue is DateTime? ) )
+            if ( !propIsDefinedValueLookup.ContainsKey( prop ) )
             {
-                range.Value = exportValue;
+                var definedValueAttribute = prop.GetCustomAttributes( typeof( DefinedValueAttribute ), true ).FirstOrDefault();
+                bool isDefinedValue = ( definedValueAttribute != null || definedValueFields.Any( f => f.DataField == prop.Name ) );
+
+                propIsDefinedValueLookup.Add( prop, isDefinedValue );
             }
-            else
+
+            return propIsDefinedValueLookup[prop];
+        }
+
+        /// <summary>
+        /// Gets the property from bound field.
+        /// </summary>
+        /// <param name="props">The props.</param>
+        /// <param name="boundFieldPropLookup">The bound field property lookup.</param>
+        /// <param name="boundField">The bound field.</param>
+        /// <returns></returns>
+        private static PropertyInfo GetPropertyFromBoundField( List<PropertyInfo> props, Dictionary<BoundField, PropertyInfo> boundFieldPropLookup, BoundField boundField )
+        {
+            if ( !boundFieldPropLookup.ContainsKey( boundField ) )
             {
-                string value = exportValue != null ? exportValue.ToString().ConvertBrToCrLf().Replace( "&nbsp;", " " ) : string.Empty;
-                range.Value = value;
-                if ( value.Contains( Environment.NewLine ) )
-                {
-                    range.Style.WrapText = true;
-                }
+                var prop = props.FirstOrDefault( p => boundField.DataField == p.Name || boundField.DataField.StartsWith( p.Name + "." ) );
+                boundFieldPropLookup.Add( boundField, prop );
             }
+
+            return boundFieldPropLookup[boundField];
         }
 
         /// <summary>
@@ -1956,11 +1961,11 @@ namespace Rock.Web.UI.Controls
 
                         if ( prop.PropertyType == typeof( int ) )
                         {
-                            definedValueId = (int)propValue;
+                            definedValueId = ( int ) propValue;
                         }
                         else
                         {
-                            definedValueId = (int?)propValue ?? 0;
+                            definedValueId = ( int? ) propValue ?? 0;
                         }
 
                         if ( definedValueId > 0 )
@@ -2020,11 +2025,11 @@ namespace Rock.Web.UI.Controls
                         try
                         {
                             var aNode = HtmlAgilityPack.HtmlNode.CreateNode( propValue.ToString() );
-                            if (aNode != null && aNode.NodeType != HtmlAgilityPack.HtmlNodeType.Element)
+                            if ( aNode != null && aNode.NodeType != HtmlAgilityPack.HtmlNodeType.Element )
                             {
                                 aNode = aNode.NextSibling;
                             }
-                            
+
                             // Select the hyperlink tag
                             if ( aNode.Attributes["href"] != null )
                             {
@@ -2033,8 +2038,8 @@ namespace Rock.Web.UI.Controls
                                 return aNode.InnerText;
                             }
                         }
-                        catch 
-                        { 
+                        catch
+                        {
                             // ignore
                         }
                     }
@@ -2123,28 +2128,31 @@ namespace Rock.Web.UI.Controls
                 allColumns.Add( selectField );
             }
 
-            foreach ( var property in modelType.GetProperties() )
+            if ( modelType != null )
             {
-                // limit to non-virtual methods to prevent lazy loading issues
-                var getMethod = property.GetGetMethod();
-                if ( !getMethod.IsVirtual || ( property.GetCustomAttribute<PreviewableAttribute>() != null ) )
+                foreach ( var property in modelType.GetProperties() )
                 {
-                    if ( property.Name != "Id" )
+                    // limit to non-virtual methods to prevent lazy loading issues
+                    var getMethod = property.GetGetMethod();
+                    if ( !getMethod.IsVirtual || getMethod.IsFinal || ( property.GetCustomAttribute<PreviewableAttribute>() != null ) )
                     {
-                        BoundField boundField = GetGridField( property );
-                        boundField.DataField = property.Name;
-                        boundField.SortExpression = property.Name;
-                        boundField.HeaderText = property.Name.SplitCase();
+                        if ( property.Name != "Id" )
+                        {
+                            BoundField boundField = GetGridField( property );
+                            boundField.DataField = property.Name;
+                            boundField.SortExpression = property.Name;
+                            boundField.HeaderText = property.Name.SplitCase();
 
-                        if ( property.GetCustomAttributes( typeof( Rock.Data.PreviewableAttribute ) ).Count() > 0 )
-                        {
-                            displayColumns.Add( boundField );
-                        }
-                        else if ( displayColumns.Count == 0
-                            && property.GetCustomAttributes( typeof( System.Runtime.Serialization.DataMemberAttribute ) ).Count() > 0
-                            && !property.GetCustomAttributes( typeof( HideFromReportingAttribute ), true ).Any() )
-                        {
-                            allColumns.Add( boundField );
+                            if ( property.GetCustomAttributes( typeof( Rock.Data.PreviewableAttribute ) ).Count() > 0 )
+                            {
+                                displayColumns.Add( boundField );
+                            }
+                            else if ( displayColumns.Count == 0
+                                && property.GetCustomAttributes( typeof( System.Runtime.Serialization.DataMemberAttribute ) ).Count() > 0
+                                && !property.GetCustomAttributes( typeof( HideFromReportingAttribute ), true ).Any() )
+                            {
+                                allColumns.Add( boundField );
+                            }
                         }
                     }
                 }
@@ -2183,8 +2191,9 @@ namespace Rock.Web.UI.Controls
                 {
                     DataTable data = this.DataSourceAsDataTable;
 
-                    foreach ( DataRow row in data.Rows )
+                    foreach ( DataRowView rowView in data.DefaultView )
                     {
+                        DataRow row = rowView.Row;
                         object dataKey = row[dataKeyColumn];
                         if ( !keysSelected.Any() || keysSelected.Contains( dataKey ) )
                         {
@@ -2212,7 +2221,7 @@ namespace Rock.Web.UI.Controls
                                 {
                                     if ( eventArg.MergeValues != null )
                                     {
-                                        foreach( var mergeValue in eventArg.MergeValues )
+                                        foreach ( var mergeValue in eventArg.MergeValues )
                                         {
                                             if ( !CommunicateMergeFields.Contains( mergeValue.Key ) )
                                             {
@@ -2276,10 +2285,10 @@ namespace Rock.Web.UI.Controls
                                 var personIdObjTree = new List<object>();
                                 personIdObjTree.Add( item );
                                 bool propFound = true;
-                                foreach( var prop in personIdProp )
+                                foreach ( var prop in personIdProp )
                                 {
                                     object obj = prop.GetValue( personIdObjTree.Last(), null );
-                                    if (obj != null )
+                                    if ( obj != null )
                                     {
                                         personIdObjTree.Add( obj );
                                     }
@@ -2292,8 +2301,8 @@ namespace Rock.Web.UI.Controls
 
                                 if ( propFound && personIdObjTree.Last() is int )
                                 {
-                                    int personId = (int)personIdObjTree.Last();
-                                    int id = (int)idProp.GetValue( item, null );
+                                    int personId = ( int ) personIdObjTree.Last();
+                                    int id = ( int ) idProp.GetValue( item, null );
 
                                     // Add the personId if none are selected or if it's one of the selected items.
                                     if ( !keysSelected.Any() || keysSelected.Contains( id ) )
@@ -2320,7 +2329,10 @@ namespace Rock.Web.UI.Controls
                                                     {
                                                         CommunicateMergeFields.Add( mergeValue.Key );
                                                     }
-                                                    mergeValues.Add( mergeValue.Key, mergeValue.Value );
+                                                    if ( !mergeValues.ContainsKey( mergeValue.Key ) )
+                                                    {
+                                                        mergeValues.Add( mergeValue.Key, mergeValue.Value );
+                                                    }
                                                 }
                                             }
                                         }
@@ -2349,27 +2361,35 @@ namespace Rock.Web.UI.Controls
                 var entitySet = new Rock.Model.EntitySet();
                 entitySet.EntityTypeId = Rock.Web.Cache.EntityTypeCache.Read<Rock.Model.Person>().Id;
                 entitySet.ExpireDateTime = RockDateTime.Now.AddMinutes( 5 );
+                List<Rock.Model.EntitySetItem> entitySetItems = new List<Rock.Model.EntitySetItem>();
 
                 foreach ( var key in keys )
                 {
                     try
                     {
                         var item = new Rock.Model.EntitySetItem();
-                        item.EntityId = (int)key.Key;
-                        entitySet.Items.Add( item );
+                        item.EntityId = ( int ) key.Key;
+                        entitySetItems.Add( item );
                     }
-                    catch 
-                    { 
+                    catch
+                    {
                         // ignore
                     }
                 }
 
-                if ( entitySet.Items.Any() )
+                if ( entitySetItems.Any() )
                 {
                     var rockContext = new RockContext();
                     var service = new Rock.Model.EntitySetService( rockContext );
                     service.Add( entitySet );
                     rockContext.SaveChanges();
+                    entitySetItems.ForEach( a =>
+                    {
+                        a.EntitySetId = entitySet.Id;
+                    } );
+
+                    rockContext.BulkInsert( entitySetItems );
+
                     return entitySet.Id;
                 }
             }
@@ -2410,11 +2430,11 @@ namespace Rock.Web.UI.Controls
             {
                 if ( this.DataSource is DataTable )
                 {
-                    return (DataTable)this.DataSource;
+                    return ( DataTable ) this.DataSource;
                 }
                 else if ( this.DataSource is DataView )
                 {
-                    return ( (DataView)this.DataSource ).Table;
+                    return ( ( DataView ) this.DataSource ).Table;
                 }
 
                 return null;
@@ -2457,10 +2477,10 @@ namespace Rock.Web.UI.Controls
             {
                 entitySet.EntityTypeId = null;
             }
-            
+
             bool isPersonEntitySet = this.EntityTypeId == EntityTypeCache.GetId<Rock.Model.Person>();
             string dataKeyField = this.DataKeyNames.FirstOrDefault() ?? "Id";
-            if ( isPersonEntitySet && !string.IsNullOrEmpty(this.PersonIdField) )
+            if ( isPersonEntitySet && !string.IsNullOrEmpty( this.PersonIdField ) )
             {
                 dataKeyField = this.PersonIdField;
             }
@@ -2468,9 +2488,10 @@ namespace Rock.Web.UI.Controls
             DataColumn dataKeyColumn = this.DataSourceAsDataTable.Columns.OfType<DataColumn>().FirstOrDefault( a => a.ColumnName == dataKeyField );
 
             entitySet.ExpireDateTime = RockDateTime.Now.AddMinutes( 5 );
+            List<Rock.Model.EntitySetItem> entitySetItems = new List<Rock.Model.EntitySetItem>();
 
             int itemOrder = 0;
-            foreach ( var row in this.DataSourceAsDataTable.Rows.OfType<DataRow>() )
+            foreach ( DataRowView row in this.DataSourceAsDataTable.DefaultView )
             {
                 try
                 {
@@ -2479,7 +2500,7 @@ namespace Rock.Web.UI.Controls
                     if ( entitySet.EntityTypeId.HasValue && dataKeyColumn != null )
                     {
                         // we know the EntityTypeId, so set the EntityId to the dataKeyColumn value
-                        item.EntityId = ( row[dataKeyColumn] as int? ) ?? 0;
+                        item.EntityId = ( row[dataKeyColumn.ColumnName] as int? ) ?? 0;
                     }
                     else
                     {
@@ -2491,23 +2512,31 @@ namespace Rock.Web.UI.Controls
                     item.AdditionalMergeValues = new Dictionary<string, object>();
                     foreach ( var col in this.DataSourceAsDataTable.Columns.OfType<DataColumn>() )
                     {
-                        item.AdditionalMergeValues.Add( col.ColumnName, row[col] );
+                        item.AdditionalMergeValues.Add( col.ColumnName, row[col.ColumnName] );
                     }
 
-                    entitySet.Items.Add( item );
+                    entitySetItems.Add( item );
                 }
-                catch 
-                { 
+                catch
+                {
                     // ignore
                 }
             }
 
-            if ( entitySet.Items.Any() )
+            if ( entitySetItems.Any() )
             {
                 var rockContext = new RockContext();
                 var service = new Rock.Model.EntitySetService( rockContext );
                 service.Add( entitySet );
                 rockContext.SaveChanges();
+
+                entitySetItems.ForEach( a =>
+                {
+                    a.EntitySetId = entitySet.Id;
+                } );
+
+                rockContext.BulkInsert( entitySetItems );
+
                 return entitySet.Id;
             }
 
@@ -2559,18 +2588,18 @@ namespace Rock.Web.UI.Controls
             }
 
             // first try to get the SelectedKeys from the SelectField (if there is one)
-            var selectedKeys = this.SelectedKeys.Select( a => a as int? ).Where( a => a.HasValue ).Select( a => a.Value ).Distinct().ToList();
+            HashSet<int> selectedKeys = new HashSet<int>( this.SelectedKeys.Select( a => a as int? ).Where( a => a.HasValue ).Select( a => a.Value ).Distinct().ToList() );
             if ( selectedKeys == null || !selectedKeys.Any() )
             {
                 if ( entityTypeId.HasValue && dataSourceObjectType is IEntity )
                 {
                     // we know this is an IEntity Type so the datakey is Id
-                    selectedKeys = this.DataSourceAsList.OfType<IEntity>().Select( a => a.Id ).Distinct().ToList();
+                    selectedKeys = new HashSet<int>( this.DataSourceAsList.OfType<IEntity>().Select( a => a.Id ).Distinct().ToList() );
                 }
                 else
                 {
                     // this is something else, so try to figure it out from dataKeyColumn
-                    selectedKeys = new List<int>();
+                    selectedKeys = new HashSet<int>();
 
                     foreach ( var item in this.DataSourceAsList )
                     {
@@ -2618,25 +2647,31 @@ namespace Rock.Web.UI.Controls
 
             var gridDataFields = this.Columns.OfType<BoundField>().ToList();
 
-            Dictionary<int, Dictionary<string, object>> itemMergeFieldsList = new Dictionary<int, Dictionary<string, object>>();
+            Dictionary<int, Dictionary<string, object>> itemMergeFieldsList = new Dictionary<int, Dictionary<string, object>>( this.DataSourceAsList.Count );
+            bool? useHeaderNamesIfAvailable = null;
             if ( additionalMergeProperties != null && additionalMergeProperties.Any() && idProp != null )
             {
                 foreach ( var item in this.DataSourceAsList )
                 {
                     // since Reporting fieldnames are dynamic and can have special internal names, use the header text instead of the datafield name
-                    bool useHeaderNamesIfAvailable = item.GetType().Assembly.IsDynamic;
+                    useHeaderNamesIfAvailable = useHeaderNamesIfAvailable ?? item.GetType().Assembly.IsDynamic;
 
                     var idVal = idProp.GetValue( item ) as int?;
-                    if ( idVal.HasValue && selectedKeys.Contains( idVal.Value ) && !itemMergeFieldsList.Keys.Contains( idVal.Value ) )
+                    if ( idVal.HasValue && selectedKeys.Contains( idVal.Value ) && !itemMergeFieldsList.ContainsKey( idVal.Value ) )
                     {
                         var mergeFields = new Dictionary<string, object>();
                         foreach ( var mergeProperty in additionalMergeProperties )
                         {
                             var objValue = mergeProperty.GetValue( item );
 
-                            var boundField = gridDataFields.FirstOrDefault( a => a.DataField == mergeProperty.Name );
+                            BoundField boundField = null;
+                            if ( useHeaderNamesIfAvailable.Value )
+                            {
+                                boundField = gridDataFields.FirstOrDefault( a => a.DataField == mergeProperty.Name );
+                            }
+
                             string mergeFieldKey;
-                            if ( useHeaderNamesIfAvailable && boundField != null && !string.IsNullOrWhiteSpace( boundField.HeaderText ) )
+                            if ( useHeaderNamesIfAvailable.Value && boundField != null && !string.IsNullOrWhiteSpace( boundField.HeaderText ) )
                             {
                                 mergeFieldKey = boundField.HeaderText.RemoveSpecialCharacters().Replace( " ", "_" );
                             }
@@ -2665,6 +2700,7 @@ namespace Rock.Web.UI.Controls
             }
 
             entitySet.ExpireDateTime = RockDateTime.Now.AddMinutes( 5 );
+            List<Rock.Model.EntitySetItem> entitySetItems = new List<Rock.Model.EntitySetItem>();
 
             int itemOrder = 0;
             foreach ( var key in selectedKeys )
@@ -2679,20 +2715,27 @@ namespace Rock.Web.UI.Controls
                         item.AdditionalMergeValues = itemMergeFieldsList[key];
                     }
 
-                    entitySet.Items.Add( item );
+                    entitySetItems.Add( item );
                 }
-                catch 
-                { 
+                catch
+                {
                     // ignore
                 }
             }
 
-            if ( entitySet.Items.Any() )
+            if ( entitySetItems.Any() )
             {
                 var rockContext = new RockContext();
                 var service = new Rock.Model.EntitySetService( rockContext );
                 service.Add( entitySet );
                 rockContext.SaveChanges();
+                entitySetItems.ForEach( a =>
+                 {
+                     a.EntitySetId = entitySet.Id;
+                 } );
+
+                rockContext.BulkInsert( entitySetItems );
+
                 return entitySet.Id;
             }
 
@@ -2737,8 +2780,8 @@ namespace Rock.Web.UI.Controls
                     }
                 }
             }
-            catch 
-            { 
+            catch
+            {
                 // ignore
             }
 
@@ -3057,7 +3100,7 @@ namespace Rock.Web.UI.Controls
         /// </summary>
         /// <param name="row">The row.</param>
         /// <param name="isExporting">if set to <c>true</c> [is exporting].</param>
-        public RockGridViewRowEventArgs( GridViewRow row, bool isExporting ) : base( row)
+        public RockGridViewRowEventArgs( GridViewRow row, bool isExporting ) : base( row )
         {
             IsExporting = isExporting;
         }
@@ -3427,7 +3470,7 @@ namespace Rock.Web.UI.Controls
                 ItemLink[i] = new LinkButton();
                 ItemLinkListItem[i].Controls.Add( ItemLink[i] );
                 ItemLink[i].ID = string.Format( "ItemLink{0}", i );
-                ItemLink[i].Text = ( 5 * Math.Pow(10, i + 1) ).ToString( "N0" );
+                ItemLink[i].Text = ( 5 * Math.Pow( 10, i + 1 ) ).ToString( "N0" );
                 ItemLink[i].CausesValidation = false;
                 ItemLink[i].Click += new EventHandler( lbItems_Click );
             }
@@ -3475,8 +3518,8 @@ namespace Rock.Web.UI.Controls
             {
                 if ( pageCount > 1 )
                 {
-                    int totalGroups = (int)( ( pageCount - 1 ) / 10 ) + 1;
-                    int currentGroupIndex = (int)( pageIndex / 10 );
+                    int totalGroups = ( int ) ( ( pageCount - 1 ) / 10 ) + 1;
+                    int currentGroupIndex = ( int ) ( pageIndex / 10 );
 
                     int prevPageIndex = ( ( currentGroupIndex - 1 ) * 10 ) + 9;
                     if ( prevPageIndex < 0 )

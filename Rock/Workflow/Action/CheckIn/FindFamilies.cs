@@ -52,45 +52,98 @@ namespace Rock.Workflow.Action.CheckIn
             var checkInState = GetCheckInState( entity, out errorMessages );
             if ( checkInState != null && checkInState.CheckIn.SearchType != null )
             {
-                var personService = new PersonService( rockContext );
-                var memberService = new GroupMemberService( rockContext );
+                checkInState.CheckIn.Families = new List<CheckInFamily>();
 
-                Guid familyGroupTypeGuid = SystemGuid.GroupType.GROUPTYPE_FAMILY.AsGuid();
-                var dvActive = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_ACTIVE.AsGuid() );
-
-                if ( checkInState.CheckIn.SearchType.Guid.Equals( new Guid( SystemGuid.DefinedValue.CHECKIN_SEARCH_TYPE_PHONE_NUMBER ) ) )
+                if ( !string.IsNullOrWhiteSpace( checkInState.CheckIn.SearchValue ) )
                 {
-                    string numericPhone = checkInState.CheckIn.SearchValue.AsNumeric();
+                    var personService = new PersonService( rockContext );
+                    var memberService = new GroupMemberService( rockContext );
+                    var groupService = new GroupService( rockContext );
 
-                    var personRecordTypeId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
+                    int personRecordTypeId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
+                    int familyGroupTypeId = GroupTypeCache.Read( Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY.AsGuid() ).Id;
+                    var dvInactive = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_INACTIVE.AsGuid() );
 
-                    // Find the families with any member who has a phone number that contains selected value
-                    var familyQry = memberService
-                        .Queryable().AsNoTracking()
-                        .Where( m =>
-                            m.Group.GroupType.Guid.Equals( familyGroupTypeGuid ) &&
-                            m.Person.RecordTypeValueId == personRecordTypeId );
+                    IQueryable<int> familyIdQry = null;
 
-                    if ( checkInState.CheckInType != null && checkInState.CheckInType.PreventInactivePeopele && dvActive != null )
+                    if ( checkInState.CheckIn.SearchType.Guid.Equals( SystemGuid.DefinedValue.CHECKIN_SEARCH_TYPE_PHONE_NUMBER.AsGuid() ) )
                     {
-                        familyQry = familyQry.Where( m =>
-                            m.Person.RecordStatusValueId == dvActive.Id );
-                    }
+                        string numericPhone = checkInState.CheckIn.SearchValue.AsNumeric();
 
-                    if ( checkInState.CheckInType == null || checkInState.CheckInType.PhoneSearchType == PhoneSearchType.EndsWith )
-                    {
-                        familyQry = familyQry.Where( m =>
-                            m.Person.PhoneNumbers.Any( n => n.Number.EndsWith( numericPhone ) ) );
+                        var phoneQry = new PhoneNumberService( rockContext ).Queryable().AsNoTracking();
+                        if ( checkInState.CheckInType == null || checkInState.CheckInType.PhoneSearchType == PhoneSearchType.EndsWith )
+                        {
+                            char[] charArray = numericPhone.ToCharArray();
+                            Array.Reverse( charArray );
+                            phoneQry = phoneQry.Where( o =>
+                                o.NumberReversed.StartsWith( new string( charArray ) ) );
+                        }
+                        else
+                        {
+                            phoneQry = phoneQry.Where( o =>
+                                o.Number.Contains( numericPhone ) );
+                        }
+
+                        var tmpQry = phoneQry.Join( personService.Queryable().AsNoTracking(),
+                                o => new { PersonId = o.PersonId, IsDeceased = false, RecordTypeValueId = personRecordTypeId },
+                                p => new { PersonId = p.Id, IsDeceased = p.IsDeceased, RecordTypeValueId = p.RecordTypeValueId.Value },
+                                ( pn, p ) => new { Person = p, PhoneNumber = pn } )
+                                .Join( memberService.Queryable().AsNoTracking(),
+                                pn => pn.Person.Id,
+                                m => m.PersonId,
+                                ( o, m ) => new { PersonNumber = o.PhoneNumber, GroupMember = m } );
+
+                        familyIdQry = groupService.Queryable().Where( g => tmpQry.Any( o => o.GroupMember.GroupId == g.Id ) && g.GroupTypeId == familyGroupTypeId )
+                            .Select( g => g.Id )
+                            .Distinct();
                     }
                     else
                     {
-                        familyQry = familyQry.Where( m =>
-                            m.Person.PhoneNumbers.Any( n => n.Number.Contains( numericPhone ) ) );
-                    }
+                        var familyMemberQry = memberService
+                            .Queryable().AsNoTracking()
+                            .Where( m =>
+                                m.Group.GroupTypeId == familyGroupTypeId &&
+                                m.Person.RecordTypeValueId == personRecordTypeId );
 
-                    var familyIdQry = familyQry
-                        .Select( m => m.GroupId )
-                        .Distinct();
+                        if ( checkInState.CheckIn.SearchType.Guid.Equals( SystemGuid.DefinedValue.CHECKIN_SEARCH_TYPE_NAME.AsGuid() ) )
+                        {
+                            var personIds = personService.GetByFullName( checkInState.CheckIn.SearchValue, false ).AsNoTracking().Select( p => p.Id );
+                            familyMemberQry = familyMemberQry.Where( f => personIds.Contains( f.PersonId ) );
+                        }
+                        else if ( checkInState.CheckIn.SearchType.Guid.Equals( SystemGuid.DefinedValue.CHECKIN_SEARCH_TYPE_SCANNED_ID.AsGuid() ) )
+                        {
+                            var entityIds = new List<int>();
+
+                            var attributeValueService = new AttributeValueService( rockContext );
+                            var attr = AttributeCache.Read( SystemGuid.Attribute.FAMILY_CHECKIN_IDENTIFIERS.AsGuid() );
+                            if ( attr != null )
+                            {
+                                entityIds = new AttributeValueService( rockContext )
+                                    .Queryable().AsNoTracking()
+                                    .Where( v =>
+                                        v.AttributeId == attr.Id &&
+                                        v.EntityId.HasValue &&
+                                        ( "|" + v.Value + "|" ).Contains( "|" + checkInState.CheckIn.SearchValue + "|" ) )
+                                    .Select( v => v.EntityId.Value )
+                                    .ToList();
+                            }
+                            familyMemberQry = familyMemberQry.Where( f => entityIds.Contains( f.GroupId ) );
+                        }
+                        else if ( checkInState.CheckIn.SearchType.Guid.Equals( SystemGuid.DefinedValue.CHECKIN_SEARCH_TYPE_FAMILY_ID.AsGuid() ) )
+                        {
+                            List<int> searchFamilyIds = checkInState.CheckIn.SearchValue.SplitDelimitedValues().AsIntegerList();
+                            familyMemberQry = familyMemberQry.Where( f => searchFamilyIds.Contains( f.GroupId ) );
+                        }
+                        else
+                        {
+                            errorMessages.Add( "Invalid Search Type" );
+                            return false;
+                        }
+
+                        familyIdQry = familyMemberQry
+                            .Select( m => m.GroupId )
+                            .Distinct();
+                    }
 
                     int maxResults = checkInState.CheckInType != null ? checkInState.CheckInType.MaxSearchResults : 100;
                     if ( maxResults > 0 )
@@ -115,11 +168,11 @@ namespace Rock.Workflow.Action.CheckIn
                                 m.GroupId == familyId &&
                                 m.Person.NickName != null );
 
-                        if ( checkInState.CheckInType != null && checkInState.CheckInType.PreventInactivePeopele && dvActive != null )
+                        if ( checkInState.CheckInType != null && checkInState.CheckInType.PreventInactivePeople && dvInactive != null )
                         {
                             familyMemberQry = familyMemberQry
                                 .Where( m =>
-                                    m.Person.RecordStatusValueId == dvActive.Id );
+                                    m.Person.RecordStatusValueId != dvInactive.Id );
                         }
 
                         var thisFamilyMembers = familyMemberQry.ToList();
@@ -147,45 +200,6 @@ namespace Rock.Workflow.Action.CheckIn
                         }
                     }
                 }
-                else if ( checkInState.CheckIn.SearchType.Guid.Equals( new Guid( SystemGuid.DefinedValue.CHECKIN_SEARCH_TYPE_NAME ) ) )
-                {
-                    var people = personService.GetByFullName( checkInState.CheckIn.SearchValue, false ).AsNoTracking();
-                    if ( checkInState.CheckInType != null && checkInState.CheckInType.PreventInactivePeopele && dvActive != null )
-                    {
-                        people = people.Where( p => p.RecordStatusValueId == dvActive.Id );
-                    }
-
-                    foreach ( var person in people )
-                    {
-                        foreach ( var group in person.Members.Where( m => m.Group.GroupType.Guid.Equals( familyGroupTypeGuid ) ).Select( m => m.Group ).ToList() )
-                        {
-                            var family = checkInState.CheckIn.Families.Where( f => f.Group.Id == group.Id ).FirstOrDefault();
-                            if ( family == null )
-                            {
-                                family = new CheckInFamily();
-                                family.Group = group.Clone( false );
-                                family.Group.LoadAttributes( rockContext );
-                                family.Caption = group.ToString();
-
-                                if ( checkInState.CheckInType == null || !checkInState.CheckInType.PreventInactivePeopele )
-                                {
-                                    family.SubCaption = memberService.GetFirstNames( group.Id ).ToList().AsDelimited( ", " );
-                                }
-                                else
-                                {
-                                    family.SubCaption = memberService.GetFirstNames( group.Id, false, false ).ToList().AsDelimited( ", " );
-                                }
-
-                                checkInState.CheckIn.Families.Add( family );
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    errorMessages.Add( "Invalid Search Type" );
-                    return false;
-                }
 
                 return true;
             }
@@ -193,5 +207,6 @@ namespace Rock.Workflow.Action.CheckIn
             errorMessages.Add( "Invalid Check-in State" );
             return false;
         }
+
     }
 }

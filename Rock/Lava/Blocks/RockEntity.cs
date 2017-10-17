@@ -1,4 +1,20 @@
-﻿ using System;
+﻿// <copyright>
+// Copyright by the Spark Development Network
+//
+// Licensed under the Rock Community License (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.rockrms.com/license
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+// </copyright>
+//
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -57,7 +73,7 @@ namespace Rock.Lava.Blocks
             // first ensure that entity commands are allowed in the context
             if ( ! this.IsAuthorized(context) )
             {
-                result.Write( string.Format( "The Lava command '{0}' is not configured for this template.", this.Name ) );
+                result.Write( string.Format( RockLavaBlockBase.NotAuthorizedMessage, this.Name ) );
                 base.Render( context, result );
                 return;
             }
@@ -311,66 +327,62 @@ namespace Rock.Lava.Blocks
                         // reassemble the queryable with the sort expressions
                         queryResult = queryResult.Provider.CreateQuery( queryResultExpression ) as IQueryable<IEntity>;
 
-                        // run security check on each result
-                        var items = queryResult.ToList();
-                        var itemsSecured = new List<IEntity>();
-
-                        Person person = null;
-                        var principal = HttpContext.Current.User;
-
-                        if ( principal != null && principal.Identity != null )
+                        if ( parms.GetValueOrNull( "count" ).AsBoolean() )
                         {
-                            var userLoginService = new Rock.Model.UserLoginService( new RockContext() );
-                            var userLogin = userLoginService.GetByUserName( principal.Identity.Name );
-
-                            if ( userLogin != null )
-                            {
-                                person = userLogin.Person;
-                            }
-                        }
-
-                        foreach (IEntity item in items )
-                        {
-                            ISecured itemSecured = item as ISecured;
-                            if ( itemSecured == null || itemSecured.IsAuthorized(Authorization.VIEW,  person))
-                            {
-                                itemsSecured.Add( item );
-                            }
-                        }
-
-                        queryResult = itemsSecured.AsQueryable();
-                       
-                        // offset
-                        if ( parms.Any( p => p.Key == "offset" ) )
-                        {
-                            queryResult = queryResult.Skip( parms["offset"].AsInteger() );
-                        }
-
-                        // limit, default to 1000
-                        if ( parms.Any( p => p.Key == "limit" ) )
-                        {
-                            queryResult = queryResult.Take( parms["limit"].AsInteger() );
+                            int countResult = queryResult.Count();
+                            context.Scopes.Last()["count"] = countResult;
                         }
                         else
                         {
-                            queryResult = queryResult.Take( 1000 );
-                        }
+                            // run security check on each result
+                            var items = queryResult.ToList();
+                            var itemsSecured = new List<IEntity>();
 
-                        // check to ensure we had some form of filter (otherwise we'll return all results in the table)
-                        if ( !hasFilter )
-                        {
-                            throw new Exception( "Your Lava command must contain at least one valid filter. If you configured a filter it's possible that the property or attribute you provided does not exist." );
-                        }
+                            Person person = GetCurrentPerson( context );
 
-                        var resultList = queryResult.ToList();
+                            foreach ( IEntity item in items )
+                            {
+                                ISecured itemSecured = item as ISecured;
+                                if ( itemSecured == null || itemSecured.IsAuthorized( Authorization.VIEW, person ) )
+                                {
+                                    itemsSecured.Add( item );
+                                }
+                            }
 
-                        // if there is only one item to return set an alternative non-array based variable
-                        if ( resultList.Count == 1 )
-                        {
-                            context.Scopes.Last()[_entityName] = resultList.FirstOrDefault();
+                            queryResult = itemsSecured.AsQueryable();
+
+                            // offset
+                            if ( parms.Any( p => p.Key == "offset" ) )
+                            {
+                                queryResult = queryResult.Skip( parms["offset"].AsInteger() );
+                            }
+
+                            // limit, default to 1000
+                            if ( parms.Any( p => p.Key == "limit" ) )
+                            {
+                                queryResult = queryResult.Take( parms["limit"].AsInteger() );
+                            }
+                            else
+                            {
+                                queryResult = queryResult.Take( 1000 );
+                            }
+
+                            // check to ensure we had some form of filter (otherwise we'll return all results in the table)
+                            if ( !hasFilter )
+                            {
+                                throw new Exception( "Your Lava command must contain at least one valid filter. If you configured a filter it's possible that the property or attribute you provided does not exist." );
+                            }
+
+                            var resultList = queryResult.ToList();
+
+                            // if there is only one item to return set an alternative non-array based variable
+                            if ( resultList.Count == 1 )
+                            {
+                                context.Scopes.Last()[_entityName] = resultList.FirstOrDefault();
+                            }
+
+                            context.Scopes.Last()[parms["iterator"]] = resultList;
                         }
-                        
-                        context.Scopes.Last()[parms["iterator"]] = resultList;
                     }
                 }
             }
@@ -489,6 +501,39 @@ namespace Rock.Lava.Blocks
 
                 Template.RegisterTag<Rock.Lava.Blocks.RockEntity>( entityName );
             }
+        }
+
+        /// <summary>
+        /// Gets the current person.
+        /// </summary>
+        /// <param name="context">The context.</param>
+        /// <returns></returns>
+        private static Person GetCurrentPerson( DotLiquid.Context context )
+        {
+            Person currentPerson = null;
+
+            // First check for a person override value included in lava context
+            if ( context.Scopes != null )
+            {
+                foreach ( var scopeHash in context.Scopes )
+                {
+                    if ( scopeHash.ContainsKey( "CurrentPerson" ) )
+                    {
+                        currentPerson = scopeHash["CurrentPerson"] as Person;
+                    }
+                }
+            }
+
+            if ( currentPerson == null )
+            {
+                var httpContext = System.Web.HttpContext.Current;
+                if ( httpContext != null && httpContext.Items.Contains( "CurrentPerson" ) )
+                {
+                    currentPerson = httpContext.Items["CurrentPerson"] as Person;
+                }
+            }
+
+            return currentPerson;
         }
 
         /// <summary>
@@ -735,7 +780,7 @@ namespace Rock.Lava.Blocks
             if ( !string.IsNullOrWhiteSpace( dynamicFilter ) && !string.IsNullOrWhiteSpace( dynamicFilterValue ) )
             {
                 var entityFields = EntityHelper.GetEntityFields( type );
-                var entityField = entityFields.FirstOrDefault( f => f.Name.Equals( dynamicFilter, StringComparison.OrdinalIgnoreCase ) );
+                var entityField = entityFields.FindFromFilterSelection( dynamicFilter );
                 if ( entityField != null )
                 {
                     var values = new List<string>();

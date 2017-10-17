@@ -49,6 +49,42 @@ namespace Rock
         }
 
         /// <summary>
+        /// Determines whether the string is not null or whitespace.
+        /// </summary>
+        /// <param name="str">The string.</param>
+        /// <returns></returns>
+        public static bool IsNotNullOrWhitespace( this string str )
+        {
+            return !string.IsNullOrWhiteSpace( str );
+        }
+
+        /// <summary>
+        /// Determines whether [is null or white space].
+        /// </summary>
+        /// <param name="str">The string.</param>
+        /// <returns></returns>
+        public static bool IsNullOrWhiteSpace( this string str )
+        {
+            return string.IsNullOrWhiteSpace( str );
+        }
+
+        /// <summary>
+        /// Determines whether the string is made up of only digits
+        /// </summary>
+        /// <param name="str">The string.</param>
+        /// <returns></returns>
+        public static bool IsDigitsOnly( this string str )
+        {
+            foreach ( char c in str )
+            {
+                if ( c < '0' || c > '9' )
+                    return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
         /// Makes the Int64 hash code from the provided string.
         /// </summary>
         /// <param name="str">The string.</param>
@@ -70,7 +106,7 @@ namespace Rock
                 Int64 hashCodeEnd = BitConverter.ToInt64( hashText, 24 );
                 hashCode = hashCodeStart ^ hashCodeMedium ^ hashCodeEnd;
             }
-            return (hashCode);
+            return ( hashCode );
         }
 
         /// <summary>
@@ -258,15 +294,19 @@ namespace Rock
         /// <summary>
         /// Replaces the last occurrence of a given string with a new value
         /// </summary>
-        /// <param name="Source">The string.</param>
-        /// <param name="Find">The search parameter.</param>
-        /// <param name="Replace">The replacement parameter.</param>
+        /// <param name="source">The string.</param>
+        /// <param name="find">The search parameter.</param>
+        /// <param name="replace">The replacement parameter.</param>
         /// <returns></returns>
-        public static string ReplaceLastOccurrence( this string Source, string Find, string Replace )
+        public static string ReplaceLastOccurrence( this string source, string find, string replace )
         {
-            int Place = Source.LastIndexOf( Find );
-            string result = Source.Remove( Place, Find.Length ).Insert( Place, Replace );
-            return result;
+            int place = source.LastIndexOf( find );
+            if ( place >= 0 )
+            {
+                return source.Remove( place, find.Length ).Insert( place, replace );
+            }
+
+            return source;
         }
 
         /// <summary>
@@ -312,13 +352,13 @@ namespace Rock
         /// Attempts to convert string to an dictionary using the |/comma and ^ delimiter Key/Value syntax.  Returns an empty dictionary if unsuccessful.
         /// </summary>
         /// <param name="str">The string.</param>
-        /// <returns></returns>                     
+        /// <returns></returns>
         public static System.Collections.Generic.Dictionary<string, string> AsDictionary( this string str )
         {
             var dictionary = new System.Collections.Generic.Dictionary<string, string>();
             string[] nameValues = str.Split( new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries );
             // If we haven't found any pipes, check for commas
-            if ( nameValues.Count() == 1 && nameValues[0] == str)
+            if ( nameValues.Count() == 1 && nameValues[0] == str )
             {
                 nameValues = str.Split( new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries );
             }
@@ -348,7 +388,6 @@ namespace Rock
             }
             return null;
         }
-
 
         /// <summary>
         /// Attempts to convert string to integer.  Returns 0 if unsuccessful.
@@ -473,8 +512,8 @@ namespace Rock
         {
             if ( !string.IsNullOrWhiteSpace( str ) )
             {
-                // strip off non numeric and characters (for example, currency symbols)
-                str = Regex.Replace( str, @"[^0-9\.-]", "" );
+                // strip off non numeric and characters at the beginning of the line (currency symbols)
+                str = Regex.Replace( str, @"^[^0-9\.-]", "" );
             }
 
             double value;
@@ -540,16 +579,29 @@ namespace Rock
         }
 
         /// <summary>
-        /// Masks the specified value if greater than 4 characters (such as a credit card number).
+        /// Masks the specified value if greater than 4 characters (such as a credit card number) showing only the last 4 chars prefixed with 12*s
         /// For example, the return string becomes "************6789".
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns></returns>
         public static string Masked( this string value )
         {
-            if ( value.Length > 4 )
+            return value.Masked( false );
+        }
+
+        /// <summary>
+        /// Masks the specified value if greater than 4 characters (such as a credit card number) showing only the last 4 chars and replacing the preceeding chars with *
+        /// For example, the return string becomes "************6789".
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <param name="preserveLength">if set to <c>true</c> [preserve length]. If false, always put 12 *'s as the prefix</param>
+        /// <returns></returns>
+        public static string Masked( this string value, bool preserveLength )
+        {
+            if ( value != null && value.Length > 4 )
             {
-                return string.Concat( new string( '*', 12 ), value.Substring( value.Length - 4 ) );
+                int maskedLength = preserveLength ? value.Length - 4 : 12;
+                return string.Concat( new string( '*', maskedLength ), value.Substring( value.Length - 4 ) );
             }
             else
             {
@@ -662,6 +714,19 @@ namespace Rock
         public static string RemoveSpaces( this string input )
         {
             return input.Replace( " ", "" );
+        }
+
+        /// <summary>
+        /// Breaks a string into chunks. Handy for splitting a large string into smaller chunks
+        /// from https://stackoverflow.com/a/1450889/1755417
+        /// </summary>
+        /// <param name="str">The string.</param>
+        /// <param name="maxChunkSize">Maximum size of the chunk.</param>
+        /// <returns></returns>
+        public static IEnumerable<string> SplitIntoChunks( this string str, int maxChunkSize )
+        {
+            for ( int i = 0; i < str.Length; i += maxChunkSize )
+                yield return str.Substring( i, Math.Min( maxChunkSize, str.Length - i ) );
         }
 
         #endregion String Extensions

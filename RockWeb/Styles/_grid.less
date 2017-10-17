@@ -29,7 +29,7 @@
   background-color: @grid-row-odd-bg;
 }
 
-.table > tbody > tr:hover > td {
+.table.table-hover > tbody > tr:hover > td {
   color: @grid-hover-color;
   background-color: @grid-hover-bg;
 }
@@ -61,7 +61,7 @@ td.wrap-contents {
   }
 
   .grid-table.table-light {
-    border: none;
+    border: 0;
   }
 }
 
@@ -71,12 +71,12 @@ td.wrap-contents {
     border-left: 0;
   }
 
-    th:last-child,
-    td:last-child {
-      border-right: 0;
-    }
+  th:last-child,
+  td:last-child {
+    border-right: 0;
+  }
   .grid-table {
-    border: none !important;
+    border: 0 !important;
   }
 }
 
@@ -177,7 +177,7 @@ td.wrap-contents {
   background-color: @grid-column-header-bg;
   border-color: @grid-column-header-border-color;
 
-  > a:not(.btn) {
+   > a:not(.btn) {
     display: block;
     color: @grid-column-header-text-color;
   }
@@ -215,7 +215,7 @@ td.wrap-contents {
     margin-bottom: 0;
 
     li {
-      > a {
+       > a {
         color: @grid-pager-button-color;
         background-color: @grid-pager-button-bg;
         border-color: @grid-pager-button-border;
@@ -347,7 +347,6 @@ td.grid-col-actions {
 
   &.grid-columncommand {
     min-width: 48px;
-    padding: 6px;
   }
 
   &.grid-columnreorder {
@@ -359,6 +358,10 @@ td.grid-col-actions {
       color: lighten(@text-color, 20%);
     }
   }
+}
+
+.grid .table > tbody > tr > td.grid-columncommand {
+  padding: 6px;
 }
 
 .table .color-field {
@@ -379,7 +382,7 @@ td.grid-col-actions {
 // 9. Row Types
 // -------------------------
 .table > tbody > tr.grid-section-header {
-  > td {
+   > td {
     color: @grid-section-color;
     background-color: @grid-section-bg;
   }
@@ -420,19 +423,19 @@ tr.row-highlight {
 
 // inactive row
 .table > tbody > tr.is-inactive {
-  > td {
+   > td {
     color: lighten(@grid-row-even-color, 30%);
   }
 }
 
 .table > tbody > tr.is-inactive-person {
-  > td {
+   > td {
     color: lighten(@grid-row-even-color, 30%);
   }
 }
 
 .table > tbody > tr.is-deceased {
-  > td {
+   > td {
     color: @brand-danger;
   }
 }

@@ -25,6 +25,7 @@ using System.Collections.Generic;
 
 namespace Rock.Client.Enums
 {
+    #pragma warning disable CS1591
     /// <summary>
     /// </summary>
     public enum AttendanceGraphBy
@@ -77,6 +78,8 @@ namespace Rock.Client.Enums
     {
         Layout = 0x0,
         Page = 0x1,
+        Site = 0x2,
+        None = 0x3,
     }
 
     /// <summary>
@@ -116,6 +119,16 @@ namespace Rock.Client.Enums
 
     /// <summary>
     /// </summary>
+    public enum CommunicationType
+    {
+        RecipientPreference = 0x0,
+        Email = 0x1,
+        SMS = 0x2,
+        PushNotification = 0x3,
+    }
+
+    /// <summary>
+    /// </summary>
     [Flags]
     public enum ComparisonType
     {
@@ -141,6 +154,7 @@ namespace Rock.Client.Enums
     {
         SingleDate = 0x1,
         DateRange = 0x2,
+        NoDates = 0x3,
     }
 
     /// <summary>
@@ -466,6 +480,14 @@ namespace Rock.Client.Enums
 
     /// <summary>
     /// </summary>
+    public enum SegmentCriteria
+    {
+        All = 0x0,
+        Any = 0x1,
+    }
+
+    /// <summary>
+    /// </summary>
     public enum SignatureDocumentAction
     {
         Email = 0x0,
@@ -491,6 +513,14 @@ namespace Rock.Client.Enums
         AllUsers = 0x1,
         AllAuthenticatedUsers = 0x2,
         AllUnAuthenticatedUsers = 0x3,
+    }
+
+    /// <summary>
+    /// </summary>
+    public enum TagType
+    {
+        Inline = 0x1,
+        Block = 0x2,
     }
 
     /// <summary>
@@ -523,4 +553,5 @@ namespace Rock.Client.Enums
         ImmediatePostSave = 0x4,
     }
 
+    #pragma warning restore CS1591
 }

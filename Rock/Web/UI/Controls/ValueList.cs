@@ -216,6 +216,11 @@ namespace Rock.Web.UI.Controls
         /// </summary>
         public HiddenField _hfValue;
 
+        /// <summary>
+        /// The hf disable VRM
+        /// </summary>
+        public HiddenField _hfValueDisableVrm;
+
         #endregion
 
         #region Properties
@@ -232,6 +237,25 @@ namespace Rock.Web.UI.Controls
             set { ViewState["ValuePrompt"] = value; }
         }
 
+        /// <summary>
+        /// Gets or sets a value indicating whether to allow HTML content in the value
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [allow HTML value]; otherwise, <c>false</c>.
+        /// </value>
+        public bool AllowHtmlValue
+        {
+            get
+            {
+                EnsureChildControls();
+                return _hfValueDisableVrm.Value.AsBoolean();
+            }
+            set
+            {
+                EnsureChildControls();
+                _hfValueDisableVrm.Value = value.ToTrueFalse();
+            }
+        }
 
         /// <summary>
         /// Gets or sets custom values.  If custom values are used, the value control will
@@ -304,6 +328,10 @@ namespace Rock.Web.UI.Controls
             _hfValue = new HiddenField();
             _hfValue.ID = this.ID + "_hfValue";
             Controls.Add( _hfValue );
+
+            _hfValueDisableVrm = new HiddenField();
+            _hfValueDisableVrm.ID = _hfValue.ID + "_dvrm";
+            Controls.Add( _hfValueDisableVrm );
         }
 
         /// <summary>
@@ -343,11 +371,13 @@ namespace Rock.Web.UI.Controls
             writer.WriteLine();
 
             _hfValue.RenderControl( writer );
+            _hfValueDisableVrm.RenderControl( writer );
+
             writer.WriteLine();
 
             StringBuilder valueHtml = new StringBuilder();
             valueHtml.Append( @"<div class=""controls controls-row form-control-group"">");
-            if ( definedValues != null )
+            if ( definedValues != null && definedValues.Any() )
             {
                 valueHtml.Append( @"<select class=""form-control input-width-lg js-value-list-input""><option value=""""></option>" );
                 foreach ( var definedValue in definedValues )
@@ -379,7 +409,7 @@ namespace Rock.Web.UI.Controls
                 writer.RenderBeginTag( HtmlTextWriterTag.Div );
                 writer.WriteLine();
 
-                if ( definedValues != null )
+                if ( definedValues != null && definedValues.Any() )
                 {
                     DropDownList ddl = new DropDownList();
                     ddl.AddCssClass( "form-control input-width-lg js-value-list-input" );
@@ -445,6 +475,7 @@ namespace Rock.Web.UI.Controls
         private void RegisterClientScript()
         {
             string script = @"
+;(function () {
     function updateKeyValues( e ) {
         var $span = e.closest('span.value-list');
         var newValue = '';
@@ -469,9 +500,13 @@ namespace Rock.Web.UI.Controls
         Rock.controls.modal.updateSize($(this));
     });
 
+    $(document).on('keyup', '.js-value-list-input', function (e) {
+        updateKeyValues($(this));            
+    });
     $(document).on('focusout', '.js-value-list-input', function (e) {
         updateKeyValues($(this));            
     });
+})();
 ";
 
             ScriptManager.RegisterStartupScript( this, this.GetType(), "value-list", script, true );
