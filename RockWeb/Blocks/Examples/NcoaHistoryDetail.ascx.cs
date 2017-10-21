@@ -31,6 +31,7 @@ using CsvHelper;
 using CsvHelper.Configuration;
 using System.Linq;
 using System.Globalization;
+using Humanizer;
 
 namespace RockWeb.Blocks.Examples
 {
@@ -202,7 +203,6 @@ namespace RockWeb.Blocks.Examples
                             ncoaHistory.AddressStatus = AddressStatus.Valid;
                             ncoaIsValid = true;
                         }
-
                     }
 
                     if ( ncoaIsValid )
@@ -212,6 +212,8 @@ namespace RockWeb.Blocks.Examples
 
                     ncoaIsValid = false;
                     previousPersonId = record.PersonAliasId;
+
+                    SetPreviousAddress( record, ncoaHistory );
                 }
             }
 
@@ -294,9 +296,9 @@ namespace RockWeb.Blocks.Examples
         /// </summary>
         private void SetNewAddress( NcoaRow record, NcoaHistory ncoaHistory )
         {
-            ncoaHistory.UpdatedStreet1 = FindAndReplaceNull( record.UpdatedStreet1 );
-            ncoaHistory.UpdatedStreet2 = FindAndReplaceNull( record.UpdatedStreet2 );
-            ncoaHistory.UpdatedCity = FindAndReplaceNull( record.UpdatedCity );
+            ncoaHistory.UpdatedStreet1 = FindAndReplaceNull( record.UpdatedStreet1 ).ToLower().Humanize( LetterCasing.Title );
+            ncoaHistory.UpdatedStreet2 = FindAndReplaceNull( record.UpdatedStreet2 ).ToLower().Humanize( LetterCasing.Title );
+            ncoaHistory.UpdatedCity = FindAndReplaceNull( record.UpdatedCity ).ToLower().Humanize( LetterCasing.Title );
             ncoaHistory.UpdatedState = FindAndReplaceNull( record.UpdatedState );
             ncoaHistory.UpdatedPostalCode = FindAndReplaceNull( record.UpdatedPostalCode );
             ncoaHistory.UpdatedCountry = FindAndReplaceNull( record.UpdatedCountry );
