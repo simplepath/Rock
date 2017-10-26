@@ -27,7 +27,6 @@ namespace Rock.Attribute
     [AttributeUsage( AttributeTargets.Class, AllowMultiple = true, Inherited = true )]
     public class GroupMemberFieldAttribute : FieldAttribute
     {
-        private const string GROUPTYPE_KEY = "grouptype";
         private const string GROUP_KEY = "group";
         private const string ALLOW_MULTIPLE_KEY = "allowmultiple";
         private const string ENHANCED_SELECTION_KEY = "enhancedselection";
@@ -74,9 +73,6 @@ namespace Rock.Attribute
 
             if ( group != null )
             {
-                var groupTypeConfigValue = new Field.ConfigurationValue( group.GroupTypeId.ToString() );
-                FieldConfigurationValues.Add( GROUPTYPE_KEY, groupTypeConfigValue );
-
                 var groupConfigValue = new Field.ConfigurationValue( group.Id.ToString() );
                 FieldConfigurationValues.Add( GROUP_KEY, groupConfigValue );
 

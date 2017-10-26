@@ -38,14 +38,13 @@ namespace Rock.Field.Types
     {
         #region Controls
 
-        private RockDropDownList _ddlGroupType;
-        private int? _groupTypeId = null;
-        private bool _resetGroupPicker = false;
+        private GroupPicker _gpGroupPicker;
+        private int? _groupId;
+
         #endregion
 
         #region Configuration
 
-        private const string GROUPTYPE_KEY = "grouptype";
         private const string GROUP_KEY = "group";
         private const string ALLOW_MULTIPLE_KEY = "allowmultiple";
         private const string ENHANCED_SELECTION_KEY = "enhancedselection";
@@ -57,7 +56,6 @@ namespace Rock.Field.Types
         public override List<string> ConfigurationKeys()
         {
             var configKeys = base.ConfigurationKeys();
-            configKeys.Add( GROUPTYPE_KEY );
             configKeys.Add( GROUP_KEY );
             configKeys.Add( ALLOW_MULTIPLE_KEY );
             configKeys.Add( ENHANCED_SELECTION_KEY );
@@ -75,41 +73,26 @@ namespace Rock.Field.Types
             var controls = base.ConfigurationControls();
 
             // Save the selected groupType before we rebind it.
-            int? groupTypeId = null;
-            if ( _ddlGroupType != null )
+            int? groupId = null;
+            if ( _gpGroupPicker != null )
             {
-                groupTypeId = _ddlGroupType.SelectedValue.AsIntegerOrNull();
-                
-                // store this so we know if the GroupType actually changes when the SelectedIndexChanged is fired.
-                _groupTypeId = groupTypeId;
+                groupId = _gpGroupPicker.SelectedValue.AsIntegerOrNull();
+
+                // store this so we know if the Group actually changes when the SelectedIndexChanged is fired.
+                _groupId = groupId;
             }
 
-            // build a drop down list of group types (the one that gets selected is
-            // used to build a list of groups ) 
-            _ddlGroupType = new RockDropDownList();
-            controls.Add( _ddlGroupType );
-            _ddlGroupType.AutoPostBack = true;
-            _ddlGroupType.SelectedIndexChanged += OnQualifierUpdated;
-            _ddlGroupType.SelectedIndexChanged += GroupTypeWasQualifierUpdated;
-            _ddlGroupType.Label = "Group Type";
-            _ddlGroupType.Help = "The Group Type to narrow down which groups are shown for selection.";
-            _ddlGroupType.Items.Add( new ListItem() );
-            foreach ( var groupType in GroupTypeCache.All() )
-            {
-                _ddlGroupType.Items.Add( new ListItem( groupType.Name, groupType.Id.ToString() ) );
-            }
-            
             // build a group picker (the one that gets selected is
             // used to build a list of groupmember values) 
-            var gpGroupPicker = new GroupPicker();
-            gpGroupPicker.Label = "Group";
-            gpGroupPicker.Help = "The Group to select the member(s) from.";
-            gpGroupPicker.SelectItem += OnQualifierUpdated;
-            if ( groupTypeId.HasValue )
+            _gpGroupPicker = new GroupPicker();
+            _gpGroupPicker.Label = "Group";
+            _gpGroupPicker.Help = "The Group to select the member(s) from.";
+            _gpGroupPicker.SelectItem += OnQualifierUpdated;
+            if ( groupId.HasValue )
             {
-                gpGroupPicker.IncludedGroupTypeIds = new List<int> { groupTypeId.Value };
+                _gpGroupPicker.SetValue( groupId.Value );
             }
-            controls.Add( gpGroupPicker );
+            controls.Add( _gpGroupPicker );
 
             // Add checkbox for deciding if the group member picker list is rendered as a drop
             // down list or a checkbox list.
@@ -141,31 +124,27 @@ namespace Rock.Field.Types
         public override Dictionary<string, ConfigurationValue> ConfigurationValues( List<Control> controls )
         {
             Dictionary<string, ConfigurationValue> configurationValues = new Dictionary<string, ConfigurationValue>();
-            configurationValues.Add( GROUPTYPE_KEY, new ConfigurationValue( "Group Type", "The Group Type to constrain groups to.", string.Empty ) );
             configurationValues.Add( GROUP_KEY, new ConfigurationValue( "Group", "The Group to select members from.", string.Empty ) );
             configurationValues.Add( ALLOW_MULTIPLE_KEY, new ConfigurationValue( "Allow Multiple Values", "When set, allows multiple group members to be selected.", string.Empty ) );
             configurationValues.Add( ENHANCED_SELECTION_KEY, new ConfigurationValue( "Enhance For Long Lists", "When set, will render a searchable selection of options.", string.Empty ) );
 
             if ( controls != null )
             {
-                if ( controls.Count > 0 && controls[0] != null && controls[0] is DropDownList )
+                int i = 0;
+                if ( controls.Count > i && controls[i] != null && controls[i] is GroupPicker )
                 {
-                    configurationValues[GROUPTYPE_KEY].Value = ( ( DropDownList ) controls[0] ).SelectedValue;
+                    configurationValues[GROUP_KEY].Value = ( ( GroupPicker ) controls[i] ).SelectedValue;
                 }
 
-                if ( controls.Count > 1 && controls[1] != null && controls[1] is GroupPicker )
+                i++;
+                if ( controls.Count > i && controls[i] != null && controls[i] is CheckBox )
                 {
-                    configurationValues[GROUP_KEY].Value = ( ( GroupPicker ) controls[1] ).SelectedValue;
+                    configurationValues[ALLOW_MULTIPLE_KEY].Value = ( (CheckBox)controls[i] ).Checked.ToString();
                 }
-
-                if ( controls.Count > 2 && controls[2] != null && controls[2] is CheckBox )
+                i++;
+                if ( controls.Count > i && controls[i] != null && controls[i] is CheckBox )
                 {
-                    configurationValues[ALLOW_MULTIPLE_KEY].Value = ( (CheckBox)controls[2] ).Checked.ToString();
-                }
-
-                if ( controls.Count > 3 && controls[3] != null && controls[3] is CheckBox )
-                {
-                    configurationValues[ENHANCED_SELECTION_KEY].Value = ( (CheckBox)controls[3] ).Checked.ToString();
+                    configurationValues[ENHANCED_SELECTION_KEY].Value = ( (CheckBox)controls[i] ).Checked.ToString();
                 }
             }
 
@@ -181,39 +160,21 @@ namespace Rock.Field.Types
         {
             if ( controls != null && configurationValues != null )
             {
-                int? groupTypeId = null;
-
-                if ( controls.Count > 0 && controls[0] != null && controls[0] is DropDownList && configurationValues.ContainsKey( GROUPTYPE_KEY ) )
+                int i = 0;
+                if ( controls.Count > i && controls[i] != null && controls[i] is GroupPicker && configurationValues.ContainsKey( GROUP_KEY ) )
                 {
-                    ( ( DropDownList ) controls[0] ).SelectedValue = configurationValues[GROUPTYPE_KEY].Value;
-                    groupTypeId = configurationValues[GROUPTYPE_KEY].Value.AsIntegerOrNull();
+                    var gpGroupPicker = ( GroupPicker ) controls[i];
+                    gpGroupPicker.SetValue( configurationValues[GROUP_KEY].Value.AsInteger() );
                 }
-
-                if ( controls.Count > 1 && controls[1] != null && controls[1] is GroupPicker && configurationValues.ContainsKey( GROUP_KEY ) )
+                i++;
+                if ( controls.Count > i && controls[i] != null && controls[i] is CheckBox && configurationValues.ContainsKey( ALLOW_MULTIPLE_KEY ) )
                 {
-                    var gpGroupPicker = ( GroupPicker ) controls[1];
-
-                    if ( _resetGroupPicker && groupTypeId != null )
-                    {
-                        gpGroupPicker.IncludedGroupTypeIds = new List<int> { groupTypeId.Value };
-                        gpGroupPicker.SetValue(null);
-                        configurationValues[GROUP_KEY].Value = "";
-                        _resetGroupPicker = false;
-                    }
-                    else
-                    {
-                        gpGroupPicker.SetValue( configurationValues[GROUP_KEY].Value.AsInteger() );
-                    }
+                    ( (CheckBox)controls[i] ).Checked = configurationValues[ALLOW_MULTIPLE_KEY].Value.AsBoolean();
                 }
-
-                if ( controls.Count > 2 && controls[2] != null && controls[2] is CheckBox && configurationValues.ContainsKey( ALLOW_MULTIPLE_KEY ) )
+                i++;
+                if ( controls.Count > i && controls[i] != null && controls[i] is CheckBox && configurationValues.ContainsKey( ENHANCED_SELECTION_KEY ) )
                 {
-                    ( (CheckBox)controls[2] ).Checked = configurationValues[ALLOW_MULTIPLE_KEY].Value.AsBoolean();
-                }
-
-                if ( controls.Count > 3 && controls[3] != null && controls[3] is CheckBox && configurationValues.ContainsKey( ENHANCED_SELECTION_KEY ) )
-                {
-                    ( (CheckBox)controls[3] ).Checked = configurationValues[ENHANCED_SELECTION_KEY].Value.AsBoolean();
+                    ( (CheckBox)controls[i] ).Checked = configurationValues[ENHANCED_SELECTION_KEY].Value.AsBoolean();
                 }
             }
         }
@@ -231,15 +192,9 @@ namespace Rock.Field.Types
         public Dictionary<string, Rock.Field.ConfigurationValue> GetConfigurationValuesFromEntityQualifier(string entityTypeQualifierColumn, string entityTypeQualifierValue)
         {
             Dictionary<string, ConfigurationValue> configurationValues = new Dictionary<string, ConfigurationValue>();
-            configurationValues.Add( GROUPTYPE_KEY, new ConfigurationValue( "Group Type", "The Group Type to constrain groups to.", string.Empty ) );
             configurationValues.Add( GROUP_KEY, new ConfigurationValue( "Group", "The Group to select members from.", string.Empty ) );
             configurationValues.Add( ALLOW_MULTIPLE_KEY, new ConfigurationValue( "Allow Multiple Values", "When set, allows multiple group members to be selected.", string.Empty ) );
             configurationValues.Add( ENHANCED_SELECTION_KEY, new ConfigurationValue( "Enhance For Long Lists", "When set, will render a searchable selection of options.", string.Empty ) );
-
-            if ( entityTypeQualifierColumn.Equals("GroupTypeId", StringComparison.OrdinalIgnoreCase ))
-            {
-                configurationValues[GROUPTYPE_KEY].Value = entityTypeQualifierValue;
-            }
 
             if ( entityTypeQualifierColumn.Equals( "GroupId", StringComparison.OrdinalIgnoreCase ) )
             {
@@ -320,16 +275,6 @@ namespace Rock.Field.Types
 
         #region Edit Control
 
-        private void GroupTypeWasQualifierUpdated( object sender, EventArgs e )
-        {
-            int? groupTypeId = (( RockDropDownList ) sender).SelectedValue.AsIntegerOrNull();
-
-            if ( groupTypeId != null && _groupTypeId  != groupTypeId )
-            {
-                _resetGroupPicker = true;
-            }
-        }
-
         /// <summary>
         /// Creates the control(s) necessary for prompting user for a new value
         /// </summary>
@@ -342,7 +287,6 @@ namespace Rock.Field.Types
         {
             ListControl editControl;
 
-            int? groupTypeId = configurationValues != null && configurationValues.ContainsKey( GROUPTYPE_KEY ) ? configurationValues[GROUPTYPE_KEY].Value.AsIntegerOrNull() : null;
             int? groupId = configurationValues != null && configurationValues.ContainsKey( GROUP_KEY ) ? configurationValues[GROUP_KEY].Value.AsIntegerOrNull() : null;
 
             if ( groupId.HasValue )
