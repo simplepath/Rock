@@ -354,6 +354,7 @@
     <Compile Include="Attribute\BooleanFieldAttribute.cs" />
     <Compile Include="Attribute\CampusesFieldAttribute.cs" />
     <Compile Include="Attribute\CampusFieldAttribute.cs" />
+    <Compile Include="Attribute\CheckListFieldAttribute.cs" />
     <Compile Include="Attribute\GroupCategoryFieldAttribute.cs" />
     <Compile Include="Attribute\CategoryFieldAttribute.cs" />
     <Compile Include="Attribute\CodeEditorFieldAttribute.cs" />
@@ -557,6 +558,7 @@
     <Compile Include="Field\IFieldType.cs" />
     <Compile Include="Field\ILinkableFieldType.cs" />
     <Compile Include="Field\SelectFromListFieldType.cs" />
+    <Compile Include="Field\Types\CheckListFieldType.cs" />
     <Compile Include="Field\Types\GroupMemberFieldType.cs" />
     <Compile Include="Field\Types\InteractionChannelFieldType.cs" />
     <Compile Include="Field\Types\CommunicationPreferenceFieldType.cs" />

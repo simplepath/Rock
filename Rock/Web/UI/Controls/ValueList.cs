@@ -327,6 +327,7 @@ namespace Rock.Web.UI.Controls
 
             _hfValue = new HiddenField();
             _hfValue.ID = this.ID + "_hfValue";
+
             Controls.Add( _hfValue );
 
             _hfValueDisableVrm = new HiddenField();
