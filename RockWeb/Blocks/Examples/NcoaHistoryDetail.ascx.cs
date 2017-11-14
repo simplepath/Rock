@@ -96,140 +96,131 @@ namespace RockWeb.Blocks.Examples
         /// <param name="e">The <see cref="EventArgs" /> instance containing the event data.</param>
         protected void btnSave_Click( object sender, EventArgs e )
         {
-            BinaryFile binaryFile;
-            var rockContext = new RockContext();
-            BinaryFileService binaryFileService = new BinaryFileService( rockContext );
-            NcoaHistoryService ncoaHistoryService = new NcoaHistoryService( rockContext );
-            PersonAliasService personAliasService = new PersonAliasService( rockContext );
-
             if ( FileUploader1.BinaryFileId.HasValue )
             {
-                binaryFile = binaryFileService.Get( FileUploader1.BinaryFileId.Value );
-                TextReader tr = new StreamReader( binaryFile.ContentStream );
-                var csv = new CsvReader( tr );
-                csv.Configuration.RegisterClassMap<NcoaRowMap>();
-                var records = csv.GetRecords<NcoaRow>()
-                            .OrderBy( a => a.PersonAliasId )
-                            .ThenBy( a => a.RecordType ).Take( 50000 )
-                            .ToList();
+                List<NcoaRow> records = null;
 
-                int previousPersonId = 0;
-                bool ncoaIsValid = false;
-                foreach ( var record in records )
+                // Read all records from uploaded CSV File
+                using ( var rockContext = new RockContext() )
                 {
-                    //We can be comment out this section to improve the performance if we are assure that personAliasId in csv will always be present.
-                    //var person = personAliasService.Get( record.PersonAliasId );
+                    var binaryFileService = new BinaryFileService( rockContext );
 
-                    //if ( person == null )
-                    //{
-                    //    continue;
-                    //}
+                    var binaryFile = binaryFileService.Get( FileUploader1.BinaryFileId.Value );
+                    TextReader tr = new StreamReader( binaryFile.ContentStream );
+                    var csv = new CsvReader( tr );
+                    csv.Configuration.RegisterClassMap<NcoaRowMap>();
+                    records = csv.GetRecords<NcoaRow>()
+                                .OrderBy( a => a.PersonAliasId )
+                                .ThenBy( a => a.RecordType )
+                                .ToList();
 
-                    NcoaHistory ncoaHistory = new NcoaHistory()
-                    {
-                        PersonAliasId = record.PersonAliasId,
-                        FamilyId = record.FamilyId,
-                        NcoaRunDateTime = RockDateTime.Now,
-                        LocationId = record.LocationId
-                    };
-                    SetPreviousAddress( record, ncoaHistory );
+                    int previousPersonId = 0;
 
-                    if ( !string.IsNullOrEmpty( record.Vacant ) && record.Vacant.ToUpper() == "Y" )
+                    var historyRecords = new List<NcoaHistory>();
+                    foreach ( var record in records )
                     {
-                        ncoaHistory.AddressStatus = AddressStatus.Invalid;
-                        ncoaHistory.AddressInvalidReason = AddressInvalidReason.Vacant;
-                        ncoaIsValid = true;
-                    }
-                    else if ( !string.IsNullOrEmpty( record.RecordType ) )
-                    {
-                        if ( record.RecordType.ToUpper() == "A" && !string.IsNullOrEmpty( record.AddressStatus ) && record.AddressStatus.ToUpper() == "N" )
+                        bool ncoaIsValid = false;
+
+                        NcoaHistory ncoaHistory = new NcoaHistory()
                         {
-                            ncoaHistory.NcoaType = NcoaType.NoMove;
+                            PersonAliasId = record.PersonAliasId,
+                            FamilyId = record.FamilyId,
+                            NcoaRunDateTime = RockDateTime.Now,
+                            LocationId = record.LocationId
+                        };
+
+                        SetPreviousAddress( record, ncoaHistory );
+
+                        if ( !string.IsNullOrEmpty( record.Vacant ) && record.Vacant.ToUpper() == "Y" )
+                        {
                             ncoaHistory.AddressStatus = AddressStatus.Invalid;
-                            ncoaHistory.AddressInvalidReason = AddressInvalidReason.NotFound;
+                            ncoaHistory.AddressInvalidReason = AddressInvalidReason.Vacant;
                             ncoaIsValid = true;
                         }
-                        else if ( record.RecordType.ToUpper() == "C" && !IsAddressSame( record ) )
+                        else if ( !string.IsNullOrEmpty( record.RecordType ) )
                         {
-                            SetNewAddress( record, ncoaHistory );
-                            ncoaHistory.NcoaType = NcoaType.Move;
-                            ncoaHistory.MoveDistance = record.MoveDistance;
-                            ncoaHistory.AddressStatus = AddressStatus.Valid;
-                            if ( !string.IsNullOrEmpty( record.MoveDate ) )
+                            if ( record.RecordType.ToUpper() == "A" && !string.IsNullOrEmpty( record.AddressStatus ) && record.AddressStatus.ToUpper() == "N" )
                             {
-                                ncoaHistory.MoveDate = DateTime.ParseExact( record.MoveDate + "01",
-                                    "yyyyMMdd",
-                                   CultureInfo.InvariantCulture );
+                                ncoaHistory.NcoaType = NcoaType.NoMove;
+                                ncoaHistory.AddressStatus = AddressStatus.Invalid;
+                                ncoaHistory.AddressInvalidReason = AddressInvalidReason.NotFound;
+                                ncoaIsValid = true;
                             }
-                            switch ( record.MoveType.ToUpper() )
+                            else if ( record.RecordType.ToUpper() == "C" && !IsAddressSame( record ) )
                             {
-                                case "B":
-                                    ncoaHistory.MoveType = MoveType.Business;
-                                    break;
-                                case "F":
-                                    ncoaHistory.MoveType = MoveType.Family;
-                                    break;
-                                case "I":
-                                    ncoaHistory.MoveType = MoveType.Individual;
-                                    break;
-                                default:
-                                    ncoaHistory.MoveType = MoveType.None;
-                                    break;
-                            }
+                                SetNewAddress( record, ncoaHistory );
+                                ncoaHistory.NcoaType = NcoaType.Move;
+                                ncoaHistory.MoveDistance = record.MoveDistance;
+                                ncoaHistory.AddressStatus = AddressStatus.Valid;
+                                if ( !string.IsNullOrEmpty( record.MoveDate ) )
+                                {
+                                    ncoaHistory.MoveDate = DateTime.ParseExact( record.MoveDate + "01",
+                                        "yyyyMMdd",
+                                       CultureInfo.InvariantCulture );
+                                }
+                                switch ( record.MoveType.ToUpper() )
+                                {
+                                    case "B":
+                                        ncoaHistory.MoveType = MoveType.Business;
+                                        break;
+                                    case "F":
+                                        ncoaHistory.MoveType = MoveType.Family;
+                                        break;
+                                    case "I":
+                                        ncoaHistory.MoveType = MoveType.Individual;
+                                        break;
+                                    default:
+                                        ncoaHistory.MoveType = MoveType.None;
+                                        break;
+                                }
 
-                            switch ( record.MatchFlag.ToUpper() )
-                            {
-                                case "M":
-                                    ncoaHistory.MatchFlag = MatchFlag.Moved;
-                                    break;
-                                case "G":
-                                    ncoaHistory.MatchFlag = MatchFlag.POBoxClosed;
-                                    break;
-                                case "K":
-                                    ncoaHistory.MatchFlag = MatchFlag.MovedNoForwarding;
-                                    break;
-                                case "F":
-                                    ncoaHistory.MatchFlag = MatchFlag.MovedToForeignCountry;
-                                    break;
-                                default:
-                                    ncoaHistory.MatchFlag = MatchFlag.None;
-                                    break;
+                                switch ( record.MatchFlag.ToUpper() )
+                                {
+                                    case "M":
+                                        ncoaHistory.MatchFlag = MatchFlag.Moved;
+                                        break;
+                                    case "G":
+                                        ncoaHistory.MatchFlag = MatchFlag.POBoxClosed;
+                                        break;
+                                    case "K":
+                                        ncoaHistory.MatchFlag = MatchFlag.MovedNoForwarding;
+                                        break;
+                                    case "F":
+                                        ncoaHistory.MatchFlag = MatchFlag.MovedToForeignCountry;
+                                        break;
+                                    default:
+                                        ncoaHistory.MatchFlag = MatchFlag.None;
+                                        break;
+                                }
+                                ncoaIsValid = true;
                             }
-                            ncoaIsValid = true;
+                            else if ( record.RecordType.ToUpper() == "H" && !string.IsNullOrEmpty( record.Ank ) && record.Ank.Trim() == "77" && previousPersonId != record.PersonAliasId )
+                            {
+                                ncoaHistory.NcoaType = NcoaType.Month48Move;
+                                ncoaHistory.AddressStatus = AddressStatus.Valid;
+                                ncoaIsValid = true;
+                            }
                         }
-                        else if ( record.RecordType.ToUpper() == "H" && !string.IsNullOrEmpty( record.Ank ) && record.Ank.Trim() == "77" && previousPersonId != record.PersonAliasId )
+
+                        if ( ncoaIsValid )
                         {
-                            ncoaHistory.NcoaType = NcoaType.Month48Move;
-                            ncoaHistory.AddressStatus = AddressStatus.Valid;
-                            ncoaIsValid = true;
+                            historyRecords.Add( ncoaHistory );
                         }
+
+                        previousPersonId = record.PersonAliasId;
                     }
 
-                    if ( ncoaIsValid )
+                    rockContext.BulkInsert( historyRecords );
+
+                    if ( binaryFile != null && binaryFile.IsTemporary )
                     {
-                        ncoaHistoryService.Add( ncoaHistory );
+                        binaryFileService.Delete( binaryFile );
+                        rockContext.SaveChanges();
                     }
 
-                    ncoaIsValid = false;
-                    previousPersonId = record.PersonAliasId;
-
-                    SetPreviousAddress( record, ncoaHistory );
+                    FileUploader1.BinaryFileId = null;
                 }
             }
-
-            rockContext.WrapTransaction( () =>
-            {
-                rockContext.SaveChanges();
-
-                var tempBinaryFile = binaryFileService.Get( FileUploader1.BinaryFileId.Value );
-                if ( tempBinaryFile != null && tempBinaryFile.IsTemporary )
-                {
-                    binaryFileService.Delete( tempBinaryFile );
-                }
-
-                rockContext.SaveChanges();
-                FileUploader1.BinaryFileId = null;
-            } );
         }
 
         #endregion
