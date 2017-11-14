@@ -48,6 +48,11 @@ namespace Rock.Field
         #region Configuration
 
         /// <summary>
+        /// Gets whether default value is allowed.
+        /// </summary>
+        public virtual bool AllowDefaultValue { get { return true; } }
+        
+        /// <summary>
         /// Returns a list of the configuration keys
         /// </summary>
         /// <returns></returns>
@@ -164,7 +169,7 @@ namespace Rock.Field
         /// <param name="value">The value.</param>
         /// <param name="configurationValues">The configuration values.</param>
         /// <returns></returns>
-        public virtual object ValueAsFieldType(  Control parentControl, string value, Dictionary<string, ConfigurationValue> configurationValues )
+        public virtual object ValueAsFieldType( Control parentControl, string value, Dictionary<string, ConfigurationValue> configurationValues )
         {
             // by default, get the field type's value
             return value;
@@ -182,7 +187,7 @@ namespace Rock.Field
             // by default, get the formatted condensed value that would be displayed to the user
             return FormatValue( parentControl, value, configurationValues, true );
         }
-        
+
         /// <summary>
         /// Setting to determine whether the value from this control is sensitive.  This is used for determining
         /// whether or not the value of this attribute is logged when changed.
@@ -229,7 +234,7 @@ namespace Rock.Field
         {
             if ( control != null && control is TextBox )
             {
-                return ( (TextBox)control ).Text;
+                return ( ( TextBox ) control ).Text;
             }
 
             return null;
@@ -245,7 +250,7 @@ namespace Rock.Field
         {
             if ( control != null && control is TextBox )
             {
-                ( (TextBox)control ).Text = value;
+                ( ( TextBox ) control ).Text = value;
             }
         }
 
@@ -404,7 +409,7 @@ namespace Rock.Field
             control.ID = string.Format( "{0}_ctlCompareValue", id );
             if ( control is WebControl )
             {
-                ( (WebControl)control ).AddCssClass( "js-filter-control" );
+                ( ( WebControl ) control ).AddCssClass( "js-filter-control" );
             }
 
             return control;
@@ -672,7 +677,7 @@ namespace Rock.Field
 
                     bool valueNotNeeded = ( ComparisonType.IsBlank | ComparisonType.IsNotBlank ).HasFlag( comparisonType );
 
-                    if ( value != null || valueNotNeeded)
+                    if ( value != null || valueNotNeeded )
                     {
                         ConstantExpression constantExpression = value != null ? Expression.Constant( value, type ) : null;
                         return ComparisonHelper.ComparisonExpression( comparisonType, propertyExpression, constantExpression );

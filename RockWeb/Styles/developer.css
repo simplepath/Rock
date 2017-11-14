@@ -138,3 +138,8 @@ table th[align='right'] {
 
 
 
+/* SK Added for checklist*/
+label .strikethrough {
+    text-decoration:line-through;
+    text-decoration-color:red;
+}

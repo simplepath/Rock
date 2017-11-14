@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 
@@ -37,6 +38,11 @@ namespace Rock.Field.Types
         #region Configuration
 
         private const string VALUES_KEY = "values";
+
+        /// <summary>
+        /// Gets whether default value is allowed.
+        /// </summary>
+        public override bool AllowDefaultValue { get { return false; } }
 
         /// <summary>
         /// Returns a list of the configuration keys
@@ -97,7 +103,7 @@ namespace Rock.Field.Types
             {
                 if ( controls.Count > 0 && controls[0] != null && controls[0] is ValueList && configurationValues.ContainsKey( VALUES_KEY ) )
                 {
-                    ( ( ValueList ) controls[0] ).Value = configurationValues[VALUES_KEY].Value;
+                    ( ( ValueList ) controls[0] ).Value = GetUrlDecodedValues( configurationValues[VALUES_KEY].Value );
                 }
 
             }
@@ -119,13 +125,7 @@ namespace Rock.Field.Types
         {
             if ( !string.IsNullOrWhiteSpace( value ) && configurationValues.ContainsKey( VALUES_KEY ) )
             {
-                var configuredValues = Helper.GetConfiguredValues( configurationValues );
-                var selectedValues = value.Split( new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries ).ToList();
-                return configuredValues
-                    .Where( v => selectedValues.Contains( v.Key ) )
-                    .Select( v => v.Value )
-                    .ToList()
-                    .AsDelimited( "," );
+                return GetUrlDecodedValues( value );
             }
 
             return base.FormatValue( parentControl, value, configurationValues, condensed );
@@ -148,13 +148,17 @@ namespace Rock.Field.Types
             if ( configurationValues != null )
             {
                 ListControl editControl = new RockCheckBoxList { ID = id };
-                ( ( RockCheckBoxList ) editControl ).RepeatDirection = RepeatDirection.Horizontal;
+                ( ( RockCheckBoxList ) editControl ).DisplayAsCheckList = true;
+                ( ( RockCheckBoxList ) editControl ).RepeatDirection = RepeatDirection.Vertical;
 
-                foreach ( var keyVal in Helper.GetConfiguredValues( configurationValues ) )
+                if ( configurationValues.ContainsKey( VALUES_KEY ) )
                 {
-                    editControl.Items.Add( new ListItem( keyVal.Value, keyVal.Key ) );
+                    var values = GetUrlDecodedValues( configurationValues[VALUES_KEY].Value ).Split( new char[] { '|' } ).ToList();
+                    foreach ( var val in values )
+                    {
+                        editControl.Items.Add( new ListItem( val ) );
+                    }
                 }
-
                 if ( editControl.Items.Count > 0 )
                 {
                     return editControl;
@@ -242,6 +246,16 @@ namespace Rock.Field.Types
             return false;
         }
 
+        #endregion
+
+        #region Private
+
+        public string GetUrlDecodedValues( string value )
+        {
+            string[] values = value.Split( new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries );
+            values = values.Select( s => HttpUtility.UrlDecode( s ) ).ToArray();
+            return values.ToList().AsDelimited( "|" );
+        }
         #endregion
     }
 }

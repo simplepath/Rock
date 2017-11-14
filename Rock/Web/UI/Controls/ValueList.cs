@@ -314,6 +314,7 @@ namespace Rock.Web.UI.Controls
         {
             this.HelpBlock = new HelpBlock();
             this.WarningBlock = new WarningBlock();
+            EnsureChildControls();
         }
 
         /// <summary>
@@ -327,7 +328,6 @@ namespace Rock.Web.UI.Controls
 
             _hfValue = new HiddenField();
             _hfValue.ID = this.ID + "_hfValue";
-
             Controls.Add( _hfValue );
 
             _hfValueDisableVrm = new HiddenField();
@@ -481,7 +481,7 @@ namespace Rock.Web.UI.Controls
         var $span = e.closest('span.value-list');
         var newValue = '';
         $span.children('span.value-list-rows:first').children('div.controls-row').each(function( index ) {
-            newValue += $(this).children('.js-value-list-input:first').val() + '|'
+            newValue +=  encodeURI($(this).children('.js-value-list-input:first').val()) + '|'
         });
         $span.children('input:first').val(newValue);            
     }
