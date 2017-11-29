@@ -1533,6 +1533,30 @@ namespace Rock.Model
                 .FirstOrDefault();
         }
 
+        /// <summary>
+        /// Gets the <see cref="Rock.Model.Person"/> entity of the provided Person's head of household.
+        /// </summary>
+        /// <param name="person">The <see cref="Rock.Model.Person"/> entity of the Person to retrieve the head of household of.</param>
+        /// <param name="family">The <see cref="Rock.Model.Group"/> entity of the Group to retrieve the head of household of.</param>
+        /// <returns>The <see cref="Rock.Model.Person"/> entity containing the provided Person's head of household. If the provided Person's family head of household is not found, this value will be null.</returns>
+        public Person GetHeadOfHousehold( Person person, Group family )
+        {
+            if ( family == null )
+            {
+                family = GetFamilies( person.Id ).FirstOrDefault();
+            }
+
+            if ( family == null )
+            {
+                return null;
+            }
+            return GetFamilyMembers( family, person.Id, true )
+                .OrderBy( m => m.GroupRole.Order )
+                .ThenBy( m => m.Person.Gender )
+                .Select( a => a.Person )
+                .FirstOrDefault();
+        }
+
 
         #endregion
 
