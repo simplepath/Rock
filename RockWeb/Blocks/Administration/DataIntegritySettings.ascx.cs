@@ -93,7 +93,7 @@ namespace RockWeb.Blocks.Administration
         protected void Block_BlockUpdated( object sender, EventArgs e )
         {
         }
-        
+
         /// <summary>
         /// Handles saving all the data set by the user to the web.config.
         /// </summary>
@@ -117,6 +117,8 @@ namespace RockWeb.Blocks.Administration
 
         private void BindControls()
         {
+            pwDataAutomation.Expanded = false;
+            pwNcoaConfiguration.Expanded = false;
             rlbAttendanceInGroupType.DataSource = new GroupTypeService( _rockContext )
                 .Queryable().AsNoTracking()
                 .OrderBy( t => t.Order )
@@ -142,7 +144,7 @@ namespace RockWeb.Blocks.Administration
 
             _settings.Add( "DataAutomation.LastContribution", "90" );
             _settings.Add( "DataAutomation.AttendanceInServiceGroup", "90" );
-            _settings.Add( "DataAutomation.AttendanceInGroupType", defaultGroupTypes.AsDelimited(",") );
+            _settings.Add( "DataAutomation.AttendanceInGroupType", defaultGroupTypes.AsDelimited( "," ) );
             _settings.Add( "DataAutomation.AttendanceInGroupTypeDays", "90" );
             _settings.Add( "DataAutomation.PrayerRequest", "90" );
             _settings.Add( "DataAutomation.PersonAttributesDays", "90" );
@@ -156,7 +158,10 @@ namespace RockWeb.Blocks.Administration
             {
                 SetDefaults();
             }
-
+            nbGenderAutoFill.Text = GetSetting( "General.GenderAutoFillConfidence", null );
+            nbMinMoveDistance.Text = GetSetting( "NcoaConfiguration.MinimumMoveDistancetoInactivate", null );
+            cb48MonAsPrevious.Checked = GetSetting( "NcoaConfiguration.48MonthMoveAsPreviousAddress", null ).AsBoolean();
+            cbInvalidAddressAsPrevious.Checked = GetSetting( "NcoaConfiguration.InvalidAddressAsPreviousAddress", null ).AsBoolean();
             cbReactivatePeople.Checked = GetSetting( "DataAutomation.ReactivatePeople", null ).AsBoolean();
             nbLastContribution.Text = GetSetting( "DataAutomation.LastContribution", cbLastContribution );
             nbAttendanceInServiceGroup.Text = GetSetting( "DataAutomation.AttendanceInServiceGroup", cbAttendanceInServiceGroup );
@@ -183,16 +188,23 @@ namespace RockWeb.Blocks.Administration
         {
             _settings = new Dictionary<string, string>();
 
+            SaveSetting( "General.GenderAutoFillConfidence", nbGenderAutoFill.Text, null );
+
+            SaveSetting( "NcoaConfiguration.MinimumMoveDistancetoInactivate", nbMinMoveDistance.Text, null );
+            SaveSetting( "NcoaConfiguration.48MonthMoveAsPreviousAddress", cb48MonAsPrevious.Checked.ToString(), null );
+            SaveSetting( "NcoaConfiguration.InvalidAddressAsPreviousAddress", cbInvalidAddressAsPrevious.Checked.ToString(), null );
+
             SaveSetting( "DataAutomation.ReactivatePeople", cbReactivatePeople.Checked.ToString(), null );
             SaveSetting( "DataAutomation.LastContribution", nbLastContribution.Text, cbLastContribution );
             SaveSetting( "DataAutomation.AttendanceInServiceGroup", nbAttendanceInServiceGroup.Text, cbAttendanceInServiceGroup );
-            SaveSetting( "DataAutomation.AttendanceInGroupType", rlbAttendanceInGroupType.SelectedValues.AsDelimited(","), cbAttendanceInGroupType );
+            SaveSetting( "DataAutomation.AttendanceInGroupType", rlbAttendanceInGroupType.SelectedValues.AsDelimited( "," ), cbAttendanceInGroupType );
             SaveSetting( "DataAutomation.AttendanceInGroupTypeDays", nbAttendanceInGroupType.Text, cbAttendanceInGroupType );
             SaveSetting( "DataAutomation.PrayerRequest", nbPrayerRequest.Text, cbPrayerRequest );
             SaveSetting( "DataAutomation.PersonAttributes", rlbPersonAttributes.SelectedValues.AsDelimited( "," ), cbPersonAttributes );
             SaveSetting( "DataAutomation.PersonAttributesDays", nbPersonAttributes.Text, cbPersonAttributes );
             SaveSetting( "DataAutomation.IncludeDataView", dvIncludeDataView.SelectedValue, cbIncludeDataView );
             SaveSetting( "DataAutomation.ExcludeDataView", dvExcludeDataView.SelectedValue, cbExcludeDataView );
+
 
             Rock.Web.SystemSettings.SetValue( "com.rockrms.DataIntegrity", _settings.ToJson() );
         }
