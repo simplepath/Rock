@@ -38,17 +38,18 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CodeGenerated\AnalyticsDimAttendanceLocation.cs" />
+    <Compile Include="CodeGenerated\AnalyticsDimCampus.cs" />
     <Compile Include="CodeGenerated\AnalyticsDimFamilyCurrent.cs" />
     <Compile Include="CodeGenerated\AnalyticsDimFamilyHeadOfHousehold.cs" />
     <Compile Include="CodeGenerated\AnalyticsDimFamilyHistorical.cs" />
     <Compile Include="CodeGenerated\AnalyticsDimFinancialAccount.cs" />
     <Compile Include="CodeGenerated\AnalyticsDimFinancialBatch.cs" />
-    <Compile Include="CodeGenerated\AnalyticsDimFinancialTransactionType.cs" />
     <Compile Include="CodeGenerated\AnalyticsDimPersonCurrent.cs" />
     <Compile Include="CodeGenerated\AnalyticsDimPersonHistorical.cs" />
     <Compile Include="CodeGenerated\AnalyticsFactAttendance.cs" />
     <Compile Include="CodeGenerated\AnalyticsFactFinancialTransaction.cs" />
     <Compile Include="CodeGenerated\AnalyticsSourceAttendance.cs" />
+    <Compile Include="CodeGenerated\AnalyticsSourceCampus.cs" />
     <Compile Include="CodeGenerated\AnalyticsSourceDate.cs" />
     <Compile Include="CodeGenerated\AnalyticsSourceFamilyHistorical.cs" />
     <Compile Include="CodeGenerated\AnalyticsSourceFinancialTransaction.cs" />
@@ -169,6 +170,7 @@
     <Compile Include="CodeGenerated\MetricPartition.cs" />
     <Compile Include="CodeGenerated\MetricValue.cs" />
     <Compile Include="CodeGenerated\MetricValuePartition.cs" />
+    <Compile Include="CodeGenerated\NcoaHistory.cs" />
     <Compile Include="CodeGenerated\Note.cs" />
     <Compile Include="CodeGenerated\NoteType.cs" />
     <Compile Include="CodeGenerated\Notification.cs" />

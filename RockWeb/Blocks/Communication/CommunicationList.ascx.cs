@@ -28,6 +28,7 @@ using Rock.Constants;
 using Rock.Data;
 using Rock.Model;
 using Rock.Security;
+using Rock.Web;
 using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
@@ -40,8 +41,9 @@ namespace RockWeb.Blocks.Communication
 
     [SecurityAction( Authorization.APPROVE, "The roles and/or users that have access to approve new communications." )]
 
-    [LinkedPage( "Detail Page" )]
-    public partial class CommunicationList : Rock.Web.UI.RockBlock
+    [LinkedPage( "Detail Page", order: 1 )]
+    [LinkedPage( "Email Analytics", defaultValue:Rock.SystemGuid.Page.EMAIL_ANALYTICS, order: 2 )]
+    public partial class CommunicationList : Rock.Web.UI.RockBlock, ICustomGridColumns
     {
         private bool canApprove = false;
 
@@ -65,7 +67,12 @@ namespace RockWeb.Blocks.Communication
             // The created by column/filter should only be displayed if user is allowed to approve
             canApprove = this.IsUserAuthorized( "Approve" );
             ppSender.Visible = canApprove;
-            gCommunication.Columns[2].Visible = canApprove;
+
+            var createdByBoundField = gCommunication.ColumnsOfType<RockBoundField>().FirstOrDefault(a=>a.HeaderText == "Created By" );
+            if ( createdByBoundField != null )
+            {
+                createdByBoundField.Visible = canApprove;
+            }
         }
 
         /// <summary>
@@ -183,7 +190,19 @@ namespace RockWeb.Blocks.Communication
                 if ( communicationItem != null )
                 {
                     // Hide delete button if there are any successful recipients
-                    e.Row.Cells[8].Controls[0].Visible = communicationItem.DeliveredRecipients <= 0;
+                    e.Row.Cells[9].Controls[0].Visible = communicationItem.DeliveredRecipients <= 0;
+
+                    Literal lEmailAnalyticsLink = e.Row.FindControl( "lEmailAnalyticsLink" ) as Literal;
+                    if ( lEmailAnalyticsLink != null )
+                    {
+                        var qryParams = new Dictionary<string, string>();
+                        qryParams.Add( "CommunicationId", communicationItem.Id.ToString() );
+                        var emailAnalyticsUrl = new PageReference( this.GetAttributeValue( "EmailAnalytics" ), qryParams ).BuildUrl();
+                        if ( !string.IsNullOrEmpty( emailAnalyticsUrl ) )
+                        {
+                            lEmailAnalyticsLink.Text = string.Format( "<div class='text-center'><a href='{0}' class='btn btn-default btn-sm' title='Email Analytics'><i class='fa fa-line-chart'></i></a></div>", emailAnalyticsUrl );
+                        }
+                    }
                 }
             }
         }
@@ -354,7 +373,13 @@ namespace RockWeb.Blocks.Communication
 
             var recipients = new CommunicationRecipientService( rockContext ).Queryable();
 
-            var queryable = communications
+            // We want to limit to only communications that they are authorized to view, but if there are a large number of communications, that could be very slow. 
+            // So, since communication security is based on CommunicationTemplate, take a shortcut and just limit based on authorized communication templates
+            var authorizedCommunicationTemplateIds = new CommunicationTemplateService( rockContext ).Queryable()
+                .Where( a => communications.Where( x => x.CommunicationTemplateId.HasValue ).Select( x => x.CommunicationTemplateId.Value ).Distinct().Contains( a.Id ) )
+                .ToList().Where( a => a.IsAuthorized( Rock.Security.Authorization.VIEW, this.CurrentPerson ) ).Select( a => a.Id ).ToList();
+
+            var queryable = communications.Where(a => a.CommunicationTemplateId == null || authorizedCommunicationTemplateIds.Contains(a.CommunicationTemplateId.Value) )
                 .Select( c => new CommunicationItem {
                     Id = c.Id,
                     CommunicationType = c.CommunicationType,

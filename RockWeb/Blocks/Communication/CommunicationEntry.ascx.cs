@@ -262,14 +262,26 @@ namespace RockWeb.Blocks.Communication
                     CommunicationId = communication.Id;
                 }
 
+                // If viewing a new, transient, draft, or denied communication, use this block
+                // otherwise, set this block visible=false and if there is a communication detail block on this page, it'll be shown instead
                 if ( communication == null ||
                     communication.Status == CommunicationStatus.Transient ||
                     communication.Status == CommunicationStatus.Draft ||
                     communication.Status == CommunicationStatus.Denied ||
                     ( communication.Status == CommunicationStatus.PendingApproval && _editingApproved ) )
                 {
-                    // If viewing a new, transient, draft, or denied communication, use this block
-                    ShowDetail( communication );
+                    // Make sure they are authorized to view
+                    if ( communication == null || 
+                        communication.IsAuthorized( Rock.Security.Authorization.EDIT, CurrentPerson ) ||
+                        ( communication.CreatedByPersonAlias != null && CurrentPersonId.HasValue  && communication.CreatedByPersonAlias.PersonId == CurrentPersonId.Value ) )
+                    {
+                        ShowDetail( communication );
+                    }
+                    else
+                    {
+                        // not authorized, so hide this block
+                        this.Visible = false;
+                    }
                 }
                 else
                 {
@@ -843,8 +855,9 @@ namespace RockWeb.Blocks.Communication
             var mediums = new Dictionary<int, string>();
             foreach ( var item in MediumContainer.Instance.Components.Values )
             {
-                if ( item.Value.IsActive &&
-                    ( !selectedGuids.Any() || selectedGuids.Contains( item.Value.EntityType.Guid ) ) )
+                if ( ( !selectedGuids.Any() || selectedGuids.Contains( item.Value.EntityType.Guid ) ) &&
+                    item.Value.IsActive &&
+                    item.Value.IsAuthorized( Authorization.VIEW, CurrentPerson ) )
                 {
                     var entityType = item.Value.EntityType;
                     mediums.Add( entityType.Id, item.Metadata.ComponentName );
@@ -881,7 +894,7 @@ namespace RockWeb.Blocks.Communication
                 var medium = MediumContainer.GetComponentByEntityTypeId( MediumEntityTypeId );
                 if ( medium != null )
                 {
-                    foreach ( var template in new CommunicationTemplateService( new RockContext() ).Queryable()
+                    foreach ( var template in new CommunicationTemplateService( new RockContext() ).Queryable().Where(a => a.IsActive)
                         .OrderBy( t => t.Name ) )
                     {
                         if ( template.IsAuthorized( Authorization.VIEW, CurrentPerson ) )
@@ -928,7 +941,7 @@ namespace RockWeb.Blocks.Communication
                 lbShowAllRecipients.Visible = false;
             }
 
-            lbRemoveAllRecipients.Visible = Recipients.Where( r => r.Status == CommunicationRecipientStatus.Pending ).Any();
+            lbRemoveAllRecipients.Visible = _fullMode && Recipients.Where( r => r.Status == CommunicationRecipientStatus.Pending ).Any();
 
             rptRecipients.DataBind();
 

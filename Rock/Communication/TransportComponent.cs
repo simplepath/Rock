@@ -16,7 +16,9 @@
 //
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Net.Mail;
+using System.Linq;
 
 using Rock.Extension;
 using Rock.Model;
@@ -91,6 +93,33 @@ namespace Rock.Communication
                     recipient.Status = CommunicationRecipientStatus.Failed;
                     recipient.StatusNote = "Communication Preference of 'No Bulk Communication'";
                     valid = false;
+                }
+                else if ( recipient.Communication.ListGroupId.HasValue  )
+                {
+                    // if this communication is being sent to a list, make sure the recipient is still an active member of the list
+                    GroupMemberStatus? groupMemberStatus = null;
+                    using ( var rockContext = new Rock.Data.RockContext() )
+                    {
+                        groupMemberStatus = new GroupMemberService( rockContext ).Queryable()
+                            .Where( a => a.PersonId == person.Id && a.GroupId == recipient.Communication.ListGroupId )
+                            .Select(a => a.GroupMemberStatus ).FirstOrDefault();
+                    }
+
+                    if ( groupMemberStatus != null )
+                    {
+                        if ( groupMemberStatus == GroupMemberStatus.Inactive )
+                        {
+                            recipient.Status = CommunicationRecipientStatus.Failed;
+                            recipient.StatusNote = "Person is not active member of communication list: " + recipient.Communication.ListGroup.Name;
+                            valid = false;
+                        }
+                    }
+                    else
+                    {
+                        recipient.Status = CommunicationRecipientStatus.Failed;
+                        recipient.StatusNote = "Person is not member of communication list: " + recipient.Communication.ListGroup.Name;
+                        valid = false;
+                    }
                 }
             }
 

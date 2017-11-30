@@ -38,7 +38,7 @@
         Rock.controls.emailEditor.$currentImageComponent = $imageComponent;
         var $img = $imageComponent.find('img');
         var imageUrl = $img.attr('src');
-        var imageCssWidth = $img.attr('data-imgcsswidth');
+        var imageCssWidth = $img.attr('data-imgcsswidth') || 'full';
         var imageAlign = $imageComponent.css('text-align');
 
         var imageWidth = Rock.controls.emailEditor.$currentImageComponent.attr('data-image-width');
@@ -144,9 +144,9 @@
                   + '&id=' + binaryFileId
                   + '&fileName=' + Rock.controls.emailEditor.$currentImageComponent.attr('data-image-filename');
         }
-
-        var imageWidth = parseInt($('#component-image-imagewidth').val());
-        var imageHeight = parseInt($('#component-image-imageheight').val());
+        
+        var imageWidth = parseInt($('#component-image-imagewidth').val()) || '';
+        var imageHeight = parseInt($('#component-image-imageheight').val()) || '';
         var imageResizeMode = $('#component-image-resizemode').val();
 
         Rock.controls.emailEditor.$currentImageComponent.attr('data-image-width', imageWidth);

@@ -80,6 +80,24 @@ namespace Rock.Model
         public int? EntityId { get; set; }
 
         /// <summary>
+        /// Gets or sets the related entity type identifier.
+        /// </summary>
+        /// <value>
+        /// The related entity type identifier.
+        /// </value>
+        [DataMember]
+        public int? RelatedEntityTypeId { get; set; }
+
+        /// <summary>
+        /// Gets or sets the related entity identifier.
+        /// </summary>
+        /// <value>
+        /// The related entity identifier.
+        /// </value>
+        [DataMember]
+        public int? RelatedEntityId { get; set; }
+
+        /// <summary>
         /// Gets or sets the person alias identifier.
         /// </summary>
         /// <value>
@@ -125,6 +143,72 @@ namespace Rock.Model
         [DataMember]
         public int? PersonalDeviceId { get; set; }
 
+        
+
+        /// <summary>
+        /// Gets or sets the list template. 
+        /// Used when rendering the interaction in a list using lava
+        /// </summary>
+        /// <value>
+        /// The list template.
+        /// </value>
+        [DataMember]
+        public string ListTemplate { get; set; }
+
+        /// <summary>
+        /// Gets or sets the detail template.
+        /// Used when rendering the interaction's details using lava
+        /// </summary>
+        /// <value>
+        /// The detail template.
+        /// </value>
+        [DataMember]
+        public string DetailTemplate { get; set; }
+
+        #endregion
+
+        #region Campaign Meta fields
+
+        /// <summary>
+        /// Gets or sets the campaign source.
+        /// </summary>
+        /// <value>
+        /// The source.
+        /// </value>
+        [DataMember]
+        [MaxLength( 25 )]
+        public string Source { get; set; }
+
+        /// <summary>
+        /// Gets or sets the campaign medium.
+        /// </summary>
+        /// <value>
+        /// The medium.
+        /// </value>
+        [DataMember]
+        [MaxLength( 25 )]
+        public string Medium { get; set; }
+
+        /// <summary>
+        /// Gets or sets the campaign name
+        /// </summary>
+        /// <value>
+        /// The campaign.
+        /// </value>
+        [DataMember]
+        [MaxLength( 50 )]
+        public string Campaign { get; set; }
+
+        /// <summary>
+        /// Gets or sets the campaign content.
+        /// </summary>
+        /// <value>
+        /// The content.
+        /// </value>
+        [DataMember]
+        [MaxLength( 50 )]
+        public string Content { get; set; }
+
         #endregion
 
         #region Virtual Properties
@@ -137,6 +221,15 @@ namespace Rock.Model
         /// </value>
         [DataMember]
         public virtual InteractionComponent InteractionComponent { get; set; }
+
+        /// <summary>
+        /// Gets or sets the type of the related entity.
+        /// </summary>
+        /// <value>
+        /// The type of the related entity.
+        /// </value>
+        [DataMember]
+        public virtual EntityType RelatedEntityType { get; set; }
 
         /// <summary>
         /// Gets or sets the person alias.
@@ -185,6 +278,7 @@ namespace Rock.Model
             this.HasRequired( r => r.InteractionComponent ).WithMany().HasForeignKey( r => r.InteractionComponentId ).WillCascadeOnDelete( false );
             this.HasOptional( r => r.InteractionSession ).WithMany( r => r.Interactions ).HasForeignKey( r => r.InteractionSessionId ).WillCascadeOnDelete( false );
             this.HasOptional( r => r.PersonalDevice ).WithMany().HasForeignKey( r => r.PersonalDeviceId ).WillCascadeOnDelete( false );
+            this.HasOptional( r => r.RelatedEntityType ).WithMany().HasForeignKey( r => r.RelatedEntityTypeId ).WillCascadeOnDelete( false );
         }
     }
 

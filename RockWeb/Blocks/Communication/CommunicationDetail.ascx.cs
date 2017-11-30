@@ -160,7 +160,15 @@ namespace RockWeb.Blocks.Communication
                 }
                 else
                 {
-                    ShowDetail( communication );
+                    // if they somehow got here and aren't authorized to View, hide everything
+                    if ( !communication.IsAuthorized( Rock.Security.Authorization.VIEW, CurrentPerson ) )
+                    {
+                        this.Visible = false;
+                    }
+                    else
+                    {
+                        ShowDetail( communication );
+                    }
                 }
             }
         }
@@ -203,7 +211,7 @@ namespace RockWeb.Blocks.Communication
                         case CommunicationStatus.Denied:
                         case CommunicationStatus.PendingApproval:
                             {
-                                pageTitle = string.Format( "Communication #{0}", communication.Id );
+                                pageTitle = communication.Name ?? string.Format( "Communication #{0}", communication.Id );
                                 break;
                             }
                         default:
@@ -428,6 +436,15 @@ namespace RockWeb.Blocks.Communication
                             AdditionalMergeValuesJson = r.AdditionalMergeValuesJson
                         } ) );
 
+
+                    foreach ( var attachment in communication.Attachments.ToList() )
+                    {
+                        var newAttachment = new CommunicationAttachment();
+                        newAttachment.BinaryFileId = attachment.BinaryFileId;
+                        newAttachment.CommunicationType = attachment.CommunicationType;
+                        newCommunication.Attachments.Add( newAttachment );
+                    }
+
                     service.Add( newCommunication );
                     rockContext.SaveChanges();
 
@@ -457,7 +474,7 @@ namespace RockWeb.Blocks.Communication
         private void ShowDetail( Rock.Model.Communication communication )
         {
             ShowStatus( communication );
-            lTitle.Text = ( communication.Subject ?? "Communication" ).FormatAsHtmlTitle();
+            lTitle.Text = ( communication.Name ?? communication.Subject ?? "Communication" ).FormatAsHtmlTitle();
             pdAuditDetails.SetEntity( communication, ResolveRockUrl( "~" ) );
 
             SetPersonDateValue( lCreatedBy, communication.CreatedByPersonAlias, communication.CreatedDateTime, "Created By" );
@@ -660,7 +677,7 @@ namespace RockWeb.Blocks.Communication
                                 btnDeny.Visible = true;
                                 btnEdit.Visible = true;
                             }
-                            btnCancel.Visible = true;
+                            btnCancel.Visible = communication.IsAuthorized( Rock.Security.Authorization.EDIT, CurrentPerson );
                             break;
                         }
                     case CommunicationStatus.Approved:
@@ -671,7 +688,7 @@ namespace RockWeb.Blocks.Communication
 
 
                             btnCancel.Visible = hasPendingRecipients;
-                            btnCopy.Visible = true;
+                            btnCopy.Visible = communication.IsAuthorized( Rock.Security.Authorization.EDIT, CurrentPerson );
                             break;
                         }
                 }

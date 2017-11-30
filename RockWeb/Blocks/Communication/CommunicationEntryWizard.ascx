@@ -9,16 +9,19 @@
             <div class="panel-heading">
                 <h1 class="panel-title"><i class="fa fa-comment"></i>&nbsp;<asp:Literal ID="lTitle" runat="server" /></h1>
 
-                <div class="panel-labels">
+                <asp:Panel ID="pnlHeadingLabels" runat="server" CssClass="panel-labels">
                     <div class="label label-default"><asp:LinkButton ID="btnUseSimpleEditor" runat="server" Text="Use Simple Editor" OnClick="btnUseSimpleEditor_Click" /></div>
-                </div>
+                </asp:Panel>
             </div>
             <div class="panel-body">
 
                 <%-- Recipient Selection --%>
                 <asp:Panel ID="pnlRecipientSelection" CssClass="js-navigation-panel" runat="server" Visible="true">
                     <h1 class="step-title">Recipient Selection</h1>
-
+                    <Rock:NotificationBox ID="nbCommunicationNotWizardCompatible" runat="server" NotificationBoxType="Info">
+                        This communication uses a template that is not compatible with the email wizard. You can continue with the email wizard, but the main content of the email will be replaced when the Email Wizard compatible template is selected. To keep the content, click 'Use Simple Editor' to use the simple communication editor.
+                    </Rock:NotificationBox> </>
+                    
                     <asp:ValidationSummary ID="vsRecipientSelection" runat="server" HeaderText="Please Correct the Following" ValidationGroup="vgRecipientSelection" CssClass="alert alert-danger" />
 
                     <Rock:NotificationBox ID="nbRecipientsAlert" runat="server" NotificationBoxType="Danger" />
@@ -80,18 +83,26 @@
                                     <Rock:DeleteField OnClick="gIndividualRecipients_DeleteClick" />
                                 </Columns>
                             </Rock:Grid>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <asp:LinkButton ID="btnDeleteSelectedRecipients" runat="server" CssClass="btn btn-action btn-xs margin-t-sm pull-right" OnClick="btnDeleteSelectedRecipients_Click" Text="Remove Selected Recipients" />
+                                </div>
+                            </div>
                         </Content>
                     </Rock:ModalDialog>
 
                 </asp:Panel>
 
-                <%-- Medium Selection --%>
-                <asp:Panel ID="pnlMediumSelection" CssClass="js-navigation-panel" runat="server" Visible="false" >
-                    <h1 class="step-title">Medium Selection</h1>
-                    <asp:ValidationSummary ID="vsMediumSelection" runat="server" HeaderText="Please Correct the Following" ValidationGroup="vgMediumSelection" CssClass="alert alert-danger" />
+                <%-- Communication Delivery, Medium Selection --%>
+                <asp:Panel ID="pnlCommunicationDelivery" CssClass="js-navigation-panel" runat="server" Visible="false" >
+                    <h1 class="step-title">Communication Delivery</h1>
+
+                    <Rock:NotificationBox ID="nbNoCommunicationTransport" runat="server" CssClass="margin-t-md" NotificationBoxType="Warning" Title="Warning" />
+
+                    <asp:ValidationSummary ID="vsCommunicationDelivery" runat="server" HeaderText="Please Correct the Following" ValidationGroup="vgCommunicationDelivery" CssClass="alert alert-danger" />
                     <div class="row">
                         <div class="col-md-6">
-                            <Rock:RockTextBox ID="tbCommunicationName" runat="server" Label="Communication Name" Help="This name is used internally to describe the communication. It is not sent as a part of the communication." Required="true" ValidationGroup="vgMediumSelection"/>
+                            <Rock:RockTextBox ID="tbCommunicationName" runat="server" Label="Communication Name" Help="This name is used internally to describe the communication. It is not sent as a part of the communication." Required="true" ValidationGroup="vgCommunicationDelivery"/>
                         </div>
                         <div class="col-md-6">
                             <Rock:Toggle ID="tglBulkCommunication" runat="server" OnText="Yes" OffText="No" ActiveButtonCssClass="btn-info" ButtonSizeCssClass="btn-xs" Help="Select this option if you are sending this email to a group of people. This will include the option for recipients to unsubscribe and will not send the email to any recipients that have already asked to be unsubscribed." Checked="false" Label="Is The Communication Bulk" />
@@ -107,14 +118,12 @@
                                     <a id="btnMediumEmail" runat="server" class="btn btn-default btn-sm js-medium-email" data-val="1" >Email</a>
                                     <a id="btnMediumSMS" runat="server" class="btn btn-default btn-sm js-medium-sms" data-val="2" >SMS</a>
                                 </div>
+                                <span class="margin-t-md label label-info js-medium-recipientpreference-notification">Selecting 'Recipient Preference' will require adding content for all active mediums.</span>
                             </div>
                         </div>
-
-                        <Rock:NotificationBox ID="nbInvalidEmailTransport" runat="server" CssClass="margin-t-md js-invalidemailtransport-notification" NotificationBoxType="Warning" Dismissable="true" Title="Warning" />
-                        <Rock:NotificationBox ID="nbInvalidSMSTransport" runat="server" CssClass="margin-t-md js-invalidsmstransport-notification" NotificationBoxType="Warning" Dismissable="true" Title="Warning" />
-
-                        <Rock:NotificationBox ID="nbRecipientPreferenceInfo" runat="server" CssClass="margin-t-md js-medium-recipientpreference-notification" NotificationBoxType="Info" Title="Heads Up!" Text="Selecting 'Recipient Preference' will require adding content for all active mediums." />
                     </Rock:RockControlWrapper>
+                    
+                    
 
                     <div class="row margin-b-md">
                         <div class="col-md-6">
@@ -122,22 +131,32 @@
                                 <div class="controls">
                                     <Rock:NotificationBox ID="nbSendDateTimeWarning" runat="server" NotificationBoxType="Danger" Visible="false" />
                                     <Rock:Toggle ID="tglSendDateTime" runat="server" OnText="Send Immediately" ButtonSizeCssClass="btn-sm" OffText="Send at a Specific Date and Time" ActiveButtonCssClass="btn-info" Checked="false" OnCheckedChanged="tglSendDateTime_CheckedChanged" />
-                                    <Rock:DateTimePicker ID="dtpSendDateTime" runat="server" CssClass="margin-t-md" Visible="true" Required="true" ValidationGroup="vgMediumSelection" />
+                                    <Rock:DateTimePicker ID="dtpSendDateTime" runat="server" CssClass="margin-t-md" Visible="true" Required="true" ValidationGroup="vgCommunicationDelivery" />
                                 </div>
                             </Rock:RockControlWrapper>
                         </div>
                     </div>
 
                     <div class="actions">
-                        <asp:LinkButton ID="btnMediumSelectionPrevious" runat="server" AccessKey="p" ToolTip="Alt+p" Text="Previous" CssClass="btn btn-default js-wizard-navigation" CausesValidation="false" OnClick="btnMediumSelectionPrevious_Click"  />
-                        <asp:LinkButton ID="btnMediumSelectionNext" runat="server" AccessKey="n" Text="Next" DataLoadingText="Next" CssClass="btn btn-primary pull-right js-wizard-navigation" ValidationGroup="vgMediumSelection" CausesValidation="true" OnClick="btnMediumSelectionNext_Click" />
+                        <asp:LinkButton ID="btnCommunicationDeliveryPrevious" runat="server" AccessKey="p" ToolTip="Alt+p" Text="Previous" CssClass="btn btn-default js-wizard-navigation" CausesValidation="false" OnClick="btnCommunicationDeliveryPrevious_Click"  />
+                        <asp:LinkButton ID="btnCommunicationDeliveryNext" runat="server" AccessKey="n" Text="Next" DataLoadingText="Next" CssClass="btn btn-primary pull-right js-wizard-navigation" ValidationGroup="vgCommunicationDelivery" CausesValidation="true" OnClick="btnCommunicationDeliveryNext_Click" />
                     </div>
 
                 </asp:Panel>
 
                 <%-- Template Selection --%>
                 <asp:Panel ID="pnlTemplateSelection" CssClass="js-navigation-panel" runat="server" Visible="false">
-                    <h1 class="step-title">Communication Template</h1>
+                    <div class="row">
+                        <div class="col-sm-8">
+                            <h1 class="step-title">Communication Template</h1>
+                        </div>
+                        <div class="col-sm-4">
+                            <div class="pull-right">
+                                <Rock:CategoryPicker ID="cpCommunicationTemplate" runat="server" AllowMultiSelect="false" Label="Category Filter" EntityTypeName="Rock.Model.CommunicationTemplate" OnSelectItem="cpCommunicationTemplate_SelectItem" />
+                            </div>
+                        </div>
+                    </div>
+                    
                     <Rock:NotificationBox ID="nbTemplateSelectionWarning" runat="server" NotificationBoxType="Danger" Visible="false" />
                     <div class="row margin-t-lg template-selection">
                         <asp:Repeater ID="rptSelectTemplate" runat="server" OnItemDataBound="rptSelectTemplate_ItemDataBound">
@@ -188,7 +207,7 @@
                                     </div>
                                     
                                     <div class="js-email-sendtest-inputs" style="display: none">
-                                        <Rock:RockTextBox ID="tbTestEmailAddress" runat="server" Label="Email" ValidationGroup="vgEmailEditorSendTest" Required="true" />
+                                        <Rock:EmailBox ID="tbTestEmailAddress" runat="server" Label="Email" ValidationGroup="vgEmailEditorSendTest" Required="true" AllowMultiple="false" />
                                         <asp:LinkButton ID="btnEmailSendTest" runat="server" CssClass="btn btn-xs btn-primary js-saveeditorhtml" Text="Send Test" CausesValidation="true" ValidationGroup="vgEmailEditorSendTest" OnClick="btnEmailSendTest_Click" />
                                         <a class="btn btn-xs btn-link js-email-sendtest-cancel" href="#">Cancel</a>
                                     </div>
@@ -239,29 +258,49 @@
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="form-group">
-									                <label for="component-text-margin-top">Margin Top</label>
+									                <label for="component-text-border-width">Border Width</label>
                                                     <div class="input-group input-width-md">
-								                        <input class="form-control" id="component-text-margin-top" type="number"><span class="input-group-addon">px</span>
-							                        </div>
-								                </div>
-                                                <div class="form-group">
-									                <label for="component-text-margin-left">Margin Left</label>
-									                <div class="input-group input-width-md">
-								                        <input class="form-control" id="component-text-margin-left" type="number"><span class="input-group-addon">px</span>
+								                        <input class="form-control" id="component-text-border-width" type="number"><span class="input-group-addon">px</span>
 							                        </div>
 								                </div>
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-group">
-									                <label for="component-text-margin-bottom">Margin Bottom</label>
-									                <div class="input-group input-width-md">
-								                        <input class="form-control" id="component-text-margin-bottom" type="number"><span class="input-group-addon">px</span>
+									                <label for="component-text-border-color">Border Color</label>
+									                <div id="component-text-border-color" class="input-group colorpicker-component">
+										                <input type="text" value="" class="form-control" />
+										                <span class="input-group-addon"><i></i></span>
+									                </div>
+								                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+									                <label for="component-text-padding-top">Padding Top</label>
+                                                    <div class="input-group input-width-md">
+								                        <input class="form-control" id="component-text-padding-top" type="number"><span class="input-group-addon">px</span>
 							                        </div>
 								                </div>
                                                 <div class="form-group">
-									                <label for="component-text-margin-right">Margin Right</label>
+									                <label for="component-text-padding-left">Padding Left</label>
 									                <div class="input-group input-width-md">
-								                        <input class="form-control" id="component-text-margin-right" type="number"><span class="input-group-addon">px</span>
+								                        <input class="form-control" id="component-text-padding-left" type="number"><span class="input-group-addon">px</span>
+							                        </div>
+								                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+									                <label for="component-text-padding-bottom">Padding Bottom</label>
+									                <div class="input-group input-width-md">
+								                        <input class="form-control" id="component-text-padding-bottom" type="number"><span class="input-group-addon">px</span>
+							                        </div>
+								                </div>
+                                                <div class="form-group">
+									                <label for="component-text-padding-right">Padding Right</label>
+									                <div class="input-group input-width-md">
+								                        <input class="form-control" id="component-text-padding-right" type="number"><span class="input-group-addon">px</span>
 							                        </div>
 								                </div>
                                             </div>
@@ -361,10 +400,154 @@
                                     <!-- Section Properties -->
                                     <div class="propertypanel propertypanel-section" data-component="section" style="display: none;">
 						                <h4 class="propertypanel-title">Section</h4>
+                                        <div id="component-section-column1">
+                                            <span class="label label-default">Column 1</span>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+									                    <label for="component-section-backgroundcolor-1">Background Color</label>
+									                    <div id="component-section-backgroundcolor-1" class="input-group colorpicker-component">
+										                    <input type="text" value="" class="form-control" />
+										                    <span class="input-group-addon"><i></i></span>
+									                    </div>
+								                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+									                    <label for="component-section-padding-top-1">Padding Top</label>
+                                                        <div class="input-group input-width-md">
+								                            <input class="form-control js-component-section-padding-input" id="component-section-padding-top-1" type="number"><span class="input-group-addon">px</span>
+							                            </div>
+								                    </div>
+                                                    <div class="form-group">
+									                    <label for="component-section-padding-left-1">Padding Left</label>
+									                    <div class="input-group input-width-md">
+								                            <input class="form-control js-component-section-padding-input" id="component-section-padding-left-1" type="number"><span class="input-group-addon">px</span>
+							                            </div>
+								                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+									                    <label for="component-section-padding-bottom-1">Padding Bottom</label>
+									                    <div class="input-group input-width-md">
+								                            <input class="form-control js-component-section-padding-input" id="component-section-padding-bottom-1" type="number"><span class="input-group-addon">px</span>
+							                            </div>
+								                    </div>
+                                                    <div class="form-group">
+									                    <label for="component-section-padding-right-1">Padding Right</label>
+									                    <div class="input-group input-width-md">
+								                            <input class="form-control js-component-section-padding-input" id="component-section-padding-right-1" type="number"><span class="input-group-addon">px</span>
+							                            </div>
+								                    </div>
+                                                </div>
+                                            </div> 
+                                        </div>
+
+                                        <div id="component-section-column2">
+                                            <hr class="margin-all-sm">
+                                            <span class="label label-default">Column 2</span>
+
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+									                    <label for="component-section-backgroundcolor-2">Background Color</label>
+									                    <div id="component-section-backgroundcolor-2" class="input-group colorpicker-component">
+										                    <input type="text" value="" class="form-control" />
+										                    <span class="input-group-addon"><i></i></span>
+									                    </div>
+								                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+									                    <label for="component-section-padding-top-2">Padding Top</label>
+                                                        <div class="input-group input-width-md">
+								                            <input class="form-control js-component-section-padding-input" id="component-section-padding-top-2" type="number"><span class="input-group-addon">px</span>
+							                            </div>
+								                    </div>
+                                                    <div class="form-group">
+									                    <label for="component-section-padding-left-2">Padding Left</label>
+									                    <div class="input-group input-width-md">
+								                            <input class="form-control js-component-section-padding-input" id="component-section-padding-left-2" type="number"><span class="input-group-addon">px</span>
+							                            </div>
+								                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+									                    <label for="component-section-padding-bottom-2">Padding Bottom</label>
+									                    <div class="input-group input-width-md">
+								                            <input class="form-control js-component-section-padding-input" id="component-section-padding-bottom-2" type="number"><span class="input-group-addon">px</span>
+							                            </div>
+								                    </div>
+                                                    <div class="form-group">
+									                    <label for="component-section-padding-right-2">Padding Right</label>
+									                    <div class="input-group input-width-md">
+								                            <input class="form-control js-component-section-padding-input" id="component-section-padding-right-2" type="number"><span class="input-group-addon">px</span>
+							                            </div>
+								                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div id="component-section-column3">
+                                            <hr class="margin-all-sm">
+                                            <span class="label label-default">Column 3</span>
+                                        
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+									                    <label for="component-section-backgroundcolor-3">Background Color</label>
+									                    <div id="component-section-backgroundcolor-3" class="input-group colorpicker-component">
+										                    <input type="text" value="" class="form-control" />
+										                    <span class="input-group-addon"><i></i></span>
+									                    </div>
+								                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+									                    <label for="component-section-padding-top-3">Padding Top</label>
+                                                        <div class="input-group input-width-md">
+								                            <input class="form-control js-component-section-padding-input" id="component-section-padding-top-3" type="number"><span class="input-group-addon">px</span>
+							                            </div>
+								                    </div>
+                                                    <div class="form-group">
+									                    <label for="component-section-padding-left-3">Padding Left</label>
+									                    <div class="input-group input-width-md">
+								                            <input class="form-control js-component-section-padding-input" id="component-section-padding-left-3" type="number"><span class="input-group-addon">px</span>
+							                            </div>
+								                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+									                    <label for="component-section-padding-bottom-3">Padding Bottom</label>
+									                    <div class="input-group input-width-md">
+								                            <input class="form-control js-component-section-padding-input" id="component-section-padding-bottom-3" type="number"><span class="input-group-addon">px</span>
+							                            </div>
+								                    </div>
+                                                    <div class="form-group">
+									                    <label for="component-section-padding-right-3">Padding Right</label>
+									                    <div class="input-group input-width-md">
+								                            <input class="form-control js-component-section-padding-input" id="component-section-padding-right-3" type="number"><span class="input-group-addon">px</span>
+							                            </div>
+								                    </div>
+                                                </div>
+                                            </div>
+                                        </div>  
 					                </div>
 
                                     <!-- Divider Properties -->
-                                    <div class="propertypanel propertypanel-divider" data-component="divider" style="display: none;">
+                                    <div class="propertypanel propertypanel-divider" id="component-divider-panel" data-component="divider" style="display: none;">
 						                <h4 class="propertypanel-title">Divider</h4>
                                         <div class="row">
 							                <div class="col-md-6">
@@ -380,6 +563,7 @@
 								                        <input class="form-control" id="component-divider-margin-top" type="number"><span class="input-group-addon">px</span>
 							                        </div>
 								                </div>
+                                                <Rock:RockCheckBox ID="cbComponentDividerDivideWithLine" CssClass="js-component-divider-divide-with-line" runat="server" Text="Divide With Line" />
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-group">
@@ -439,7 +623,7 @@
 					                </div>
 
 					                <!-- Button Properties -->
-                                    <div class="propertypanel propertypanel-button" data-component="button" style="display: none;">
+                                    <div id="component-button-panel" class="propertypanel propertypanel-button" data-component="button" style="display: none;">
 						                <h4 class="propertypanel-title">Button</h4>
 						                <hr />
 						                <div class="form-group">
@@ -483,7 +667,12 @@
 									                <select id="component-button-buttonwidth" class="form-control">
 										                <option value="0">Fit To Text</option>
 										                <option value="1">Full Width</option>
+                                                        <option value="2">Fixed Width</option>
 									                </select>
+								                </div>
+								                <div class="form-group js-buttonfixedwidth">
+									                <label for="component-button-buttonfixedwidth">Fixed Width</label>
+									                <input class="form-control" id="component-button-buttonfixedwidth">
 								                </div>
 							                </div>
 							                <div class="col-md-6">
@@ -558,14 +747,15 @@
 			                </div>
 		                </section>
 			
-		                <div id="editor-controls" style="display: none;">
-                            <div id="editor-toolbar-container" class="js-emaileditor-addon">
-			                    <div id="editor-toolbar-content">
-				                    <p><small><strong>Content Blocks</strong></small></p>
+		                <%-- the contents editor-controls-markup is copied into the iframe --%>
+                        <div id="editor-controls-markup" style="display: none;">
+                            <div id="editor-controls" class="editor-toolbar-container js-emaileditor-addon">
+			                    <div class="js-editor-toolbar-content">
+				                    
                                     <div class="component component-text" data-content="<h1>Title</h1><p> Can't wait to see what you have to say!</p>" data-state="template">
 					                    <i class="fa fa-align-justify"></i><br /> Text
 				                    </div>
-				                    <div class="component component-image" data-content="<img src='<%= VirtualPathUtility.ToAbsolute("~/Assets/Images/image-placeholder.jpg") %>' style='width: 100%;' data-width='full' />" data-state="template">
+				                    <div class="component component-image" data-content="<img src='<%= VirtualPathUtility.ToAbsolute("~/Assets/Images/image-placeholder.jpg") %>' style='width: 100%;' data-imgcsswidth='full' />" data-state="template">
 					                    <i class="fa fa-picture-o"></i> <br /> Image
 				                    </div>
 				                
@@ -578,9 +768,11 @@
 				                    <div class="component component-button" data-content="<table class='button-outerwrap' border='0' cellpadding='0' cellspacing='0' width='100%' style='min-width:100%;'><tbody><tr><td style='padding-top:0; padding-right:0; padding-bottom:0; padding-left:0;' valign='top' align='center' class='button-innerwrap'><table border='0' cellpadding='0' cellspacing='0' class='button-shell' style='display: inline-table; border-collapse: separate !important; border-radius: 3px; background-color: rgb(43, 170, 223);'><tbody><tr><td align='center' valign='middle' class='button-content' style='font-family: Arial; font-size: 16px; padding: 15px;'><a class='button-link' title='Push Me' href='http://' target='_blank' style='font-weight: bold; letter-spacing: normal; line-height: 100%; text-align: center; text-decoration: none; color: rgb(255, 255, 255);'>Push Me</a></td></tr></tbody></table></td></tr></tbody></table>" data-state="template">
 					                    <i class="fa fa-square-o"></i> <br /> Button
 				                    </div>
-			                    </div>
-                                <div id="editor-toolbar-structure">
-                                    <p><small><strong>Content Zones</strong></small></p>
+			                        
+                                    <div class="component-separator"></div>
+                                </div>
+                                <div class="js-editor-toolbar-structure">
+
                                     <div class="component component-section" data-content="<div class='dropzone'></div>" data-state="template">
 					                    <i class="rk rk-one-column"></i> <br /> One
 				                    </div>
@@ -604,8 +796,7 @@
                             </div>
 		                </div>	
                     </div>
-                    
-                    <%-- TODO: review css here... --%>
+
                     <div class="actions margin-t-lg">
                         <asp:LinkButton ID="btnEmailEditorPrevious" runat="server" AccessKey="p" ToolTip="Alt+p" Text="Previous" CssClass="btn btn-default js-saveeditorhtml js-wizard-navigation" CausesValidation="false" OnClick="btnEmailEditorPrevious_Click" />
                         <asp:LinkButton ID="btnEmailEditorNext" runat="server" AccessKey="n" Text="Next" DataLoadingText="Next" CssClass="btn btn-primary pull-right js-saveeditorhtml js-wizard-navigation" ValidationGroup="vgEmailEditor" CausesValidation="true" OnClick="btnEmailEditorNext_Click" />
@@ -624,7 +815,7 @@
                                             <button type="button" class="btn btn-default js-preview-mobile"><i class="fa fa-mobile"></i> Mobile</button>
                                         </div>
                                     </div>
-                                    <div id="pnlEmailPreviewContainer" runat="server" class="email-preview js-email-preview center-block">
+                                    <div id="pnlEmailPreviewContainer" runat="server" class="email-preview js-email-preview device-browser center-block">
                                         <iframe id="ifEmailPreview" name="emailpreview-iframe" class="emaileditor-iframe js-emailpreview-iframe email-wrapper" runat="server" src="javascript: window.frameElement.getAttribute('srcdoc');" frameborder="0" border="0" cellspacing="0" scrolling="yes"></iframe>
                                     </div>
                                 </Content>
@@ -708,28 +899,32 @@
                                 <Rock:MergeFieldPicker ID="mfpSMSMessage" runat="server" CssClass="margin-b-sm pull-right" OnSelectItem="mfpMessage_SelectItem" ValidationGroup="vgMobileTextEditor"/>
                                 <asp:HiddenField ID="hfSMSCharLimit" runat="server" />
                                 <asp:Label ID="lblSMSMessageCount" runat="server" CssClass="badge margin-all-sm pull-right" />
-                                <Rock:RockTextBox ID="tbSMSTextMessage" runat="server" CssClass="js-sms-text-message" TextMode="MultiLine" Rows="3" Required="true" ValidationGroup="vgMobileTextEditor" RequiredErrorMessage="Message is required"/>
+                                <Rock:RockTextBox ID="tbSMSTextMessage" runat="server" CssClass="js-sms-text-message" TextMode="MultiLine" Rows="3" Required="true" ValidationGroup="vgMobileTextEditor" RequiredErrorMessage="Message is required" ValidateRequestMode="Disabled" />
                                 <Rock:NotificationBox ID="nbSMSTestResult" CssClass="margin-t-md" runat="server" NotificationBoxType="Success" Text="Test SMS has been sent." Visible="false" />
                                 <div class="actions margin-t-sm pull-right">
-                                    <a class="btn btn-sm btn-default js-sms-sendtest" href="#">Send Test</a>
+                                    <a class="btn btn-xs btn-default js-sms-sendtest" href="#">Send Test</a>
                                     <div class="js-sms-sendtest-inputs" style="display:none">
                                         <Rock:RockTextBox ID="tbTestSMSNumber" runat="server" Label="SMS Number" ValidationGroup="vgMobileTextEditorSendTest" Required="true" />
-                                        <asp:Button ID="btnSMSSendTest" runat="server" CssClass="btn btn-sm btn-default" Text="Send" CausesValidation="true" ValidationGroup="vgMobileTextEditorSendTest" OnClick="btnSMSSendTest_Click" />
-                                        <a class="btn btn-sm btn-default js-sms-sendtest-cancel" href="#">Cancel</a>
+                                        <asp:Button ID="btnSMSSendTest" runat="server" CssClass="btn btn-xs btn-primary" Text="Send" CausesValidation="true" ValidationGroup="vgMobileTextEditorSendTest" OnClick="btnSMSSendTest_Click" />
+                                        <a class="btn btn-xs btn-link js-sms-sendtest-cancel" href="#">Cancel</a>
                                     </div>
                                 </div>
                             </Rock:RockControlWrapper>
                             <Rock:FileUploader Id="fupMobileAttachment" runat="server" Label="Attachment" OnFileUploaded="fupMobileAttachment_FileUploaded" OnFileRemoved="fupMobileAttachment_FileRemoved" />
+                            <Rock:NotificationBox ID="nbMobileAttachmentSizeWarning" runat="server" NotificationBoxType="Warning" Text="" Dismissable="true" Visible="false" />
+                            <Rock:NotificationBox ID="nbMobileAttachmentFileTypeWarning" runat="server" NotificationBoxType="Warning" Text="" Dismissable="true" Visible="false" />
                         </div>
                         <div class="col-md-6">
-                            <div class="device device-mobile hidden-md">
+                            <div class="device device-mobile hidden-sm hidden-xs">
                                 <div class="sms">
                                     <header><span class="left">Messages</span><h2><asp:Literal ID="lSMSChatPerson" runat="server" Text="Ted Decker" /></h2><span class="right">Contacts</span></header>
                                     <div class="messages-wrapper">
-                                      <div class="js-sms-chatoutput message to">
-                                          <asp:Label ID="lblSMSPreview" runat="server" CssClass="js-sms-preview" />
-                                      </div>
-                                        <asp:Image ID="imgSMSImageAttachment" runat="server" CssClass="pull-right margin-r-md" width="50%" />
+                                        <div class="js-sms-chatoutput message to">
+                                            <asp:Label ID="lblSMSPreview" runat="server" CssClass="js-sms-preview" />
+                                        </div>
+
+                                        <div id="divAttachmentLoadError" runat="server" style="display: none" class="alert alert-danger margin-all-md" />
+                                        <asp:Image ID="imgSMSImageAttachment" runat="server" CssClass="pull-right margin-r-md" onerror="showSMSAttachmentLoadError()" Width="50%" />
                                     </div>
                                 </div>
                             </div>
@@ -759,7 +954,7 @@
                     <div class="row margin-b-md js-confirmation-datetime" style="display:none">
                         <div class="col-md-6">
                             <Rock:NotificationBox ID="nbSendDateTimeWarningConfirmation" runat="server" NotificationBoxType="Danger" Visible="false" />
-                            <Rock:Toggle ID="tglSendDateTimeConfirmation" runat="server" OnText="Send Immediately" OffText="Send at a Specific Date and Time" ActiveButtonCssClass="btn-primary" Checked="false" OnCheckedChanged="tglSendDateTimeConfirmation_CheckedChanged" />
+                            <Rock:Toggle ID="tglSendDateTimeConfirmation" runat="server" OnText="Send Immediately" ButtonSizeCssClass="btn-sm" OffText="Send at a Specific Date and Time" ActiveButtonCssClass="btn-info" Checked="false" OnCheckedChanged="tglSendDateTimeConfirmation_CheckedChanged" />
                             <Rock:DateTimePicker ID="dtpSendDateTimeConfirmation" runat="server" CssClass="margin-t-md" Visible="true" Required="true" ValidationGroup="vgConfirmation" />
                         </div>
                         <div class="col-md-6">
@@ -837,7 +1032,9 @@
 
                 $('.js-show-additional-fields').off('click').on('click', function ()
                 {
-                    $('#<%=hfShowAdditionalFields.ClientID %>').val(!$('.js-addition-fields').is(':visible'));
+                    var isVisible = !$('.js-additional-fields').is(':visible');
+                    $('#<%=hfShowAdditionalFields.ClientID %>').val(isVisible);
+                    $('.js-show-additional-fields').text(isVisible ? 'Hide Additional Fields' : 'Show Additional Fields');
                     $('.js-additional-fields').slideToggle();
                     return false;
                 });
@@ -845,10 +1042,12 @@
                 if ($('#<%=hfShowAdditionalFields.ClientID %>').val() == "true")
                 {
                     $('.js-additional-fields').show();
+                    $('.js-show-additional-fields').text('Hide Additional Fields');
                 }
 
                 $('.js-email-sendtest').off('click').on('click', function ()
                 {
+                    $('#<%=nbEmailTestResult.ClientID%>').hide();
                     $(this).hide();
                     $('#<%=btnEmailPreview.ClientID%>').hide();
 
@@ -949,16 +1148,16 @@
                     var $emailPreviewIframe = $('.js-emailpreview-iframe');
 
                     if ($(this).hasClass('js-preview-mobile')) {
-                        var mobileContainerHeight = '525px';
+                        var mobileContainerHeight = '585px';
 
-                        $('.js-email-preview').removeClass("device-desktop").addClass("device-mobile");
+                        $('.js-email-preview').removeClass("device-browser").addClass("device-mobile");
                         var mobilePreviewHeight = $('.js-email-preview').height();
 
                         $emailPreviewIframe.height(mobileContainerHeight);
                         $('#<%=pnlEmailPreviewContainer.ClientID%>').height(mobileContainerHeight);
                     }
                     else {
-                        $('.js-email-preview').removeClass("device-mobile").addClass("device-desktop");
+                        $('.js-email-preview').removeClass("device-mobile").addClass("device-browser");
                         $emailPreviewIframe.height('auto');
 
                         var emailPreviewIframe = $emailPreviewIframe[0];
@@ -1031,7 +1230,7 @@
                 editorScript.onload = function ()
                 {
                     $editorIframe[0].contentWindow.Rock.controls.emailEditor.initialize({
-                        id: 'editor-window',
+                        id: 'editor-controls',
                         componentSelected: loadPropertiesPage
                     });
                 };
@@ -1049,7 +1248,7 @@
                     var $this = $(this);
                     var contents = $this.contents();
 
-                    var editorMarkup = $('#editor-controls').contents();
+                    var editorMarkup = $('#editor-controls-markup').contents();
 
                     $(contents).find('body').prepend(editorMarkup);
                     $('#<%=pnlEmailEditor.ClientID%>').fadeTo(0, 1);
@@ -1064,6 +1263,7 @@
                     Rock.controls.emailEditor.dividerComponentHelper.initializeEventHandlers();
                     Rock.controls.emailEditor.imageComponentHelper.initializeEventHandlers();
                     Rock.controls.emailEditor.textComponentHelper.initializeEventHandlers();
+                    Rock.controls.emailEditor.sectionComponentHelper.initializeEventHandlers();
                 }
             }
 			
@@ -1090,7 +1290,7 @@
 				        Rock.controls.emailEditor.imageComponentHelper.setProperties($currentComponent);
 				        break;
 				    case 'section':
-                        // no properties, just a delete button
+				        Rock.controls.emailEditor.sectionComponentHelper.setProperties($currentComponent);
 				        break;
 				    case 'divider':
 				        Rock.controls.emailEditor.dividerComponentHelper.setProperties($currentComponent);
@@ -1197,20 +1397,20 @@
 			            {
 			                $.post('<%=this.ResolveUrl("~/api/Lava/RenderTemplate")%>' + '?additionalMergeObjects=' + additionalMergeObjects, updatedText, function (data)
 			                {
-			                    if (data.startsWith('Error resolving Lava merge fields:')) {
-			                        $('.js-sms-chatoutput').html(updatedText);
+                                if (data.startsWith('Error resolving Lava merge fields:')) {
+			                        $('.js-sms-chatoutput').text(updatedText);
 			                    }
 			                    else {
-			                        $('.js-sms-chatoutput').html(data);
+			                        $('.js-sms-chatoutput').text(data);
 			                    }
 			                }).fail(function (a, b, c)
 			                {
-			                    $('.js-sms-chatoutput').html(updatedText);
+			                    $('.js-sms-chatoutput').text(updatedText);
 			                })
 			            }, 100);
 			        }
 			        else {
-			            $('.js-sms-chatoutput').html(updatedText);
+			            $('.js-sms-chatoutput').text(updatedText);
 			        }
 			    }
 			    else {
@@ -1218,11 +1418,17 @@
 			    }
             }
 
+            function showSMSAttachmentLoadError() {
+                $('#<%=divAttachmentLoadError.ClientID%>').show();
+            }
+
             function setActiveMediumTypeButton($activeBtn)
             {
-                $activeBtn.addClass('active').addClass('btn-info').removeClass('btn-default');
-                $activeBtn.siblings('.btn').removeClass('active').removeClass('btn-info').addClass('btn-default')
-                $activeBtn.closest('.btn-group').siblings('.js-hidden-selected').val($activeBtn.data('val'));
+                if ($activeBtn.length) {
+                    $activeBtn.addClass('active').addClass('btn-info').removeClass('btn-default');
+                    $activeBtn.siblings('.btn').removeClass('active').removeClass('btn-info').addClass('btn-default')
+                    $activeBtn.closest('.btn-group').siblings('.js-hidden-selected').val($activeBtn.data('val'));
+                }
 
                 if ($('.js-medium-recipientpreference').hasClass('active')) {
 
@@ -1230,27 +1436,15 @@
                 } else {
                     $('.js-medium-recipientpreference-notification').hide();
                 }
-
-                // if email or sms transports are invalid, notifications will be rendered, but only show them based on the selected medium type
-                if ($('.js-medium-recipientpreference').hasClass('active') || $('.js-medium-email').hasClass('active')) {
-                    $('.js-invalidemailtransport-notification').show();
-                }
-                else {
-                    $('.js-invalidemailtransport-notification').hide();
-                }
-
-                if ($('.js-medium-recipientpreference').hasClass('active') || $('.js-medium-sms').hasClass('active')) {
-                    $('.js-invalidsmstransport-notification').show();
-                }
-                else {
-                    $('.js-invalidsmstransport-notification').hide();
-                }
 			}
 
         </script>
         
         <!-- Text Component -->
         <script src='<%=RockPage.ResolveRockUrl("~/Scripts/Rock/Controls/EmailEditor/textComponentHelper.js", true)%>' ></script>
+
+        <!-- Section Component -->
+        <script src='<%=RockPage.ResolveRockUrl("~/Scripts/Rock/Controls/EmailEditor/sectionComponentHelper.js", true)%>' ></script>
 
         <!-- Button Component -->
         <script src='<%=RockPage.ResolveRockUrl("~/Scripts/Rock/Controls/EmailEditor/buttonComponentHelper.js", true)%>' ></script>

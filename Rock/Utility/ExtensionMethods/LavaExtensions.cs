@@ -21,9 +21,10 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
 using System.Threading.Tasks;
+
 using DotLiquid;
+
 using Rock.Data;
 using Rock.Model;
 using Rock.Web.Cache;
@@ -322,8 +323,8 @@ namespace Rock
                 {
                     try
                     {
-                        var parentVariable = ( keyValue.Value.GetType().GetInterface( "IList" ) != null ) ? keyValue.Key.ToLower().Singularize() : keyValue.Key;
-                        result.Add( keyValue.Key, keyValue.Value.LiquidizeChildren( levelsDeep, rockContext, entityHistory, parentVariable ) );
+                        var parentVariable = ( keyValue.Value?.GetType().GetInterface( "IList" ) != null ) ? keyValue.Key.ToLower().Singularize() : keyValue.Key;
+                        result.Add( keyValue.Key, keyValue.Value?.LiquidizeChildren( levelsDeep, rockContext, entityHistory, parentVariable ) );
                     }
                     catch ( Exception ex )
                     {
@@ -429,7 +430,7 @@ namespace Rock
 
                             sb.Append( "<div class='panel panel-default panel-lavadebug'>" );
 
-                            sb.Append( string.Format( "<div class='panel-heading clearfix collapsed' data-toggle='collapse' data-target='#collapse-{0}'>", panelId ) );
+                            sb.Append( string.Format( "<div class='panel-heading clearfix collapsed' data-toggle='collapse' data-target='#collapse-{0}' onclick='$(\"#collapse-{0}\").collapse(\"toggle\"); event.stopPropagation();'>", panelId ) );
                             sb.Append( string.Format( "<h5 class='panel-title pull-left'>{0}</h5> <div class='pull-right'><i class='fa fa-chevron-up'></i></div>", keyVal.Key.SplitCase() ) );
                             sb.Append( "</div>" );
 
@@ -549,9 +550,9 @@ namespace Rock
                     return content ?? string.Empty;
                 }
 
-                Template template = Template.Parse( content );
-                template.Registers.Add( "EnabledCommands", enabledLavaCommands );
-                template.InstanceAssigns.Add( "CurrentPerson", currentPersonOverride );
+                Template template = GetTemplate( content );
+                template.Registers.AddOrReplace( "EnabledCommands", enabledLavaCommands );
+                template.InstanceAssigns.AddOrReplace( "CurrentPerson", currentPersonOverride );
                 return template.Render( Hash.FromDictionary( mergeObjects ) );
             }
             catch ( Exception ex )
@@ -620,8 +621,8 @@ namespace Rock
                     }
                 }
 
-                Template template = Template.Parse( content );
-                template.Registers.Add( "EnabledCommands", enabledLavaCommands );
+                Template template = GetTemplate( content );
+                template.Registers.AddOrReplace( "EnabledCommands", enabledLavaCommands );
 
                 string result;
 
@@ -664,6 +665,28 @@ namespace Rock
                     return "Error resolving Lava merge fields: " + ex.Message;
                 }
             }
+        }
+
+        /// <summary>
+        /// Looks for a parsed template in cache (if the content is 100 characters or less).
+        /// </summary>
+        /// <param name="content">The content.</param>
+        /// <returns></returns>
+        private static Template GetTemplate(string content)
+        {
+            // Do not cache any content over 100 characters in length
+            if ( content.Length > 100 )
+            {
+                return Template.Parse( content );
+            }
+
+            // Get template from cache
+            var template = LavaTemplateCache.Read( content ).Template;
+
+            // Clear any previous errors
+            template.Errors.Clear();
+
+            return template;
         }
 
         /// <summary>

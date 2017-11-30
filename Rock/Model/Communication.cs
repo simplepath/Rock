@@ -105,6 +105,10 @@ namespace Rock.Model
         /// <value>
         /// The communication template identifier.
         /// </value>
+        /// <remarks>
+        /// [IgnoreCanDelete] since there is a ON DELETE SET NULL cascade on this
+        /// </remarks>
+        [IgnoreCanDelete]
         public int? CommunicationTemplateId { get; set; }
 
         /// <summary>
@@ -188,7 +192,18 @@ namespace Rock.Model
         /// A Json formatted <see cref="System.String"/> that contains any additional merge fields for the Communication.
         /// </value>
         [DataMember]
-        public string AdditionalMergeFieldsJson { get; set; }
+        public string AdditionalMergeFieldsJson
+        {
+            get
+            {
+                return AdditionalMergeFields.ToJson();
+            }
+
+            set
+            {
+                AdditionalMergeFields = value.FromJsonOrNull<List<string>>() ?? new List<string>();
+            }
+        }
 
         /// <summary>
         /// Gets or sets the enabled lava commands.
@@ -337,6 +352,15 @@ namespace Rock.Model
         #endregion
 
         #region Virtual Properties
+
+        /// <summary>
+        /// Gets or sets the list group.
+        /// </summary>
+        /// <value>
+        /// The list group.
+        /// </value>
+        [DataMember]
+        public virtual Group ListGroup { get; set; }
 
         /// <summary>
         /// Gets or sets the sender person alias.
@@ -534,6 +558,23 @@ namespace Rock.Model
 
         #endregion
 
+        #region ISecured
+
+        /// <summary>
+        /// A parent authority.  If a user is not specifically allowed or denied access to
+        /// this object, Rock will check the default authorization on the current type, and
+        /// then the authorization on the Rock.Security.GlobalDefault entity
+        /// </summary>
+        public override Security.ISecured ParentAuthority
+        {
+            get
+            {
+                return this.CommunicationTemplate ?? base.ParentAuthority;
+            }
+        }
+
+        #endregion 
+
         #region Public Methods
 
         /// <summary>
@@ -645,7 +686,34 @@ namespace Rock.Model
         /// </returns>
         public override string ToString()
         {
-            return this.Name;
+            return this.Name ?? this.Subject ?? base.ToString();
+        }
+
+        /// <summary>
+        /// Method that will be called on an entity immediately after the item is saved by context
+        /// </summary>
+        /// <param name="dbContext">The database context.</param>
+        public override void PostSaveChanges( DbContext dbContext )
+        {
+            // ensure any attachments have the binaryFile.IsTemporary set to False
+            var attachmentBinaryFilesIds = this.Attachments.Select( a => a.BinaryFileId ).ToList();
+            if ( attachmentBinaryFilesIds.Any() )
+            {
+                using ( var rockContext = new RockContext() )
+                {
+                    var temporaryBinaryFiles = new BinaryFileService( rockContext ).GetByIds( attachmentBinaryFilesIds ).Where( a => a.IsTemporary == true ).ToList();
+                    {
+                        foreach ( var binaryFile in temporaryBinaryFiles )
+                        {
+                            binaryFile.IsTemporary = false;
+                        }
+                    }
+
+                    rockContext.SaveChanges();
+                }
+            }
+
+            base.PostSaveChanges( dbContext );
         }
 
         #endregion
@@ -691,7 +759,6 @@ namespace Rock.Model
                 recipient = new CommunicationRecipientService( rockContext ).Queryable( "Communication,PersonAlias.Person" )
                     .Where( r =>
                         r.CommunicationId == communicationId &&
-                        r.PersonAlias.Person.IsDeceased == false &&
                         ( r.Status == CommunicationRecipientStatus.Pending ||
                             ( r.Status == CommunicationRecipientStatus.Sending && r.ModifiedDateTime < delayTime )
                         ) &&
@@ -762,7 +829,10 @@ namespace Rock.Model
             this.HasOptional( c => c.ReviewerPersonAlias ).WithMany().HasForeignKey( c => c.ReviewerPersonAliasId ).WillCascadeOnDelete( false );
             this.HasOptional( c => c.SMSFromDefinedValue ).WithMany().HasForeignKey( c => c.SMSFromDefinedValueId ).WillCascadeOnDelete( false );
 
-            // the Migration will manually add a CASCADE DELETE SET NULL for CommunicationTemplateId
+            // the Migration will manually add a ON DELETE SET NULL for ListGroupId
+            this.HasOptional( c => c.ListGroup ).WithMany().HasForeignKey( c => c.ListGroupId ).WillCascadeOnDelete( false );
+
+            // the Migration will manually add a ON DELETE SET NULL for CommunicationTemplateId
             this.HasOptional( c => c.CommunicationTemplate ).WithMany().HasForeignKey( c => c.CommunicationTemplateId ).WillCascadeOnDelete( false );
         }
     }

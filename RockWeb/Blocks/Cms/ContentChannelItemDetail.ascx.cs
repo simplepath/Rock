@@ -303,8 +303,11 @@ namespace RockWeb.Blocks.Cms
                     rockContext.SaveChanges();
                     contentItem.SaveAttributeValues( rockContext );
 
-                    taglTags.EntityGuid = contentItem.Guid;
-                    taglTags.SaveTagValues( CurrentPersonAlias );
+                    if ( contentItem.ContentChannel.IsTaggingEnabled )
+                    {
+                        taglTags.EntityGuid = contentItem.Guid;
+                        taglTags.SaveTagValues( CurrentPersonAlias );
+                    }
 
                     int? eventItemOccurrenceId = PageParameter( "EventItemOccurrenceId" ).AsIntegerOrNull();
                     if ( eventItemOccurrenceId.HasValue )
@@ -697,24 +700,27 @@ namespace RockWeb.Blocks.Cms
 
             ContentChannelItem contentItem = GetContentItem();
 
-            taglTags.EntityTypeId = EntityTypeCache.Read( typeof( ContentChannelItem ) ).Id;
-            taglTags.AllowNewTags = false;
-            taglTags.DelaySave = true;
-            if ( contentItem.ContentChannel != null && contentItem.ContentChannel.ItemTagCategories.IsNotNullOrWhitespace() )
+            if ( contentItem == null )
             {
-                var categoryIds = contentItem.ContentChannel.ItemTagCategories.SplitDelimitedValues().AsIntegerList();
-                var categoryGuids = new CategoryService( new RockContext() )
-                                .GetByIds( categoryIds )
-                                .Select( a => a.Guid )
-                                .ToList();
-                taglTags.CategoryIds = categoryGuids;
+                // this block requires a valid ContentChannel in order to know which channel the ContentChannelItem belongs to, so if ContentChannel wasn't specified, don't show this block
+                this.Visible = false;
+                return;
+            }
+
+            if ( contentItem.ContentChannel.IsTaggingEnabled )
+            {
+                taglTags.EntityTypeId = EntityTypeCache.Read( typeof( ContentChannelItem ) ).Id;
+                taglTags.CategoryGuid = ( contentItem.ContentChannel != null && contentItem.ContentChannel.ItemTagCategory != null ) ?
+                     contentItem.ContentChannel.ItemTagCategory.Guid : (Guid?)null;
+                taglTags.EntityGuid = contentItem.Guid;
+                taglTags.DelaySave = true;
+                taglTags.GetTagValues( CurrentPersonId );
+                rcwTags.Visible = true;
             }
             else
             {
-                taglTags.CategoryIds = new List<Guid>() { Guid.Empty };
+                rcwTags.Visible = false;
             }
-            taglTags.EntityGuid = contentItem.Guid;
-            taglTags.GetTagValues( CurrentPersonId );
 
             pdAuditDetails.SetEntity( contentItem, ResolveRockUrl( "~" ) );
 

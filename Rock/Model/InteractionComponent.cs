@@ -16,6 +16,7 @@
 //
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Data.Entity.Infrastructure;
 using System.Data.Entity.ModelConfiguration;
 using System.Runtime.Serialization;
 using Rock.Data;
@@ -54,6 +55,15 @@ namespace Rock.Model
         public string ComponentData { get; set; }
 
         /// <summary>
+        /// Gets or sets the component summary.
+        /// </summary>
+        /// <value>
+        /// The component summary.
+        /// </value>
+        [DataMember]
+        public string ComponentSummary { get; set; }
+
+        /// <summary>
         /// Gets or sets the Id of the entity that this interaction component is related to.
         /// For example:
         ///  if this is a Page View:
@@ -77,10 +87,29 @@ namespace Rock.Model
         [Required]
         public int ChannelId { get; set; }
 
+        /// <summary>
+        /// Gets or sets the list lava template.
+        /// Used when rendering the interaction component in a list using lava
+        /// </summary>
+        /// <value>
+        /// The list template.
+        /// </value>
+        [DataMember]
+        public string ListTemplate { get; set; }
+
+        /// <summary>
+        /// Gets or sets the detail lava template.
+        /// Used when rendering the interaction component's details using lava
+        /// </summary>
+        /// <value>
+        /// The detail template.
+        /// </value>
+        [DataMember]
+        public string DetailTemplate { get; set; }
+
         #endregion
 
         #region Virtual Properties
-
 
         /// <summary>
         /// Gets or sets the channel.
@@ -91,9 +120,51 @@ namespace Rock.Model
         [DataMember]
         public virtual InteractionChannel Channel { get; set; }
 
+        [NotMapped]
+        private System.Data.Entity.EntityState SaveState { get; set; }
+
         #endregion
 
         #region Public Methods
+
+        /// <summary>
+        /// Method that will be called on an entity immediately before the item is saved by context
+        /// </summary>
+        /// <param name="dbContext"></param>
+        /// <param name="entry"></param>
+        public override void PreSaveChanges( DbContext dbContext, DbEntityEntry entry )
+        {
+            this.SaveState = entry.State;
+            base.PreSaveChanges( dbContext, entry );
+        }
+
+        /// <summary>
+        /// Method that will be called on an entity immediately after the item is saved by context
+        /// </summary>
+        /// <param name="dbContext">The database context.</param>
+        public override void PostSaveChanges( Data.DbContext dbContext )
+        {
+            Web.Cache.InteractionComponentCache.Flush( this.Id );
+
+            if ( this.SaveState == System.Data.Entity.EntityState.Added ||
+                this.SaveState == System.Data.Entity.EntityState.Deleted )
+            {
+                var channel = Web.Cache.InteractionChannelCache.Read( this.ChannelId );
+                if ( channel != null )
+                {
+                    if ( this.SaveState == System.Data.Entity.EntityState.Added )
+                    {
+                        channel.AddComponentId( this.Id );
+                    }
+                    else
+                    {
+                        channel.RemoveComponentId( this.Id );
+                    }
+                }
+            }
+
+            base.PostSaveChanges( dbContext );
+        }
 
         #endregion
 

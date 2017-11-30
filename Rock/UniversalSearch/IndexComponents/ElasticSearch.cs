@@ -384,6 +384,13 @@ namespace Rock.UniversalSearch.IndexComponents
                         // get entities search model name
                         var entityType = new EntityTypeService( new RockContext() ).Get( entityId );
                         entityTypes.Add( entityType.IndexModelType.Name.ToLower() );
+
+                        // check if this is a person model, if so we need to add two model types one for person and the other for businesses
+                        // wish there was a cleaner way to do this
+                        if ( entityType.Guid == SystemGuid.EntityType.PERSON.AsGuid() )
+                        {
+                            entityTypes.Add( "businessindex" );
+                        }
                     }
 
                     searchDescriptor = searchDescriptor.Type( string.Join( ",", entityTypes ) ); // todo: consider adding indexmodeltype to the entity cache
@@ -625,7 +632,6 @@ namespace Rock.UniversalSearch.IndexComponents
             this.DeleteDocumentByProperty( documentType, "id", id );
         }
 
-
         /// <summary>
         /// Gets the document by identifier.
         /// </summary>
@@ -634,9 +640,20 @@ namespace Rock.UniversalSearch.IndexComponents
         /// <returns></returns>
         public override IndexModelBase GetDocumentById( Type documentType, int id )
         {
+            return GetDocumentById( documentType, id.ToString() );
+        }
+
+        /// <summary>
+        /// Gets the document by identifier.
+        /// </summary>
+        /// <param name="documentType">Type of the document.</param>
+        /// <param name="id">The identifier.</param>
+        /// <returns></returns>
+        public override IndexModelBase GetDocumentById( Type documentType, string id )
+        {
             var indexName = documentType.Name.ToLower();
 
-            var request = new GetRequest( indexName, indexName, id.ToString() ) { };
+            var request = new GetRequest( indexName, indexName, id ) { };
 
             var result = _client.Get<dynamic>( request );
 
