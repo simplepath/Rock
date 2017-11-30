@@ -138,7 +138,21 @@
                                     <td>
                                         <Rock:RockCheckBox ID="cbInteractions" runat="server" SelectedIconCssClass="fa fa-check-square-o" UnSelectedIconCssClass="fa fa-square-o" /></td>
                                     <td>
-                                     
+                                        <Rock:RockControlWrapper ID="rcwInteractions" runat="server" Label="Has a interaction of the following type in the last">
+                                            <asp:Repeater ID="rInteractions" runat="server">
+                                                <ItemTemplate>
+                                                    <div class="row">
+                                                        <asp:HiddenField ID="hfInteractionTypeId" runat="server" Value='<%# Eval("Id") %>' />
+                                                        <div class="col-md-2">
+                                                            <Rock:RockCheckBox ID="cbInterationType" runat="server" SelectedIconCssClass="fa fa-check-square-o" UnSelectedIconCssClass="fa fa-square-o" Text='   <%# Eval("Name") %>' Checked='<%# (bool)Eval("IsInteractionTypeEnabled") %>' /> 
+                                                        </div>
+                                                        <div class="col-md-1 col-offset-md-9">
+                                                            <Rock:NumberBox ID="nbInteractionDays" runat="server" AppendText="days" CssClass="input-width-md" Text='<%#Eval("LastInteractionDays") %>' />
+                                                        </div>
+                                                    </div>
+                                                </ItemTemplate>
+                                            </asp:Repeater>
+                                        </Rock:RockControlWrapper>
                                     </td>
                                 </tr>
 

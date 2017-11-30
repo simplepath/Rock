@@ -35,6 +35,8 @@ using System.Configuration;
 using Microsoft.Web.XmlTransform;
 using System.Data.Entity;
 using DataIntegritySettingsModel = Rock.Utility.DataIntegritySettings;
+using Rock.Utility;
+
 namespace RockWeb.Blocks.Administration
 {
     /// <summary>
@@ -45,8 +47,12 @@ namespace RockWeb.Blocks.Administration
     [Description( "Block used to set values specific to data integrity (NCOA, Data Automation, Etc)." )]
     public partial class DataIntegritySettings : Rock.Web.UI.RockBlock
     {
+        #region private variables
+
         RockContext _rockContext = new RockContext();
         DataIntegritySettingsModel _settings = new DataIntegritySettingsModel();
+        List<InteractionItem> _interactionChannelTypes = new List<InteractionItem>();
+        #endregion
 
         #region Base Control Methods
 
@@ -127,12 +133,21 @@ namespace RockWeb.Blocks.Administration
                 .ToList();
             rlbAttendanceInGroupType.DataBind();
 
-            rlbPersonAttributes.DataSource = new AttributeService( _rockContext ).GetByEntityTypeId( new Person().TypeId )
+            rlbPersonAttributes.DataSource = new AttributeService( _rockContext )
+                .GetByEntityTypeId( new Person().TypeId )
                 .OrderBy( t => t.Order )
                 .ThenBy( t => t.Name )
                 .Select( t => new { value = t.Id, text = t.Name } )
                 .ToList();
             rlbPersonAttributes.DataBind();
+
+            _interactionChannelTypes = new InteractionChannelService( _rockContext )
+                .Queryable()
+                .Select( a => new InteractionItem
+                {
+                    Id = a.Guid,
+                    Name = a.Name
+                } ).ToList();
         }
 
         private void GetSettings()
@@ -160,11 +175,28 @@ namespace RockWeb.Blocks.Administration
             nbPrayerRequest.Text = _settings.DataAutomation.PrayerRequest.ToString();
             cbPersonAttributes.Checked = _settings.DataAutomation.IsPersonAttributesEnabled;
             nbPersonAttributes.Text = _settings.DataAutomation.PersonAttributesDays.ToString();
-            rlbPersonAttributes.SetValues( _settings.DataAutomation.PersonAttributes ?? new List<int>());
+            rlbPersonAttributes.SetValues( _settings.DataAutomation.PersonAttributes ?? new List<int>() );
             cbIncludeDataView.Checked = _settings.DataAutomation.IsIncludeDataViewEnabled;
             dvIncludeDataView.SetValue( _settings.DataAutomation.IncludeDataView );
             cbExcludeDataView.Checked = _settings.DataAutomation.IsExcludeDataViewEnabled;
             dvExcludeDataView.SetValue( _settings.DataAutomation.ExcludeDataView );
+            cbInteractions.Checked = _settings.DataAutomation.IsInteractionsEnabled;
+
+            if ( _settings.DataAutomation.Interactions != null && _settings.DataAutomation.Interactions.Count > 0 )
+            {
+                foreach ( var settingInteractionItem in _settings.DataAutomation.Interactions )
+                {
+                    var interactionChannelType = _interactionChannelTypes
+                        .SingleOrDefault( a => a.Id == settingInteractionItem.Id );
+                    if ( interactionChannelType != null )
+                    {
+                        interactionChannelType.IsInteractionTypeEnabled = settingInteractionItem.IsInteractionTypeEnabled;
+                        interactionChannelType.LastInteractionDays = settingInteractionItem.LastInteractionDays;
+                    }
+                }
+            }
+            rInteractions.DataSource = _interactionChannelTypes;
+            rInteractions.DataBind();
 
         }
 
@@ -220,6 +252,29 @@ namespace RockWeb.Blocks.Administration
             {
                 _settings.DataAutomation.IsExcludeDataViewEnabled = true;
                 _settings.DataAutomation.ExcludeDataView = dvExcludeDataView.SelectedValue;
+            }
+
+            if ( cbInteractions.Checked )
+            {
+                _settings.DataAutomation.IsInteractionsEnabled = true;
+                foreach ( RepeaterItem rItem in rInteractions.Items )
+                {
+                    RockCheckBox isInterationTypeEnabled = rItem.FindControl( "cbInterationType" ) as RockCheckBox;
+                    if ( isInterationTypeEnabled.Checked )
+                    {
+                        _settings.DataAutomation.Interactions = _settings.DataAutomation.Interactions ?? new List<InteractionItem>();
+                        HiddenField interactionTypeId = rItem.FindControl( "hfInteractionTypeId" ) as HiddenField;
+                        NumberBox lastInteractionDays = rItem.FindControl( "nbInteractionDays" ) as NumberBox;
+                        var item = new InteractionItem()
+                        {
+                            Id = interactionTypeId.Value.AsGuid(),
+                            IsInteractionTypeEnabled = true,
+                            LastInteractionDays = lastInteractionDays.Text.AsInteger()
+                        };
+                        _settings.DataAutomation.Interactions.Add( item );
+                    }
+
+                }
             }
 
             Rock.Web.SystemSettings.SetValue( "com.rockrms.DataIntegrity", _settings.ToJson() );

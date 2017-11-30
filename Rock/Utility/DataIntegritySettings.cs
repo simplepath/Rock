@@ -84,10 +84,14 @@ namespace Rock.Utility
         public bool IsIncludeDataViewEnabled { get; set; }
 
         public string IncludeDataView { get; set; }
-        
+
         public bool IsExcludeDataViewEnabled { get; set; }
 
         public string ExcludeDataView { get; set; }
+
+        public bool IsInteractionsEnabled { get; set; }
+
+        public List<InteractionItem> Interactions { get; set; }
 
         private List<int> GetDefaultGroupTypes()
         {
@@ -107,6 +111,22 @@ namespace Rock.Utility
             return defaultGroupTypes;
         }
 
+    }
+
+    public class InteractionItem
+    {
+        public InteractionItem()
+        {
+            LastInteractionDays = 90;
+        }
+
+        public Guid Id { get; set; }
+
+        public string Name { get; set; }
+
+        public int LastInteractionDays { get; set; }
+
+        public bool IsInteractionTypeEnabled { get; set; }
     }
 
 }
