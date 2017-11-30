@@ -37,13 +37,13 @@
                 <Rock:PanelWidget ID="pwNcoaConfiguration" runat="server" Title="NCOA Configuration">
                     <div class="row">
                         <div class="col-md-4">
-                            <Rock:NumberBox ID="nbMinMoveDistance" runat="server" AppendText="miles" CssClass="input-width-md" Label="Minimum Move Distance to Inactivate" NumberType="Double" />
+                            <Rock:NumberBox ID="nbMinMoveDistance" runat="server" AppendText="miles" CssClass="input-width-md" Label="Minimum Move Distance to Inactivate" NumberType="Integer" Text="250" />
                         </div>
                         <div class="col-md-4">
-                            <Rock:RockCheckBox ID="cb48MonAsPrevious" runat="server" Text="Mark 48 Month Move as Previous Addresses" />
+                            <Rock:RockCheckBox ID="cb48MonAsPrevious" runat="server" Label="Mark 48 Month Move as Previous Addresses" />
                         </div>
                         <div class="col-md-4">
-                            <Rock:RockCheckBox ID="cbInvalidAddressAsPrevious" runat="server" Text="Mark Invalid Addresses as Previous Addresses" />
+                            <Rock:RockCheckBox ID="cbInvalidAddressAsPrevious" runat="server" Label="Mark Invalid Addresses as Previous Addresses" />
                         </div>
                     </div>
                 </Rock:PanelWidget>
@@ -110,7 +110,7 @@
                                         <Rock:RockControlWrapper ID="rcwPersonAttributes" runat="server" Label="Has new values in the following person attributes in the last">
                                             <div class="row">
                                                 <div class="col-xs-12 col-sm-6 col-md-4">
-                                                    <Rock:RockListBox ID="rlbPersonAttributes" runat="server">
+                                                    <Rock:RockListBox ID="rlbPersonAttributes" runat="server" DataTextField="text" DataValueField="value">
                                                     </Rock:RockListBox>
                                                 </div>
                                                 <div class="col-xs-12 col-sm-6 col-md-4">
@@ -132,6 +132,13 @@
                                         <Rock:RockCheckBox ID="cbExcludeDataView" runat="server" SelectedIconCssClass="fa fa-check-square-o" UnSelectedIconCssClass="fa fa-square-o" /></td>
                                     <td>
                                         <Rock:DataViewPicker ID="dvExcludeDataView" runat="server" Label="Exclude those in the following data view" CssClass="input-width-xl" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <Rock:RockCheckBox ID="cbInteractions" runat="server" SelectedIconCssClass="fa fa-check-square-o" UnSelectedIconCssClass="fa fa-square-o" /></td>
+                                    <td>
+                                     
                                     </td>
                                 </tr>
 

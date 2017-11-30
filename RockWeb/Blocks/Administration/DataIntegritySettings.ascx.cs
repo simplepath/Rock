@@ -34,7 +34,7 @@ using Rock.Attribute;
 using System.Configuration;
 using Microsoft.Web.XmlTransform;
 using System.Data.Entity;
-
+using DataIntegritySettingsModel = Rock.Utility.DataIntegritySettings;
 namespace RockWeb.Blocks.Administration
 {
     /// <summary>
@@ -46,7 +46,7 @@ namespace RockWeb.Blocks.Administration
     public partial class DataIntegritySettings : Rock.Web.UI.RockBlock
     {
         RockContext _rockContext = new RockContext();
-        Dictionary<string, string> _settings = new Dictionary<string, string>();
+        DataIntegritySettingsModel _settings = new DataIntegritySettingsModel();
 
         #region Base Control Methods
 
@@ -117,8 +117,8 @@ namespace RockWeb.Blocks.Administration
 
         private void BindControls()
         {
-            pwDataAutomation.Expanded = false;
-            pwNcoaConfiguration.Expanded = false;
+            pwGeneralSettings.Expanded = true;
+
             rlbAttendanceInGroupType.DataSource = new GroupTypeService( _rockContext )
                 .Queryable().AsNoTracking()
                 .OrderBy( t => t.Order )
@@ -126,97 +126,104 @@ namespace RockWeb.Blocks.Administration
                 .Select( t => new { value = t.Id, text = t.Name } )
                 .ToList();
             rlbAttendanceInGroupType.DataBind();
-        }
-        private void SetDefaults()
-        {
-            var defaultGroupTypes = new List<string>();
-            var smallGroupType = GroupTypeCache.Read( Rock.SystemGuid.GroupType.GROUPTYPE_SMALL_GROUP.AsGuid() );
-            if ( smallGroupType != null )
-            {
-                defaultGroupTypes.Add( smallGroupType.Id.ToString() );
-            }
 
-            var servingGroupType = GroupTypeCache.Read( Rock.SystemGuid.GroupType.GROUPTYPE_SERVING_TEAM.AsGuid() );
-            if ( servingGroupType != null )
-            {
-                defaultGroupTypes.Add( servingGroupType.Id.ToString() );
-            }
-
-            _settings.Add( "DataAutomation.LastContribution", "90" );
-            _settings.Add( "DataAutomation.AttendanceInServiceGroup", "90" );
-            _settings.Add( "DataAutomation.AttendanceInGroupType", defaultGroupTypes.AsDelimited( "," ) );
-            _settings.Add( "DataAutomation.AttendanceInGroupTypeDays", "90" );
-            _settings.Add( "DataAutomation.PrayerRequest", "90" );
-            _settings.Add( "DataAutomation.PersonAttributesDays", "90" );
+            rlbPersonAttributes.DataSource = new AttributeService( _rockContext ).GetByEntityTypeId( new Person().TypeId )
+                .OrderBy( t => t.Order )
+                .ThenBy( t => t.Name )
+                .Select( t => new { value = t.Id, text = t.Name } )
+                .ToList();
+            rlbPersonAttributes.DataBind();
         }
 
         private void GetSettings()
         {
-            _settings = Rock.Web.SystemSettings.GetValue( "com.rockrms.DataIntegrity" ).FromJsonOrNull<Dictionary<string, string>>() ?? new Dictionary<string, string>();
+            _settings = Rock.Web.SystemSettings.GetValue( "com.rockrms.DataIntegrity" ).FromJsonOrNull<DataIntegritySettingsModel>() ?? new DataIntegritySettingsModel();
 
-            if ( !_settings.Any() )
-            {
-                SetDefaults();
-            }
-            nbGenderAutoFill.Text = GetSetting( "General.GenderAutoFillConfidence", null );
-            nbMinMoveDistance.Text = GetSetting( "NcoaConfiguration.MinimumMoveDistancetoInactivate", null );
-            cb48MonAsPrevious.Checked = GetSetting( "NcoaConfiguration.48MonthMoveAsPreviousAddress", null ).AsBoolean();
-            cbInvalidAddressAsPrevious.Checked = GetSetting( "NcoaConfiguration.InvalidAddressAsPreviousAddress", null ).AsBoolean();
-            cbReactivatePeople.Checked = GetSetting( "DataAutomation.ReactivatePeople", null ).AsBoolean();
-            nbLastContribution.Text = GetSetting( "DataAutomation.LastContribution", cbLastContribution );
-            nbAttendanceInServiceGroup.Text = GetSetting( "DataAutomation.AttendanceInServiceGroup", cbAttendanceInServiceGroup );
-            nbAttendanceInGroupType.Text = GetSetting( "DataAutomation.AttendanceInGroupTypeDays", cbAttendanceInGroupType );
-            rlbAttendanceInGroupType.SetValues( GetSetting( "DataAutomation.AttendanceInGroupType", cbAttendanceInGroupType ).SplitDelimitedValues().AsIntegerList() );
-            nbPrayerRequest.Text = GetSetting( "DataAutomation.PrayerRequest", cbPrayerRequest );
-            nbPersonAttributes.Text = GetSetting( "DataAutomation.PersonAttributesDays", cbPersonAttributes );
-            rlbPersonAttributes.SetValues( GetSetting( "DataAutomation.PersonAttributes", cbPersonAttributes ).SplitDelimitedValues().AsIntegerList() );
-            dvIncludeDataView.SetValue( GetSetting( "DataAutomation.IncludeDataView", cbIncludeDataView ) );
-            dvExcludeDataView.SetValue( GetSetting( "DataAutomation.ExcludeDataView", cbExcludeDataView ) );
-        }
+            //Get General
+            nbGenderAutoFill.Text = _settings.General.GenderAutoFillConfidence.ToStringSafe();
 
-        private string GetSetting( string key, RockCheckBox enabledCheckbox )
-        {
-            bool exists = _settings.ContainsKey( key );
-            if ( enabledCheckbox != null )
-            {
-                enabledCheckbox.Checked = exists;
-            }
-            return exists ? _settings[key] : string.Empty;
+            //Get Ncoa Configuration
+            nbMinMoveDistance.Text = _settings.NcoaConfiguration.MinimumMoveDistancetoInactivate.ToString();
+            cb48MonAsPrevious.Checked = _settings.NcoaConfiguration.Month48MoveAsPreviousAddress;
+            cbInvalidAddressAsPrevious.Checked = _settings.NcoaConfiguration.InvalidAddressAsPreviousAddress;
+
+            //Get Data Automation
+            cbReactivatePeople.Checked = _settings.DataAutomation.ReactivatePeople;
+            cbLastContribution.Checked = _settings.DataAutomation.IsLastContributionEnabled;
+            nbLastContribution.Text = _settings.DataAutomation.LastContribution.ToString();
+            cbAttendanceInServiceGroup.Checked = _settings.DataAutomation.IsAttendanceInServiceGroupEnabled;
+            nbAttendanceInServiceGroup.Text = _settings.DataAutomation.AttendanceInServiceGroup.ToString();
+            cbAttendanceInGroupType.Checked = _settings.DataAutomation.IsAttendanceInGroupTypeEnabled;
+            nbAttendanceInGroupType.Text = _settings.DataAutomation.AttendanceInGroupTypeDays.ToString();
+            rlbAttendanceInGroupType.SetValues( _settings.DataAutomation.AttendanceInGroupType ?? new List<int>() );
+            cbPrayerRequest.Checked = _settings.DataAutomation.IsPrayerRequestEnabled;
+            nbPrayerRequest.Text = _settings.DataAutomation.PrayerRequest.ToString();
+            cbPersonAttributes.Checked = _settings.DataAutomation.IsPersonAttributesEnabled;
+            nbPersonAttributes.Text = _settings.DataAutomation.PersonAttributesDays.ToString();
+            rlbPersonAttributes.SetValues( _settings.DataAutomation.PersonAttributes ?? new List<int>());
+            cbIncludeDataView.Checked = _settings.DataAutomation.IsIncludeDataViewEnabled;
+            dvIncludeDataView.SetValue( _settings.DataAutomation.IncludeDataView );
+            cbExcludeDataView.Checked = _settings.DataAutomation.IsExcludeDataViewEnabled;
+            dvExcludeDataView.SetValue( _settings.DataAutomation.ExcludeDataView );
+
         }
 
         private void SaveSettings()
         {
-            _settings = new Dictionary<string, string>();
+            _settings = new DataIntegritySettingsModel();
 
-            SaveSetting( "General.GenderAutoFillConfidence", nbGenderAutoFill.Text, null );
+            //Save General
+            _settings.General.GenderAutoFillConfidence = nbGenderAutoFill.Text.AsIntegerOrNull();
 
-            SaveSetting( "NcoaConfiguration.MinimumMoveDistancetoInactivate", nbMinMoveDistance.Text, null );
-            SaveSetting( "NcoaConfiguration.48MonthMoveAsPreviousAddress", cb48MonAsPrevious.Checked.ToString(), null );
-            SaveSetting( "NcoaConfiguration.InvalidAddressAsPreviousAddress", cbInvalidAddressAsPrevious.Checked.ToString(), null );
+            // Ncoa Configuration
+            _settings.NcoaConfiguration.MinimumMoveDistancetoInactivate = nbMinMoveDistance.Text.AsInteger();
+            _settings.NcoaConfiguration.Month48MoveAsPreviousAddress = cb48MonAsPrevious.Checked;
+            _settings.NcoaConfiguration.InvalidAddressAsPreviousAddress = cbInvalidAddressAsPrevious.Checked;
 
-            SaveSetting( "DataAutomation.ReactivatePeople", cbReactivatePeople.Checked.ToString(), null );
-            SaveSetting( "DataAutomation.LastContribution", nbLastContribution.Text, cbLastContribution );
-            SaveSetting( "DataAutomation.AttendanceInServiceGroup", nbAttendanceInServiceGroup.Text, cbAttendanceInServiceGroup );
-            SaveSetting( "DataAutomation.AttendanceInGroupType", rlbAttendanceInGroupType.SelectedValues.AsDelimited( "," ), cbAttendanceInGroupType );
-            SaveSetting( "DataAutomation.AttendanceInGroupTypeDays", nbAttendanceInGroupType.Text, cbAttendanceInGroupType );
-            SaveSetting( "DataAutomation.PrayerRequest", nbPrayerRequest.Text, cbPrayerRequest );
-            SaveSetting( "DataAutomation.PersonAttributes", rlbPersonAttributes.SelectedValues.AsDelimited( "," ), cbPersonAttributes );
-            SaveSetting( "DataAutomation.PersonAttributesDays", nbPersonAttributes.Text, cbPersonAttributes );
-            SaveSetting( "DataAutomation.IncludeDataView", dvIncludeDataView.SelectedValue, cbIncludeDataView );
-            SaveSetting( "DataAutomation.ExcludeDataView", dvExcludeDataView.SelectedValue, cbExcludeDataView );
 
+            // Save Data Automation
+            _settings.DataAutomation.ReactivatePeople = cbReactivatePeople.Checked;
+            if ( cbLastContribution.Checked )
+            {
+                _settings.DataAutomation.IsLastContributionEnabled = true;
+                _settings.DataAutomation.LastContribution = nbLastContribution.Text.AsInteger();
+            }
+            if ( cbAttendanceInServiceGroup.Checked )
+            {
+                _settings.DataAutomation.IsAttendanceInServiceGroupEnabled = true;
+                _settings.DataAutomation.LastContribution = nbAttendanceInServiceGroup.Text.AsInteger();
+            }
+            if ( cbAttendanceInGroupType.Checked )
+            {
+                _settings.DataAutomation.IsAttendanceInGroupTypeEnabled = true;
+                _settings.DataAutomation.AttendanceInGroupType = rlbAttendanceInGroupType.SelectedValues.AsIntegerList();
+                _settings.DataAutomation.AttendanceInGroupTypeDays = nbAttendanceInGroupType.Text.AsInteger();
+            }
+            if ( cbPrayerRequest.Checked )
+            {
+                _settings.DataAutomation.IsPrayerRequestEnabled = true;
+                _settings.DataAutomation.PrayerRequest = nbPrayerRequest.Text.AsInteger();
+            }
+
+            if ( cbPersonAttributes.Checked )
+            {
+                _settings.DataAutomation.IsPersonAttributesEnabled = true;
+                _settings.DataAutomation.PersonAttributes = rlbPersonAttributes.SelectedValues.AsIntegerList();
+                _settings.DataAutomation.PersonAttributesDays = nbPersonAttributes.Text.AsInteger();
+            }
+            if ( cbIncludeDataView.Checked )
+            {
+                _settings.DataAutomation.IsIncludeDataViewEnabled = true;
+                _settings.DataAutomation.IncludeDataView = dvIncludeDataView.SelectedValue;
+            }
+            if ( cbExcludeDataView.Checked )
+            {
+                _settings.DataAutomation.IsExcludeDataViewEnabled = true;
+                _settings.DataAutomation.ExcludeDataView = dvExcludeDataView.SelectedValue;
+            }
 
             Rock.Web.SystemSettings.SetValue( "com.rockrms.DataIntegrity", _settings.ToJson() );
         }
-
-        private void SaveSetting( string key, string value, RockCheckBox enabledCheckbox )
-        {
-            if ( enabledCheckbox == null || enabledCheckbox.Checked )
-            {
-                _settings.AddOrReplace( key, value );
-            }
-        }
-
 
         #endregion
     }
