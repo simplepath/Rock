@@ -7,6 +7,7 @@
 
         table.select-option td:first-child {
             width: 25px;
+            min-width: 25px;
             vertical-align: top;
         }
 </style>
@@ -27,11 +28,7 @@
                 <asp:ValidationSummary ID="valSummary" runat="server" HeaderText="Please Correct the Following" CssClass="alert alert-danger" />
 
                 <Rock:PanelWidget ID="pwGeneralSettings" runat="server" Title="General Settings">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <Rock:NumberBox ID="nbGenderAutoFill" runat="server" AppendText="%" CssClass="input-width-md" Label="Gender AutoFill Confidence" MinimumValue="0" MaximumValue="100" NumberType="Integer" />
-                        </div>
-                    </div>
+                    <Rock:NumberBox ID="nbGenderAutoFill" runat="server" AppendText="%" CssClass="input-width-md" Label="Gender AutoFill Confidence" MinimumValue="0" MaximumValue="100" NumberType="Integer" />
                 </Rock:PanelWidget>
 
                 <Rock:PanelWidget ID="pwNcoaConfiguration" runat="server" Title="NCOA Configuration">
@@ -144,7 +141,7 @@
                                                     <div class="row margin-b-sm">
                                                         <asp:HiddenField ID="hfInteractionTypeId" runat="server" Value='<%# Eval("Id") %>' />
                                                         <div class="col-md-2 col-sm-3 col-xs-4">
-                                                            <Rock:RockCheckBox ID="cbInterationType" runat="server" SelectedIconCssClass="fa fa-check-square-o" UnSelectedIconCssClass="fa fa-square-o" Text='   <%# Eval("Name") %>' Checked='<%# (bool)Eval("IsInteractionTypeEnabled") %>' />
+                                                            <Rock:RockCheckBox ID="cbInterationType" runat="server" SelectedIconCssClass="fa fa-check-square-o" UnSelectedIconCssClass="fa fa-square-o" Text='<%# Eval("Name") %>' Checked='<%# (bool)Eval("IsInteractionTypeEnabled") %>' />
                                                         </div>
                                                         <div class="col-md-10 col-sm-9 col-xs-6">
                                                             <Rock:NumberBox ID="nbInteractionDays" runat="server" AppendText="days" CssClass="input-width-md" Text='<%#Eval("LastInteractionDays") %>' />
@@ -312,33 +309,18 @@
                                         <Rock:RockControlWrapper ID="rcwIgnoreCampusChanges" runat="server" Label="Ignore any campus changes">
                                             <asp:Repeater ID="rIgnoreCampusChanges" runat="server" OnItemDataBound="rIgnoreCampusChanges_ItemDataBound" OnItemCommand="rIgnoreCampusChanges_ItemCommand">
                                                 <ItemTemplate>
-                                                    <div class="row margin-b-sm">
-                                                        <asp:HiddenField ID="hfRowId" runat="server" Value='<%# Eval("Id") %>' />
-                                                        <div class="col-md-2 col-xs-3">
-                                                            <Rock:CampusPicker ID="cpFromCampus" runat="server" Label="From" />
-                                                        </div>
-                                                        <div class="col-md-2 col-xs-3">
-                                                            <Rock:CampusPicker ID="cpToCampus" runat="server" Label="To" />
-                                                        </div>
-                                                        <div class="col-md-2 col-xs-3">
-                                                            <Rock:RockDropDownList ID="ddlAttendanceOrGiving" runat="server" Label="Based On" />
-
-                                                        </div>
-                                                        <div class="col-md-6 col-xs-3 margin-t-lg">
-                                                            <asp:LinkButton ID="lbDelete" runat="server" CssClass="btn btn-xs btn-danger form-action-remove" CommandName="delete" CommandArgument='<%# Eval("Id") %>'>
-                                                                    <i class="fa fa-minus-circle"></i>
-                                                            </asp:LinkButton>
-                                                        </div>
+                                                    <asp:HiddenField ID="hfRowId" runat="server" Value='<%# Eval("Id") %>' />
+                                                    <div class="row margin-l-sm margin-b-sm form-inline">
+                                                        <Rock:CampusPicker ID="cpFromCampus" runat="server" Label="From" CssClass="margin-r-sm" />
+                                                        <Rock:CampusPicker ID="cpToCampus" runat="server" Label="To" CssClass="margin-r-sm" />
+                                                        <Rock:RockDropDownList ID="ddlAttendanceOrGiving" runat="server" Label="Based On" CssClass="margin-r-sm"/>
+                                                        <asp:LinkButton ID="lbDelete" runat="server" CssClass="btn btn-xs btn-danger form-action-remove" CommandName="delete" CommandArgument='<%# Eval("Id") %>'><i class="fa fa-minus-circle"></i></asp:LinkButton>
                                                     </div>
                                                 </ItemTemplate>
                                             </asp:Repeater>
-                                            <div class="row">
-                                                <div class="col-md-12">
-                                                    <asp:LinkButton ID="lbAdd" CssClass="btn btn-xs btn-action" runat="server" OnClick="lbAdd_Click">
-                                                        <i class="fa fa-plus-circle"></i>
-                                                    </asp:LinkButton>
-                                                </div>
-                                            </div>
+                                            <asp:LinkButton ID="lbAdd" CssClass="btn btn-xs btn-action margin-l-sm" runat="server" OnClick="lbAdd_Click">
+                                                <i class="fa fa-plus-circle"></i>
+                                            </asp:LinkButton>
                                         </Rock:RockControlWrapper>
                                     </td>
                                 </tr>
