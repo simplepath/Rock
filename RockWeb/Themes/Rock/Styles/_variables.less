@@ -1,34 +1,65 @@
 // Theme Colors *show in editor*
-@theme-1: #ee7624; //orange #color
-@theme-1-text: #fff; // #color
+@brand-color: #ee7725; // This is the primary brand color that will be used for the header, primary buttons and other accents. #color
+
+@body-background: #F0F0F0; // The page background color. #color
+@text-color: #545454; // The default text color. #color
+@link-color: #4f89bd; // The color for all links. #color
+
+
+@navbarside-background-color: #3a3935; // This is the background color for the right-hand menu. #color
+
+
+
+
+
+
+
+
+// Helper Colors
+@navbarside-color: rgba(255, 255, 255, 0.8);
+@navbarside-width: 100px;
+@navbarside-sub-bg: lighten(@navbarside-background-color, 8%);
+
+@navbartop-color: #fff;
+
+@panel-bg: #fff; // The background color of the panel body.
+
+@body-bg: @body-background;
+
+@brand-primary: @brand-color; // #color
+@brand-success: #7ACCBE; // #color
+@brand-warning: #FFC870; // #color
+@brand-danger: #EF6262; // #color
+@brand-info: #8dcadf; // #color
+@brand-critical: #ee7624; // #color
+
+@state-warning-text: @brand-warning;
+@state-warning-bg: #fff;
+@state-warning-border: @brand-warning;
 //--
-@theme-2: #282526; // dark brown #color
-@theme-2-text: #d3cec5; // #color
+@state-danger-text: #fff;
+@state-danger-bg: @brand-danger;
+@state-danger-border: @brand-danger;
 //--
-@theme-3: #c2b8a7; // header tan #color
-@theme-3-text: #6a6a6a; // #color
+@state-success-text: #fff;
+@state-success-bg: @brand-success;
+@state-success-border: @brand-success;
 //--
-@theme-4: #dbd5cb; // page title #color
-@theme-4-text: #413c35;  // #color
-//--
-@theme-5: #e3ded7; // badge bar #color
-@theme-5-text: #817b72; // #color
-//--
-@theme-6: #edeae6; // family bar #color
-@theme-6-text: #6a6a6a; // #color
-//--
-@theme-7: #8cc63e; // green #color
-@theme-7-text: #fff; // #color
-//--
-@theme-8: #6a6a6a; // action buttons / type labels #color
-@theme-8-text: #fff; // #color
-//--
-@body-bg:           #edeae6; // The background color of the page. #color
-@panel-bg:          #fcfaf8; // The background color of the panel body.
+@state-info-text: #fff;
+@state-info-bg: @brand-info;
+@state-info-border: @brand-info;
+
+@navbar-top-height: 80px;
+@pagetitle-background: #fff;
+
+// Theme Defaults
+@border-radius-base: 0; // The global setting for rounding corners.
+
+
+
 
 // Text *show in editor*
-@text-color:             #6a6a6a;                   // The default text color. #color
-@link-color:             #4f89bd;                   // The color for all links. #color
+
 
 @text-selection-bg:      #afd074;                   // Text selection background color (used when people select text with the mouse). #color
 @text-selection-color:   #fff;                      // Text selection text color (used when people select text with the mouse). #color
@@ -51,12 +82,7 @@
 // Bootstrap Colors *show in editor*
 
 //// Bootstrap Colors {The primary colors defined by the Bootstrap framework. [More Information](http://getbootstrap.com/customize/#colors)}
-@brand-primary:         @theme-1;   // #color
-@brand-success:         #5c9e7d;    // #color
-@brand-warning:         #ecc759;    // #color
-@brand-danger:          #bb5454;    // #color
-@brand-info:            #4099ad;    // #color
-@brand-critical:        #ee7624;    // #color
+
 //--
 @gray-darker:            lighten(#000, 13.5%); // #color
 @gray-dark:              lighten(#000, 20%);   // #color
@@ -82,7 +108,6 @@
 @nav-bg: @theme-2;                                              // The background color of the main navigation. #color
 @nav-color: @theme-2-text;                                      // The text color of the main navigation. #color
 @nav-logo-bg: darken(@nav-bg, 5%);                              // The background color of the icon corner. #color
-@nav-sub-bg: lighten(@theme-2, 5%);                             // The background of the secondary navigation. #color
 @nav-sub-color: @theme-2-text;                                  // The text color of the secondary navigation. #color
 @nav-sub-title-color: @theme-1;                                 // The text color of the title on the secondary navigation. #color
 @nav-sub-heading-color: darken(@theme-2-text, 20%);             // The text color of the heading on the secondary navigation. #color
@@ -109,7 +134,7 @@
 @adminbar-text-color: @theme-2-text; // #color
 
 // Global Styles 
-@border-radius-base: 4px;               // The global setting for rounding corners.
+
 @well-bg: @body-bg;                     // The backgroud color for wells. Wells are used to group like content. #color
 @photo-border: @theme-3;                // Standard border color for photos. #color
 @hr-border: lighten(@text-color, 40%);  // The color horizontal rule lines. #color
@@ -153,13 +178,13 @@
 
 // Panel
 @panel-text:                  @text-color;                  // The text color of the panel.
-@panel-border:                darken(@theme-6, 10%);        // The panel's border color.
-@panel-top-border-color:      @theme-3;    // Color of the panel's top border often used as an accent color.
+@panel-border:                #eaeae9;        // The panel's border color.
+@panel-top-border-color:      darken(@panel-border, 10%);    // Color of the panel's top border often used as an accent color.
 @panel-border-radius:         @border-radius-base;
 //--
-@panel-heading-bg:            @theme-6;                  // The background color of the panel's header.
-@panel-heading-text-color:    @theme-6-text;             // The heading's text color.
-@panel-heading-border:        @panel-border;             // The headings border color.
+@panel-heading-bg:            #eaeae9;                  // The background color of the panel's header.
+@panel-heading-text-color:    #6a6a6a;             // The heading's text color.
+@panel-heading-border:        @panel-heading-bg;             // The headings border color.
 //--
 @panel-following-active-bg:   @panel-top-border-color;   // The background color of the following square when it's active at the top of panels that support the following feature (e.g. Group Details block).
 //--
@@ -383,21 +408,7 @@
 @label-type-bg: @theme-8;  // Used for showing the 'type' of an idea. For instance on the group viewer this highlights the group's type.
 
 // Form States and Actions Colors
-@state-warning-text:             #c09853;
-@state-warning-bg:               #fcf8e3;
-@state-warning-border:           darken(spin(@state-warning-bg, -10), 3%);
-//--
-@state-danger-text:              #b94a48;
-@state-danger-bg:                #f2dede;
-@state-danger-border:            darken(spin(@state-danger-bg, -10), 3%);
-//--
-@state-success-text:             #468847;
-@state-success-bg:               #dff0d8;
-@state-success-border:           darken(spin(@state-success-bg, -10), 5%);
-//--
-@state-info-text:                #3a87ad;
-@state-info-bg:                  #d9edf7;
-@state-info-border:              darken(spin(@state-info-bg, -10), 7%);
+
 
 // Code
 @code-color:                  #c7254e;

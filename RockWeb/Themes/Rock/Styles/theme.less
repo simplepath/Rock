@@ -99,7 +99,7 @@ main {
 }
 
 body {
-  background-color: @nav-bg;
+  
 }
 
 h1, h2, h3, h4 {
@@ -127,11 +127,7 @@ textarea:focus,
   box-shadow: 0 0 5px rgba(238, 118, 36, .6);
 }
 
-pre {
-  color: @theme-6-text;
-  background-color: @theme-6;
-  border-color: darken(@theme-6, 15%);
-}
+
 
 // text selection color
 ::selection {
@@ -150,6 +146,13 @@ pre {
 // 2. Bootstrap Overrides    */
 // -------------------------
 
+.nav .open > a, 
+.nav .open > a:focus, 
+.nav .open > a:hover {
+  background-color: transparent;
+  border: 0;
+}
+/*
 h1 small,
 h2 small,
 h3 small,
@@ -241,11 +244,22 @@ h4, .h4 {
     }
   }
 }
-
+  */
 /*#region
 // 3. Rock Overrides         */
 // -------------------------
+.panel-block {
+  border: 0;
 
+  > .panel-heading {
+    background-color: #fff;
+    font-size: 18px;
+    margin: 0 20px;
+    padding: 20px 15px 20px 0;
+  }
+}
+
+/*
 // make the no image svgs take on a bit of their background color
 .photo img[src*=no-photo],
 .person-image[style*=no-photo],
@@ -310,7 +324,7 @@ h4, .h4 {
        -moz-border-radius: 17.5px;
   }
 }
-
+  */
 /*#endregion */
 
 
@@ -318,6 +332,415 @@ h4, .h4 {
 // 4. Theme Styling          */
 // -------------------------
 
+.page-wrapper {
+
+  @media (min-width: @screen-md-min) {
+    padding-top: @navbar-top-height;
+  }
+
+  min-height: 100%;
+}
+
+.rock-top-header {
+  background-color: @brand-color;
+  height: @navbar-top-height;
+  margin-bottom: 0;
+
+  @media (max-width: @screen-sm-max) {
+    position: relative;
+  }
+
+  .navbar-toggle {
+    float: left;
+    font-size: 24px;
+    color: #fff;
+    margin-top: 12px;
+    margin-left: 27px;
+    cursor: pointer;
+  }
+
+  .navbar-brand-corner {
+    display: none;
+    background-color: @navbarside-background-color;
+    color: #fff;
+    height: @navbar-top-height;
+    width: @navbarside-width;
+    background-image: url(../../../Assets/Images/rock-logo-circle.svg);
+    background-repeat: no-repeat;
+    background-position: center center;
+    border-bottom: 1px solid lighten(@navbarside-background-color, 10%);
+    padding: 6px;
+    background-size: 45px;
+    float: left;
+
+    &:hover {
+      background-color: @navbarside-background-color;
+    }
+
+    @media (min-width: @screen-sm-min) {
+      display: block;
+    }
+  }
+
+  .navbar-brand-center {
+    display: block;
+    height: @navbar-top-height;
+    width: @navbar-top-height;
+    background-image: url(../../../Assets/Images/rock-logo-circle.svg);
+    background-repeat: no-repeat;
+    background-size: 45px;
+    background-position: center center;
+    margin: 0 auto;
+
+    @media (min-width: @screen-sm-min) {
+      display: none;
+    }
+  }
+
+  .navbar-static-top {
+    margin-left: 24px;
+
+    a {
+      font-size: 14px;
+      color: @navbartop-color;
+      line-height: @navbar-top-height;
+      padding: 0 16px;
+
+      &:hover,
+      &:focus {
+        opacity: .8;
+        background-color: transparent;
+      }
+    }
+  }
+
+  .smartsearch {
+    float: right;
+    height: 50px;
+    margin: 15px 0;
+    color: @navbartop-color;
+    border: 0;
+    width: 340px;
+
+    i {
+      margin-top: 14px;
+      margin-left: 6px;
+    }
+
+    input.searchinput {
+      color: @navbartop-color;
+      margin-top: 10px;
+      padding-left: 30px;
+    }
+
+    .dropdown {
+      margin-top: 10px;
+
+      .navbar-link {
+        color: @navbartop-color;
+      }
+    }
+
+    .tt-hint {
+      padding: 14.5px 4px 4px 30px;
+      color: @navbartop-color;
+      opacity: .5;
+    }
+
+    .tt-dropdown-menu {
+      margin-top: 10px;
+    }
+  }
+
+  .loginstatus > li {
+    min-width: inherit;
+
+    > a {
+      color: @navbartop-color;
+      line-height: @navbar-top-height;
+      padding: 0 18px;
+
+
+      .profile-photo {
+        height: 43px;
+        width: 43px;
+        border-radius: 50%;
+        float: left;
+        background-repeat: no-repeat;
+        background-size: cover;
+        margin-top: 17px;
+        margin-right: 12px;
+      }
+
+      span {
+        display: none;
+      }
+
+      .fa-caret-down:before {
+        content: @fa-var-chevron-down;
+      }
+
+      &:hover,
+      &:focus {
+        background-color: transparent;
+      }
+    }
+
+    .dropdown-menu {
+      left: auto;
+      right: 0;
+    }
+  }
+
+  .dropdown {
+    a {
+      float: left;
+
+      i {
+        margin-left: 8px;
+      }
+    }
+  }
+
+  .dropdown-menu {
+
+    border: 0;
+
+    a {
+      color: @text-color;
+      line-height: 34px;
+      width: 100%;
+
+      &:hover {
+        background-color: @brand-color;
+        color: #fff;
+        opacity: 1;
+      }
+    }
+
+    &:after {
+      border-bottom: 8px solid #fff;
+      border-left: 8px solid transparent;
+      border-right: 8px solid transparent;
+      top: -8px;
+      content: "";
+      display: inline-block;
+      left: 42px;
+      margin-left: -6px;
+      position: absolute;
+    }
+  }
+}
+
+#content-wrapper {
+  position: relative;
+
+  @media (min-width: @screen-sm-min) {
+    margin-left: 100px;
+  }
+}
+
+.main-content {
+  margin: 15px 15px 0 15px;
+
+  #page-title {
+    background-color: @pagetitle-background;
+    margin: -15px -15px 15px -15px;
+    padding: 12px;
+
+    .title {
+      margin: 0;
+    }
+  }
+
+  @media (min-width: @screen-md-min) {
+    margin: 35px 35px 0 35px;
+
+    #page-title {
+      margin: -35px -35px 15px -35px;
+    }
+  }
+}
+
+.navbar-static-side {
+  position: fixed;
+  display: none;
+  width: @navbarside-width;
+  color: @navbarside-color;
+  background-color: @navbarside-background-color;
+  height: 100%;
+  left: 0;
+  top: 0;
+  z-index: 1031;
+
+  @media (min-width: @screen-sm-min) {
+    z-index: auto;
+    position: absolute;
+    top: auto;
+  }
+
+  .navbar-toggle-side-left {
+    height: @navbar-top-height;
+    font-size: 24px;
+    display: block;
+    padding-top: 22px;
+    padding-left: 38px;
+    border-bottom: 1px solid lighten(@navbarside-background-color, 10%);
+    cursor: pointer;
+
+    @media (min-width: @screen-sm-min) {
+      display: none;
+    }
+  }
+
+  &:before {
+    content: "";
+    position: fixed;
+    z-index: -1;
+    width: inherit;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    background-color: inherit;
+  }
+
+  .navbar-side {
+    display: inline-block;
+    width: 100%;
+    cursor: default;
+
+    & > li {
+      margin-top: 0;
+      text-align: center;
+      border-top: 1px solid lighten( @navbarside-background-color, 7%);
+      cursor: pointer;
+
+      &:last-child {
+        border-bottom: 1px solid lighten( @navbarside-background-color, 7%);
+      }
+
+      &:first-child {
+        border-top: 0;
+      }
+
+      > i {
+        display: block;
+        padding: 24px 0;
+        font-size: 32px;
+
+        &:hover {
+          color: @navbarside-color;
+          background-color: @navbarside-sub-bg;
+        }
+      }
+
+      &.open {
+        background-color: @navbarside-sub-bg;
+      }
+
+      .nav-childpages {
+        position: fixed;
+        top: 0;
+        left: @navbarside-width;
+        z-index: 9999;
+        display: none;
+        width: 280px;
+        padding: 9px 20px;
+        font-size: 14px;
+        text-align: left;
+        background-color: @navbarside-sub-bg;
+        height: 100%;
+
+        li {
+
+          a {
+            padding: 6px;
+            margin: 1px -6px;
+            line-height: 1.1em;
+            color: @navbarside-color;
+
+            &:focus {
+              color: @nav-sub-text-rollover-color;
+              background-color: @nav-sub-text-rollover-bg;
+            }
+
+            &:hover {
+              color: @navbarside-color;
+              background-color: darken(@navbarside-sub-bg, 7%);
+            }
+          }
+        }
+
+        li.title {
+          margin-bottom: 24px;
+          font-size: 24px;
+          font-weight: @font-weight-light;
+          color: @navbarside-color;
+        }
+
+        li.header {
+          padding-bottom: 2px;
+          margin-top: 32px;
+          margin-bottom: 4px;
+          font-weight: @font-weight-semibold;
+          font-weight: 400;
+          color: darken(@navbarside-color, 20%);
+          border-bottom: 1px solid darken(@navbarside-color, 20%);
+        }
+
+        li.header:first-child {
+          margin-top: 0;
+        }
+      }
+    }
+
+    > li.open {
+      .nav-childpages {
+        display: block;
+
+        li.header {
+          padding-left: 0;
+        }
+      }
+    }
+  }
+}
+
+// expanded view
+@media (min-width: @screen-sm-min) {
+  .navbar-static-side {
+    display: block;
+  }
+
+  #content-wrapper {
+    margin-left: @navbarside-width;
+  }
+}
+
+// minimized view
+body.navbar-side-open {
+  .navbar-static-side {
+    display: block;
+    width: @navbarside-width;
+  }
+
+  #content-wrapper {
+    margin-left: @navbarside-width;
+  }
+}
+
+body.navbar-side-close {
+  .navbar-static-side {
+
+    @media (max-width: @screen-xs-max) {
+      display: none;
+    }
+  }
+}
+
+
+
+/*
 // Notifications
 .navbar-top-links {
   float: left;
@@ -563,14 +986,12 @@ body#splash {
     color: #dab751;
   }
 }
-
+  */
 /*#endregion */
-
-
 /*#region
 // 5. Utilities              */
 // -------------------------
-
+/*
 .navbar-minimize {
   display: inline-block;
   padding: 4px 12px;
@@ -580,17 +1001,13 @@ body#splash {
   border: 1px solid @header-hamburger-border;
   border-radius: @border-radius-base;
 }
-
-
+*/
 /*#endregion */
-
-
 /*#region
 // 6. Responsive Overrides  */
 // -------------------------
-
 // default styling should be for phones 767px or less
-
+/*
 // Small devices (tablets, 768px and up)
 @media (min-width: @screen-sm-min) {
   body#splash {
@@ -647,176 +1064,17 @@ body#splash {
 
 // Large devices (large desktops, 1200px and up)
 @media (min-width: @screen-lg-min) {
-}
+}*/
 /*#endregion */
-
-
 /*#region
 // 7. Side Navbar             */
 // -------------------------
-
-
 // base styles
-.navbar-static-side {
-  position: absolute;
-  display: none;
-  width: 70px;
-  color: @nav-color;
-  background-color: @nav-bg;
 
-  .navbar-header {
-    width: 100%;
-    height: @navbar-height;
-    background-color: @nav-logo-bg;
-
-    .logo {
-      width: 36px;
-      height: 35px;
-      margin: 8px auto 0;
-      background: url(../../../Assets/Images/rock-logo-sm.svg) no-repeat top left;
-      background-size: contain;
-      opacity: .8;
-    }
-  }
-
-  .navbar-side {
-    display: inline-block;
-    width: 100%;
-    cursor: default;
-
-    & > li {
-      margin-top: 0;
-      text-align: center;
-      border-top: 1px solid lighten(@nav-bg, 7%);
-
-      &:last-child {
-        border-bottom: 1px solid lighten(@nav-bg, 7%);
-      }
-
-      > i {
-        display: block;
-        padding: 16px 0;
-        font-size: 24px;
-
-        &:hover {
-          color: @nav-sub-color;
-          background-color: @nav-sub-bg;
-        }
-      }
-
-      &.open {
-        background-color: @nav-sub-bg;
-      }
-
-      .nav-childpages {
-        position: absolute;
-        top: 0;
-        left: 70px;
-        z-index: 9999;
-        display: none;
-        width: 220px;
-        padding: 9px 12px;
-        font-size: 14px;
-        text-align: left;
-        background-color: @nav-sub-bg;
-
-        li a {
-          padding: 6px;
-          line-height: 1.1em;
-          color: @nav-sub-color;
-
-          &:focus {
-            color: @nav-sub-text-rollover-color;
-            background-color: @nav-sub-text-rollover-bg;
-          }
-
-          &:hover {
-            color: @nav-sub-text-rollover-color;
-            background-color: @nav-sub-text-rollover-bg;
-          }
-        }
-
-        li.title {
-          margin-bottom: -8px;
-          font-size: 18px;
-          font-weight: @font-weight-light;
-          color: @nav-sub-title-color;
-        }
-
-        li.header {
-          padding-bottom: 2px;
-          margin-top: 14px;
-          margin-left: 4px;
-          font-weight: @font-weight-semibold;
-          font-weight: 400;
-          color: @nav-sub-heading-color;
-          border-bottom: 1px solid @nav-sub-heading-border;
-        }
-
-        li.header:first-child {
-          margin-top: 0;
-        }
-      }
-    }
-
-    > li.open {
-      .nav-childpages {
-        display: block;
-
-        li.header {
-          padding-left: 0;
-        }
-      }
-    }
-  }
-}
-
-// expanded view
-@media (min-width: @screen-md-min) {
-  .navbar-static-side {
-    display: block;
-  }
-
-  #content-wrapper {
-    margin-left: 70px;
-  }
-}
-
-// minimized view
-body.navbar-side-open {
-  .navbar-static-side {
-    display: block;
-    width: 70px;
-  }
-
-  #content-wrapper {
-    margin-left: 70px;
-  }
-}
-
-body.navbar-side-close {
-  .navbar-static-side {
-    display: none;
-  }
-
-  #content-wrapper {
-    margin-left: 0;
-  }
-}
 /*#endregion */
 
 
-/*#region
-// 8. First Word Weight  */
-// -------------------------
-.title {
-  font-weight: @font-weight-light;
 
-  .first-word {
-    font-weight: @font-weight-bold;
-  }
-}
-/*#endregion */
 
 
 @import "_print.less";
