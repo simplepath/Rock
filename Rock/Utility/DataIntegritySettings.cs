@@ -124,6 +124,7 @@ namespace Rock.Utility.DataIntegrity
         {
             ReactivatePeople = new ReactivatePeople();
             ReactivatePeople.AttendanceInGroupType = GetDefaultGroupTypes();
+            ReactivatePeople.PersonAttributes = GetDefaultPersonAttributes();
             InactivatePeople = new InactivatePeople();
             InactivatePeople.AttendanceInGroupType = GetDefaultGroupTypes();
             this.UpdateCampus = new UpdateCampus();
@@ -197,6 +198,22 @@ namespace Rock.Utility.DataIntegrity
             }
 
             return defaultGroupTypes;
+        }
+
+        /// <summary>
+        /// Gets the default person attributes.
+        /// </summary>
+        /// <returns></returns>
+        private List<int> GetDefaultPersonAttributes()
+        {
+            var defaultPersonAttributes = new List<int>();
+            var baptismDate = AttributeCache.Read( Guid.Parse( "d42763fa-28e9-4a55-a25a-48998d7d7fef" ) );
+            if ( baptismDate != null )
+            {
+                defaultPersonAttributes.Add( baptismDate.Id );
+            }
+
+            return defaultPersonAttributes;
         }
 
     }

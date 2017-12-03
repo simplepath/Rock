@@ -139,7 +139,7 @@
                                             <asp:Repeater ID="rInteractions" runat="server">
                                                 <ItemTemplate>
                                                     <div class="row margin-b-sm">
-                                                        <asp:HiddenField ID="hfInteractionTypeId" runat="server" Value='<%# Eval("Id") %>' />
+                                                        <asp:HiddenField ID="hfInteractionTypeId" runat="server" Value='<%# Eval("Guid") %>' />
                                                         <div class="col-md-2 col-sm-3 col-xs-4">
                                                             <Rock:RockCheckBox ID="cbInterationType" runat="server" SelectedIconCssClass="fa fa-check-square-o" UnSelectedIconCssClass="fa fa-square-o" Text='<%# Eval("Name") %>' Checked='<%# (bool)Eval("IsInteractionTypeEnabled") %>' />
                                                         </div>
@@ -241,7 +241,7 @@
                                             <asp:Repeater ID="rNoInteractions" runat="server">
                                                 <ItemTemplate>
                                                     <div class="row margin-b-sm">
-                                                        <asp:HiddenField ID="hfInteractionTypeId" runat="server" Value='<%# Eval("Id") %>' />
+                                                        <asp:HiddenField ID="hfInteractionTypeId" runat="server" Value='<%# Eval("Guid") %>' />
                                                         <div class="col-md-2 col-sm-3 col-xs-4">
                                                             <Rock:RockCheckBox ID="cbInterationType" runat="server" SelectedIconCssClass="fa fa-check-square-o" UnSelectedIconCssClass="fa fa-square-o" Text='   <%# Eval("Name") %>' Checked='<%# (bool)Eval("IsInteractionTypeEnabled") %>' />
                                                         </div>
