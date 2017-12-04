@@ -36,10 +36,10 @@ using Rock.Web.UI.Controls;
 using System.Web.UI.WebControls;
 using Rock.Web;
 
-namespace RockWeb.Blocks.Examples
+namespace RockWeb.Blocks.Crm
 {
     [DisplayName( "Ncoa Results" )]
-    [Category( "Examples" )]
+    [Category( "CRM" )]
     [Description( "Display the Ncoa History Record" )]
 
     [IntegerField( "Result Count", "Number of result to display per page (default 20).", false, 20 )]
@@ -372,25 +372,24 @@ namespace RockWeb.Blocks.Examples
                 query = query.Where( i => i.MoveDistance == moveDistance.Value );
             }
 
-            var personAliasQuery = new PersonAliasService( rockContext ).Queryable();
-
             string lastName = gfNcoaFilter.GetUserPreference( "Last Name" );
             if ( !string.IsNullOrWhiteSpace( lastName ) )
             {
-                personAliasQuery = personAliasQuery.Where( i => i.Person.LastName.Contains( lastName ) );
+                var personAliasQuery = new PersonAliasService( rockContext )
+                    .Queryable()
+                    .Where( p =>
+                        p.Person != null &&
+                        p.Person.LastName.Contains( lastName ) )
+                    .Select( p => p.Id );
+                query = query.Where( i => personAliasQuery.Contains( i.PersonAliasId ) );
             }
 
-            var filteredRecords = query.Join( personAliasQuery, a => a.PersonAliasId, b => b.Id, ( a, b ) => new
-            {
-                Ncoa = a,
-                Person = b.Person
-            } ).ToList();
-
+            var filteredRecords = query.ToList();
 
             #region Grouping rows
             var ncoaRows = filteredRecords
-                       .Where( a => a.Ncoa.MoveType != MoveType.Individual )
-                       .GroupBy( a => new { a.Ncoa.FamilyId, a.Ncoa.MoveType, a.Ncoa.MoveDate } )
+                       .Where( a => a.MoveType != MoveType.Individual )
+                       .GroupBy( a => new { a.FamilyId, a.MoveType, a.MoveDate } )
                        .Select( a => new NcoaRow
                        {
                            Id = a.Select( b => b.Ncoa.Id ).Max(),
@@ -398,11 +397,11 @@ namespace RockWeb.Blocks.Examples
                        } ).ToList();
 
             var ncoaIndividualRows = filteredRecords
-                        .Where( a => a.Ncoa.MoveType == MoveType.Individual )
+                        .Where( a => a.MoveType == MoveType.Individual )
                        .Select( a => new NcoaRow
                        {
-                           Id = a.Ncoa.Id,
-                           Individual = a.Person
+                           Id = a.Id,
+                           Individual = a.per
                        } ).ToList();
 
             ncoaRows.AddRange( ncoaIndividualRows );

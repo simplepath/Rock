@@ -1,4 +1,4 @@
-﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="NcoaResults.ascx.cs" Inherits="RockWeb.Blocks.Examples.NcoaResults" %>
+﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="NcoaResults.ascx.cs" Inherits="RockWeb.Blocks.Crm.NcoaResults" %>
 
 <asp:UpdatePanel ID="upNcoaResults" runat="server">
     <ContentTemplate>
@@ -16,7 +16,7 @@
                         <Rock:RockDropDownList ID="ddlMoveType" runat="server" Label="Move Type" />
                         <Rock:RockDropDownList ID="ddlAddressStatus" runat="server" Label="Address Status" />
                         <Rock:RockDropDownList ID="ddlInvalidReason" runat="server" Label="Invalid Reason" />
-                        <Rock:NumberBox ID="nbMoveDistance" runat="server" NumberType="Double" Text="Move Distance"></Rock:NumberBox>
+                        <Rock:NumberBox ID="nbMoveDistance" runat="server" NumberType="Double" Label="Move Distance"></Rock:NumberBox>
                         <Rock:RockTextBox ID="tbLastName" runat="server" Label="Last Name" />
                     </Rock:GridFilter>
                 </div>

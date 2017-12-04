@@ -33,10 +33,10 @@ using System.Linq;
 using System.Globalization;
 using Humanizer;
 
-namespace RockWeb.Blocks.Examples
+namespace RockWeb.Blocks.Crm
 {
     [DisplayName( "Ncoa History Detail" )]
-    [Category( "Examples" )]
+    [Category( "CRM" )]
     [Description( "Parse the Ncoa History CSV" )]
 
     public partial class NcoaHistoryDetail : RockBlock

@@ -1,4 +1,4 @@
-﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="NcoaHistoryDetail.ascx.cs" Inherits="RockWeb.Blocks.Examples.NcoaHistoryDetail" %>
+﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="NcoaHistoryDetail.ascx.cs" Inherits="RockWeb.Blocks.Crm.NcoaHistoryDetail" %>
 
 <asp:UpdatePanel ID="upNcoaHistory" runat="server">
     <ContentTemplate>
