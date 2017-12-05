@@ -289,10 +289,9 @@
                                     </td>
                                 </tr>
                                 <tr>
+                                    <td></td>
                                     <td>
-                                        <Rock:RockCheckBox ID="cbAttendanceOrGiving" runat="server" SelectedIconCssClass="fa fa-check-square-o" UnSelectedIconCssClass="fa fa-square-o" /></td>
-                                    <td>
-                                        <Rock:RockDropDownList ID="ddlAttendanceOrGiving" CssClass="input-width-md" runat="server" Label="If the campus for most attendance and most giving at" />
+                                        <Rock:RockDropDownList ID="ddlAttendanceOrGiving" CssClass="input-width-md" runat="server" Label="If the campus for most attendance and the campus for most giving are different" />
                                     </td>
                                 </tr>
                                 <tr>

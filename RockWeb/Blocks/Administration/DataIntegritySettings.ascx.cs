@@ -214,7 +214,7 @@ namespace RockWeb.Blocks.Administration
             rlbNoPersonAttributes.DataSource = personAttributes;
             rlbNoPersonAttributes.DataBind();
 
-            ddlAttendanceOrGiving.BindToEnum<CampusCriteria>( true );
+            ddlAttendanceOrGiving.BindToEnum<CampusCriteria>();
         }
 
         /// <summary>
@@ -315,11 +315,7 @@ namespace RockWeb.Blocks.Administration
             nbMostFamilyAttendance.Text = _campusSettings.MostFamilyAttendancePeriod.ToStringSafe();
             cbMostFamilyGiving.Checked = _campusSettings.IsMostFamilyGivingEnabled;
             nbMostFamilyGiving.Text = _campusSettings.MostFamilyGivingPeriod.ToStringSafe();
-            cbAttendanceOrGiving.Checked = _campusSettings.IsMostAttendanceOrGivingEnabled;
-            if ( _campusSettings.MostAttendanceOrGiving.HasValue )
-            {
-                ddlAttendanceOrGiving.SetValue( _campusSettings.MostAttendanceOrGiving.ConvertToInt() );
-            }
+            ddlAttendanceOrGiving.SetValue( _campusSettings.MostAttendanceOrGiving.ConvertToInt() );
             cbIgnoreIfManualUpdate.Checked = _campusSettings.IsIgnoreIfManualUpdateEnabled;
             nbIgnoreIfManualUpdate.Text = _campusSettings.IgnoreIfManualUpdatePeriod.ToStringSafe();
 
@@ -454,8 +450,7 @@ namespace RockWeb.Blocks.Administration
             _campusSettings.IsMostFamilyGivingEnabled = cbMostFamilyGiving.Checked;
             _campusSettings.MostFamilyGivingPeriod = nbMostFamilyGiving.Text.AsInteger();
 
-            _campusSettings.IsMostAttendanceOrGivingEnabled = cbAttendanceOrGiving.Checked;
-            _campusSettings.MostAttendanceOrGiving = ddlAttendanceOrGiving.SelectedValueAsEnumOrNull<CampusCriteria>();
+            _campusSettings.MostAttendanceOrGiving = ddlAttendanceOrGiving.SelectedValueAsEnum<CampusCriteria>();
 
             _campusSettings.IsIgnoreIfManualUpdateEnabled = cbIgnoreIfManualUpdate.Checked;
             _campusSettings.IgnoreIfManualUpdatePeriod = nbIgnoreIfManualUpdate.Text.AsInteger();

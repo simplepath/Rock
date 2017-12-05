@@ -74,20 +74,12 @@ namespace Rock.Utility.Settings.DataAutomation
         public int MostFamilyGivingPeriod { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether this instance is most attendance or giving enabled.
-        /// </summary>
-        /// <value>
-        ///   <c>true</c> if this instance is most attendance or giving enabled; otherwise, <c>false</c>.
-        /// </value>
-        public bool IsMostAttendanceOrGivingEnabled { get; set; }
-
-        /// <summary>
         /// Gets or sets the most attendance or giving.
         /// </summary>
         /// <value>
         /// The most attendance or giving.
         /// </value>
-        public CampusCriteria? MostAttendanceOrGiving { get; set; }
+        public CampusCriteria MostAttendanceOrGiving { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether this instance is ignore if manual update enabled.
