@@ -18,109 +18,18 @@ using System;
 using System.Collections.Generic;
 using Rock.Web.Cache;
 
-namespace Rock.Utility.DataIntegrity
+namespace Rock.Utility.DataAutomation
 {
     /// <summary>
-    /// Utility class used by the Data Integrity Settings block and jobs
+    /// Utility class used to store Data Automation system settings
     /// </summary>
     public class Settings
     {
+
         /// <summary>
         /// Initializes a new instance of the <see cref="Settings"/> class.
         /// </summary>
         public Settings()
-        {
-            General = new GeneralSettings();
-            NcoaConfiguration = new NcoaConfigurationSettings();
-            DataAutomation = new DataAutomationSettings();
-        }
-
-        /// <summary>
-        /// Gets or sets the general.
-        /// </summary>
-        /// <value>
-        /// The general.
-        /// </value>
-        public GeneralSettings General { get; set; }
-
-        /// <summary>
-        /// Gets or sets the ncoa configuration.
-        /// </summary>
-        /// <value>
-        /// The ncoa configuration.
-        /// </value>
-        public NcoaConfigurationSettings NcoaConfiguration { get; set; }
-
-        /// <summary>
-        /// Gets or sets the data automation.
-        /// </summary>
-        /// <value>
-        /// The data automation.
-        /// </value>
-        public DataAutomationSettings DataAutomation { get; set; }
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    public class GeneralSettings
-    {
-        /// <summary>
-        /// Gets or sets the gender automatic fill confidence.
-        /// </summary>
-        /// <value>
-        /// The gender automatic fill confidence.
-        /// </value>
-        public int? GenderAutoFillConfidence { get; set; }
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    public class NcoaConfigurationSettings
-    {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="NcoaConfigurationSettings"/> class.
-        /// </summary>
-        public NcoaConfigurationSettings()
-        {
-            MinimumMoveDistancetoInactivate = 250;
-        }
-
-        /// <summary>
-        /// Gets or sets the minimum move distanceto inactivate.
-        /// </summary>
-        /// <value>
-        /// The minimum move distanceto inactivate.
-        /// </value>
-        public int MinimumMoveDistancetoInactivate { get; set; }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether [month48 move as previous address].
-        /// </summary>
-        /// <value>
-        ///   <c>true</c> if [month48 move as previous address]; otherwise, <c>false</c>.
-        /// </value>
-        public bool Month48MoveAsPreviousAddress { get; set; }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether [invalid address as previous address].
-        /// </summary>
-        /// <value>
-        ///   <c>true</c> if [invalid address as previous address]; otherwise, <c>false</c>.
-        /// </value>
-        public bool InvalidAddressAsPreviousAddress { get; set; }
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    public class DataAutomationSettings
-    {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="DataAutomationSettings"/> class.
-        /// </summary>
-        public DataAutomationSettings()
         {
             ReactivatePeople = new ReactivatePeople();
             ReactivatePeople.AttendanceInGroupType = GetDefaultGroupTypes();

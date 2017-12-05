@@ -25,11 +25,11 @@ using System.Web.UI.WebControls;
 using Rock;
 using Rock.Data;
 using Rock.Model;
-using Rock.Utility;
+using Rock.SystemKey;
 using Rock.Web.Cache;
 using Rock.Web.UI.Controls;
 
-using Rock.Utility.DataIntegrity;
+using Rock.Utility.Settings.DataAutomation;
 
 namespace RockWeb.Blocks.Administration
 {
@@ -45,7 +45,11 @@ namespace RockWeb.Blocks.Administration
 
         private List<IgnoreCampusChangeRow> _ignoreCampusChangeRows { get; set; }
         private RockContext _rockContext = new RockContext();
-        private Settings _settings = new Settings();
+        private Dictionary<string, string> _generalSettings = new Dictionary<string, string>();
+        private Dictionary<string, string> _ncoaSettings = new Dictionary<string, string>();
+        private ReactivatePeople _reactivateSettings = new ReactivatePeople();
+        private InactivatePeople _inactivateSettings = new InactivatePeople();
+        private UpdateFamilyCampus _campusSettings = new UpdateFamilyCampus();
         private List<InteractionItem> _interactionChannelTypes = new List<InteractionItem>();
         private List<CampusCache> _campuses = new List<CampusCache>();
 
@@ -218,35 +222,37 @@ namespace RockWeb.Blocks.Administration
         /// </summary>
         private void GetSettings()
         {
-            _settings = Rock.Web.SystemSettings.GetValue( "com.rockrms.DataIntegrity" ).FromJsonOrNull<Settings>() ?? new Settings();
-
             //Get General
-            nbGenderAutoFill.Text = _settings.General.GenderAutoFillConfidence.ToStringSafe();
+            nbGenderAutoFill.Text = Rock.Web.SystemSettings.GetValue( SystemSetting.GENDER_AUTO_FILL_CONFIDENCE );
 
             //Get Ncoa Configuration
-            nbMinMoveDistance.Text = _settings.NcoaConfiguration.MinimumMoveDistancetoInactivate.ToStringSafe();
-            cb48MonAsPrevious.Checked = _settings.NcoaConfiguration.Month48MoveAsPreviousAddress;
-            cbInvalidAddressAsPrevious.Checked = _settings.NcoaConfiguration.InvalidAddressAsPreviousAddress;
+            nbMinMoveDistance.Text = Rock.Web.SystemSettings.GetValue( SystemSetting.NCOA_MiNIMUM_MOVE_DISTANCE_TO_INACTIVATE );
+            cb48MonAsPrevious.Checked = Rock.Web.SystemSettings.GetValue( SystemSetting.NCOA_SET_48_MONTH_AS_PREVIOUS ).AsBoolean();
+            cbInvalidAddressAsPrevious.Checked = Rock.Web.SystemSettings.GetValue( SystemSetting.NCOA_SET_INVALID_AS_PREVIOUS ).AsBoolean();
+
+            _reactivateSettings = Rock.Web.SystemSettings.GetValue( SystemSetting.DATA_AUTOMATION_REACTIVATE_PEOPLE ).FromJsonOrNull<ReactivatePeople>() ?? new ReactivatePeople();
+            _inactivateSettings = Rock.Web.SystemSettings.GetValue( SystemSetting.DATA_AUTOMATION_INACTIVATE_PEOPLE ).FromJsonOrNull<InactivatePeople>() ?? new InactivatePeople();
+            _campusSettings = Rock.Web.SystemSettings.GetValue( SystemSetting.DATA_AUTOMATION_UPDATE_FAMILY_CAMPUS ).FromJsonOrNull<UpdateFamilyCampus>() ?? new UpdateFamilyCampus();
 
             //Get Data Automation
-            cbReactivatePeople.Checked = _settings.DataAutomation.IsReactivatePeopleEnabled;
-            cbLastContribution.Checked = _settings.DataAutomation.ReactivatePeople.IsLastContributionEnabled;
-            nbLastContribution.Text = _settings.DataAutomation.ReactivatePeople.LastContributionPeriod.ToStringSafe();
-            cbAttendanceInServiceGroup.Checked = _settings.DataAutomation.ReactivatePeople.IsAttendanceInServiceGroupEnabled;
-            nbAttendanceInServiceGroup.Text = _settings.DataAutomation.ReactivatePeople.AttendanceInServiceGroupPeriod.ToStringSafe();
-            cbAttendanceInGroupType.Checked = _settings.DataAutomation.ReactivatePeople.IsAttendanceInGroupTypeEnabled;
-            nbAttendanceInGroupType.Text = _settings.DataAutomation.ReactivatePeople.AttendanceInGroupTypeDays.ToStringSafe();
-            rlbAttendanceInGroupType.SetValues( _settings.DataAutomation.ReactivatePeople.AttendanceInGroupType ?? new List<int>() );
-            cbPrayerRequest.Checked = _settings.DataAutomation.ReactivatePeople.IsPrayerRequestEnabled;
-            nbPrayerRequest.Text = _settings.DataAutomation.ReactivatePeople.PrayerRequestPeriod.ToStringSafe();
-            cbPersonAttributes.Checked = _settings.DataAutomation.ReactivatePeople.IsPersonAttributesEnabled;
-            nbPersonAttributes.Text = _settings.DataAutomation.ReactivatePeople.PersonAttributesDays.ToStringSafe();
-            rlbPersonAttributes.SetValues( _settings.DataAutomation.ReactivatePeople.PersonAttributes ?? new List<int>() );
-            cbIncludeDataView.Checked = _settings.DataAutomation.ReactivatePeople.IsIncludeDataViewEnabled;
-            dvIncludeDataView.SetValue( _settings.DataAutomation.ReactivatePeople.IncludeDataView );
-            cbExcludeDataView.Checked = _settings.DataAutomation.ReactivatePeople.IsExcludeDataViewEnabled;
-            dvExcludeDataView.SetValue( _settings.DataAutomation.ReactivatePeople.ExcludeDataView );
-            cbInteractions.Checked = _settings.DataAutomation.ReactivatePeople.IsInteractionsEnabled;
+            cbReactivatePeople.Checked = _reactivateSettings.IsEnabled;
+            cbLastContribution.Checked = _reactivateSettings.IsLastContributionEnabled;
+            nbLastContribution.Text = _reactivateSettings.LastContributionPeriod.ToStringSafe();
+            cbAttendanceInServiceGroup.Checked = _reactivateSettings.IsAttendanceInServiceGroupEnabled;
+            nbAttendanceInServiceGroup.Text = _reactivateSettings.AttendanceInServiceGroupPeriod.ToStringSafe();
+            cbAttendanceInGroupType.Checked = _reactivateSettings.IsAttendanceInGroupTypeEnabled;
+            nbAttendanceInGroupType.Text = _reactivateSettings.AttendanceInGroupTypeDays.ToStringSafe();
+            rlbAttendanceInGroupType.SetValues( _reactivateSettings.AttendanceInGroupType ?? new List<int>() );
+            cbPrayerRequest.Checked = _reactivateSettings.IsPrayerRequestEnabled;
+            nbPrayerRequest.Text = _reactivateSettings.PrayerRequestPeriod.ToStringSafe();
+            cbPersonAttributes.Checked = _reactivateSettings.IsPersonAttributesEnabled;
+            nbPersonAttributes.Text = _reactivateSettings.PersonAttributesDays.ToStringSafe();
+            rlbPersonAttributes.SetValues( _reactivateSettings.PersonAttributes ?? new List<int>() );
+            cbIncludeDataView.Checked = _reactivateSettings.IsIncludeDataViewEnabled;
+            dvIncludeDataView.SetValue( _reactivateSettings.IncludeDataView );
+            cbExcludeDataView.Checked = _reactivateSettings.IsExcludeDataViewEnabled;
+            dvExcludeDataView.SetValue( _reactivateSettings.ExcludeDataView );
+            cbInteractions.Checked = _reactivateSettings.IsInteractionsEnabled;
 
             var interactionChannels = new InteractionChannelService( _rockContext )
                 .Queryable().AsNoTracking()
@@ -254,9 +260,9 @@ namespace RockWeb.Blocks.Administration
                 .ToList();
 
             var reactivateChannelTypes = interactionChannels.Select( c => new InteractionItem( c.Guid, c.Name ) ).ToList();
-            if ( _settings.DataAutomation.ReactivatePeople.Interactions != null )
+            if ( _reactivateSettings.Interactions != null )
             {
-                foreach ( var settingInteractionItem in _settings.DataAutomation.ReactivatePeople.Interactions )
+                foreach ( var settingInteractionItem in _reactivateSettings.Interactions )
                 {
                     var interactionChannelType = reactivateChannelTypes.SingleOrDefault( a => a.Guid == settingInteractionItem.Guid );
                     if ( interactionChannelType != null )
@@ -270,27 +276,27 @@ namespace RockWeb.Blocks.Administration
             rInteractions.DataBind();
 
             //Inactivate
-            cbInactivatePeople.Checked = _settings.DataAutomation.IsInactivatePeopleEnabled;
-            cbNoLastContribution.Checked = _settings.DataAutomation.InactivatePeople.IsNoLastContributionEnabled;
-            nbNoLastContribution.Text = _settings.DataAutomation.InactivatePeople.NoLastContributionPeriod.ToStringSafe();
-            cbNoAttendanceInServiceGroup.Checked = _settings.DataAutomation.InactivatePeople.IsNoAttendanceInServiceGroupEnabled;
-            nbNoAttendanceInServiceGroup.Text = _settings.DataAutomation.InactivatePeople.NoAttendanceInServiceGroupPeriod.ToStringSafe();
-            cbNoAttendanceInGroupType.Checked = _settings.DataAutomation.InactivatePeople.IsNoAttendanceInGroupTypeEnabled;
-            nbNoAttendanceInGroupType.Text = _settings.DataAutomation.InactivatePeople.NoAttendanceInGroupTypeDays.ToStringSafe();
-            rlbNoAttendanceInGroupType.SetValues( _settings.DataAutomation.InactivatePeople.AttendanceInGroupType ?? new List<int>() );
-            cbNoPrayerRequest.Checked = _settings.DataAutomation.InactivatePeople.IsNoPrayerRequestEnabled;
-            nbNoPrayerRequest.Text = _settings.DataAutomation.InactivatePeople.NoPrayerRequestPeriod.ToStringSafe();
-            cbNoPersonAttributes.Checked = _settings.DataAutomation.InactivatePeople.IsNoPersonAttributesEnabled;
-            nbNoPersonAttributes.Text = _settings.DataAutomation.InactivatePeople.NoPersonAttributesDays.ToStringSafe();
-            rlbNoPersonAttributes.SetValues( _settings.DataAutomation.InactivatePeople.PersonAttributes ?? new List<int>() );
-            cbNotInDataView.Checked = _settings.DataAutomation.InactivatePeople.IsNotInDataviewEnabled;
-            dvNotInDataView.SetValue( _settings.DataAutomation.InactivatePeople.NotInDataview );
-            cbNoInteractions.Checked = _settings.DataAutomation.InactivatePeople.IsNoInteractionsEnabled;
+            cbInactivatePeople.Checked = _inactivateSettings.IsEnabled;
+            cbNoLastContribution.Checked = _inactivateSettings.IsNoLastContributionEnabled;
+            nbNoLastContribution.Text = _inactivateSettings.NoLastContributionPeriod.ToStringSafe();
+            cbNoAttendanceInServiceGroup.Checked = _inactivateSettings.IsNoAttendanceInServiceGroupEnabled;
+            nbNoAttendanceInServiceGroup.Text = _inactivateSettings.NoAttendanceInServiceGroupPeriod.ToStringSafe();
+            cbNoAttendanceInGroupType.Checked = _inactivateSettings.IsNoAttendanceInGroupTypeEnabled;
+            nbNoAttendanceInGroupType.Text = _inactivateSettings.NoAttendanceInGroupTypeDays.ToStringSafe();
+            rlbNoAttendanceInGroupType.SetValues( _inactivateSettings.AttendanceInGroupType ?? new List<int>() );
+            cbNoPrayerRequest.Checked = _inactivateSettings.IsNoPrayerRequestEnabled;
+            nbNoPrayerRequest.Text = _inactivateSettings.NoPrayerRequestPeriod.ToStringSafe();
+            cbNoPersonAttributes.Checked = _inactivateSettings.IsNoPersonAttributesEnabled;
+            nbNoPersonAttributes.Text = _inactivateSettings.NoPersonAttributesDays.ToStringSafe();
+            rlbNoPersonAttributes.SetValues( _inactivateSettings.PersonAttributes ?? new List<int>() );
+            cbNotInDataView.Checked = _inactivateSettings.IsNotInDataviewEnabled;
+            dvNotInDataView.SetValue( _inactivateSettings.NotInDataview );
+            cbNoInteractions.Checked = _inactivateSettings.IsNoInteractionsEnabled;
 
             var inactivateChannelTypes = interactionChannels.Select( c => new InteractionItem( c.Guid, c.Name ) ).ToList();
-            if ( _settings.DataAutomation.InactivatePeople.NoInteractions != null )
+            if ( _inactivateSettings.NoInteractions != null )
             {
-                foreach ( var settingInteractionItem in _settings.DataAutomation.InactivatePeople.NoInteractions )
+                foreach ( var settingInteractionItem in _inactivateSettings.NoInteractions )
                 {
                     var interactionChannelType = inactivateChannelTypes.SingleOrDefault( a => a.Guid == settingInteractionItem.Guid );
                     if ( interactionChannelType != null )
@@ -304,24 +310,24 @@ namespace RockWeb.Blocks.Administration
             rNoInteractions.DataBind();
 
             //campus Update
-            cbCampusUpdate.Checked = _settings.DataAutomation.IsUpdateCampusEnabled;
-            cbMostFamilyAttendance.Checked = _settings.DataAutomation.UpdateCampus.IsMostFamilyAttendanceEnabled;
-            nbMostFamilyAttendance.Text = _settings.DataAutomation.UpdateCampus.MostFamilyAttendancePeriod.ToStringSafe();
-            cbMostFamilyGiving.Checked = _settings.DataAutomation.UpdateCampus.IsMostFamilyGivingEnabled;
-            nbMostFamilyGiving.Text = _settings.DataAutomation.UpdateCampus.MostFamilyGivingPeriod.ToStringSafe();
-            cbAttendanceOrGiving.Checked = _settings.DataAutomation.UpdateCampus.IsMostAttendanceOrGivingEnabled;
-            if ( _settings.DataAutomation.UpdateCampus.MostAttendanceOrGiving.HasValue )
+            cbCampusUpdate.Checked = _campusSettings.IsEnabled;
+            cbMostFamilyAttendance.Checked = _campusSettings.IsMostFamilyAttendanceEnabled;
+            nbMostFamilyAttendance.Text = _campusSettings.MostFamilyAttendancePeriod.ToStringSafe();
+            cbMostFamilyGiving.Checked = _campusSettings.IsMostFamilyGivingEnabled;
+            nbMostFamilyGiving.Text = _campusSettings.MostFamilyGivingPeriod.ToStringSafe();
+            cbAttendanceOrGiving.Checked = _campusSettings.IsMostAttendanceOrGivingEnabled;
+            if ( _campusSettings.MostAttendanceOrGiving.HasValue )
             {
-                ddlAttendanceOrGiving.SetValue( _settings.DataAutomation.UpdateCampus.MostAttendanceOrGiving.ConvertToInt() );
+                ddlAttendanceOrGiving.SetValue( _campusSettings.MostAttendanceOrGiving.ConvertToInt() );
             }
-            cbIgnoreIfManualUpdate.Checked = _settings.DataAutomation.UpdateCampus.IsIgnoreIfManualUpdateEnabled;
-            nbIgnoreIfManualUpdate.Text = _settings.DataAutomation.UpdateCampus.IgnoreIfManualUpdatePeriod.ToStringSafe();
+            cbIgnoreIfManualUpdate.Checked = _campusSettings.IsIgnoreIfManualUpdateEnabled;
+            nbIgnoreIfManualUpdate.Text = _campusSettings.IgnoreIfManualUpdatePeriod.ToStringSafe();
 
-            cbIgnoreCampusChanges.Checked = _settings.DataAutomation.UpdateCampus.IsIgnoreCampusChangesEnabled;
-            if ( _settings.DataAutomation.UpdateCampus.IgnoreCampusChanges != null && _settings.DataAutomation.UpdateCampus.IgnoreCampusChanges.Any() )
+            cbIgnoreCampusChanges.Checked = _campusSettings.IsIgnoreCampusChangesEnabled;
+            if ( _campusSettings.IgnoreCampusChanges != null && _campusSettings.IgnoreCampusChanges.Any() )
             {
                 int i = 1;
-                _ignoreCampusChangeRows = _settings.DataAutomation.UpdateCampus.IgnoreCampusChanges
+                _ignoreCampusChangeRows = _campusSettings.IgnoreCampusChanges
                     .Select( a => new IgnoreCampusChangeRow()
                     {
                         Id = i++,
@@ -340,51 +346,52 @@ namespace RockWeb.Blocks.Administration
 
         private void SaveSettings()
         {
-            _settings = new Settings();
-
             //Save General
-            _settings.General.GenderAutoFillConfidence = nbGenderAutoFill.Text.AsIntegerOrNull();
+            Rock.Web.SystemSettings.SetValue( SystemSetting.GENDER_AUTO_FILL_CONFIDENCE, nbGenderAutoFill.Text );
 
             // Ncoa Configuration
-            _settings.NcoaConfiguration.MinimumMoveDistancetoInactivate = nbMinMoveDistance.Text.AsInteger();
-            _settings.NcoaConfiguration.Month48MoveAsPreviousAddress = cb48MonAsPrevious.Checked;
-            _settings.NcoaConfiguration.InvalidAddressAsPreviousAddress = cbInvalidAddressAsPrevious.Checked;
+            Rock.Web.SystemSettings.SetValue( SystemSetting.NCOA_MiNIMUM_MOVE_DISTANCE_TO_INACTIVATE, nbMinMoveDistance.Text );
+            Rock.Web.SystemSettings.SetValue( SystemSetting.NCOA_SET_48_MONTH_AS_PREVIOUS, cb48MonAsPrevious.Checked.ToString() );
+            Rock.Web.SystemSettings.SetValue( SystemSetting.NCOA_SET_INVALID_AS_PREVIOUS, cbInvalidAddressAsPrevious.Checked.ToString() );
 
             // Save Data Automation
+            _reactivateSettings = new ReactivatePeople();
+            _inactivateSettings = new InactivatePeople();
+            _campusSettings = new UpdateFamilyCampus();
 
             //Reactivate 
-            _settings.DataAutomation.IsReactivatePeopleEnabled = cbReactivatePeople.Checked;
+            _reactivateSettings.IsEnabled = cbReactivatePeople.Checked;
 
-            _settings.DataAutomation.ReactivatePeople.IsLastContributionEnabled = cbLastContribution.Checked;
-            _settings.DataAutomation.ReactivatePeople.LastContributionPeriod = nbLastContribution.Text.AsInteger();
+            _reactivateSettings.IsLastContributionEnabled = cbLastContribution.Checked;
+            _reactivateSettings.LastContributionPeriod = nbLastContribution.Text.AsInteger();
 
-            _settings.DataAutomation.ReactivatePeople.IsAttendanceInServiceGroupEnabled = cbAttendanceInServiceGroup.Checked;
-            _settings.DataAutomation.ReactivatePeople.AttendanceInServiceGroupPeriod = nbAttendanceInServiceGroup.Text.AsInteger();
+            _reactivateSettings.IsAttendanceInServiceGroupEnabled = cbAttendanceInServiceGroup.Checked;
+            _reactivateSettings.AttendanceInServiceGroupPeriod = nbAttendanceInServiceGroup.Text.AsInteger();
 
-            _settings.DataAutomation.ReactivatePeople.IsAttendanceInGroupTypeEnabled = cbAttendanceInGroupType.Checked;
-            _settings.DataAutomation.ReactivatePeople.AttendanceInGroupType = rlbAttendanceInGroupType.SelectedValues.AsIntegerList();
-            _settings.DataAutomation.ReactivatePeople.AttendanceInGroupTypeDays = nbAttendanceInGroupType.Text.AsInteger();
+            _reactivateSettings.IsAttendanceInGroupTypeEnabled = cbAttendanceInGroupType.Checked;
+            _reactivateSettings.AttendanceInGroupType = rlbAttendanceInGroupType.SelectedValues.AsIntegerList();
+            _reactivateSettings.AttendanceInGroupTypeDays = nbAttendanceInGroupType.Text.AsInteger();
 
-            _settings.DataAutomation.ReactivatePeople.IsPrayerRequestEnabled = cbPrayerRequest.Checked;
-            _settings.DataAutomation.ReactivatePeople.PrayerRequestPeriod = nbPrayerRequest.Text.AsInteger();
+            _reactivateSettings.IsPrayerRequestEnabled = cbPrayerRequest.Checked;
+            _reactivateSettings.PrayerRequestPeriod = nbPrayerRequest.Text.AsInteger();
 
-            _settings.DataAutomation.ReactivatePeople.IsPersonAttributesEnabled = cbPersonAttributes.Checked;
-            _settings.DataAutomation.ReactivatePeople.PersonAttributes = rlbPersonAttributes.SelectedValues.AsIntegerList();
-            _settings.DataAutomation.ReactivatePeople.PersonAttributesDays = nbPersonAttributes.Text.AsInteger();
+            _reactivateSettings.IsPersonAttributesEnabled = cbPersonAttributes.Checked;
+            _reactivateSettings.PersonAttributes = rlbPersonAttributes.SelectedValues.AsIntegerList();
+            _reactivateSettings.PersonAttributesDays = nbPersonAttributes.Text.AsInteger();
 
-            _settings.DataAutomation.ReactivatePeople.IsIncludeDataViewEnabled = cbIncludeDataView.Checked;
-            _settings.DataAutomation.ReactivatePeople.IncludeDataView = dvIncludeDataView.SelectedValue;
+            _reactivateSettings.IsIncludeDataViewEnabled = cbIncludeDataView.Checked;
+            _reactivateSettings.IncludeDataView = dvIncludeDataView.SelectedValue;
 
-            _settings.DataAutomation.ReactivatePeople.IsExcludeDataViewEnabled = cbExcludeDataView.Checked;
-            _settings.DataAutomation.ReactivatePeople.ExcludeDataView = dvExcludeDataView.SelectedValue;
+            _reactivateSettings.IsExcludeDataViewEnabled = cbExcludeDataView.Checked;
+            _reactivateSettings.ExcludeDataView = dvExcludeDataView.SelectedValue;
 
-            _settings.DataAutomation.ReactivatePeople.IsInteractionsEnabled = cbInteractions.Checked;
+            _reactivateSettings.IsInteractionsEnabled = cbInteractions.Checked;
             foreach ( RepeaterItem rItem in rInteractions.Items )
             {
                 RockCheckBox isInterationTypeEnabled = rItem.FindControl( "cbInterationType" ) as RockCheckBox;
                 if ( isInterationTypeEnabled.Checked )
                 {
-                    _settings.DataAutomation.ReactivatePeople.Interactions = _settings.DataAutomation.ReactivatePeople.Interactions ?? new List<InteractionItem>();
+                    _reactivateSettings.Interactions = _reactivateSettings.Interactions ?? new List<InteractionItem>();
                     HiddenField interactionTypeId = rItem.FindControl( "hfInteractionTypeId" ) as HiddenField;
                     NumberBox lastInteractionDays = rItem.FindControl( "nbInteractionDays" ) as NumberBox;
                     var item = new InteractionItem( interactionTypeId.Value.AsGuid(), string.Empty )
@@ -392,41 +399,41 @@ namespace RockWeb.Blocks.Administration
                         IsInteractionTypeEnabled = true,
                         LastInteractionDays = lastInteractionDays.Text.AsInteger()
                     };
-                    _settings.DataAutomation.ReactivatePeople.Interactions.Add( item );
+                    _reactivateSettings.Interactions.Add( item );
                 }
 
             }
 
             //Inactivate
-            _settings.DataAutomation.IsInactivatePeopleEnabled = cbInactivatePeople.Checked;
+            _inactivateSettings.IsEnabled = cbInactivatePeople.Checked;
 
-            _settings.DataAutomation.InactivatePeople.IsNoLastContributionEnabled = cbNoLastContribution.Checked;
-            _settings.DataAutomation.InactivatePeople.NoLastContributionPeriod = nbNoLastContribution.Text.AsInteger();
+            _inactivateSettings.IsNoLastContributionEnabled = cbNoLastContribution.Checked;
+            _inactivateSettings.NoLastContributionPeriod = nbNoLastContribution.Text.AsInteger();
 
-            _settings.DataAutomation.InactivatePeople.IsNoAttendanceInServiceGroupEnabled = cbNoAttendanceInServiceGroup.Checked;
-            _settings.DataAutomation.InactivatePeople.NoAttendanceInServiceGroupPeriod = nbNoAttendanceInServiceGroup.Text.AsInteger();
+            _inactivateSettings.IsNoAttendanceInServiceGroupEnabled = cbNoAttendanceInServiceGroup.Checked;
+            _inactivateSettings.NoAttendanceInServiceGroupPeriod = nbNoAttendanceInServiceGroup.Text.AsInteger();
 
-            _settings.DataAutomation.InactivatePeople.IsNoAttendanceInGroupTypeEnabled = cbNoAttendanceInGroupType.Checked;
-            _settings.DataAutomation.InactivatePeople.AttendanceInGroupType = rlbNoAttendanceInGroupType.SelectedValues.AsIntegerList();
-            _settings.DataAutomation.InactivatePeople.NoAttendanceInGroupTypeDays = nbNoAttendanceInGroupType.Text.AsInteger();
+            _inactivateSettings.IsNoAttendanceInGroupTypeEnabled = cbNoAttendanceInGroupType.Checked;
+            _inactivateSettings.AttendanceInGroupType = rlbNoAttendanceInGroupType.SelectedValues.AsIntegerList();
+            _inactivateSettings.NoAttendanceInGroupTypeDays = nbNoAttendanceInGroupType.Text.AsInteger();
 
-            _settings.DataAutomation.InactivatePeople.IsNoPrayerRequestEnabled = cbNoPrayerRequest.Checked;
-            _settings.DataAutomation.InactivatePeople.NoPrayerRequestPeriod = nbNoPrayerRequest.Text.AsInteger();
+            _inactivateSettings.IsNoPrayerRequestEnabled = cbNoPrayerRequest.Checked;
+            _inactivateSettings.NoPrayerRequestPeriod = nbNoPrayerRequest.Text.AsInteger();
 
-            _settings.DataAutomation.InactivatePeople.IsNoPersonAttributesEnabled = cbNoPersonAttributes.Checked;
-            _settings.DataAutomation.InactivatePeople.PersonAttributes = rlbNoPersonAttributes.SelectedValues.AsIntegerList();
-            _settings.DataAutomation.InactivatePeople.NoPersonAttributesDays = nbNoPersonAttributes.Text.AsInteger();
+            _inactivateSettings.IsNoPersonAttributesEnabled = cbNoPersonAttributes.Checked;
+            _inactivateSettings.PersonAttributes = rlbNoPersonAttributes.SelectedValues.AsIntegerList();
+            _inactivateSettings.NoPersonAttributesDays = nbNoPersonAttributes.Text.AsInteger();
 
-            _settings.DataAutomation.InactivatePeople.IsNotInDataviewEnabled = cbNotInDataView.Checked;
-            _settings.DataAutomation.InactivatePeople.NotInDataview = dvNotInDataView.SelectedValue;
+            _inactivateSettings.IsNotInDataviewEnabled = cbNotInDataView.Checked;
+            _inactivateSettings.NotInDataview = dvNotInDataView.SelectedValue;
 
-            _settings.DataAutomation.InactivatePeople.IsNoInteractionsEnabled = cbNoInteractions.Checked;
+            _inactivateSettings.IsNoInteractionsEnabled = cbNoInteractions.Checked;
             foreach ( RepeaterItem rItem in rNoInteractions.Items )
             {
                 RockCheckBox isInterationTypeEnabled = rItem.FindControl( "cbInterationType" ) as RockCheckBox;
                 if ( isInterationTypeEnabled.Checked )
                 {
-                    _settings.DataAutomation.InactivatePeople.NoInteractions = _settings.DataAutomation.InactivatePeople.NoInteractions ?? new List<InteractionItem>();
+                    _inactivateSettings.NoInteractions = _inactivateSettings.NoInteractions ?? new List<InteractionItem>();
                     HiddenField interactionTypeId = rItem.FindControl( "hfInteractionTypeId" ) as HiddenField;
                     NumberBox lastInteractionDays = rItem.FindControl( "nbNoInteractionDays" ) as NumberBox;
                     var item = new InteractionItem( interactionTypeId.Value.AsGuid(), string.Empty )
@@ -434,27 +441,27 @@ namespace RockWeb.Blocks.Administration
                         IsInteractionTypeEnabled = true,
                         LastInteractionDays = lastInteractionDays.Text.AsInteger()
                     };
-                    _settings.DataAutomation.InactivatePeople.NoInteractions.Add( item );
+                    _inactivateSettings.NoInteractions.Add( item );
                 }
             }
 
             //Campus Update
-            _settings.DataAutomation.IsUpdateCampusEnabled = cbCampusUpdate.Checked;
+            _campusSettings.IsEnabled = cbCampusUpdate.Checked;
 
-            _settings.DataAutomation.UpdateCampus.IsMostFamilyAttendanceEnabled = cbMostFamilyAttendance.Checked;
-            _settings.DataAutomation.UpdateCampus.MostFamilyAttendancePeriod = nbMostFamilyAttendance.Text.AsInteger();
+            _campusSettings.IsMostFamilyAttendanceEnabled = cbMostFamilyAttendance.Checked;
+            _campusSettings.MostFamilyAttendancePeriod = nbMostFamilyAttendance.Text.AsInteger();
             
-            _settings.DataAutomation.UpdateCampus.IsMostFamilyGivingEnabled = cbMostFamilyGiving.Checked;
-            _settings.DataAutomation.UpdateCampus.MostFamilyGivingPeriod = nbMostFamilyGiving.Text.AsInteger();
+            _campusSettings.IsMostFamilyGivingEnabled = cbMostFamilyGiving.Checked;
+            _campusSettings.MostFamilyGivingPeriod = nbMostFamilyGiving.Text.AsInteger();
 
-            _settings.DataAutomation.UpdateCampus.IsMostAttendanceOrGivingEnabled = cbAttendanceOrGiving.Checked;
-            _settings.DataAutomation.UpdateCampus.MostAttendanceOrGiving = ddlAttendanceOrGiving.SelectedValueAsEnumOrNull<CampusCriteria>();
+            _campusSettings.IsMostAttendanceOrGivingEnabled = cbAttendanceOrGiving.Checked;
+            _campusSettings.MostAttendanceOrGiving = ddlAttendanceOrGiving.SelectedValueAsEnumOrNull<CampusCriteria>();
 
-            _settings.DataAutomation.UpdateCampus.IsIgnoreIfManualUpdateEnabled = cbIgnoreIfManualUpdate.Checked;
-            _settings.DataAutomation.UpdateCampus.IgnoreIfManualUpdatePeriod = nbIgnoreIfManualUpdate.Text.AsInteger();
+            _campusSettings.IsIgnoreIfManualUpdateEnabled = cbIgnoreIfManualUpdate.Checked;
+            _campusSettings.IgnoreIfManualUpdatePeriod = nbIgnoreIfManualUpdate.Text.AsInteger();
 
-            _settings.DataAutomation.UpdateCampus.IsIgnoreCampusChangesEnabled = cbIgnoreCampusChanges.Checked;
-            _settings.DataAutomation.UpdateCampus.IgnoreCampusChanges = 
+            _campusSettings.IsIgnoreCampusChangesEnabled = cbIgnoreCampusChanges.Checked;
+            _campusSettings.IgnoreCampusChanges = 
                 _ignoreCampusChangeRows
                     .Where( a => a.CampusCriteria.HasValue && a.FromCampusId.HasValue && a.ToCampusId.HasValue )
                     .Select( a => new IgnoreCampusChangeItem
@@ -465,7 +472,9 @@ namespace RockWeb.Blocks.Administration
                     } )
                     .ToList();
 
-            Rock.Web.SystemSettings.SetValue( "com.rockrms.DataIntegrity", _settings.ToJson() );
+            Rock.Web.SystemSettings.SetValue( SystemSetting.DATA_AUTOMATION_REACTIVATE_PEOPLE, _reactivateSettings.ToJson() );
+            Rock.Web.SystemSettings.SetValue( SystemSetting.DATA_AUTOMATION_INACTIVATE_PEOPLE, _inactivateSettings.ToJson() );
+            Rock.Web.SystemSettings.SetValue( SystemSetting.DATA_AUTOMATION_UPDATE_FAMILY_CAMPUS, _campusSettings.ToJson() );
         }
 
         private void GetRepeaterData()
