@@ -35,6 +35,7 @@ using Humanizer;
 using Rock.Web.UI.Controls;
 using System.Web.UI.WebControls;
 using Rock.Web;
+using System.Data.Entity;
 
 namespace RockWeb.Blocks.Crm
 {
@@ -387,13 +388,14 @@ namespace RockWeb.Blocks.Crm
             var filteredRecords = query.ToList();
 
             #region Grouping rows
+
             var ncoaRows = filteredRecords
                        .Where( a => a.MoveType != MoveType.Individual )
                        .GroupBy( a => new { a.FamilyId, a.MoveType, a.MoveDate } )
                        .Select( a => new NcoaRow
                        {
-                           Id = a.Select( b => b.Ncoa.Id ).Max(),
-                           FamilyMembers = a.Select( b => b.Person ).ToList()
+                           Id = a.Select( b => b.Id ).Max(),
+                           FamilyMemberPersonAliasIds = a.Select( b => b.PersonAliasId ).ToList()
                        } ).ToList();
 
             var ncoaIndividualRows = filteredRecords
@@ -401,7 +403,7 @@ namespace RockWeb.Blocks.Crm
                        .Select( a => new NcoaRow
                        {
                            Id = a.Id,
-                           Individual = a.per
+                           IndividualPersonAliasId = a.PersonAliasId
                        } ).ToList();
 
             ncoaRows.AddRange( ncoaIndividualRows );
@@ -409,12 +411,34 @@ namespace RockWeb.Blocks.Crm
             #endregion
 
             var pagedNcoaRows = ncoaRows.OrderBy( a => a.Id ).Skip( skipCount ).Take( resultCount + 1 );
+            var familyMemberPersonAliasIds = pagedNcoaRows.SelectMany( r => r.FamilyMemberPersonAliasIds ).ToList();
+            var individualPersonAliasIds = pagedNcoaRows.Select( r => r.IndividualPersonAliasId ).ToList();
+
+            var people = new PersonAliasService( rockContext )
+                .Queryable().AsNoTracking()
+                .Where( p =>
+                    familyMemberPersonAliasIds.Contains( p.Id ) ||
+                    individualPersonAliasIds.Contains( p.Id ) )
+                .Select( p => new
+                {
+                    PersonAliasId = p.Id,
+                    Person = p.Person
+                } )
+                .ToList();
 
             foreach ( var ncoaRow in pagedNcoaRows )
             {
-                var ncoaHistoryRecord = filteredRecords
-                                    .Select( a => a.Ncoa )
-                                    .Single( a => a.Id == ncoaRow.Id );
+                ncoaRow.FamilyMembers = people
+                    .Where( p => ncoaRow.FamilyMemberPersonAliasIds.Contains( p.PersonAliasId ) )
+                    .Select( p => p.Person )
+                    .ToList();
+
+                ncoaRow.Individual = people
+                    .Where( p => p.PersonAliasId == ncoaRow.IndividualPersonAliasId )
+                    .Select( p => p.Person )
+                    .FirstOrDefault();
+
+                var ncoaHistoryRecord = filteredRecords.Single( a => a.Id == ncoaRow.Id );
 
                 ncoaRow.OriginalAddress = FormattedAddress( ncoaHistoryRecord.OriginalStreet1, ncoaHistoryRecord.OriginalStreet2,
                                          ncoaHistoryRecord.OriginalCity, ncoaHistoryRecord.OriginalState, ncoaHistoryRecord.OriginalPostalCode )
@@ -577,7 +601,11 @@ namespace RockWeb.Blocks.Crm
 
             public decimal? MoveDistance { get; set; }
 
+            public List<int> FamilyMemberPersonAliasIds { get; set; }
+
             public List<Person> FamilyMembers { get; set; }
+
+            public int IndividualPersonAliasId { get; set; }
 
             public Person Individual { get; set; }
 
