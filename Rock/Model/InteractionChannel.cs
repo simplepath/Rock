@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Data.Entity;
 using System.Data.Entity.ModelConfiguration;
 using System.Runtime.Serialization;
 
@@ -109,6 +110,47 @@ namespace Rock.Model
         [DataMember]
         public int? RetentionDuration { get; set; }
 
+        /// <summary>
+        /// Gets or sets the length of time that components of this channel should be cached
+        /// </summary>
+        /// <value>
+        /// The duration of the component cache.
+        /// </value>
+        [DataMember]
+        public int? ComponentCacheDuration { get; set; }
+
+        /// <summary>
+        /// Gets or sets the list template.
+        /// Used when rendering the interaction channel in a list using lava
+        /// </summary>
+        /// <value>
+        /// The list template.
+        /// </value>
+        [DataMember]
+        public string ListTemplate { get; set; }
+
+        /// <summary>
+        /// Gets or sets the detail template.
+        /// Used when rendering the interaction channel's details using lava
+        /// </summary>
+        /// <value>
+        /// The detail template.
+        /// </value>
+        [DataMember]
+        public string DetailTemplate { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether [uses session].
+        /// Set to true if interactions in this channel from a web browser session (for example: PageViews).
+        /// Set to false if interactions in this channel are not associated with a web browser session (for example: communication clicks and opens from an email client or sms device).
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [uses session]; otherwise, <c>false</c>.
+        /// </value>
+        [DataMember]
+        public bool UsesSession { get; set; }
+
+
         #endregion
 
         #region Virtual Properties
@@ -144,6 +186,16 @@ namespace Rock.Model
 
         #region Public Methods
 
+        /// <summary>
+        /// Method that will be called on an entity immediately after the item is saved by context
+        /// </summary>
+        /// <param name="dbContext">The database context.</param>
+        public override void PostSaveChanges( Data.DbContext dbContext )
+        {
+            Web.Cache.InteractionChannelCache.Flush( this.Id );
+
+            base.PostSaveChanges( dbContext );
+        }
 
         #endregion
     }

@@ -186,7 +186,7 @@ BEGIN
             ,ft.Summary [Summary]
             ,ft.TransactionTypeValueId [TransactionTypeValueId]
             ,ft.SourceTypeValueId [SourceTypeValueId]
-            ,CASE 
+      ,CASE 
                 WHEN ft.ScheduledTransactionId IS NULL
                     THEN 0
                 ELSE 1

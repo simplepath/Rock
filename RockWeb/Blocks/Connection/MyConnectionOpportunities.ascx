@@ -40,12 +40,12 @@
             </div>
 
             <div class="panel-body">
-                <Rock:NotificationBox ID="nbNoOpportunities" runat="server" NotificationBoxType="Info" Text="There are no current connection requests." Visible="" />
+                <Rock:NotificationBox ID="nbNoOpportunities" runat="server" NotificationBoxType="Info" Text="There are no current connection requests." />
 
                 <asp:Repeater ID="rptConnnectionTypes" runat="server" OnItemDataBound="rptConnnectionTypes_ItemDataBound">
                     <ItemTemplate>
                         <asp:Literal ID="lConnectionTypeName" runat="server" />
-                        <div class="list-as-blocks clearfix">    
+                        <div class="list-as-blocks has-count clearfix">    
                             <ul>
                                 <asp:Repeater ID="rptConnectionOpportunities" runat="server" OnItemCommand="rptConnectionOpportunities_ItemCommand">
                                     <ItemTemplate>

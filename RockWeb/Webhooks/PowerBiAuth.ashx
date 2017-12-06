@@ -1,4 +1,4 @@
-<%@ WebHandler Language="C#" Class="PowerBiAuth" %>
+﻿<%@ WebHandler Language="C#" Class="PowerBiAuth" %>
 
 using System;
 using System.Web;
@@ -12,12 +12,16 @@ using Rock.Model;
 using Rock.Attribute;
 using Rock.Web.Cache;
 
-using com.minecartstudio.Bi;
 
-public class PowerBiAuth : IHttpHandler, IReadOnlySessionState {
+public class PowerBiAuth : IHttpHandler, IReadOnlySessionState
+{
 
-    public void ProcessRequest (HttpContext context) {
-
+    /// <summary>
+    /// Enables processing of HTTP Web requests by a custom HttpHandler that implements the <see cref="T:System.Web.IHttpHandler" /> interface.
+    /// </summary>
+    /// <param name="context">An <see cref="T:System.Web.HttpContext" /> object that provides references to the intrinsic server objects (for example, Request, Response, Session, and Server) used to service HTTP requests.</param>
+    public void ProcessRequest( HttpContext context )
+    {
         if ( context.Request["code"] != null )
         {
 
@@ -33,13 +37,13 @@ public class PowerBiAuth : IHttpHandler, IReadOnlySessionState {
             // get the defined value for the request
             if ( context.Session["PowerBiAccountValueId"] != null )
             {
-                if (context.Session["PowerBiAccountValueId"].ToString() == "0" )
+                if ( context.Session["PowerBiAccountValueId"].ToString() == "0" )
                 {
                     // create a new account defined value
                     biAccountValue = new DefinedValue();
                     definedValueService.Add( biAccountValue );
 
-                    var definedTypeId = DefinedTypeCache.Read( com.minecartstudio.Bi.SystemGuid.DefinedType.POWERBI_ACCOUNTS.AsGuid() ).Id;
+                    var definedTypeId = DefinedTypeCache.Read( Rock.SystemGuid.DefinedType.POWERBI_ACCOUNTS.AsGuid() ).Id;
 
                     // get account info from session
                     string accountName = context.Session["PowerBiAccountName"] != null ? context.Session["PowerBiAccountName"].ToString() : string.Empty;
@@ -93,14 +97,15 @@ public class PowerBiAuth : IHttpHandler, IReadOnlySessionState {
                 return;
             }
 
-            try {
+            try
+            {
                 // Get the auth code
                 string code = context.Request.Params.GetValues( 0 )[0];
 
                 // Get auth token from auth code       
                 TokenCache TC = new TokenCache();
 
-                AuthenticationContext AC = new AuthenticationContext( PowerBiUtilities.AuthorityUri, TC );
+                AuthenticationContext AC = new AuthenticationContext( Rock.Reporting.PowerBiUtilities.AuthorityUri, TC );
                 ClientCredential cc = new ClientCredential( clientId, clientSecret );
 
                 AuthenticationResult AR = AC.AcquireTokenByAuthorizationCode( code, new Uri( redirectUrl ), cc );
@@ -123,15 +128,20 @@ public class PowerBiAuth : IHttpHandler, IReadOnlySessionState {
 
                 context.Response.Redirect( returnUrl + "?Authenticated=True" );
             }
-            catch(Exception ex )
+            catch ( Exception ex )
             {
                 context.Response.Write( string.Format( "An exception occurred: {0}", ex.Message ) );
             }
         }
     }
 
-    public bool IsReusable {
-        get {
+    /// <summary>
+    /// Gets a value indicating whether another request can use the <see cref="T:System.Web.IHttpHandler" /> instance.
+    /// </summary>
+    public bool IsReusable
+    {
+        get
+        {
             return false;
         }
     }
