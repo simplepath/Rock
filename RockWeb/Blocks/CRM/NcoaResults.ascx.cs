@@ -15,27 +15,20 @@
 // </copyright>
 //
 using System;
-using System.ComponentModel;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data.Entity;
+using System.Linq;
 using System.Web.UI;
+using System.Web.UI.WebControls;
 
 using Rock;
 using Rock.Attribute;
-using Rock.Constants;
 using Rock.Data;
 using Rock.Model;
-using Rock.Web.UI;
-using Rock.Security;
-using System.IO;
-using CsvHelper;
-using CsvHelper.Configuration;
-using System.Linq;
-using System.Globalization;
-using Humanizer;
-using Rock.Web.UI.Controls;
-using System.Web.UI.WebControls;
 using Rock.Web;
-using System.Data.Entity;
+using Rock.Web.UI;
+using Rock.Web.UI.Controls;
 
 namespace RockWeb.Blocks.Crm
 {
@@ -154,6 +147,7 @@ namespace RockWeb.Blocks.Crm
 
                         break;
                     }
+
                 case "Move Type":
                     {
                         var moveType = e.Value.ConvertToEnumOrNull<MoveType>();
@@ -168,6 +162,7 @@ namespace RockWeb.Blocks.Crm
 
                         break;
                     }
+
                 case "Address Status":
                     {
                         var addressStatus = e.Value.ConvertToEnumOrNull<AddressStatus>();
@@ -182,6 +177,7 @@ namespace RockWeb.Blocks.Crm
 
                         break;
                     }
+
                 case "Invalid Reason":
                     {
                         var invalidReason = e.Value.ConvertToEnumOrNull<AddressInvalidReason>();
@@ -264,8 +260,6 @@ namespace RockWeb.Blocks.Crm
             {
                 ddlProcessed.SetValue( processedId.Value.ToString() );
             }
-
-
 
             sdpMoveDate.DelimitedValues = gfNcoaFilter.GetUserPreference( "Move Date" );
 
@@ -410,7 +404,7 @@ namespace RockWeb.Blocks.Crm
 
             #endregion
 
-            var pagedNcoaRows = ncoaRows.OrderBy( a => a.Id ).Skip( skipCount ).Take( resultCount + 1 );
+            var pagedNcoaRows = ncoaRows.OrderBy( a => a.Id ).Skip( skipCount ).Take( resultCount + 1 ).ToList();
             var familyMemberPersonAliasIds = pagedNcoaRows.SelectMany( r => r.FamilyMemberPersonAliasIds ).ToList();
             var individualPersonAliasIds = pagedNcoaRows.Select( r => r.IndividualPersonAliasId ).ToList();
 
@@ -584,6 +578,7 @@ namespace RockWeb.Blocks.Crm
         {
             public NcoaRow()
             {
+                FamilyMemberPersonAliasIds = new List<int>();
                 FamilyMembers = new List<Person>();
             }
 

@@ -50,44 +50,9 @@ namespace RockWeb.Blocks.Crm
             Server.ScriptTimeout = 1500;
         }
 
-        /// <summary>
-        /// Raises the <see cref="E:System.Web.UI.Control.Load" /> event.
-        /// </summary>
-        /// <param name="e">The <see cref="T:System.EventArgs" /> object that contains the event data.</param>
-        protected override void OnLoad( EventArgs e )
-        {
-            base.OnLoad( e );
-
-
-            if ( !Page.IsPostBack )
-            {
-
-            }
-        }
-
         #endregion
 
-        #region Internal Methods
-
-        private void MapNcoaRow()
-        {
-
-        }
-
-
-        #endregion
-
-        #region Edit Events
-
-
-        /// <summary>
-        /// Handles the Click event of the btnCancel control.
-        /// </summary>
-        /// <param name="sender">The source of the event.</param>
-        /// <param name="e">The <see cref="EventArgs" /> instance containing the event data.</param>
-        protected void btnCancel_Click( object sender, EventArgs e )
-        {
-        }
+        #region Events
 
         /// <summary>
         /// Handles the Click event of the btnSave control.
@@ -106,13 +71,17 @@ namespace RockWeb.Blocks.Crm
                     var binaryFileService = new BinaryFileService( rockContext );
 
                     var binaryFile = binaryFileService.Get( FileUploader1.BinaryFileId.Value );
-                    TextReader tr = new StreamReader( binaryFile.ContentStream );
-                    var csv = new CsvReader( tr );
-                    csv.Configuration.RegisterClassMap<NcoaRowMap>();
-                    records = csv.GetRecords<NcoaRow>()
-                                .OrderBy( a => a.PersonAliasId )
-                                .ThenBy( a => a.RecordType )
-                                .ToList();
+                    using ( TextReader tr = new StreamReader( binaryFile.ContentStream ) )
+                    {
+                        using ( var csv = new CsvReader( tr ) )
+                        {
+                            csv.Configuration.RegisterClassMap<NcoaRowMap>();
+                            records = csv.GetRecords<NcoaRow>()
+                                        .OrderBy( a => a.PersonAliasId )
+                                        .ThenBy( a => a.RecordType )
+                                        .ToList();
+                        }
+                    }
 
                     int previousPersonId = 0;
 
@@ -225,48 +194,6 @@ namespace RockWeb.Blocks.Crm
 
         #endregion
 
-        #region Events
-
-        /// <summary>
-        /// Handles the FileUploaded event of the fsFile control.
-        /// </summary>
-        /// <param name="sender">The source of the event.</param>
-        /// <param name="e">The <see cref="EventArgs" /> instance containing the event data.</param>
-        protected void fsFile_FileUploaded( object sender, EventArgs e )
-        {
-            //var rockContext = new RockContext();
-            //var binaryFileService = new BinaryFileService( rockContext );
-            //BinaryFile binaryFile = null;
-            //if ( fsFile.BinaryFileId.HasValue )
-            //{
-            //    binaryFile = binaryFileService.Get( fsFile.BinaryFileId.Value );
-            //}
-
-            //if ( binaryFile != null )
-            //{
-            //    if ( !string.IsNullOrWhiteSpace( tbName.Text ) )
-            //    {
-            //        binaryFile.FileName = tbName.Text;
-            //    }
-
-            //    // set binaryFile.Id to original id since the UploadedFile is a temporary binaryFile with a different id
-            //    binaryFile.Id = hfBinaryFileId.ValueAsInt();
-            //    binaryFile.Description = tbDescription.Text;
-            //    binaryFile.BinaryFileTypeId = ddlBinaryFileType.SelectedValueAsInt();
-            //    if ( binaryFile.BinaryFileTypeId.HasValue )
-            //    {
-            //        binaryFile.BinaryFileType = new BinaryFileTypeService( rockContext ).Get( binaryFile.BinaryFileTypeId.Value );
-            //    }
-
-            //    var tempList = OrphanedBinaryFileIdList;
-            //    tempList.Add( fsFile.BinaryFileId.Value );
-            //    OrphanedBinaryFileIdList = tempList;
-
-            //}
-        }
-
-        #endregion
-
         #region Methods
 
         /// <summary>
@@ -313,7 +240,7 @@ namespace RockWeb.Blocks.Crm
 
         #endregion
 
-        #region nestedClass
+        #region Helper Classes
 
         public sealed class NcoaRowMap : CsvClassMap<NcoaRow>
         {
@@ -535,6 +462,7 @@ namespace RockWeb.Blocks.Crm
             /// </value>
             public string RecordType { get; set; }
         }
+
         #endregion
     }
 }
