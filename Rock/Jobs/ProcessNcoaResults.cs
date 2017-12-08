@@ -359,7 +359,7 @@ namespace Rock.Jobs
                 {
                     if ( groupLocation.GroupLocationTypeValueId != previousValueId.Value )
                     {
-                        changes.Add( $"Modifed Location Type for <span class='field-name'>{groupLocation.Location}</span> to <span class'field-value'>Previous</span> due to NCOA Request." );
+                        changes.Add( $"Modifed Location Type for <span class='field-name'>{groupLocation.Location}</span> to <span class='field-value'>Previous</span> due to NCOA Request." );
                         groupLocation.GroupLocationTypeValueId = previousValueId.Value;
                     }
 
