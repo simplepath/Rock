@@ -249,8 +249,10 @@ namespace RockWeb.Blocks.Administration
             nbPersonAttributes.Text = _reactivateSettings.PersonAttributesDays.ToStringSafe();
             rlbPersonAttributes.SetValues( _reactivateSettings.PersonAttributes ?? new List<int>() );
             cbIncludeDataView.Checked = _reactivateSettings.IsIncludeDataViewEnabled;
+            dvIncludeDataView.EntityTypeId = EntityTypeCache.Read( typeof( Rock.Model.Person ) ).Id;
             dvIncludeDataView.SetValue( _reactivateSettings.IncludeDataView );
             cbExcludeDataView.Checked = _reactivateSettings.IsExcludeDataViewEnabled;
+            dvExcludeDataView.EntityTypeId = EntityTypeCache.Read( typeof( Rock.Model.Person ) ).Id;
             dvExcludeDataView.SetValue( _reactivateSettings.ExcludeDataView );
             cbInteractions.Checked = _reactivateSettings.IsInteractionsEnabled;
 
@@ -290,6 +292,7 @@ namespace RockWeb.Blocks.Administration
             nbNoPersonAttributes.Text = _inactivateSettings.NoPersonAttributesDays.ToStringSafe();
             rlbNoPersonAttributes.SetValues( _inactivateSettings.PersonAttributes ?? new List<int>() );
             cbNotInDataView.Checked = _inactivateSettings.IsNotInDataviewEnabled;
+            dvNotInDataView.EntityTypeId = EntityTypeCache.Read( typeof( Rock.Model.Person ) ).Id;
             dvNotInDataView.SetValue( _inactivateSettings.NotInDataview );
             cbNoInteractions.Checked = _inactivateSettings.IsNoInteractionsEnabled;
 
@@ -446,7 +449,7 @@ namespace RockWeb.Blocks.Administration
 
             _campusSettings.IsMostFamilyAttendanceEnabled = cbMostFamilyAttendance.Checked;
             _campusSettings.MostFamilyAttendancePeriod = nbMostFamilyAttendance.Text.AsInteger();
-            
+
             _campusSettings.IsMostFamilyGivingEnabled = cbMostFamilyGiving.Checked;
             _campusSettings.MostFamilyGivingPeriod = nbMostFamilyGiving.Text.AsInteger();
 
@@ -456,7 +459,7 @@ namespace RockWeb.Blocks.Administration
             _campusSettings.IgnoreIfManualUpdatePeriod = nbIgnoreIfManualUpdate.Text.AsInteger();
 
             _campusSettings.IsIgnoreCampusChangesEnabled = cbIgnoreCampusChanges.Checked;
-            _campusSettings.IgnoreCampusChanges = 
+            _campusSettings.IgnoreCampusChanges =
                 _ignoreCampusChangeRows
                     .Where( a => a.CampusCriteria.HasValue && a.FromCampusId.HasValue && a.ToCampusId.HasValue )
                     .Select( a => new IgnoreCampusChangeItem
