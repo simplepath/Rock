@@ -34,7 +34,7 @@
                 <Rock:PanelWidget ID="pwNcoaConfiguration" runat="server" Title="NCOA Configuration">
                     <div class="row">
                         <div class="col-md-4">
-                            <Rock:NumberBox ID="nbMinMoveDistance" runat="server" AppendText="miles" CssClass="input-width-md" Label="Minimum Move Distance to Inactivate" NumberType="Integer" Text="250" />
+                            <Rock:NumberBox ID="nbMinMoveDistance" runat="server" AppendText="miles" CssClass="input-width-md" Label="Minimum Move Distance to Inactivate" NumberType="Double" Text="250" />
                         </div>
                         <div class="col-md-4">
                             <Rock:RockCheckBox ID="cb48MonAsPrevious" runat="server" Label="Mark 48 Month Move as Previous Addresses" />

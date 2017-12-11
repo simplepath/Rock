@@ -36,7 +36,7 @@ namespace Rock.SystemKey
         /// <summary>
         /// The minimum distance in miles person/family has to have moved before automatically inactivatingn their record
         /// </summary>
-        public const string NCOA_MiNIMUM_MOVE_DISTANCE_TO_INACTIVATE = "core_MinimumMoveDistanceToInactivate";
+        public const string NCOA_MINIMUM_MOVE_DISTANCE_TO_INACTIVATE = "core_MinimumMoveDistanceToInactivate";
 
         /// <summary>
         /// Should a NCOA 48 month move request change a family's address to 'previous'
