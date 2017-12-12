@@ -84,7 +84,7 @@ namespace Rock.Jobs
                 {
                     families = new GroupMemberService( rockContext )
                         .Queryable( "Group.Members.Person" )
-                       .Where( m => m.Group.GroupTypeId == familyGroupTypeId )
+                        .Where( m => m.Group.GroupTypeId == familyGroupTypeId )
                         .OrderBy( m => m.GroupOrder ?? int.MaxValue )
                         .DistinctBy( a => a.GroupId )
                         .Select( m => m.Group )
@@ -98,8 +98,13 @@ namespace Rock.Jobs
                     using ( RockContext rockContext = new RockContext() )
                     {
                         var startPeriod = RockDateTime.Now.AddDays( -_campusSettings.IgnoreIfManualUpdatePeriod );
-                        var familiesWithManualUpdate = new HistoryService( rockContext ).Queryable().AsNoTracking()
-                            .Where( m => m.EntityTypeId == personEntityTypeId && m.Summary.Contains( "Modified <span class='field name'>Campus</span>" ) && m.CreatedDateTime >= startPeriod && m.RelatedEntityId.HasValue ).Select( a => a.RelatedEntityId.Value ).ToList();
+                        var familiesWithManualUpdate = new HistoryService( rockContext )
+                            .Queryable().AsNoTracking()
+                            .Where( m => m.EntityTypeId == personEntityTypeId &&
+                                m.Summary.Contains( "Modified <span class='field name'>Campus</span>" ) &&
+                                m.CreatedDateTime >= startPeriod && m.RelatedEntityId.HasValue )
+                            .Select( a => a.RelatedEntityId.Value )
+                            .ToList();
 
                         families.RemoveAll( a => familiesWithManualUpdate.Contains( a.Id ) );
                     }
@@ -117,9 +122,6 @@ namespace Rock.Jobs
                     {
                         using ( RockContext rockContext = new RockContext() )
                         {
-
-
-
                             if ( _campusSettings.IsMostFamilyAttendanceEnabled )
                             {
                                 var startPeriod = RockDateTime.Now.AddDays( -_campusSettings.MostFamilyAttendancePeriod );
@@ -247,10 +249,10 @@ namespace Rock.Jobs
                 familiesWithInactivePerson = new GroupMemberService( rockContext )
                     .Queryable( "Group.Members" )
                    .Where( m => m.Group.GroupTypeId == familyGroupTypeId &&
-                     m.Person.RecordStatusValueId.HasValue &&
-                     m.Person.RecordStatusValueId == inactiveStatusId &&
-                     m.Person.RecordStatusReasonValueId.HasValue &&
-                     values.Contains( m.Person.RecordStatusReasonValueId.Value ) )
+                         m.Person.RecordStatusValueId.HasValue &&
+                         m.Person.RecordStatusValueId == inactiveStatusId &&
+                         m.Person.RecordStatusReasonValueId.HasValue &&
+                         values.Contains( m.Person.RecordStatusReasonValueId.Value ) )
                     .OrderBy( m => m.GroupOrder ?? int.MaxValue )
                     .DistinctBy( a => a.GroupId )
                     .Select( m => m.Group )
@@ -417,8 +419,8 @@ namespace Rock.Jobs
                 familiesWithActivePerson = new GroupMemberService( rockContext )
                     .Queryable( "Group.Members.Person" )
                    .Where( m => m.Group.GroupTypeId == familyGroupTypeId &&
-                     m.Person.RecordStatusValueId.HasValue &&
-                     m.Person.RecordStatusValueId == activeStatusId )
+                         m.Person.RecordStatusValueId.HasValue &&
+                         m.Person.RecordStatusValueId == activeStatusId )
                     .OrderBy( m => m.GroupOrder ?? int.MaxValue )
                     .DistinctBy( a => a.GroupId )
                     .Select( m => m.Group )
@@ -570,8 +572,8 @@ namespace Rock.Jobs
                    .Queryable()
                    .AsNoTracking()
                    .Where( a => a.InteractionDateTime >= interactionStartPeriod &&
-                    a.InteractionComponent.Channel.Guid == interaction.Guid &&
-                    personIds.Contains( a.PersonAlias.PersonId ) )
+                        a.InteractionComponent.Channel.Guid == interaction.Guid &&
+                        personIds.Contains( a.PersonAlias.PersonId ) )
                    .Select( a => a.PersonAlias.PersonId )
                    .ToList();
             }
@@ -589,8 +591,8 @@ namespace Rock.Jobs
                 fulfilledPersonIds = new PrayerRequestService( rockContext )
                     .Queryable()
                     .Where( a =>
-                      a.EnteredDateTime >= prayerRequestStartDate &&
-                      personIds.Contains( a.RequestedByPersonAlias.PersonId ) )
+                          a.EnteredDateTime >= prayerRequestStartDate &&
+                          personIds.Contains( a.RequestedByPersonAlias.PersonId ) )
                       .Select( a => a.RequestedByPersonAlias.PersonId )
                       .Distinct()
                       .ToList();
@@ -609,10 +611,9 @@ namespace Rock.Jobs
                 fulfilledPersonIds = new AttributeValueService( rockContext )
                     .Queryable()
                     .Where( a =>
-                      a.ModifiedDateTime.HasValue && a.ModifiedDateTime >= attributeModifiedStartDate &&
-                        attributeIds.Contains( a.AttributeId ) &&
-                        a.EntityId.HasValue && personIds.Contains( a.EntityId.Value )
-                    )
+                          a.ModifiedDateTime.HasValue && a.ModifiedDateTime >= attributeModifiedStartDate &&
+                          attributeIds.Contains( a.AttributeId ) &&
+                          a.EntityId.HasValue && personIds.Contains( a.EntityId.Value ))
                       .Select( a => a.EntityId.Value )
                       .Distinct()
                       .ToList();
@@ -630,9 +631,9 @@ namespace Rock.Jobs
                 fulfilledPersonIds = new AttendanceService( rockContext )
                     .Queryable()
                     .Where( a =>
-                      a.Group.GroupType.AttendanceCountsAsWeekendService &&
-                      a.StartDateTime >= attendanceStartDate &&
-                      personIds.Contains( a.PersonAlias.PersonId ) )
+                          a.Group.GroupType.AttendanceCountsAsWeekendService &&
+                          a.StartDateTime >= attendanceStartDate &&
+                          personIds.Contains( a.PersonAlias.PersonId ) )
                       .Select( a => a.PersonAlias.PersonId )
                       .Distinct()
                       .ToList();
@@ -651,12 +652,12 @@ namespace Rock.Jobs
                 fulfilledPersonIds = new AttendanceService( rockContext )
                     .Queryable()
                     .Where( a =>
-                      groupTypes.Contains( a.Group.GroupTypeId ) &&
-                      a.StartDateTime >= attendanceStartDate &&
-                      personIds.Contains( a.PersonAlias.PersonId ) )
-                      .Select( a => a.PersonAlias.PersonId )
-                      .Distinct()
-                      .ToList();
+                        groupTypes.Contains( a.Group.GroupTypeId ) &&
+                        a.StartDateTime >= attendanceStartDate &&
+                        personIds.Contains( a.PersonAlias.PersonId ) )
+                    .Select( a => a.PersonAlias.PersonId )
+                    .Distinct()
+                    .ToList();
             }
 
             return fulfilledPersonIds;
@@ -675,9 +676,9 @@ namespace Rock.Jobs
                         .Where( a => a.TransactionTypeValueId == transactionTypeContributionId &&
                              a.AuthorizedPersonAliasId.HasValue && personIds.Contains( a.AuthorizedPersonAlias.PersonId ) &&
                              a.SundayDate >= contributionStartDate )
-                             .Select( a => a.AuthorizedPersonAlias.PersonId )
-                             .Distinct()
-                             .ToList();
+                        .Select( a => a.AuthorizedPersonAlias.PersonId )
+                        .Distinct()
+                        .ToList();
             }
             return fulfilledPersonIds;
         }
