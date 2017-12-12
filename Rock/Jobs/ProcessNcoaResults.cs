@@ -35,6 +35,9 @@ namespace Rock.Jobs
     /// <summary>
     /// Job to process NCOA results
     /// </summary>
+    [DefinedValueField(Rock.SystemGuid.DefinedType.PERSON_RECORD_STATUS_REASON, "Inactive Reason", 
+        "The reason to use when inactivating people due to move that is beyond the configured number of miles.", true, false, 
+        Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_REASON_MOVED, "", 0 )]
     [DisallowConcurrentExecution]
     public class ProcessNcoaResults : RockBlock, IJob
     {
@@ -55,6 +58,10 @@ namespace Rock.Jobs
         /// <param name="context">The context.</param>
         public virtual void Execute( IJobExecutionContext context )
         {
+            // Get the inactive reason
+            JobDataMap dataMap = context.JobDetail.JobDataMap;
+            var inactiveReason = DefinedValueCache.Read( dataMap.GetString( "InactiveReason" ).AsGuid() );
+
             List<int> ncoaIds = null;
 
             var minMoveDistance = SystemSettings.GetValue( SystemKey.SystemSetting.NCOA_MINIMUM_MOVE_DISTANCE_TO_INACTIVATE ).AsDecimalOrNull();
@@ -207,56 +214,72 @@ namespace Rock.Jobs
             {
                 using ( var rockContext = new RockContext() )
                 {
+                    // Get the NCOA record and make sure it still hasn't been processed
                     var ncoaHistory = new NcoaHistoryService( rockContext ).Get( id );
-                    if ( ncoaHistory != null )
+                    if ( ncoaHistory != null && ncoaHistory.Processed == Processed.NotProcessed )
                     {
                         var ncoaHistoryService = new NcoaHistoryService( rockContext );
                         var groupService = new GroupService( rockContext );
                         var groupLocationService = new GroupLocationService( rockContext );
                         var locationService = new LocationService( rockContext );
+                        var personService = new PersonService( rockContext );
 
-                        var changes = new List<string>();
+                        var familyChanges = new List<string>();
 
                         // If we're able to mark the existing address as previous and successfully create a new home address..
-                        if ( MarkAsPreviousLocation( ncoaHistory, groupLocationService, previousValueId, changes ) &&
-                            AddNewHomeLocation( ncoaHistory, locationService, groupLocationService, homeValueId, changes ) )
+                        if ( MarkAsPreviousLocation( ncoaHistory, groupLocationService, previousValueId, familyChanges ) &&
+                            AddNewHomeLocation( ncoaHistory, locationService, groupLocationService, homeValueId, familyChanges ) )
                         {
                             // set the status to 'Complete'
                             ncoaHistory.Processed = Processed.Complete;
 
-                            // Look for any individual moves for the same family 
+                            // Look for any other moves for the same family and to same address, and set their status to complete as well
                             foreach ( var ncoaIndividual in ncoaHistoryService
                                 .Queryable().Where( n =>
                                     n.Processed == Processed.NotProcessed &&
                                     n.NcoaType == NcoaType.Move &&
-                                    n.MoveType == MoveType.Individual &&
-                                    n.FamilyId == ncoaHistory.FamilyId ) )
+                                    n.FamilyId == ncoaHistory.FamilyId &&
+                                    n.Id != ncoaHistory.Id &&
+                                    n.UpdatedStreet1 == ncoaHistory.UpdatedStreet1 ) )
                             {
-                                // If the individual move is to the same new address, set it's status to complete also
-                                if ( ncoaIndividual.UpdatedStreet1 == ncoaHistory.UpdatedStreet1 )
-                                {
-                                    ncoaIndividual.Processed = Processed.Complete;
-                                }
+                                ncoaIndividual.Processed = Processed.Complete;
                             }
 
-                            // If there were any changes, write to history
-                            if ( changes.Any() )
+                            // If there were any changes, write to history and check to see if person should be inactivated
+                            if ( familyChanges.Any() )
                             {
                                 var family = groupService.Get( ncoaHistory.FamilyId );
                                 if ( family != null )
                                 {
                                     foreach ( var fm in family.Members )
                                     {
+                                        if ( ncoaHistory.MoveDistance.HasValue && minMoveDistance.HasValue &&
+                                            ncoaHistory.MoveDistance.Value >= minMoveDistance.Value )
+                                        {
+                                            var personChanges = personService.InactivatePerson( fm.Person, inactiveReason,
+                                                $"Received a Change of Address (NCOA) notice that was for more than {minMoveDistance} miles away." );
+                                            if ( personChanges.Any() )
+                                            {
+                                                HistoryService.SaveChanges(
+                                                    rockContext,
+                                                    typeof( Person ),
+                                                    Rock.SystemGuid.Category.HISTORY_PERSON_DEMOGRAPHIC_CHANGES.AsGuid(),
+                                                    fm.PersonId,
+                                                    personChanges,
+                                                    false );
+                                            }
+                                        }
+
                                         HistoryService.SaveChanges(
-                                            rockContext,
-                                            typeof( Person ),
-                                            Rock.SystemGuid.Category.HISTORY_PERSON_FAMILY_CHANGES.AsGuid(),
-                                            fm.PersonId,
-                                            changes,
-                                            family.Name,
-                                            typeof( Group ),
-                                            family.Id,
-                                            false );
+                                        rockContext,
+                                        typeof( Person ),
+                                        Rock.SystemGuid.Category.HISTORY_PERSON_FAMILY_CHANGES.AsGuid(),
+                                        fm.PersonId,
+                                        familyChanges,
+                                        family.Name,
+                                        typeof( Group ),
+                                        family.Id,
+                                        false );
                                     }
                                 }
                             }
@@ -288,8 +311,9 @@ namespace Rock.Jobs
             {
                 using ( var rockContext = new RockContext() )
                 {
+                    // Get the NCOA record and make sure it still hasn't been processed
                     var ncoaHistory = new NcoaHistoryService( rockContext ).Get( id );
-                    if ( ncoaHistory != null )
+                    if ( ncoaHistory != null && ncoaHistory.Processed == Processed.NotProcessed )
                     {
                         var ncoaHistoryService = new NcoaHistoryService( rockContext );
                         var groupMemberService = new GroupMemberService( rockContext );
@@ -297,6 +321,7 @@ namespace Rock.Jobs
                         var groupService = new GroupService( rockContext );
                         var groupLocationService = new GroupLocationService( rockContext );
                         var locationService = new LocationService( rockContext );
+                        var personService = new PersonService( rockContext );
 
                         var changes = new List<string>();
 
@@ -321,9 +346,39 @@ namespace Rock.Jobs
                                 {
                                     ncoaHistory.Processed = Processed.Complete;
 
-                                    // If there were any changes, write to history
+                                    // Look for any other moves for the same person to same address, and set their process to complete also
+                                    foreach ( var ncoaIndividual in ncoaHistoryService
+                                        .Queryable().Where( n =>
+                                            n.Processed == Processed.NotProcessed &&
+                                            n.NcoaType == NcoaType.Move &&
+                                            n.MoveType == MoveType.Individual &&
+                                            n.PersonAliasId == ncoaHistory.PersonAliasId &&
+                                            n.Id != ncoaHistory.Id &&
+                                            n.UpdatedStreet1 == ncoaHistory.UpdatedStreet1 ) )
+                                    {
+                                        ncoaIndividual.Processed = Processed.Complete;
+                                    }
+
+                                    // If there were any changes, write to history and check to see if person should be inactivated
                                     if ( changes.Any() )
                                     {
+                                        if ( ncoaHistory.MoveDistance.HasValue && minMoveDistance.HasValue &&
+                                            ncoaHistory.MoveDistance.Value >= minMoveDistance.Value )
+                                        {
+                                            var personChanges = personService.InactivatePerson( familyMember.Person, inactiveReason,
+                                            $"Received a Change of Address (NCOA) notice that was for more than {minMoveDistance} miles away." );
+                                            if ( personChanges.Any() )
+                                            {
+                                                HistoryService.SaveChanges(
+                                                    rockContext,
+                                                    typeof( Person ),
+                                                    Rock.SystemGuid.Category.HISTORY_PERSON_DEMOGRAPHIC_CHANGES.AsGuid(),
+                                                    familyMember.PersonId,
+                                                    personChanges,
+                                                    false );
+                                            }
+                                        }
+
                                         HistoryService.SaveChanges(
                                             rockContext,
                                             typeof( Person ),
@@ -359,7 +414,7 @@ namespace Rock.Jobs
                 {
                     if ( groupLocation.GroupLocationTypeValueId != previousValueId.Value )
                     {
-                        changes.Add( $"Modifed Location Type for <span class='field-name'>{groupLocation.Location}</span> to <span class'field-value'>Previous</span> due to NCOA Request." );
+                        changes.Add( $"Modifed Location Type for <span class='field-name'>{groupLocation.Location}</span> to <span class='field-value'>Previous</span> due to NCOA Request." );
                         groupLocation.GroupLocationTypeValueId = previousValueId.Value;
                     }
 

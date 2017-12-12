@@ -1573,6 +1573,36 @@ namespace Rock.Model
 
         #endregion
 
+        #region Update Person
+
+        /// <summary>
+        /// Inactivates a person.
+        /// </summary>
+        /// <param name="person">The person.</param>
+        /// <param name="reason">The reason.</param>
+        /// <param name="reasonNote">The reason note.</param>
+        /// <returns></returns>
+        public List<string> InactivatePerson( Person person, DefinedValueCache reason, string reasonNote )
+        {
+            var changes = new List<string>();
+
+            var inactiveStatus = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_INACTIVE.AsGuid() );
+            if ( inactiveStatus != null && reason != null )
+            {
+                History.EvaluateChange( changes, "Record Status", person.RecordStatusValue?.Value, inactiveStatus.Value );
+                History.EvaluateChange( changes, "Record Status Reason", person.RecordStatusReasonValue?.Value, reason.Value );
+                History.EvaluateChange( changes, "Inactive Reason Note", person.InactiveReasonNote, reasonNote );
+
+                person.RecordStatusValueId = inactiveStatus.Id;
+                person.RecordStatusReasonValueId = reason.Id;
+                person.InactiveReasonNote = reasonNote;
+            }
+
+            return changes;
+        }
+
+        #endregion
+
         /// <summary>
         /// Gets all of the IsMappedLocation points for a given user. Although each family can only have one 
         /// IsMapped point, the person may belong to more than one family
@@ -1599,6 +1629,8 @@ namespace Rock.Model
                     l.Location.GeoPoint != null )
                 .Select( l => l.Location.GeoPoint );
         }
+
+        #region Static Methods 
 
         /// <summary>
         /// Adds a person alias, known relationship group, implied relationship group, and optionally a family group for
@@ -1934,6 +1966,8 @@ namespace Rock.Model
         {
             RemovePersonFromOtherGroupsOfType( familyId, personId, rockContext );
         }
+
+        #endregion
 
         #region User Preferences
 
