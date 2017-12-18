@@ -63,5 +63,9 @@ namespace Rock.SystemKey
         /// </summary>
         public const string DATA_AUTOMATION_UPDATE_FAMILY_CAMPUS = "core_DataAutomationUpdateFamilyCampus";
 
+        /// <summary>
+        /// The font awesome pro key
+        /// </summary>
+        public const string FONT_AWESOME_PRO_KEY = "core_FontAwesomeProKey";
     }
 }

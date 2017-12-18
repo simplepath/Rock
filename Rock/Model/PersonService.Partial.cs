@@ -30,7 +30,7 @@ namespace Rock.Model
     /// Data Access/Service class for <see cref="Rock.Model.Person"/> entity objects.
     /// </summary>
     public partial class PersonService
-    {
+    {     
         /// <summary>
         /// Gets the specified unique identifier.
         /// </summary>
@@ -1970,7 +1970,6 @@ namespace Rock.Model
         #endregion
 
         #region User Preferences
-
         /// <summary>
         /// Saves a <see cref="Rock.Model.Person">Person's</see> user preference setting by key and SavesChanges()
         /// </summary>
