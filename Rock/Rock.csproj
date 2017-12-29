@@ -1471,6 +1471,11 @@
     <Compile Include="Web\UI\Controls\AttributeMatrixEditor.cs" />
     <Compile Include="Web\UI\Controls\DynamicPlaceholder.cs" />
     <Compile Include="Web\UI\Controls\Grid\LavaField.cs" />
+    <Compile Include="Web\UI\Controls\NewFamily\ChildMembers.cs" />
+    <Compile Include="Web\UI\Controls\NewFamily\ChildMembersRow.cs" />
+    <Compile Include="Web\UI\Controls\NewFamily\MembersRow.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Web\UI\Controls\Pickers\DataViewsPicker.cs" />
     <Compile Include="Web\UI\Controls\Pickers\DatePartsPicker.cs" />
     <Compile Include="Web\UI\Controls\Pickers\FieldTypePicker.cs" />
@@ -1775,7 +1780,6 @@
     <Compile Include="Web\UI\Controls\NewFamily\ContactInfo.cs" />
     <Compile Include="Web\UI\Controls\NewFamily\ContactInfoRow.cs" />
     <Compile Include="Web\UI\Controls\NewFamily\Members.cs" />
-    <Compile Include="Web\UI\Controls\NewFamily\MembersRow.cs" />
     <Compile Include="Web\UI\Controls\NoteContainer.cs" />
     <Compile Include="Web\UI\Controls\NoteControl.cs" />
     <Compile Include="Web\UI\Controls\NotificationBox.cs" />
