@@ -40,6 +40,31 @@ namespace Rock.Web.UI.Controls
         private DatePicker _dpBirthdate;
         private GradePicker _ddlGradePicker;
         private PhoneNumberBox _pnbMobile;
+        private DefinedValuePicker _ddlRelationshipToGuardian;
+        /// <summary>
+        /// Gets the attribute rows.
+        /// </summary>
+        /// <value>
+        /// The attribute rows.
+        /// </value>
+        public NewChildAttributesRow AttributeRow
+        {
+            get
+            {
+                foreach ( Control control in Controls )
+                {
+                    if ( control is NewChildAttributesRow )
+                    {
+                        var newGroupMemberRow = control as NewChildAttributesRow;
+                        if ( newGroupMemberRow != null )
+                        {
+                            return newGroupMemberRow;
+                        }
+                    }
+                }
+                return null;
+            }
+        }
 
         /// <summary>
         /// Gets or sets the person GUID.
@@ -199,7 +224,19 @@ namespace Rock.Web.UI.Controls
         public int? SuffixValueId
         {
             get { return _ddlSuffix.SelectedValueAsInt(); }
-            set { _ddlSuffix.SetValue(value); }
+            set { _ddlSuffix.SetValue( value ); }
+        }
+
+        /// <summary>
+        /// Gets or sets the relation to guardian value id.
+        /// </summary>
+        /// <value>
+        /// The relation to guardian value id.
+        /// </value>
+        public int? RelationToGuardianValueId
+        {
+            get { return _ddlRelationshipToGuardian.SelectedValueAsInt(); }
+            set { _ddlRelationshipToGuardian.SetValue( value ); }
         }
 
         /// <summary>
@@ -238,7 +275,7 @@ namespace Rock.Web.UI.Controls
             set
             {
                 EnsureChildControls();
-                _ddlGradePicker.Required = value;
+                _ddlSuffix.Required = value;
             }
         }
 
@@ -356,6 +393,7 @@ namespace Rock.Web.UI.Controls
             _ddlGradePicker = new GradePicker { UseAbbreviation = true, UseGradeOffsetAsValue = true };
             _ddlGradePicker.Label = string.Empty;
             _pnbMobile = new PhoneNumberBox();
+            _ddlRelationshipToGuardian = new DefinedValuePicker();
         }
 
         /// <summary>
@@ -373,43 +411,54 @@ namespace Rock.Web.UI.Controls
             _dpBirthdate.ID = "_dtBirthdate";
             _ddlGradePicker.ID = "_ddlGrade";
             _pnbMobile.ID = "_pnbPhone";
+            _ddlRelationshipToGuardian.ID = "_ddlRelationshipToGuardian";
 
             Controls.Add( _tbFirstName );
             Controls.Add( _tbLastName );
             Controls.Add( _ddlSuffix );
-            Controls.Add( _rblGender );
             Controls.Add( _dpBirthdate );
+            Controls.Add( _rblGender );
             Controls.Add( _ddlGradePicker );
             Controls.Add( _pnbMobile );
+            Controls.Add( _ddlRelationshipToGuardian );
 
             _tbFirstName.CssClass = "form-control";
             _tbFirstName.Placeholder = "First Name";
             _tbFirstName.Required = true;
             _tbFirstName.RequiredErrorMessage = "First Name is required for all group members";
+            _tbFirstName.Label = "First Name";
 
             _tbLastName.Placeholder = "Last Name";
             _tbLastName.Required = true;
             _tbLastName.RequiredErrorMessage = "Last Name is required for all group members";
+            _tbLastName.Label = "Last Name";
 
             _ddlSuffix.CssClass = "form-control";
             _ddlSuffix.BindToDefinedType( DefinedTypeCache.Read( Rock.SystemGuid.DefinedType.PERSON_SUFFIX.AsGuid() ), true );
+            _ddlSuffix.Label = "Suffix";
 
-
-            _rblGender.RepeatDirection = RepeatDirection.Vertical;
+            _rblGender.RepeatDirection = RepeatDirection.Horizontal;
             _rblGender.RequiredErrorMessage = "Gender is required for all group members";
+            _rblGender.Label = "Gender";
             BindGender();
 
             _dpBirthdate.StartView = DatePicker.StartViewOption.decade;
             _dpBirthdate.ForceParse = false;
             _dpBirthdate.AllowFutureDateSelection = false;
             _dpBirthdate.RequiredErrorMessage = "Birthdate is required for all group members";
-            _dpBirthdate.Required = false;
+            _dpBirthdate.Label = "Birth Date";
 
             _ddlGradePicker.CssClass = "form-control";
             _ddlGradePicker.RequiredErrorMessage = _ddlGradePicker.Label + " is required for all children";
+            _ddlGradePicker.Label = "Grade";
 
             _pnbMobile.CssClass = "form-control";
             _pnbMobile.Label = "Mobile Phone";
+
+            _ddlRelationshipToGuardian.CssClass = "form-control";
+            _ddlRelationshipToGuardian.Required = true;
+            _ddlRelationshipToGuardian.BindToDefinedType( DefinedTypeCache.Read( Rock.SystemGuid.DefinedType.RELATIONSHIP_TO_GUARDIAN.AsGuid() ), true );
+            _ddlRelationshipToGuardian.Label = "Relationship To Guardian";
         }
 
         /// <summary>
@@ -446,17 +495,9 @@ namespace Rock.Web.UI.Controls
                 {
                     writer.AddAttribute( HtmlTextWriterAttribute.Class, "col-md-3" );
                     writer.RenderBeginTag( HtmlTextWriterTag.Div );
+                    writer.AddAttribute( HtmlTextWriterAttribute.Class, "form-group" + ( _ddlSuffix.IsValid ? "" : " has-error" ) );
+                    writer.RenderBeginTag( HtmlTextWriterTag.Div );
                     _ddlSuffix.RenderControl( writer );
-                    writer.RenderEndTag();
-                }
-
-                if ( this.ShowGender )
-                {
-                    writer.AddAttribute( HtmlTextWriterAttribute.Class, "col-md-3" );
-                    writer.RenderBeginTag( HtmlTextWriterTag.Div );
-                    writer.AddAttribute( HtmlTextWriterAttribute.Class, "form-group" + ( _rblGender.IsValid ? "" : " has-error" ) );
-                    writer.RenderBeginTag( HtmlTextWriterTag.Div );
-                    _rblGender.RenderControl( writer );
                     writer.RenderEndTag();
                     writer.RenderEndTag();
                 }
@@ -472,13 +513,25 @@ namespace Rock.Web.UI.Controls
                     writer.RenderEndTag();
                 }
 
-                if ( ShowGradePicker )
+                if ( this.ShowGender )
                 {
                     writer.AddAttribute( HtmlTextWriterAttribute.Class, "col-md-3" );
                     writer.RenderBeginTag( HtmlTextWriterTag.Div );
+                    writer.AddAttribute( HtmlTextWriterAttribute.Class, "form-group" + ( _rblGender.IsValid ? "" : " has-error" ) );
+                    writer.RenderBeginTag( HtmlTextWriterTag.Div );
+                    _rblGender.RenderControl( writer );
+                    writer.RenderEndTag();
+                    writer.RenderEndTag();
+                }
 
+                if ( this.ShowGradePicker )
+                {
+                    writer.AddAttribute( HtmlTextWriterAttribute.Class, "col-md-3" );
+                    writer.RenderBeginTag( HtmlTextWriterTag.Div );
+                    writer.AddAttribute( HtmlTextWriterAttribute.Class, "form-group" + ( _ddlGradePicker.IsValid ? "" : " has-error" ) );
+                    writer.RenderBeginTag( HtmlTextWriterTag.Div );
                     _ddlGradePicker.RenderControl( writer );
-
+                    writer.RenderEndTag();
                     writer.RenderEndTag();
                 }
 
@@ -486,11 +539,28 @@ namespace Rock.Web.UI.Controls
                 {
                     writer.AddAttribute( HtmlTextWriterAttribute.Class, "col-md-3" );
                     writer.RenderBeginTag( HtmlTextWriterTag.Div );
-
+                    writer.AddAttribute( HtmlTextWriterAttribute.Class, "form-group" + ( _pnbMobile.IsValid ? "" : " has-error" ) );
+                    writer.RenderBeginTag( HtmlTextWriterTag.Div );
                     _pnbMobile.RenderControl( writer );
-
+                    writer.RenderEndTag();
                     writer.RenderEndTag();
                 }
+
+                foreach ( Control control in Controls )
+                {
+                    if ( control is NewChildAttributesRow )
+                    {
+                        control.RenderControl( writer );
+                    }
+                }
+
+                writer.AddAttribute( HtmlTextWriterAttribute.Class, "col-md-3 pull-right" );
+                writer.RenderBeginTag( HtmlTextWriterTag.Div );
+                writer.AddAttribute( HtmlTextWriterAttribute.Class, "form-group" + ( _ddlRelationshipToGuardian.IsValid ? "" : " has-error" ) );
+                writer.RenderBeginTag( HtmlTextWriterTag.Div );
+                _ddlRelationshipToGuardian.RenderControl( writer );
+                writer.RenderEndTag();
+                writer.RenderEndTag();
 
                 writer.RenderEndTag();
                 writer.RenderBeginTag( HtmlTextWriterTag.Hr );
@@ -506,14 +576,21 @@ namespace Rock.Web.UI.Controls
             string selectedValue = _rblGender.SelectedValue;
 
             _rblGender.Items.Clear();
-            _rblGender.Items.Add( new ListItem( "M", "1" ) );
-            _rblGender.Items.Add( new ListItem( "F", "2" ) );
-            if ( !RequireGender )
+
+            if ( RequireGender )
             {
-                _rblGender.Items.Add( new ListItem( "Unknown", "0" ) );
+                _rblGender.BindToEnum<Gender>( false, new Gender[] { Gender.Unknown } );
+            }
+            else
+            {
+                _rblGender.BindToEnum<Gender>();
             }
 
-            _rblGender.SelectedValue = selectedValue;
+            if ( !string.IsNullOrEmpty( selectedValue ) )
+            {
+                _rblGender.SelectedValue = selectedValue;
+            }
+
         }
 
         /// <summary>

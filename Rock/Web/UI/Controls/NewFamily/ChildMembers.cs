@@ -28,7 +28,7 @@ namespace Rock.Web.UI.Controls
     /// <summary>
     /// Report Filter control
     /// </summary>
-    [ToolboxData("<{0}:NewChildFamilyMembers runat=server></{0}:NewChildFamilyMembers>")]
+    [ToolboxData( "<{0}:NewChildFamilyMembers runat=server></{0}:NewChildFamilyMembers>" )]
     public class NewChildFamilyMembers : CompositeControl, INamingContainer
     {
         private LinkButton _lbAddGroupMember;
@@ -60,7 +60,7 @@ namespace Rock.Web.UI.Controls
                 return rows;
             }
         }
-        
+
         /// <summary>
         /// Called by the ASP.NET page framework to notify server controls that use composition-based implementation to create any child controls they contain in preparation for posting back or rendering.
         /// </summary>
@@ -76,10 +76,10 @@ namespace Rock.Web.UI.Controls
             _lbAddGroupMember.CausesValidation = false;
 
             var iAddFilter = new HtmlGenericControl( "i" );
-            iAddFilter.AddCssClass("fa fa-user");
+            iAddFilter.AddCssClass( "fa fa-user" );
             _lbAddGroupMember.Controls.Add( iAddFilter );
 
-            var spanAddFilter = new HtmlGenericControl("span");
+            var spanAddFilter = new HtmlGenericControl( "span" );
             spanAddFilter.InnerHtml = " Add Child";
             _lbAddGroupMember.Controls.Add( spanAddFilter );
         }
@@ -105,20 +105,33 @@ namespace Rock.Web.UI.Controls
         {
             if ( this.Visible )
             {
-
+                int i = 0;
                 foreach ( Control control in Controls )
                 {
                     if ( control is NewChildMembersRow )
                     {
+                        i++;
+                        writer.AddAttribute( HtmlTextWriterAttribute.Class, "row" );
+                        writer.RenderBeginTag( HtmlTextWriterTag.Div );
+                        writer.AddAttribute( HtmlTextWriterAttribute.Class, "col-md-12" );
+                        writer.RenderBeginTag( HtmlTextWriterTag.Div );
+                        writer.RenderBeginTag( HtmlTextWriterTag.H4 );
+                        writer.Write( "Child " + i.ToString() );
+                        writer.RenderEndTag();
+                        writer.RenderEndTag();
+                        writer.RenderEndTag();
                         control.RenderControl( writer );
                     }
                 }
 
-                writer.AddAttribute(HtmlTextWriterAttribute.Class, "row");
+                writer.AddAttribute( HtmlTextWriterAttribute.Class, "row" );
                 writer.RenderBeginTag( HtmlTextWriterTag.Div );
-                writer.AddAttribute(HtmlTextWriterAttribute.Class, "pull-right");
-                writer.RenderBeginTag(HtmlTextWriterTag.Div);
+                writer.AddAttribute( HtmlTextWriterAttribute.Class, "col-md-12" );
+                writer.RenderBeginTag( HtmlTextWriterTag.Div );
+                writer.AddAttribute( HtmlTextWriterAttribute.Class, "pull-right" );
+                writer.RenderBeginTag( HtmlTextWriterTag.Div );
                 _lbAddGroupMember.RenderControl( writer );
+                writer.RenderEndTag();
                 writer.RenderEndTag();
                 writer.RenderEndTag();
 
@@ -130,9 +143,9 @@ namespace Rock.Web.UI.Controls
         /// </summary>
         public void ClearRows()
         {
-            for (int i = Controls.Count - 1; i >= 0; i--)
+            for ( int i = Controls.Count - 1; i >= 0; i-- )
             {
-                if (Controls[i] is NewChildMembersRow )
+                if ( Controls[i] is NewChildMembersRow )
                 {
                     Controls.RemoveAt( i );
                 }
@@ -143,6 +156,6 @@ namespace Rock.Web.UI.Controls
         /// Occurs when [add group member click].
         /// </summary>
         public event EventHandler AddGroupMemberClick;
-        
+
     }
 }

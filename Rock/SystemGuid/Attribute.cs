@@ -176,5 +176,14 @@ namespace Rock.SystemGuid
         public const string DEFINED_VALUE_FUNDRAISING_DONATE_BUTTON_TEXT = "7ACD6580-0E5B-4407-BC8B-1BBBAF443B1E";
 
         #endregion
+
+        #region Relationship to Guardian Attributes
+
+        /// <summary>
+        /// The defined value attribute for storing known relationship role for Relationship to Guardian
+        /// </summary>
+        public const string DEFINED_VALUE_RELATIONSHIP_TO_GUARDIAN_KNOWN_RELATIONSHIP = "CED66EC8-C825-4A06-8FE2-807ED5ACA5D1";
+
+        #endregion
     }
 }

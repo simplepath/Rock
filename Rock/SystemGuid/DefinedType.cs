@@ -265,6 +265,11 @@ namespace Rock.SystemGuid
         public const string BUTTON_HTML = "407A3A73-A3EF-4970-B856-2A33F62AC72E";
 
         /// <summary>
+        /// The relationship to guardian
+        /// </summary>
+        public const string RELATIONSHIP_TO_GUARDIAN = "D5E26681-01AA-4FA2-A540-821A95EB6263";
+
+        /// <summary>
         /// The REST allowed domains
         /// </summary>
         public const string REST_API_ALLOWED_DOMAINS = "DF7C8DF7-49F9-4858-9E5D-20842AF65AD8";

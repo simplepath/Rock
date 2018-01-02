@@ -438,6 +438,30 @@ namespace Rock.SystemGuid
 
         #endregion
 
+        #region Relationship to Guardian
+
+        /// <summary>
+        /// Parent relationship to Guardian
+        /// </summary>
+        public const string RELATIONSHIP_TO_GUARDIAN_PARENT = "D008A005-A3FC-458D-B8CE-E3F5FDA53F7F";
+
+        /// <summary>
+        /// grandparent relationship to Guardian
+        /// </summary>
+        public const string RELATIONSHIP_TO_GUARDIAN_GRANDPARENT= "673232E4-19E6-4260-927D-77E16197FDD6";
+
+        /// <summary>
+        /// Neighbor relationship to Guardian
+        /// </summary>
+        public const string RELATIONSHIP_TO_GUARDIAN_NEIGHBOR = "7F5DBCA5-706E-4062-985F-C199EE2599F3";
+
+        /// <summary>
+        /// Business relationship to Guardian
+        /// </summary>
+        public const string RELATIONSHIP_TO_GUARDIAN_BUSINESS = "2B154A02-0630-4098-B760-91B248286EC7";
+
+        #endregion
+
         #region Map Styles
 
         /// <summary>

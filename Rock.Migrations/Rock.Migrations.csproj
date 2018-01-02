@@ -69,6 +69,10 @@
     <Compile Include="HotFixMigrations\004_FixBaptismBadge.cs" />
     <Compile Include="HotFixMigrations\005_ValueAsNumeric.cs" />
     <Compile Include="HotFixMigrations\006_StatementProcs.cs" />
+    <Compile Include="Migrations\201712311500481_AddRelationToGuardianDefinedType.cs" />
+    <Compile Include="Migrations\201712311500481_AddRelationToGuardianDefinedType.Designer.cs">
+      <DependentUpon>201712311500481_AddRelationToGuardianDefinedType.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Version 7.0\Version 1.7.0\201712192301416_MoveInteractionTemplates.cs" />
     <Compile Include="Migrations\Version 7.0\Version 1.7.0\201712192301416_MoveInteractionTemplates.Designer.cs">
       <DependentUpon>201712192301416_MoveInteractionTemplates.cs</DependentUpon>
@@ -2646,6 +2650,9 @@
     <Compile Include="SqlServerTypes\Loader.cs" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Migrations\201712311500481_AddRelationToGuardianDefinedType.resx">
+      <DependentUpon>201712311500481_AddRelationToGuardianDefinedType.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Migrations\Version 7.0\Version 1.7.0\201712192301416_MoveInteractionTemplates.resx">
       <DependentUpon>201712192301416_MoveInteractionTemplates.cs</DependentUpon>
     </EmbeddedResource>
