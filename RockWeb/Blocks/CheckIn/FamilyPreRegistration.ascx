@@ -17,32 +17,30 @@
                             <Rock:CampusPicker ID="cpCampus" runat="server" CssClass="input-width-lg" Label="Campus" />
                         </div>
                         <div class="col-md-6">
-                            <Rock:DatePicker ID="dpPlannedDate" runat="server" Label="Planned Date" AllowPastDateSelection="false" />
+                            <Rock:DatePicker ID="dpPlannedDate" runat="server" Label="Planned Visit Date" AllowPastDateSelection="false" />
                         </div>
                     </div>
                 </Rock:PanelWidget>
-                <Rock:PanelWidget ID="pwParents" runat="server" Title="Parents/Guardian Information" Expanded="true">
+                <Rock:PanelWidget ID="pwParents" runat="server" Title="Adult Information" Expanded="true">
+                    <h4>First Adult</h4>
                     <div class="row">
-                        <div class="col-md-12">
-                            <h4>Parent / Guardian 1</h4>
+                        <div class="col-md-3">
+                            <Rock:DataTextBox ID="tbFirstName" runat="server" SourceTypeName="Rock.Model.Person" PropertyName="NickName" Label="First Name" Required="true" />
                         </div>
-                    </div>
-                    <div class="row">
-                        <asp:Panel class="col-md-3" runat="server" ID="pnlFirstName">
-                            <Rock:RockTextBox ID="tbFirstName" runat="server" Label="First Name" CssClass="" Required="true" />
-                        </asp:Panel>
-                        <asp:Panel class="col-md-3" runat="server" ID="pnlLastName">
-                            <Rock:RockTextBox ID="tbLastName" runat="server" Label="Last Name" Required="true" />
-                        </asp:Panel>
-                        <asp:Panel class="col-md-3" runat="server" ID="pnlSuffix">
+                        <div class="col-md-3">
+                            <Rock:DataTextBox ID="tbLastName" runat="server" SourceTypeName="Rock.Model.Person" PropertyName="LastName" Required="true" />
+                        </div>
+                        <asp:Panel CssClass="col-md-2" runat="server" ID="pnlSuffix">
                             <Rock:DefinedValuePicker ID="dvpSuffix" runat="server" Label="Suffix" />
                         </asp:Panel>
-                        <asp:Panel class="col-md-3" runat="server" ID="pnlGender">
-                            <Rock:RockRadioButtonList ID="rblGender" Required="true" runat="server" Label="Gender" RepeatDirection="Horizontal" />
+                        <asp:Panel CssClass="col-md-2" runat="server" ID="pnlGender">
+                            <Rock:RockDropDownList ID="ddlGender" runat="server" Label="Gender" />
                         </asp:Panel>
-                        <asp:Panel class="col-md-3" runat="server" ID="pnlBirthDate">
+                        <asp:Panel CssClass="col-md-2" runat="server" ID="pnlBirthDate">
                             <Rock:DatePicker ID="dpBirthDate" runat="server" Label="Birthdate" AllowFutureDateSelection="False" ForceParse="false" />
                         </asp:Panel>
+                    </div>
+                    <div class="row">
                         <asp:Panel class="col-md-3" runat="server" ID="pnlEmail">
                             <Rock:EmailBox ID="tbNewPersonEmail" runat="server" Label="Email" ValidationGroup="AddPerson" />
                         </asp:Panel>

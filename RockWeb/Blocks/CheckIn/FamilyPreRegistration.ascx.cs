@@ -399,10 +399,10 @@ namespace RockWeb.Blocks.CheckIn
                 {
                     ignoreGender = new Gender[] { Gender.Unknown };
                 }
-                rblGender.BindToEnum<Gender>( false, ignoreGender );
+                ddlGender.BindToEnum<Gender>( false, ignoreGender );
                 rblGender2.BindToEnum<Gender>( false, ignoreGender );
                 int? value = null;
-                rblGender.SetValue( value );
+                ddlGender.SetValue( value );
                 rblGender2.SetValue( value );
             }
 
@@ -610,7 +610,7 @@ namespace RockWeb.Blocks.CheckIn
             firstGuardian.FirstName = tbFirstName.Text.Humanize( LetterCasing.Title );
             firstGuardian.LastName = tbLastName.Text.Humanize( LetterCasing.Title );
             firstGuardian.SuffixValueId = dvpSuffix.SelectedValueAsInt();
-            firstGuardian.Gender = rblGender.SelectedValueAsEnum<Gender>();
+            firstGuardian.Gender = ddlGender.SelectedValueAsEnum<Gender>();
             GetBirthDate( dpBirthDate.SelectedDate, firstGuardian );
 
             firstGuardian.LoadAttributes();
