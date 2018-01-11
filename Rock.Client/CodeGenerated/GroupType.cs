@@ -86,6 +86,9 @@ namespace Rock.Client
         public int? GroupTypePurposeValueId { get; set; }
 
         /// <summary />
+        public string GroupViewLavaTemplate { get; set; }
+
+        /// <summary />
         public string IconCssClass { get; set; }
 
         /// <summary />
@@ -182,6 +185,7 @@ namespace Rock.Client
             this.GroupsRequireCampus = source.GroupsRequireCampus;
             this.GroupTerm = source.GroupTerm;
             this.GroupTypePurposeValueId = source.GroupTypePurposeValueId;
+            this.GroupViewLavaTemplate = source.GroupViewLavaTemplate;
             this.IconCssClass = source.IconCssClass;
             this.IgnorePersonInactivated = source.IgnorePersonInactivated;
             this.InheritedGroupTypeId = source.InheritedGroupTypeId;

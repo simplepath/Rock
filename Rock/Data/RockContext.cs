@@ -1640,6 +1640,10 @@ namespace Rock.Data
             modelBuilder.Conventions.Add( new GetGeofencingGroupNamesStoreFunctionInjectionConvention() );
             modelBuilder.Conventions.Add( new GetSpousePersonIdFromPersonIdStoreFunctionInjectionConvention() );
 
+            //System.Diagnostics.Debugger.Launch();
+
+            //var isHosted = System.Web.Hosting.HostingEnvironment.IsHosted;
+
             try
             {
                 //// dynamically add plugin entities so that queryables can use a mixture of entities from different plugins and core

@@ -35,6 +35,21 @@ namespace Rock.Client
         public int Id { get; set; }
 
         /// <summary />
+        public bool AllowsFollowing { get; set; }
+
+        /// <summary />
+        public bool AllowsMentions { get; set; }
+
+        /// <summary />
+        public bool AllowsReplies { get; set; }
+
+        /// <summary />
+        public bool AutoWatchAuthors { get; set; }
+
+        /// <summary />
+        public string BackgroundColor { get; set; }
+
+        /// <summary />
         public string CssClass { get; set; }
 
         /// <summary />
@@ -58,6 +73,9 @@ namespace Rock.Client
         /// <summary />
         public bool IsSystem { get; set; }
 
+        /// <summary />
+        public int MaxReplyDepth { get; set; }
+
         /// <summary>
         /// If the ModifiedByPersonAliasId is being set manually and should not be overwritten with current user when saved, set this value to true
         /// </summary>
@@ -68,6 +86,12 @@ namespace Rock.Client
 
         /// <summary />
         public int Order { get; set; }
+
+        /// <summary />
+        public bool RequiresApprovals { get; set; }
+
+        /// <summary />
+        public bool SendApprovalNotifications { get; set; }
 
         /// <summary />
         public bool UserSelectable { get; set; }
@@ -105,6 +129,11 @@ namespace Rock.Client
         public void CopyPropertiesFrom( NoteType source )
         {
             this.Id = source.Id;
+            this.AllowsFollowing = source.AllowsFollowing;
+            this.AllowsMentions = source.AllowsMentions;
+            this.AllowsReplies = source.AllowsReplies;
+            this.AutoWatchAuthors = source.AutoWatchAuthors;
+            this.BackgroundColor = source.BackgroundColor;
             this.CssClass = source.CssClass;
             this.EntityTypeId = source.EntityTypeId;
             this.EntityTypeQualifierColumn = source.EntityTypeQualifierColumn;
@@ -113,9 +142,12 @@ namespace Rock.Client
             this.ForeignKey = source.ForeignKey;
             this.IconCssClass = source.IconCssClass;
             this.IsSystem = source.IsSystem;
+            this.MaxReplyDepth = source.MaxReplyDepth;
             this.ModifiedAuditValuesAlreadyUpdated = source.ModifiedAuditValuesAlreadyUpdated;
             this.Name = source.Name;
             this.Order = source.Order;
+            this.RequiresApprovals = source.RequiresApprovals;
+            this.SendApprovalNotifications = source.SendApprovalNotifications;
             this.UserSelectable = source.UserSelectable;
             this.CreatedDateTime = source.CreatedDateTime;
             this.ModifiedDateTime = source.ModifiedDateTime;

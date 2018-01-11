@@ -101,7 +101,43 @@ namespace Rock.Model
         /// </value>
         [DataMember]
         public string Text { get; set; }
-    
+
+        /// <summary>
+        /// Gets or sets the parent note identifier.
+        /// </summary>
+        /// <value>
+        /// The parent note identifier.
+        /// </value>
+        [DataMember]
+        public int? ParentNoteId { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether this instance is approved.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if this instance is approved; otherwise, <c>false</c>.
+        /// </value>
+        [DataMember]
+        public bool IsApproved { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether [notifications sent].
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [notifications sent]; otherwise, <c>false</c>.
+        /// </value>
+        [DataMember]
+        public bool NotificationsSent { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether [approvals sent].
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [approvals sent]; otherwise, <c>false</c>.
+        /// </value>
+        [DataMember]
+        public bool ApprovalsSent { get; set; }
+
         #endregion
 
         #region Virtual Properties
@@ -114,6 +150,15 @@ namespace Rock.Model
         /// </value>
         [DataMember]
         public virtual NoteType NoteType { get; set; }
+
+        /// <summary>
+        /// Gets or sets the parent note.
+        /// </summary>
+        /// <value>
+        /// The parent note.
+        /// </value>
+        [DataMember]
+        public virtual Note ParentNote { get; set; }
 
         /// <summary>
         /// Gets the parent security authority of this Note. Where security is inherited from.
@@ -201,6 +246,7 @@ namespace Rock.Model
         public NoteConfiguration()
         {
             this.HasRequired( p => p.NoteType ).WithMany().HasForeignKey( p => p.NoteTypeId ).WillCascadeOnDelete( true );
+            this.HasOptional( p => p.ParentNote ).WithMany().HasForeignKey( p => p.ParentNoteId ).WillCascadeOnDelete( false );
         }
     }
 

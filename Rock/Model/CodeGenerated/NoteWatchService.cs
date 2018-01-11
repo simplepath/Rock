@@ -28,15 +28,15 @@ using Rock.Data;
 namespace Rock.Model
 {
     /// <summary>
-    /// SignalType Service class
+    /// NoteWatch Service class
     /// </summary>
-    public partial class SignalTypeService : Service<SignalType>
+    public partial class NoteWatchService : Service<NoteWatch>
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="SignalTypeService"/> class
+        /// Initializes a new instance of the <see cref="NoteWatchService"/> class
         /// </summary>
         /// <param name="context">The context.</param>
-        public SignalTypeService(RockContext context) : base(context)
+        public NoteWatchService(RockContext context) : base(context)
         {
         }
 
@@ -48,7 +48,7 @@ namespace Rock.Model
         /// <returns>
         ///   <c>true</c> if this instance can delete the specified item; otherwise, <c>false</c>.
         /// </returns>
-        public bool CanDelete( SignalType item, out string errorMessage )
+        public bool CanDelete( NoteWatch item, out string errorMessage )
         {
             errorMessage = string.Empty;
             return true;
@@ -58,43 +58,46 @@ namespace Rock.Model
     /// <summary>
     /// Generated Extension Methods
     /// </summary>
-    public static partial class SignalTypeExtensionMethods
+    public static partial class NoteWatchExtensionMethods
     {
         /// <summary>
-        /// Clones this SignalType object to a new SignalType object
+        /// Clones this NoteWatch object to a new NoteWatch object
         /// </summary>
         /// <param name="source">The source.</param>
         /// <param name="deepCopy">if set to <c>true</c> a deep copy is made. If false, only the basic entity properties are copied.</param>
         /// <returns></returns>
-        public static SignalType Clone( this SignalType source, bool deepCopy )
+        public static NoteWatch Clone( this NoteWatch source, bool deepCopy )
         {
             if (deepCopy)
             {
-                return source.Clone() as SignalType;
+                return source.Clone() as NoteWatch;
             }
             else
             {
-                var target = new SignalType();
+                var target = new NoteWatch();
                 target.CopyPropertiesFrom( source );
                 return target;
             }
         }
 
         /// <summary>
-        /// Copies the properties from another SignalType object to this SignalType object
+        /// Copies the properties from another NoteWatch object to this NoteWatch object
         /// </summary>
         /// <param name="target">The target.</param>
         /// <param name="source">The source.</param>
-        public static void CopyPropertiesFrom( this SignalType target, SignalType source )
+        public static void CopyPropertiesFrom( this NoteWatch target, NoteWatch source )
         {
             target.Id = source.Id;
-            target.Description = source.Description;
+            target.EntityId = source.EntityId;
+            target.EntityTypeId = source.EntityTypeId;
             target.ForeignGuid = source.ForeignGuid;
             target.ForeignKey = source.ForeignKey;
-            target.Name = source.Name;
-            target.Order = source.Order;
-            target.SignalColor = source.SignalColor;
-            target.SignalIconCssClass = source.SignalIconCssClass;
+            target.GroupId = source.GroupId;
+            target.IsMentioned = source.IsMentioned;
+            target.IsWatching = source.IsWatching;
+            target.NoteId = source.NoteId;
+            target.NoteTypeId = source.NoteTypeId;
+            target.PersonAliasId = source.PersonAliasId;
             target.CreatedDateTime = source.CreatedDateTime;
             target.ModifiedDateTime = source.ModifiedDateTime;
             target.CreatedByPersonAliasId = source.CreatedByPersonAliasId;

@@ -27,21 +27,18 @@ using System.Collections.Generic;
 namespace Rock.Client
 {
     /// <summary>
-    /// Base client model for Note that only includes the non-virtual fields. Use this for PUT/POSTs
+    /// Base client model for NoteWatch that only includes the non-virtual fields. Use this for PUT/POSTs
     /// </summary>
-    public partial class NoteEntity
+    public partial class NoteWatchEntity
     {
         /// <summary />
         public int Id { get; set; }
 
         /// <summary />
-        public bool ApprovalsSent { get; set; }
-
-        /// <summary />
-        public string Caption { get; set; }
-
-        /// <summary />
         public int? EntityId { get; set; }
+
+        /// <summary />
+        public int? EntityTypeId { get; set; }
 
         /// <summary />
         public Guid? ForeignGuid { get; set; }
@@ -50,16 +47,13 @@ namespace Rock.Client
         public string ForeignKey { get; set; }
 
         /// <summary />
-        public bool? IsAlert { get; set; }
+        public int? GroupId { get; set; }
 
         /// <summary />
-        public bool IsApproved { get; set; }
+        public bool IsMentioned { get; set; }
 
         /// <summary />
-        public bool IsPrivateNote { get; set; }
-
-        /// <summary />
-        public bool IsSystem { get; set; }
+        public bool IsWatching { get; set; }
 
         /// <summary>
         /// If the ModifiedByPersonAliasId is being set manually and should not be overwritten with current user when saved, set this value to true
@@ -67,16 +61,13 @@ namespace Rock.Client
         public bool ModifiedAuditValuesAlreadyUpdated { get; set; }
 
         /// <summary />
-        public int NoteTypeId { get; set; }
+        public int? NoteId { get; set; }
 
         /// <summary />
-        public bool NotificationsSent { get; set; }
+        public int? NoteTypeId { get; set; }
 
         /// <summary />
-        public int? ParentNoteId { get; set; }
-
-        /// <summary />
-        public string Text { get; set; }
+        public int? PersonAliasId { get; set; }
 
         /// <summary>
         /// Leave this as NULL to let Rock set this
@@ -105,26 +96,23 @@ namespace Rock.Client
         public int? ForeignId { get; set; }
 
         /// <summary>
-        /// Copies the base properties from a source Note object
+        /// Copies the base properties from a source NoteWatch object
         /// </summary>
         /// <param name="source">The source.</param>
-        public void CopyPropertiesFrom( Note source )
+        public void CopyPropertiesFrom( NoteWatch source )
         {
             this.Id = source.Id;
-            this.ApprovalsSent = source.ApprovalsSent;
-            this.Caption = source.Caption;
             this.EntityId = source.EntityId;
+            this.EntityTypeId = source.EntityTypeId;
             this.ForeignGuid = source.ForeignGuid;
             this.ForeignKey = source.ForeignKey;
-            this.IsAlert = source.IsAlert;
-            this.IsApproved = source.IsApproved;
-            this.IsPrivateNote = source.IsPrivateNote;
-            this.IsSystem = source.IsSystem;
+            this.GroupId = source.GroupId;
+            this.IsMentioned = source.IsMentioned;
+            this.IsWatching = source.IsWatching;
             this.ModifiedAuditValuesAlreadyUpdated = source.ModifiedAuditValuesAlreadyUpdated;
+            this.NoteId = source.NoteId;
             this.NoteTypeId = source.NoteTypeId;
-            this.NotificationsSent = source.NotificationsSent;
-            this.ParentNoteId = source.ParentNoteId;
-            this.Text = source.Text;
+            this.PersonAliasId = source.PersonAliasId;
             this.CreatedDateTime = source.CreatedDateTime;
             this.ModifiedDateTime = source.ModifiedDateTime;
             this.CreatedByPersonAliasId = source.CreatedByPersonAliasId;
@@ -136,15 +124,24 @@ namespace Rock.Client
     }
 
     /// <summary>
-    /// Client model for Note that includes all the fields that are available for GETs. Use this for GETs (use NoteEntity for POST/PUTs)
+    /// Client model for NoteWatch that includes all the fields that are available for GETs. Use this for GETs (use NoteWatchEntity for POST/PUTs)
     /// </summary>
-    public partial class Note : NoteEntity
+    public partial class NoteWatch : NoteWatchEntity
     {
+        /// <summary />
+        public EntityType EntityType { get; set; }
+
+        /// <summary />
+        public Group Group { get; set; }
+
+        /// <summary />
+        public Note Note { get; set; }
+
         /// <summary />
         public NoteType NoteType { get; set; }
 
         /// <summary />
-        public Note ParentNote { get; set; }
+        public PersonAlias PersonAlias { get; set; }
 
         /// <summary>
         /// NOTE: Attributes are only populated when ?loadAttributes is specified. Options for loadAttributes are true, false, 'simple', 'expanded' 

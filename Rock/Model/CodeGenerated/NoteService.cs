@@ -51,6 +51,12 @@ namespace Rock.Model
         public bool CanDelete( Note item, out string errorMessage )
         {
             errorMessage = string.Empty;
+ 
+            if ( new Service<Note>( Context ).Queryable().Any( a => a.ParentNoteId == item.Id ) )
+            {
+                errorMessage = string.Format( "This {0} contains one or more child {1}.", Note.FriendlyTypeName, Note.FriendlyTypeName.Pluralize().ToLower() );
+                return false;
+            }  
             return true;
         }
     }
@@ -88,14 +94,18 @@ namespace Rock.Model
         public static void CopyPropertiesFrom( this Note target, Note source )
         {
             target.Id = source.Id;
+            target.ApprovalsSent = source.ApprovalsSent;
             target.Caption = source.Caption;
             target.EntityId = source.EntityId;
             target.ForeignGuid = source.ForeignGuid;
             target.ForeignKey = source.ForeignKey;
             target.IsAlert = source.IsAlert;
+            target.IsApproved = source.IsApproved;
             target.IsPrivateNote = source.IsPrivateNote;
             target.IsSystem = source.IsSystem;
             target.NoteTypeId = source.NoteTypeId;
+            target.NotificationsSent = source.NotificationsSent;
+            target.ParentNoteId = source.ParentNoteId;
             target.Text = source.Text;
             target.CreatedDateTime = source.CreatedDateTime;
             target.ModifiedDateTime = source.ModifiedDateTime;

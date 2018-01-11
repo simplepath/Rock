@@ -99,6 +99,7 @@
     <Compile Include="CodeGenerated\ContentChannelType.cs" />
     <Compile Include="CodeGenerated\DataView.cs" />
     <Compile Include="CodeGenerated\DataViewFilter.cs" />
+    <Compile Include="CodeGenerated\DataViewPersistedValue.cs" />
     <Compile Include="CodeGenerated\DefinedType.cs" />
     <Compile Include="CodeGenerated\DefinedValue.cs" />
     <Compile Include="CodeGenerated\Device.cs" />
@@ -173,6 +174,7 @@
     <Compile Include="CodeGenerated\NcoaHistory.cs" />
     <Compile Include="CodeGenerated\Note.cs" />
     <Compile Include="CodeGenerated\NoteType.cs" />
+    <Compile Include="CodeGenerated\NoteWatch.cs" />
     <Compile Include="CodeGenerated\Notification.cs" />
     <Compile Include="CodeGenerated\NotificationRecipient.cs" />
     <Compile Include="CodeGenerated\Page.cs" />

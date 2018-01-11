@@ -810,6 +810,7 @@
     <Compile Include="Model\CodeGenerated\MetaPersonicxLifestageClusterService.cs" />
     <Compile Include="Model\CodeGenerated\MetaPersonicxLifestageGroupService.cs" />
     <Compile Include="Model\CodeGenerated\NcoaHistoryService.cs" />
+    <Compile Include="Model\CodeGenerated\NoteWatchService.cs" />
     <Compile Include="Model\CodeGenerated\PersonalDeviceService.cs" />
     <Compile Include="Model\CodeGenerated\AttributeMatrixItemService.cs" />
     <Compile Include="Model\CodeGenerated\AttributeMatrixService.cs" />
@@ -1138,6 +1139,7 @@
     <Compile Include="Model\NoteService.Partial.cs" />
     <Compile Include="Model\NoteType.cs" />
     <Compile Include="Model\NoteTypeService.Partial.cs" />
+    <Compile Include="Model\NoteWatch.cs" />
     <Compile Include="Model\Notification.cs" />
     <Compile Include="Model\NotificationRecipient.cs" />
     <Compile Include="Model\Page.cs" />
