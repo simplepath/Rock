@@ -34,7 +34,6 @@ namespace Rock.Web.UI.Controls
     [ToolboxData( "<{0}:NoteContainer runat=server></{0}:NoteContainer>" )]
     public class NoteContainer : CompositeControl, INamingContainer
     {
-
         #region Fields
 
         private NoteControl _noteNew;
@@ -52,18 +51,19 @@ namespace Rock.Web.UI.Controls
         /// </value>
         public List<NoteTypeCache> NoteTypes
         {
-            get 
+            get
             {
                 return GetNoteTypes( "NoteTypes" );
             }
-            set 
+
+            set
             {
                 ViewState["AvailableNoteTypes"] = value.Select( t => t.Id ).ToList();
 
                 if ( value != null && value.Any() )
                 {
                     var currentPerson = GetCurrentPerson();
-                    
+
                     var viewableNoteTypes = new List<NoteTypeCache>();
                     var editableNoteTypes = new List<NoteTypeCache>();
 
@@ -73,6 +73,7 @@ namespace Rock.Web.UI.Controls
                         {
                             viewableNoteTypes.Add( noteType );
                         }
+
                         if ( noteType.UserSelectable && noteType.IsAuthorized( Security.Authorization.EDIT, currentPerson ) )
                         {
                             editableNoteTypes.Add( noteType );
@@ -85,18 +86,31 @@ namespace Rock.Web.UI.Controls
             }
         }
 
+        /// <summary>
+        /// Gets or sets the viewable note types.
+        /// </summary>
+        /// <value>
+        /// The viewable note types.
+        /// </value>
         private List<NoteTypeCache> ViewableNoteTypes
         {
             get
             {
                 return GetNoteTypes( "ViewableNoteTypes" );
             }
+
             set
             {
                 ViewState["ViewableNoteTypes"] = value.Select( t => t.Id ).ToList();
             }
         }
 
+        /// <summary>
+        /// Gets or sets the editable note types.
+        /// </summary>
+        /// <value>
+        /// The editable note types.
+        /// </value>
         private List<NoteTypeCache> EditableNoteTypes
         {
             get
@@ -104,6 +118,7 @@ namespace Rock.Web.UI.Controls
                 EnsureChildControls();
                 return _noteNew.NoteTypes;
             }
+
             set
             {
                 EnsureChildControls();
@@ -111,6 +126,11 @@ namespace Rock.Web.UI.Controls
             }
         }
 
+        /// <summary>
+        /// Gets the note types.
+        /// </summary>
+        /// <param name="viewStateKey">The view state key.</param>
+        /// <returns></returns>
         private List<NoteTypeCache> GetNoteTypes( string viewStateKey )
         {
             var noteTypes = new List<NoteTypeCache>();
@@ -123,6 +143,7 @@ namespace Rock.Web.UI.Controls
                     noteTypes.Add( noteType );
                 }
             }
+
             return noteTypes;
         }
 
@@ -215,7 +236,7 @@ namespace Rock.Web.UI.Controls
             get { return ViewState["AddText"] as string ?? string.Empty; }
             set { ViewState["AddText"] = value; }
         }
-        
+
         /// <summary>
         /// Gets or sets the title to display.
         /// </summary>
@@ -274,8 +295,9 @@ namespace Rock.Web.UI.Controls
             get
             {
                 object sortDirection = this.ViewState["SortDirection"];
-                return sortDirection != null ? (ListSortDirection)sortDirection : ListSortDirection.Descending;
+                return sortDirection != null ? ( ListSortDirection ) sortDirection : ListSortDirection.Descending;
             }
+
             set
             {
                 this.ViewState["SortDirection"] = value;
@@ -350,6 +372,7 @@ namespace Rock.Web.UI.Controls
                 EnsureChildControls();
                 return _noteNew.ShowCreateDateInput;
             }
+
             set
             {
                 EnsureChildControls();
@@ -404,7 +427,6 @@ namespace Rock.Web.UI.Controls
             }
         }
 
-
         /// <summary>
         /// Gets or sets the current display count. Only applies if notes are in descending order. 
         /// If notes are displayed in ascending order, all notes will always be displayed
@@ -452,23 +474,7 @@ namespace Rock.Web.UI.Controls
         $newNotePanel.children().slideToggle(""slow"");
     });
 ";
-
-            //            string noteId = PageParameter( "noteId" );
-            //            if ( !string.IsNullOrWhiteSpace( noteId ) )
-            //            {
-            //                script += string.Format( @"
-            //                    $('html, body').animate( {{scrollTop: $("".note[rel='{0}']"").offset().top }},
-            //                        'slow',
-            //                        'swing',
-            //                        function() {{ 
-            //                            $("".note[rel='{0}'] > article"").css( ""boxShadow"", ""1px 1px 8px 1px #888888"" );
-            //                        }}
-            //                    );",
-            //                noteId );
-            //            }
-
             ScriptManager.RegisterStartupScript( this, this.GetType(), "add-note", script, true );
-
         }
 
         /// <summary>
@@ -520,12 +526,12 @@ namespace Rock.Web.UI.Controls
         {
             if ( this.Visible )
             {
-                bool canAdd = AddAllowed && 
-                    EditableNoteTypes.Any() && 
+                bool canAdd = AddAllowed &&
+                    EditableNoteTypes.Any() &&
                     ( AllowAnonymousEntry || GetCurrentPerson() != null );
 
-                string cssClass = "panel panel-note" + 
-                    (this.DisplayType == NoteDisplayType.Light ? " panel-note-light" : "");
+                string cssClass = "panel panel-note" +
+                    ( this.DisplayType == NoteDisplayType.Light ? " panel-note-light" : string.Empty );
 
                 writer.AddAttribute( HtmlTextWriterAttribute.Class, cssClass );
                 writer.RenderBeginTag( "section" );
@@ -564,7 +570,6 @@ namespace Rock.Web.UI.Controls
                     }
 
                     writer.RenderEndTag();      // Div.panel-heading
-
                 }
 
                 writer.AddAttribute( HtmlTextWriterAttribute.Class, "panel-body" );
@@ -572,10 +577,11 @@ namespace Rock.Web.UI.Controls
 
                 if ( canAdd && SortDirection == ListSortDirection.Descending )
                 {
-                    if (!ShowHeading && !AddAlwaysVisible )
+                    if ( !ShowHeading && !AddAlwaysVisible )
                     {
                         RenderAddButton( writer );
                     }
+
                     RenderNewNoteControl( writer );
                 }
 
@@ -583,7 +589,7 @@ namespace Rock.Web.UI.Controls
                 {
                     if ( control is NoteControl && control.ID != "noteNew" )
                     {
-                        var noteEditor = (NoteControl)control;
+                        var noteEditor = ( NoteControl ) control;
                         noteEditor.DisplayNoteTypeHeading = this.DisplayNoteTypeHeading;
                         noteEditor.DisplayType = this.DisplayType;
                         noteEditor.ShowAlertCheckBox = this.ShowAlertCheckBox;
@@ -601,6 +607,7 @@ namespace Rock.Web.UI.Controls
                     {
                         RenderAddButton( writer );
                     }
+
                     RenderNewNoteControl( writer );
                 }
                 else
@@ -614,7 +621,6 @@ namespace Rock.Web.UI.Controls
                 writer.RenderEndTag();      // Div.panel-body
 
                 writer.RenderEndTag();      // Section
-
             }
         }
 
@@ -801,7 +807,7 @@ namespace Rock.Web.UI.Controls
             writer.RenderEndTag();      // A
         }
 
-        private void RenderNewNoteControl(HtmlTextWriter writer)
+        private void RenderNewNoteControl( HtmlTextWriter writer )
         {
             writer.AddAttribute( HtmlTextWriterAttribute.Class, "note-new" );
             writer.RenderBeginTag( HtmlTextWriterTag.Div );
@@ -817,7 +823,7 @@ namespace Rock.Web.UI.Controls
         /// Occurs when notes are updated.
         /// </summary>
         public event EventHandler<NoteEventArgs> NotesUpdated;
-        
+
         #endregion
     }
 }
