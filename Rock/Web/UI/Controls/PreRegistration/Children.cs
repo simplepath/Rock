@@ -28,10 +28,10 @@ namespace Rock.Web.UI.Controls
     /// <summary>
     /// Report Filter control
     /// </summary>
-    [ToolboxData( "<{0}:NewChildFamilyMembers runat=server></{0}:NewChildFamilyMembers>" )]
-    public class NewChildFamilyMembers : CompositeControl, INamingContainer
+    [ToolboxData( "<{0}:PreRegistrationChildren runat=server></{0}:PreRegistrationChildren>" )]
+    public class PreRegistrationChildren : CompositeControl, INamingContainer
     {
-        private LinkButton _lbAddGroupMember;
+        private LinkButton _lbAddChild;
 
         /// <summary>
         /// Gets the group member rows.
@@ -39,17 +39,16 @@ namespace Rock.Web.UI.Controls
         /// <value>
         /// The group member rows.
         /// </value>
-        public List<NewChildMembersRow> GroupMemberRows
+        public List<PreRegistrationChildRow> ChildRows
         {
             get
             {
-                var rows = new List<NewChildMembersRow>();
-
+                var rows = new List<PreRegistrationChildRow>();
                 foreach ( Control control in Controls )
                 {
-                    if ( control is NewChildMembersRow )
+                    if ( control is PreRegistrationChildRow )
                     {
-                        var newGroupMemberRow = control as NewChildMembersRow;
+                        var newGroupMemberRow = control as PreRegistrationChildRow;
                         if ( newGroupMemberRow != null )
                         {
                             rows.Add( newGroupMemberRow );
@@ -68,32 +67,32 @@ namespace Rock.Web.UI.Controls
         {
             Controls.Clear();
 
-            _lbAddGroupMember = new LinkButton();
-            Controls.Add( _lbAddGroupMember );
-            _lbAddGroupMember.ID = this.ID + "_btnAddGroupMember";
-            _lbAddGroupMember.Click += lbAddGroupMember_Click;
-            _lbAddGroupMember.AddCssClass( "add btn btn-xs btn-action pull-right" );
-            _lbAddGroupMember.CausesValidation = false;
+            _lbAddChild = new LinkButton();
+            Controls.Add( _lbAddChild );
+            _lbAddChild.ID = "_btnAddChild";
+            _lbAddChild.Click += lbAddChild_Click;
+            _lbAddChild.AddCssClass( "add btn btn-xs btn-action pull-right" );
+            _lbAddChild.CausesValidation = false;
 
             var iAddFilter = new HtmlGenericControl( "i" );
             iAddFilter.AddCssClass( "fa fa-user" );
-            _lbAddGroupMember.Controls.Add( iAddFilter );
+            _lbAddChild.Controls.Add( iAddFilter );
 
             var spanAddFilter = new HtmlGenericControl( "span" );
             spanAddFilter.InnerHtml = " Add Child";
-            _lbAddGroupMember.Controls.Add( spanAddFilter );
+            _lbAddChild.Controls.Add( spanAddFilter );
         }
 
         /// <summary>
-        /// Handles the Click event of the lbAddGroupMember control.
+        /// Handles the Click event of the lbAddChild control.
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
-        protected void lbAddGroupMember_Click( object sender, EventArgs e )
+        protected void lbAddChild_Click( object sender, EventArgs e )
         {
-            if ( AddGroupMemberClick != null )
+            if ( AddChildClick != null )
             {
-                AddGroupMemberClick( this, e );
+                AddChildClick( this, e );
             }
         }
 
@@ -108,33 +107,19 @@ namespace Rock.Web.UI.Controls
                 int i = 0;
                 foreach ( Control control in Controls )
                 {
-                    if ( control is NewChildMembersRow )
+                    if ( control is PreRegistrationChildRow )
                     {
                         i++;
-                        writer.AddAttribute( HtmlTextWriterAttribute.Class, "row" );
-                        writer.RenderBeginTag( HtmlTextWriterTag.Div );
-                        writer.AddAttribute( HtmlTextWriterAttribute.Class, "col-md-12" );
-                        writer.RenderBeginTag( HtmlTextWriterTag.Div );
-                        writer.RenderBeginTag( HtmlTextWriterTag.H4 );
-                        writer.Write( "Child " + i.ToString() );
-                        writer.RenderEndTag();
-                        writer.RenderEndTag();
-                        writer.RenderEndTag();
-                        control.RenderControl( writer );
+                        var childRow = control as PreRegistrationChildRow;
+                        childRow.Caption = $"Child {i}";
+                        childRow.RenderControl( writer );
                     }
                 }
 
-                writer.AddAttribute( HtmlTextWriterAttribute.Class, "row" );
-                writer.RenderBeginTag( HtmlTextWriterTag.Div );
-                writer.AddAttribute( HtmlTextWriterAttribute.Class, "col-md-12" );
-                writer.RenderBeginTag( HtmlTextWriterTag.Div );
                 writer.AddAttribute( HtmlTextWriterAttribute.Class, "pull-right" );
                 writer.RenderBeginTag( HtmlTextWriterTag.Div );
-                _lbAddGroupMember.RenderControl( writer );
+                _lbAddChild.RenderControl( writer );
                 writer.RenderEndTag();
-                writer.RenderEndTag();
-                writer.RenderEndTag();
-
             }
         }
 
@@ -145,7 +130,7 @@ namespace Rock.Web.UI.Controls
         {
             for ( int i = Controls.Count - 1; i >= 0; i-- )
             {
-                if ( Controls[i] is NewChildMembersRow )
+                if ( Controls[i] is PreRegistrationChildRow )
                 {
                     Controls.RemoveAt( i );
                 }
@@ -155,7 +140,7 @@ namespace Rock.Web.UI.Controls
         /// <summary>
         /// Occurs when [add group member click].
         /// </summary>
-        public event EventHandler AddGroupMemberClick;
+        public event EventHandler AddChildClick;
 
     }
 }
