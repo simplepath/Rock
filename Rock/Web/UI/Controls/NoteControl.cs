@@ -22,6 +22,7 @@ using System.Web.UI;
 using System.Web.UI.HtmlControls;
 using System.Web.UI.WebControls;
 using Rock.Data;
+using Rock.Lava;
 using Rock.Model;
 using Rock.Security;
 using Rock.Web.Cache;
@@ -42,7 +43,6 @@ namespace Rock.Web.UI.Controls
         private CheckBox _cbPrivate;
         private LinkButton _lbSaveNote;
         private LinkButton _lbEditNote;
-        private LinkButton _lbDeleteNote;
         private SecurityButton _sbSecurity;
         private DateTimePicker _dtCreateDate;
 
@@ -525,11 +525,36 @@ namespace Rock.Web.UI.Controls
         }
 
         /// <summary>
+        /// Gets or sets the Lava Template used to render the readonly view of the note
+        /// </summary>
+        /// <value>
+        /// The note view lava template.
+        /// </value>
+        public string NoteViewLavaTemplate
+        {
+            get
+            {
+                var lavaTemplate = ViewState["NoteViewLavaTemplate"] as string;
+
+                lavaTemplate = lavaTemplate ?? "{{ Lava | Debug }}";
+
+                // TODO
+                return lavaTemplate;
+            }
+
+            set
+            {
+                ViewState["NoteViewLavaTemplate"] = value;
+            }
+        }
+
+        /// <summary>
         /// Gets the article class.
         /// </summary>
         /// <value>
         /// The article class.
         /// </value>
+        [Obsolete]
         private string ArticleClass
         {
             get
@@ -610,7 +635,6 @@ namespace Rock.Web.UI.Controls
             _cbPrivate = new CheckBox();
             _lbSaveNote = new LinkButton();
             _lbEditNote = new LinkButton();
-            _lbDeleteNote = new LinkButton();
             _sbSecurity = new SecurityButton();
             _dtCreateDate = new DateTimePicker();
         }
@@ -626,20 +650,6 @@ namespace Rock.Web.UI.Controls
         protected override void OnInit( EventArgs e )
         {
             base.OnInit( e );
-
-            string script = @"
-    $('a.edit-note').click(function (e) {
-        e.preventDefault();
-        $(this).closest('.note').children().slideToggle( 'slow' );
-    });
-    $('a.edit-note-cancel').click(function () {
-        $(this).closest('.note').children().slideToggle( 'slow' );
-    });
-    $('a.remove-note').click(function() {
-        return Rock.dialogs.confirmDelete( event, 'Note' );
-    });
-";
-            ScriptManager.RegisterStartupScript( this, this.GetType(), "edit-note", script, true );
         }
 
         /// <summary>
@@ -649,13 +659,43 @@ namespace Rock.Web.UI.Controls
         protected override void OnLoad( EventArgs e )
         {
             base.OnLoad( e );
-
+            
             if ( Page.IsPostBack )
             {
                 EnsureChildControls();
                 if ( CanEdit && _ddlNoteType.Visible )
                 {
                     NoteTypeId = _ddlNoteType.SelectedValueAsInt();
+                }
+            }
+
+            RouteAction();
+        }
+
+        /// <summary>
+        /// Routes the action.
+        /// </summary>
+        private void RouteAction()
+        {
+            // TODO
+            if ( this.Page.Request.Params["__EVENTARGUMENT"] != null )
+            {
+                string[] eventArgs = this.Page.Request.Params["__EVENTARGUMENT"].Split( '^' );
+
+                if ( eventArgs.Length == 2 )
+                {
+                    string command = eventArgs[0];
+                    int? commandArgument = eventArgs[1].AsIntegerOrNull();
+
+                    switch ( command )
+                    {
+                        case "DeleteNote":
+                            if ( commandArgument.HasValue && commandArgument.Value == this.NoteId )
+                            {
+                                DeleteNote();
+                            }
+                            break;
+                    }
                 }
             }
         }
@@ -696,15 +736,6 @@ namespace Rock.Web.UI.Controls
             var iEdit = new HtmlGenericControl( "i" );
             iEdit.Attributes["class"] = "fa fa-pencil";
             _lbEditNote.Controls.Add( iEdit );
-
-            _lbDeleteNote.ID = this.ID + "_lbDeleteNote";
-            _lbDeleteNote.Attributes["class"] = "remove-note";
-            _lbDeleteNote.CausesValidation = false;
-            _lbDeleteNote.Click += lbDeleteNote_Click;
-            Controls.Add( _lbDeleteNote );
-            var iDelete = new HtmlGenericControl( "i" );
-            iDelete.Attributes["class"] = "fa fa-times";
-            _lbDeleteNote.Controls.Add( iDelete );
 
             _sbSecurity.ID = "_sbSecurity";
             _sbSecurity.Attributes["class"] = "btn btn-security btn-xs security pull-right";
@@ -812,7 +843,7 @@ namespace Rock.Web.UI.Controls
 
             if ( NoteId.HasValue || !AddAlwaysVisible )
             {
-                writer.AddAttribute( HtmlTextWriterAttribute.Class, "edit-note-cancel btn btn-link btn-xs" );
+                writer.AddAttribute( HtmlTextWriterAttribute.Class, "edit-note-cancel js-editnote-cancel btn btn-link btn-xs" );
                 writer.RenderBeginTag( HtmlTextWriterTag.A );
                 writer.Write( "Cancel" );
                 writer.RenderEndTag();
@@ -825,25 +856,22 @@ namespace Rock.Web.UI.Controls
             if ( NoteId.HasValue )
             {
                 // View Mode HTML...
-                writer.AddAttribute( HtmlTextWriterAttribute.Class, ArticleClass );
-                writer.RenderBeginTag( "article" );
-
-                if ( DisplayType == NoteDisplayType.Full )
+                var rockBlock = this.RockBlock();
+                var noteMergeFields = LavaHelper.GetCommonMergeFields( rockBlock?.RockPage, rockBlock?.CurrentPerson, new CommonMergeFieldsOptions { GetLegacyGlobalMergeFields = false } );
+                var rockContext = new RockContext();
+                var noteService = new NoteService( rockContext );
+                Person noteCreatedByPerson = null;
+                int? noteCreatedByPersonAliasId = null;
+                if ( this.NoteId.HasValue )
                 {
-                    if ( UsePersonIcon )
-                    {
-                        writer.Write( Person.GetPersonPhotoImageTag( CreatedByPersonId, CreatedByPhotoId, CreatedByAge, CreatedByGender, null, 50, 50 ) );
-                    }
-                    else
-                    {
-                        writer.AddAttribute( HtmlTextWriterAttribute.Class, IconClass );
-                        writer.RenderBeginTag( HtmlTextWriterTag.I );
-                        writer.RenderEndTag();
-                    }
+                    var note = noteService.Get( this.NoteId.Value );
+                    noteMergeFields.Add( "Note", note );
+                    noteCreatedByPersonAliasId = note?.CreatedByPersonAliasId;
+                    noteCreatedByPerson = note?.CreatedByPersonAlias?.Person;
                 }
 
-                writer.AddAttribute( HtmlTextWriterAttribute.Class, "details" );
-                writer.RenderBeginTag( HtmlTextWriterTag.Div );
+                noteMergeFields.Add( "NoteCreatedByPersonAliasId", noteCreatedByPersonAliasId );
+                noteMergeFields.Add( "NoteCreatedByPerson", noteCreatedByPerson );
 
                 // first, encode the text to ensure html tags get encoded
                 string renderedText = Text.EncodeHtml();
@@ -854,85 +882,136 @@ namespace Rock.Web.UI.Controls
                 // convert any markdown into HTML, and convert into crlf into <br />
                 renderedText = renderedText.ConvertMarkdownToHtml( true );
 
-                if ( DisplayType == NoteDisplayType.Full )
-                {
-                    // Heading
-                    writer.RenderBeginTag( HtmlTextWriterTag.H5 );
+                noteMergeFields.Add( "NoteText", renderedText );
 
-                    if ( DisplayNoteTypeHeading & this.NoteTypeId.HasValue )
+                noteMergeFields.Add( "DisplayType", this.DisplayType );
+                noteMergeFields.Add( "UsePersonIcon", this.UsePersonIcon );
+                noteMergeFields.Add( "DisplayNoteTypeHeading", this.DisplayNoteTypeHeading );
+                noteMergeFields.Add( "Label", this.Label );
+                noteMergeFields.Add( "CanEdit", this.CanEdit );
+                noteMergeFields.Add( "IsPrivate", this.IsPrivate );
+                noteMergeFields.Add( "IsAlert", this.IsAlert );
+                var updatePanelId = this.ParentUpdatePanel()?.UniqueID;
+                noteMergeFields.Add( "DeleteNotePostBackUrl", $"javascript:__doPostBack('{updatePanelId}','DeleteNote^{this.NoteId}');" );
+
+                if ( this.NoteTypeId.HasValue )
+                {
+                    noteMergeFields.Add( "NoteType", NoteTypeCache.Read( this.NoteTypeId.Value ) );
+                }
+
+                noteMergeFields.Add( "NoteTypes", this.NoteTypes );
+
+                string noteHtml = this.NoteViewLavaTemplate.ResolveMergeFields( noteMergeFields );
+                bool useLava = true;
+
+                if ( useLava )
+                {
+                    writer.Write( noteHtml );
+                }
+                else
+                {
+                    // TODO remove this
+                    writer.AddAttribute( HtmlTextWriterAttribute.Class, ArticleClass );
+                    writer.RenderBeginTag( "article" );
+
+                    if ( DisplayType == NoteDisplayType.Full )
                     {
-                        var noteType = NoteTypeCache.Read( this.NoteTypeId.Value );
-                        if ( noteType != null )
+                        if ( UsePersonIcon )
                         {
-                            writer.RenderBeginTag( HtmlTextWriterTag.Strong );
-                            writer.Write( noteType.Name + " &nbsp; " );
+                            writer.Write( Person.GetPersonPhotoImageTag( CreatedByPersonId, CreatedByPhotoId, CreatedByAge, CreatedByGender, null, 50, 50 ) );
+                        }
+                        else
+                        {
+                            writer.AddAttribute( HtmlTextWriterAttribute.Class, IconClass );
+                            writer.RenderBeginTag( HtmlTextWriterTag.I );
                             writer.RenderEndTag();
                         }
                     }
 
-                    string heading = Caption;
-                    if ( string.IsNullOrWhiteSpace( Caption ) )
-                    {
-                        heading = CreatedByName;
-                    }
-
-                    writer.Write( heading.EncodeHtml() );
-                    if ( CreatedDateTime.HasValue )
-                    {
-                        writer.Write( " " );
-                        writer.AddAttribute( "class", "date" );
-                        writer.RenderBeginTag( HtmlTextWriterTag.Span );
-                        writer.Write( CreatedDateTime.Value.ToRelativeDateString( 6 ) );
-                        writer.RenderEndTag();
-                    }
-
-                    writer.RenderEndTag();
-
-                    writer.Write( renderedText );
-                }
-                else
-                {
-                    writer.Write( renderedText );
-                    writer.Write( " - " );
-                    if ( !string.IsNullOrWhiteSpace( CreatedByName ) )
-                    {
-                        writer.AddAttribute( "class", "note-author" );
-                        writer.RenderBeginTag( HtmlTextWriterTag.Span );
-                        writer.Write( CreatedByName );
-                        writer.RenderEndTag();
-                        writer.Write( " " );
-                    }
-
-                    if ( CreatedDateTime.HasValue )
-                    {
-                        writer.AddAttribute( "class", "note-created" );
-                        writer.RenderBeginTag( HtmlTextWriterTag.Span );
-                        writer.Write( CreatedDateTime.Value.ToRelativeDateString( 6 ) );
-                        writer.RenderEndTag();
-                    }
-                }
-
-                writer.RenderEndTag();  // Details Div
-
-                if ( CanEdit )
-                {
-                    writer.AddAttribute( HtmlTextWriterAttribute.Class, "actions rollover-item" );
+                    writer.AddAttribute( HtmlTextWriterAttribute.Class, "details" );
                     writer.RenderBeginTag( HtmlTextWriterTag.Div );
 
-                    _lbDeleteNote.RenderControl( writer );
+                    if ( DisplayType == NoteDisplayType.Full )
+                    {
+                        // Heading
+                        writer.RenderBeginTag( HtmlTextWriterTag.H5 );
 
-                    writer.AddAttribute( HtmlTextWriterAttribute.Class, "edit-note" );
-                    writer.AddAttribute( HtmlTextWriterAttribute.Href, "#" );
-                    writer.RenderBeginTag( HtmlTextWriterTag.A );
-                    writer.AddAttribute( HtmlTextWriterAttribute.Class, "fa fa-pencil" );
-                    writer.RenderBeginTag( HtmlTextWriterTag.I );
-                    writer.RenderEndTag();
-                    writer.RenderEndTag();  // A
+                        if ( DisplayNoteTypeHeading & this.NoteTypeId.HasValue )
+                        {
+                            var noteType = NoteTypeCache.Read( this.NoteTypeId.Value );
+                            if ( noteType != null )
+                            {
+                                writer.RenderBeginTag( HtmlTextWriterTag.Strong );
+                                writer.Write( noteType.Name + " &nbsp; " );
+                                writer.RenderEndTag();
+                            }
+                        }
 
-                    writer.RenderEndTag();  // actions
+                        string heading = Caption;
+                        if ( string.IsNullOrWhiteSpace( Caption ) )
+                        {
+                            heading = CreatedByName;
+                        }
+
+                        writer.Write( heading.EncodeHtml() );
+                        if ( CreatedDateTime.HasValue )
+                        {
+                            writer.Write( " " );
+                            writer.AddAttribute( "class", "date" );
+                            writer.RenderBeginTag( HtmlTextWriterTag.Span );
+                            writer.Write( CreatedDateTime.Value.ToRelativeDateString( 6 ) );
+                            writer.RenderEndTag();
+                        }
+
+                        writer.RenderEndTag();
+
+                        writer.Write( renderedText );
+                    }
+                    else
+                    {
+                        writer.Write( renderedText );
+                        writer.Write( " - " );
+                        if ( !string.IsNullOrWhiteSpace( CreatedByName ) )
+                        {
+                            writer.AddAttribute( "class", "note-author" );
+                            writer.RenderBeginTag( HtmlTextWriterTag.Span );
+                            writer.Write( CreatedByName );
+                            writer.RenderEndTag();
+                            writer.Write( " " );
+                        }
+
+                        if ( CreatedDateTime.HasValue )
+                        {
+                            writer.AddAttribute( "class", "note-created" );
+                            writer.RenderBeginTag( HtmlTextWriterTag.Span );
+                            writer.Write( CreatedDateTime.Value.ToRelativeDateString( 6 ) );
+                            writer.RenderEndTag();
+                        }
+                    }
+
+                    writer.RenderEndTag();  // Details Div
+
+                    if ( CanEdit )
+                    {
+                        writer.AddAttribute( HtmlTextWriterAttribute.Class, "actions rollover-item" );
+                        writer.RenderBeginTag( HtmlTextWriterTag.Div );
+
+                       // _lbDeleteNote.RenderControl( writer );
+
+                        writer.AddAttribute( HtmlTextWriterAttribute.Class, "edit-note js-editnote" );
+                        writer.AddAttribute( HtmlTextWriterAttribute.Href, "#" );
+                        writer.RenderBeginTag( HtmlTextWriterTag.A );
+                        writer.AddAttribute( HtmlTextWriterAttribute.Class, "fa fa-pencil" );
+                        writer.RenderBeginTag( HtmlTextWriterTag.I );
+                        writer.RenderEndTag();
+                        writer.RenderEndTag();  // A
+
+                        writer.RenderEndTag();  // actions
+                    }
+
+                    writer.RenderEndTag();  // article
                 }
 
-                writer.RenderEndTag();  // article
             }
 
             writer.RenderEndTag();
@@ -1001,11 +1080,9 @@ namespace Rock.Web.UI.Controls
         }
 
         /// <summary>
-        /// Handles the Click event of the lbDeleteNote control.
+        /// Deletes the note.
         /// </summary>
-        /// <param name="sender">The source of the event.</param>
-        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
-        protected void lbDeleteNote_Click( object sender, EventArgs e )
+        protected void DeleteNote()
         {
             var rockPage = this.Page as RockPage;
             if ( rockPage != null )
@@ -1021,8 +1098,16 @@ namespace Rock.Web.UI.Controls
                     note = service.Get( NoteId.Value );
                     if ( note != null && note.IsAuthorized( Authorization.EDIT, currentPerson ) )
                     {
-                        service.Delete( note );
-                        rockContext.SaveChanges();
+                        string errorMessage;
+                        if ( service.CanDelete( note, out errorMessage ) )
+                        {
+                            service.Delete( note );
+                            rockContext.SaveChanges();
+                        }
+                        else
+                        {
+                            // TODO
+                        }
                     }
                 }
 
