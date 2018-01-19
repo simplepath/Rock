@@ -25,17 +25,17 @@ namespace Rock.Web.UI.Controls
     public class NoteControlTemplate : System.Web.UI.ITemplate
     {
         /// <summary>
-        /// The note container
+        /// The note control options
         /// </summary>
-        private NoteContainer _noteContainer;
+        private NoteControlOptions _noteControlOptions;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="NoteControlTemplate"/> class.
         /// </summary>
-        /// <param name="noteContainer">The note container.</param>
-        public NoteControlTemplate( NoteContainer noteContainer )
+        /// <param name="noteControlOptions">The note control options.</param>
+        public NoteControlTemplate( NoteControlOptions noteControlOptions )
         {
-            _noteContainer = noteContainer;
+            _noteControlOptions = noteControlOptions;
         }
 
         /// <summary>
@@ -44,17 +44,9 @@ namespace Rock.Web.UI.Controls
         /// <param name="container">The <see cref="T:System.Web.UI.Control" /> object to contain the instances of controls from the inline template.</param>
         public void InstantiateIn( Control container )
         {
-            var noteControl = new NoteControl();
+            var noteControl = new NoteControl( _noteControlOptions );
             noteControl.ID = "noteControl";
-            noteControl.DisplayNoteTypeHeading = _noteContainer.DisplayNoteTypeHeading;
-            noteControl.DisplayType = _noteContainer.DisplayType;
-            noteControl.ShowAlertCheckBox = _noteContainer.ShowAlertCheckBox;
-            noteControl.ShowPrivateCheckBox = _noteContainer.ShowPrivateCheckBox;
-            noteControl.ShowSecurityButton = _noteContainer.ShowSecurityButton;
-            noteControl.ShowCreateDateInput = _noteContainer.ShowCreateDateInput;
-            noteControl.UsePersonIcon = _noteContainer.UsePersonIcon;
-            noteControl.NoteViewLavaTemplate = _noteContainer.NoteViewLavaTemplate;
-            noteControl.NoteTypes = _noteContainer.EditableNoteTypes;
+           
             noteControl.DeleteButtonClick += NoteControl_DeleteButtonClick;
             noteControl.SaveButtonClick += NoteControl_SaveButtonClick;
 

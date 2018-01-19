@@ -46,148 +46,15 @@ namespace Rock.Web.UI.Controls
         #region Properties
 
         /// <summary>
-        /// Gets or sets the Lava Template used to render the readonly view of each note
+        /// Gets or sets the note control options.
         /// </summary>
         /// <value>
-        /// The note view lava template.
+        /// The note control options.
         /// </value>
-        public string NoteViewLavaTemplate
-        {
-            get
-            {
-                return ViewState["NoteViewLavaTemplate"] as string;
-            }
-
-            set
-            {
-                ViewState["NoteViewLavaTemplate"] = value;
-            }
-        }
+        public NoteControlOptions NoteControlOptions { get; set; }
 
         /// <summary>
-        /// Gets or sets the available note types.
-        /// </summary>
-        /// <value>
-        /// The available note types.
-        /// </value>
-        public List<NoteTypeCache> NoteTypes
-        {
-            get
-            {
-                return GetNoteTypes( "NoteTypes" );
-            }
-
-            set
-            {
-                ViewState["AvailableNoteTypes"] = value.Select( t => t.Id ).ToList();
-
-                if ( value != null && value.Any() )
-                {
-                    var currentPerson = GetCurrentPerson();
-
-                    var viewableNoteTypes = new List<NoteTypeCache>();
-                    var editableNoteTypes = new List<NoteTypeCache>();
-
-                    foreach ( var noteType in value )
-                    {
-                        if ( noteType.IsAuthorized( Security.Authorization.VIEW, currentPerson ) )
-                        {
-                            viewableNoteTypes.Add( noteType );
-                        }
-
-                        if ( noteType.UserSelectable && noteType.IsAuthorized( Security.Authorization.EDIT, currentPerson ) )
-                        {
-                            editableNoteTypes.Add( noteType );
-                        }
-                    }
-
-                    ViewableNoteTypes = viewableNoteTypes;
-                    EditableNoteTypes = editableNoteTypes;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the viewable note types.
-        /// </summary>
-        /// <value>
-        /// The viewable note types.
-        /// </value>
-        private List<NoteTypeCache> ViewableNoteTypes
-        {
-            get
-            {
-                return GetNoteTypes( "ViewableNoteTypes" );
-            }
-
-            set
-            {
-                ViewState["ViewableNoteTypes"] = value.Select( t => t.Id ).ToList();
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the editable note types.
-        /// </summary>
-        /// <value>
-        /// The editable note types.
-        /// </value>
-        internal List<NoteTypeCache> EditableNoteTypes
-        {
-            get
-            {
-                EnsureChildControls();
-                return _noteNew.NoteTypes;
-            }
-
-            set
-            {
-                EnsureChildControls();
-                _noteNew.NoteTypes = value;
-            }
-        }
-
-        /// <summary>
-        /// Gets the note types.
-        /// </summary>
-        /// <param name="viewStateKey">The view state key.</param>
-        /// <returns></returns>
-        private List<NoteTypeCache> GetNoteTypes( string viewStateKey )
-        {
-            var noteTypes = new List<NoteTypeCache>();
-            var noteTypeIds = ViewState[viewStateKey] as List<int> ?? new List<int>();
-            foreach ( var noteTypeId in noteTypeIds )
-            {
-                var noteType = NoteTypeCache.Read( noteTypeId );
-                if ( noteType != null )
-                {
-                    noteTypes.Add( noteType );
-                }
-            }
-
-            return noteTypes;
-        }
-
-        /// <summary>
-        /// Gets or sets the entity identifier.
-        /// </summary>
-        public int? EntityId
-        {
-            get
-            {
-                return ViewState["EntityId"] as int?;
-            }
-
-            set
-            {
-                ViewState["EntityId"] = value;
-                EnsureChildControls();
-                _noteNew.EntityId = value;
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether to display heading
+        /// Gets or sets a value indicating whether to display heading of the note container
         /// </summary>
         public bool ShowHeading
         {
@@ -196,7 +63,7 @@ namespace Rock.Web.UI.Controls
         }
 
         /// <summary>
-        /// Gets or sets the CSS Class to use for the title icon.
+        /// Gets or sets the CSS Class to use for the title icon of the note container
         /// </summary>
         public string TitleIconCssClass
         {
@@ -205,7 +72,7 @@ namespace Rock.Web.UI.Controls
         }
 
         /// <summary>
-        /// Gets or sets the title to display.
+        /// Gets or sets the title to display on the note container
         /// </summary>
         public string Title
         {
@@ -220,24 +87,6 @@ namespace Rock.Web.UI.Controls
         {
             get { return ViewState["AddAllowed"] as bool? ?? true; }
             set { ViewState["AddAllowed"] = value; }
-        }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether [add always visible].
-        /// </summary>
-        public bool AddAlwaysVisible
-        {
-            get
-            {
-                EnsureChildControls();
-                return _noteNew.AddAlwaysVisible;
-            }
-
-            set
-            {
-                EnsureChildControls();
-                _noteNew.AddAlwaysVisible = value;
-            }
         }
 
         /// <summary>
@@ -268,54 +117,6 @@ namespace Rock.Web.UI.Controls
         }
 
         /// <summary>
-        /// Gets or sets the title to display.
-        /// </summary>
-        public string Term
-        {
-            get
-            {
-                EnsureChildControls();
-                return _noteNew.Label;
-            }
-
-            set
-            {
-                EnsureChildControls();
-                _noteNew.Label = value;
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether the Note Type should be displayed as a heading to each note.
-        /// </summary>
-        /// <value>
-        /// <c>true</c> if display note type heading; otherwise, <c>false</c>.
-        /// </value>
-        public bool DisplayNoteTypeHeading
-        {
-            get { return ViewState["DisplayNoteTypeHeading"] as bool? ?? false; }
-            set { ViewState["DisplayNoteTypeHeading"] = value; }
-        }
-
-        /// <summary>
-        /// Gets or sets the display type.  Full or Light
-        /// </summary>
-        public NoteDisplayType DisplayType
-        {
-            get
-            {
-                EnsureChildControls();
-                return _noteNew.DisplayType;
-            }
-
-            set
-            {
-                EnsureChildControls();
-                _noteNew.DisplayType = value;
-            }
-        }
-
-        /// <summary>
         /// Gets or sets the sort direction.  Descending will render with entry field at top and most
         /// recent note at top.  Ascending will render with entry field at bottom and most recent note
         /// at the end.  Ascending will also disable the more option
@@ -330,82 +131,6 @@ namespace Rock.Web.UI.Controls
             set
             {
                 this.ViewState["SortDirection"] = value;
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether to show the Alert checkbox
-        /// </summary>
-        public bool ShowAlertCheckBox
-        {
-            get
-            {
-                EnsureChildControls();
-                return _noteNew.ShowAlertCheckBox;
-            }
-
-            set
-            {
-                EnsureChildControls();
-                _noteNew.ShowAlertCheckBox = value;
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether to show the Is Private checkbox
-        /// </summary>
-        public bool ShowPrivateCheckBox
-        {
-            get
-            {
-                EnsureChildControls();
-                return _noteNew.ShowPrivateCheckBox;
-            }
-
-            set
-            {
-                EnsureChildControls();
-                _noteNew.ShowPrivateCheckBox = value;
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether to show the security button
-        /// for existing notes
-        /// </summary>
-        public bool ShowSecurityButton
-        {
-            get
-            {
-                EnsureChildControls();
-                return _noteNew.ShowSecurityButton;
-            }
-
-            set
-            {
-                EnsureChildControls();
-                _noteNew.ShowSecurityButton = value;
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether to show the create date input.
-        /// </summary>
-        /// <value>
-        /// <c>true</c> if [show create date input]; otherwise, <c>false</c>.
-        /// </value>
-        public bool ShowCreateDateInput
-        {
-            get
-            {
-                EnsureChildControls();
-                return _noteNew.ShowCreateDateInput;
-            }
-
-            set
-            {
-                EnsureChildControls();
-                _noteNew.ShowCreateDateInput = value;
             }
         }
 
@@ -433,26 +158,6 @@ namespace Rock.Web.UI.Controls
             {
                 EnsureChildControls();
                 _noteNew.NoteTypeId = value;
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether the author's photo should 
-        /// be displayed with the note instead of an icon based on the source
-        /// of the note.
-        /// </summary>
-        public bool UsePersonIcon
-        {
-            get
-            {
-                EnsureChildControls();
-                return _noteNew.UsePersonIcon;
-            }
-
-            set
-            {
-                EnsureChildControls();
-                _noteNew.UsePersonIcon = value;
             }
         }
 
@@ -514,7 +219,7 @@ namespace Rock.Web.UI.Controls
         {
             Controls.Clear();
 
-            _noteNew = new NoteControl();
+            _noteNew = new NoteControl( this.NoteControlOptions );
             _noteNew.ID = "noteNew";
             var currentPerson = this.GetCurrentPerson();
             if ( currentPerson != null )
@@ -541,7 +246,7 @@ namespace Rock.Web.UI.Controls
             _rptNoteControls = new Repeater();
             _rptNoteControls.ID = this.ID + "_rptNoteControls";
             _rptNoteControls.ItemDataBound += _rptNoteControls_ItemDataBound;
-            _rptNoteControls.ItemTemplate = new NoteControlTemplate( this );
+            _rptNoteControls.ItemTemplate = new NoteControlTemplate( this.NoteControlOptions );
             Controls.Add( _rptNoteControls );
 
             _lbShowMore = new LinkButton();
@@ -576,7 +281,20 @@ namespace Rock.Web.UI.Controls
             {
                 noteControl.ID = $"noteControl_{note.Guid.ToString( "N" )}";
                 noteControl.Note = note;
+                int replyDepth = 0;
+                var parentNoteId = note.ParentNoteId;
+                while ( parentNoteId.HasValue )
+                {
+                    parentNoteId = _viewableNoteList.FirstOrDefault( a => a.Id == parentNoteId.Value )?.ParentNoteId;
+                    replyDepth++;
+                }
+
+                noteControl.ReplyDepth = replyDepth;
+
+                noteControl.ChildNotes = _viewableNoteList.Where( a => a.ParentNoteId.HasValue && a.ParentNoteId.Value == note.Id ).ToList();
                 noteControl.CanEdit = note.IsAuthorized( Authorization.ADMINISTRATE, this.GetCurrentPerson() );
+                var noteType = NoteTypeCache.Read( note.NoteTypeId );
+                noteControl.CanReply = noteType.AllowsReplies && replyDepth <= noteType.MaxReplyDepth;
             }
         }
 
@@ -588,12 +306,14 @@ namespace Rock.Web.UI.Controls
         {
             if ( this.Visible )
             {
+                var currentPerson = this.GetCurrentPerson();
+                var editableNoteTypes = NoteControlOptions.GetEditableNoteTypes( currentPerson );
                 bool canAdd = AddAllowed &&
-                    EditableNoteTypes.Any() &&
-                    ( AllowAnonymousEntry || GetCurrentPerson() != null );
+                    editableNoteTypes.Any() &&
+                    ( AllowAnonymousEntry || currentPerson != null );
 
                 string cssClass = "panel panel-note js-notecontainer" +
-                    ( this.DisplayType == NoteDisplayType.Light ? " panel-note-light" : string.Empty );
+                    ( this.NoteControlOptions.DisplayType == NoteDisplayType.Light ? " panel-note-light" : string.Empty );
 
                 writer.AddAttribute( HtmlTextWriterAttribute.Class, cssClass );
                 writer.RenderBeginTag( "section" );
@@ -626,7 +346,7 @@ namespace Rock.Web.UI.Controls
                         writer.RenderEndTag();
                     }
 
-                    if ( !AddAlwaysVisible && canAdd && SortDirection == ListSortDirection.Descending )
+                    if ( !NoteControlOptions.AddAlwaysVisible && canAdd && SortDirection == ListSortDirection.Descending )
                     {
                         RenderAddButton( writer );
                     }
@@ -639,7 +359,7 @@ namespace Rock.Web.UI.Controls
 
                 if ( canAdd && SortDirection == ListSortDirection.Descending )
                 {
-                    if ( !ShowHeading && !AddAlwaysVisible )
+                    if ( !ShowHeading && !NoteControlOptions.AddAlwaysVisible )
                     {
                         RenderAddButton( writer );
                     }
@@ -651,7 +371,7 @@ namespace Rock.Web.UI.Controls
 
                 if ( canAdd && SortDirection == ListSortDirection.Ascending )
                 {
-                    if ( !AddAlwaysVisible )
+                    if ( !NoteControlOptions.AddAlwaysVisible )
                     {
                         RenderAddButton( writer );
                     }
@@ -748,6 +468,8 @@ namespace Rock.Web.UI.Controls
             BindNotes();
         }
 
+        private List<Note> _viewableNoteList = null;
+
         /// <summary>
         /// Loads the notes.
         /// </summary>
@@ -755,18 +477,20 @@ namespace Rock.Web.UI.Controls
         {
             EnsureChildControls();
             var currentPerson = this.GetCurrentPerson();
-            List<Note> viewableNoteList = new List<Note>();
+            _viewableNoteList = new List<Note>();
+            var viewableNoteNotes = this.NoteControlOptions.GetViewableNoteTypes( currentPerson );
+            var entityId = this.NoteControlOptions.EntityId;
 
             ShowMoreOption = false;
-            if ( ViewableNoteTypes != null && ViewableNoteTypes.Any() && EntityId.HasValue )
+            if ( viewableNoteNotes != null && viewableNoteNotes.Any() && entityId.HasValue )
             {
                 using ( var rockContext = new RockContext() )
                 {
-                    var viewableNoteTypeIds = ViewableNoteTypes.Select( t => t.Id ).ToList();
+                    var viewableNoteTypeIds = viewableNoteNotes.Select( t => t.Id ).ToList();
                     var qry = new NoteService( rockContext ).Queryable( "CreatedByPersonAlias.Person" )
                         .Where( n =>
                             viewableNoteTypeIds.Contains( n.NoteTypeId ) &&
-                            n.EntityId == EntityId.Value );
+                            n.EntityId == entityId.Value );
 
                     if ( SortDirection == ListSortDirection.Descending )
                     {
@@ -783,12 +507,12 @@ namespace Rock.Web.UI.Controls
 
                     NoteCount = noteList.Count();
 
-                    viewableNoteList = noteList.Where( a => a.IsAuthorized( Authorization.VIEW, currentPerson ) ).ToList();
-                    this.ShowMoreOption = ( SortDirection == ListSortDirection.Descending ) && ( viewableNoteList.Count > this.DisplayCount );
+                    _viewableNoteList = noteList.Where( a => a.IsAuthorized( Authorization.VIEW, currentPerson ) ).ToList();
+                    this.ShowMoreOption = ( SortDirection == ListSortDirection.Descending ) && ( _viewableNoteList.Count > this.DisplayCount );
                 }
             }
 
-            _rptNoteControls.DataSource = viewableNoteList;
+            _rptNoteControls.DataSource = _viewableNoteList.Where( a => a.ParentNoteId == null );
             _rptNoteControls.DataBind();
         }
 
@@ -798,13 +522,7 @@ namespace Rock.Web.UI.Controls
         /// <returns></returns>
         private Person GetCurrentPerson()
         {
-            var rockPage = this.Page as RockPage;
-            if ( rockPage != null )
-            {
-                return rockPage.CurrentPerson;
-            }
-
-            return null;
+            return ( this.Page as RockPage )?.CurrentPerson;
         }
 
         /// <summary>

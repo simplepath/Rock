@@ -103,22 +103,27 @@ namespace RockWeb.Blocks.Core
                         noteTypes = noteTypes.Where( n => configuredNoteTypes.Contains( n.Guid ) ).ToList();
                     }
 
-                    notesTimeline.EntityId = contextEntity.Id;
-                    notesTimeline.NoteTypes = noteTypes;
+                    NoteControlOptions noteControlOptions = new NoteControlOptions
+                    {
+                        EntityId = contextEntity.Id,
+                        NoteTypes = noteTypes,
+                        NoteLabel = GetAttributeValue( "NoteTerm" ),
+                        DisplayType = GetAttributeValue( "DisplayType" ) == "Light" ? NoteDisplayType.Light : NoteDisplayType.Full,
+                        ShowAlertCheckBox = GetAttributeValue( "ShowAlertCheckbox" ).AsBoolean(),
+                        ShowPrivateCheckBox = GetAttributeValue( "ShowPrivateCheckbox" ).AsBoolean(),
+                        ShowSecurityButton = GetAttributeValue( "ShowSecurityButton" ).AsBoolean(),
+                        AddAlwaysVisible = GetAttributeValue( "AddAlwaysVisible" ).AsBoolean(),
+                        ShowCreateDateInput = GetAttributeValue( "AllowBackdatedNotes" ).AsBoolean(),
+                        NoteViewLavaTemplate = GetAttributeValue( "NoteViewLavaTemplate" ),
+                        DisplayNoteTypeHeading = GetAttributeValue( "DisplayNoteTypeHeading" ).AsBoolean(),
+                        UsePersonIcon = GetAttributeValue( "UsePersonIcon" ).AsBoolean()
+                    };
+
+                    notesTimeline.NoteControlOptions = noteControlOptions;
                     notesTimeline.Title = GetAttributeValue( "Heading" );
                     notesTimeline.TitleIconCssClass = GetAttributeValue( "HeadingIcon" );
-                    notesTimeline.Term = GetAttributeValue( "NoteTerm" );
-                    notesTimeline.DisplayNoteTypeHeading = GetAttributeValue( "DisplayNoteTypeHeading" ).AsBoolean();
-                    notesTimeline.DisplayType = GetAttributeValue( "DisplayType" ) == "Light" ? NoteDisplayType.Light : NoteDisplayType.Full;
-                    notesTimeline.UsePersonIcon = GetAttributeValue( "UsePersonIcon" ).AsBoolean();
-                    notesTimeline.ShowAlertCheckBox = GetAttributeValue( "ShowAlertCheckbox" ).AsBoolean();
-                    notesTimeline.ShowPrivateCheckBox = GetAttributeValue( "ShowPrivateCheckbox" ).AsBoolean();
-                    notesTimeline.ShowSecurityButton = GetAttributeValue( "ShowSecurityButton" ).AsBoolean();
                     notesTimeline.AllowAnonymousEntry = GetAttributeValue( "Allow Anonymous" ).AsBoolean();
-                    notesTimeline.AddAlwaysVisible = GetAttributeValue( "AddAlwaysVisible" ).AsBoolean();
                     notesTimeline.SortDirection = GetAttributeValue( "DisplayOrder" ) == "Ascending" ? ListSortDirection.Ascending : ListSortDirection.Descending;
-                    notesTimeline.ShowCreateDateInput = GetAttributeValue( "AllowBackdatedNotes" ).AsBoolean();
-                    notesTimeline.NoteViewLavaTemplate = GetAttributeValue( "NoteViewLavaTemplate" );
                 }
             }
             else

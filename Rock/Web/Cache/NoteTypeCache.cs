@@ -125,6 +125,78 @@ namespace Rock.Web.Cache
         [DataMember]
         public int Order { get; set; }
 
+        /// <summary>
+        /// Gets or sets a value indicating whether [requires approvals].
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [requires approvals]; otherwise, <c>false</c>.
+        /// </value>
+        [DataMember]
+        public bool RequiresApprovals { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether [allows following].
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [allows following]; otherwise, <c>false</c>.
+        /// </value>
+        [DataMember]
+        public bool AllowsFollowing { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether [allows replies].
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [allows replies]; otherwise, <c>false</c>.
+        /// </value>
+        [DataMember]
+        public bool AllowsReplies { get; set; }
+
+        /// <summary>
+        /// Gets or sets the maximum reply depth.
+        /// </summary>
+        /// <value>
+        /// The maximum reply depth.
+        /// </value>
+        [DataMember]
+        public int MaxReplyDepth { get; set; }
+
+        /// <summary>
+        /// Gets or sets the color of the background.
+        /// </summary>
+        /// <value>
+        /// The color of the background.
+        /// </value>
+        [DataMember]
+        public string BackgroundColor { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether [send approval notifications].
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [send approval notifications]; otherwise, <c>false</c>.
+        /// </value>
+        [DataMember]
+        public bool SendApprovalNotifications { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether [allows mentions].
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [allows mentions]; otherwise, <c>false</c>.
+        /// </value>
+        [DataMember]
+        public bool AllowsMentions { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether [automatic watch authors].
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [automatic watch authors]; otherwise, <c>false</c>.
+        /// </value>
+        [DataMember]
+        public bool AutoWatchAuthors { get; set; }
+
         #endregion
 
         #region Methods
@@ -149,6 +221,14 @@ namespace Rock.Web.Cache
                 this.CssClass = NoteType.CssClass;
                 this.IconCssClass = NoteType.IconCssClass;
                 this.Order = NoteType.Order;
+                this.RequiresApprovals = NoteType.RequiresApprovals;
+                this.AllowsFollowing = NoteType.AllowsFollowing;
+                this.AllowsReplies = NoteType.AllowsReplies;
+                this.MaxReplyDepth = NoteType.MaxReplyDepth;
+                this.BackgroundColor = NoteType.BackgroundColor;
+                this.SendApprovalNotifications = NoteType.SendApprovalNotifications;
+                this.AllowsMentions = NoteType.AllowsMentions;
+                this.AutoWatchAuthors = NoteType.AutoWatchAuthors;
             }
         }
 

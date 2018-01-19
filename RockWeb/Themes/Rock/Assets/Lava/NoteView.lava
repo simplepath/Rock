@@ -1,0 +1,35 @@
+﻿{% if IsAlert %}
+    {% assign wrapperClass = "highlight" %}
+{% elsif IsPrivate %}
+    {% assign wrapperClass = "personal" %}
+{% else %}
+    {% assign wrapperClass = "" %}
+{% endif %}
+
+{% assign noteDateTimeText = Note.CreatedDateTime | HumanizeDateTime %}
+{% if Note.ModifiedDateTime > Note.CreatedDateTime %}
+    {% capture editedLabel %} (edited {{ Note.ModifiedDateTime | HumanizeDateTime }}) {% endcapture %}
+    {% assign noteDateTimeText = noteDateTimeText | Append:editedLabel %}
+{% endif %}
+
+<article class="clearfix rollover-container {{ wrapperClass }}">
+    <img style="max-height: 50px; max-width: 50px;" src="{{ NoteCreatedByPerson.PhotoUrl }}">
+    <div class="details">
+        <h5>
+            {{ NoteCreatedByPerson.FullName }} <span class="date" title="{{ Note.ModifiedDateTime }}">{{ noteDateTimeText }}</span>
+        </h5>
+
+        {{ NoteText }}
+    </div>
+    
+    {% if CanReply %}
+    <a class="btn btn-xs btn-default pull-right" href="{{ ReplyNotePostBackUrl}}">reply</a>
+    {% endif %}
+
+    <div class="actions rollover-item">
+        {% if CanEdit %}
+        <a class="remove-note js-removenote" href="{{ DeleteNotePostBackUrl }}"><i class="fa fa-times"></i></a>
+        <a class="edit-note js-editnote" href="#"><i class="fa fa-pencil"></i></a>
+        {% endif %}
+    </div>
+</article>
