@@ -210,6 +210,7 @@ namespace Rock.Web.UI.Controls
         {
             base.OnLoad( e );
             BindNotes();
+            _noteNew.EntityId = this.NoteControlOptions.EntityId;
         }
 
         /// <summary>
@@ -220,7 +221,11 @@ namespace Rock.Web.UI.Controls
             Controls.Clear();
 
             _noteNew = new NoteControl( this.NoteControlOptions );
-            _noteNew.ID = "noteNew";
+            _noteNew.ID = this.ID + "_noteNew";
+            _noteNew.CssClass = "note-new js-notenew";
+
+            _noteNew.ShowEditMode = this.NoteControlOptions.AddAlwaysVisible;
+
             var currentPerson = this.GetCurrentPerson();
             if ( currentPerson != null )
             {
@@ -246,7 +251,7 @@ namespace Rock.Web.UI.Controls
             _rptNoteControls = new Repeater();
             _rptNoteControls.ID = this.ID + "_rptNoteControls";
             _rptNoteControls.ItemDataBound += _rptNoteControls_ItemDataBound;
-            _rptNoteControls.ItemTemplate = new NoteControlTemplate( this.NoteControlOptions );
+            _rptNoteControls.ItemTemplate = new NoteControlTemplate( this.NoteControlOptions, this.NotesUpdated );
             Controls.Add( _rptNoteControls );
 
             _lbShowMore = new LinkButton();
@@ -307,7 +312,7 @@ namespace Rock.Web.UI.Controls
             if ( this.Visible )
             {
                 var currentPerson = this.GetCurrentPerson();
-                var editableNoteTypes = NoteControlOptions.GetEditableNoteTypes( currentPerson );
+                var editableNoteTypes = NoteControlOptions.EditableNoteTypes;
                 bool canAdd = AddAllowed &&
                     editableNoteTypes.Any() &&
                     ( AllowAnonymousEntry || currentPerson != null );
@@ -364,7 +369,7 @@ namespace Rock.Web.UI.Controls
                         RenderAddButton( writer );
                     }
 
-                    RenderNewNoteControl( writer );
+                    _noteNew.RenderControl( writer );
                 }
 
                 _rptNoteControls.RenderControl( writer );
@@ -376,7 +381,7 @@ namespace Rock.Web.UI.Controls
                         RenderAddButton( writer );
                     }
 
-                    RenderNewNoteControl( writer );
+                    _noteNew.RenderControl( writer );
                 }
                 else
                 {
@@ -478,7 +483,7 @@ namespace Rock.Web.UI.Controls
             EnsureChildControls();
             var currentPerson = this.GetCurrentPerson();
             _viewableNoteList = new List<Note>();
-            var viewableNoteNotes = this.NoteControlOptions.GetViewableNoteTypes( currentPerson );
+            var viewableNoteNotes = this.NoteControlOptions.ViewableNoteTypes;
             var entityId = this.NoteControlOptions.EntityId;
 
             ShowMoreOption = false;
@@ -543,18 +548,6 @@ namespace Rock.Web.UI.Controls
 
             writer.Write( AddText );
 
-            writer.RenderEndTag();
-        }
-
-        /// <summary>
-        /// Renders the new note control.
-        /// </summary>
-        /// <param name="writer">The writer.</param>
-        private void RenderNewNoteControl( HtmlTextWriter writer )
-        {
-            writer.AddAttribute( HtmlTextWriterAttribute.Class, "note-new" );
-            writer.RenderBeginTag( HtmlTextWriterTag.Div );
-            _noteNew.RenderControl( writer );
             writer.RenderEndTag();
         }
 

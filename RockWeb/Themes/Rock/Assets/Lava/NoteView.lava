@@ -23,7 +23,7 @@
     </div>
     
     {% if CanReply %}
-    <a class="btn btn-xs btn-default pull-right" href="{{ ReplyNotePostBackUrl}}">reply</a>
+    <a class="btn btn-xs btn-default pull-right js-replynote">reply</a>
     {% endif %}
 
     <div class="actions rollover-item">

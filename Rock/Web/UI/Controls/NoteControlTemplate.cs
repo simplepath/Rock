@@ -28,14 +28,16 @@ namespace Rock.Web.UI.Controls
         /// The note control options
         /// </summary>
         private NoteControlOptions _noteControlOptions;
+        private System.EventHandler<NoteEventArgs> _notesUpdated;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="NoteControlTemplate"/> class.
         /// </summary>
         /// <param name="noteControlOptions">The note control options.</param>
-        public NoteControlTemplate( NoteControlOptions noteControlOptions )
+        public NoteControlTemplate( NoteControlOptions noteControlOptions, System.EventHandler<NoteEventArgs> notesUpdated )
         {
             _noteControlOptions = noteControlOptions;
+            _notesUpdated = notesUpdated;
         }
 
         /// <summary>
@@ -46,35 +48,11 @@ namespace Rock.Web.UI.Controls
         {
             var noteControl = new NoteControl( _noteControlOptions );
             noteControl.ID = "noteControl";
-           
-            noteControl.DeleteButtonClick += NoteControl_DeleteButtonClick;
-            noteControl.SaveButtonClick += NoteControl_SaveButtonClick;
+
+            noteControl.DeleteButtonClick += _notesUpdated;
+            noteControl.SaveButtonClick += _notesUpdated;
 
             container.Controls.Add( noteControl );
-        }
-
-        /// <summary>
-        /// Handles the DeleteButtonClick event of the NoteControl control.
-        /// </summary>
-        /// <param name="sender">The source of the event.</param>
-        /// <param name="e">The <see cref="NoteEventArgs"/> instance containing the event data.</param>
-        /// <exception cref="NotImplementedException"></exception>
-        private void NoteControl_DeleteButtonClick( object sender, NoteEventArgs e )
-        {
-            // TODO
-            //throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// Handles the SaveButtonClick event of the NoteControl control.
-        /// </summary>
-        /// <param name="sender">The source of the event.</param>
-        /// <param name="e">The <see cref="NoteEventArgs"/> instance containing the event data.</param>
-        /// <exception cref="NotImplementedException"></exception>
-        private void NoteControl_SaveButtonClick( object sender, NoteEventArgs e )
-        {
-            // TODO
-            //throw new NotImplementedException();
         }
     }
 }

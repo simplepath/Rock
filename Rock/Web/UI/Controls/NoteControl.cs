@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Text;
 using System.Web.UI;
 using System.Web.UI.HtmlControls;
 using System.Web.UI.WebControls;
@@ -380,6 +381,25 @@ namespace Rock.Web.UI.Controls
         }
 
         /// <summary>
+        /// Gets or sets a value indicating whether start this note in Edit mode instead of View mode
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [show edit]; otherwise, <c>false</c>.
+        /// </value>
+        public bool ShowEditMode
+        {
+            get
+            {
+                return ViewState["ShowEditMode"] as bool? ?? false;
+            }
+
+            set
+            {
+                ViewState["ShowEditMode"] = value;
+            }
+        }
+
+        /// <summary>
         /// Gets or sets a value indicating whether this instance can reply.
         /// </summary>
         /// <value>
@@ -420,29 +440,6 @@ namespace Rock.Web.UI.Controls
                 }
 
                 return "clearfix rollover-container";
-            }
-        }
-
-        /// <summary>
-        /// Gets the CSS class.
-        /// </summary>
-        /// <value>
-        /// The CSS class.
-        /// </value>
-        private string CSSClass
-        {
-            get
-            {
-                if ( NoteTypeId.HasValue )
-                {
-                    var noteType = NoteTypeCache.Read( NoteTypeId.Value );
-                    if ( noteType != null )
-                    {
-                        return noteType.CssClass;
-                    }
-                }
-
-                return string.Empty;
             }
         }
 
@@ -491,10 +488,6 @@ namespace Rock.Web.UI.Controls
             this.NoteControlOptions = noteControlOptions;
             _ddlNoteType = new DropDownList();
 
-            _ddlNoteType.DataSource = this.NoteControlOptions.GetEditableNoteTypes( ( this.Page as RockPage )?.CurrentPerson );
-            _ddlNoteType.DataBind();
-            _ddlNoteType.Visible = this.NoteControlOptions.NoteTypes.Count() > 1;
-
             _tbNote = new RockTextBox();
             _tbNote.Placeholder = "Write a note...";
             _cbAlert = new CheckBox();
@@ -518,6 +511,10 @@ namespace Rock.Web.UI.Controls
         protected override void OnInit( EventArgs e )
         {
             base.OnInit( e );
+
+            _ddlNoteType.DataSource = this.NoteControlOptions.EditableNoteTypes;
+            _ddlNoteType.DataBind();
+            _ddlNoteType.Visible = this.NoteControlOptions.EditableNoteTypes.Count() > 1;
         }
 
         /// <summary>
@@ -621,7 +618,7 @@ namespace Rock.Web.UI.Controls
 
             _rptChildNoteControls.ID = this.ID + "_rptChildNoteControls";
             _rptChildNoteControls.ItemDataBound += _rptChildNoteControls_ItemDataBound;
-            _rptChildNoteControls.ItemTemplate = new NoteControlTemplate( this.NoteControlOptions );
+            _rptChildNoteControls.ItemTemplate = new NoteControlTemplate( this.NoteControlOptions, this.ChildNotesUpdated );
             Controls.Add( _rptChildNoteControls );
         }
 
@@ -636,13 +633,23 @@ namespace Rock.Web.UI.Controls
         /// <param name="writer">The <see cref="T:System.Web.UI.HtmlTextWriter" /> object that receives the control content.</param>
         public override void RenderControl( HtmlTextWriter writer )
         {
-            if ( CSSClass != string.Empty )
+            var noteType = NoteTypeId.HasValue ? NoteTypeCache.Read( NoteTypeId.Value ) : null;
+            StringBuilder noteCss = new StringBuilder();
+            noteCss.Append( "note js-notecontrol" );
+            if ( !string.IsNullOrEmpty( noteType?.CssClass ) )
             {
-                writer.AddAttribute( HtmlTextWriterAttribute.Class, "note " + CSSClass );
+                noteCss.Append( " " + noteType.CssClass );
             }
-            else
+            
+            if ( !string.IsNullOrEmpty(this.CssClass))
             {
-                writer.AddAttribute( HtmlTextWriterAttribute.Class, "note" );
+                noteCss.Append( " " + this.CssClass );
+            }
+
+            writer.AddAttribute( HtmlTextWriterAttribute.Class, noteCss.ToString() );
+            if (this.Style[HtmlTextWriterStyle.Display] != null)
+            {
+                writer.AddStyleAttribute( HtmlTextWriterStyle.Display, this.Style[HtmlTextWriterStyle.Display] );
             }
 
             if ( this.NoteId.HasValue )
@@ -653,8 +660,8 @@ namespace Rock.Web.UI.Controls
             writer.RenderBeginTag( HtmlTextWriterTag.Div );
 
             // Edit Mode HTML...
-            writer.AddAttribute( HtmlTextWriterAttribute.Class, "panel panel-noteentry" );
-            if ( NoteId.HasValue || !NoteControlOptions.AddAlwaysVisible )
+            writer.AddAttribute( HtmlTextWriterAttribute.Class, "panel panel-noteentry js-noteedit" );
+            if ( !ShowEditMode )
             {
                 writer.AddStyleAttribute( HtmlTextWriterStyle.Display, "none" );
             }
@@ -722,14 +729,11 @@ namespace Rock.Web.UI.Controls
 
             _lbSaveNote.Text = "Save " + Label;
             _lbSaveNote.RenderControl( writer );
-
-            if ( NoteId.HasValue || !NoteControlOptions.AddAlwaysVisible )
-            {
-                writer.AddAttribute( HtmlTextWriterAttribute.Class, "edit-note-cancel js-editnote-cancel btn btn-link btn-xs" );
-                writer.RenderBeginTag( HtmlTextWriterTag.A );
-                writer.Write( "Cancel" );
-                writer.RenderEndTag();
-            }
+            
+            writer.AddAttribute( HtmlTextWriterAttribute.Class, "edit-note-cancel js-editnote-cancel btn btn-link btn-xs" );
+            writer.RenderBeginTag( HtmlTextWriterTag.A );
+            writer.Write( "Cancel" );
+            writer.RenderEndTag();
 
             writer.RenderEndTag();  // panel-footer div
 
@@ -816,9 +820,8 @@ namespace Rock.Web.UI.Controls
                         // Heading
                         writer.RenderBeginTag( HtmlTextWriterTag.H5 );
 
-                        if ( NoteControlOptions.DisplayNoteTypeHeading & this.NoteTypeId.HasValue )
+                        if ( NoteControlOptions.DisplayNoteTypeHeading )
                         {
-                            var noteType = NoteTypeCache.Read( this.NoteTypeId.Value );
                             if ( noteType != null )
                             {
                                 writer.RenderBeginTag( HtmlTextWriterTag.Strong );
@@ -1013,6 +1016,8 @@ namespace Rock.Web.UI.Controls
         /// Occurs when [delete button click].
         /// </summary>
         public event EventHandler<NoteEventArgs> DeleteButtonClick;
+
+        public event EventHandler<NoteEventArgs> ChildNotesUpdated;
 
         #endregion
     }

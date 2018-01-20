@@ -14,8 +14,6 @@
 // limitations under the License.
 // </copyright>
 //
-
-
 using System.Collections.Generic;
 using System.Linq;
 using Rock.Model;
@@ -25,19 +23,35 @@ namespace Rock.Web.UI.Controls
 {
     public class NoteControlOptions
     {
+        private Person _currentPerson;
+
+        public NoteControlOptions(Person currentPerson)
+        {
+            _currentPerson = currentPerson;
+        }
+
         public string NoteViewLavaTemplate { get; set; }
 
-        public List<NoteTypeCache> NoteTypes { get; set; }
-
-        public List<NoteTypeCache> GetViewableNoteTypes(Person currentPerson)
+        public List<NoteTypeCache> NoteTypes
         {
-            return this.NoteTypes?.Where( a => a.IsAuthorized( Security.Authorization.VIEW, currentPerson ) ).ToList();
+            get
+            {
+                return _noteTypes;
+            }
+
+            set
+            {
+                _noteTypes = value;
+                this.EditableNoteTypes = value?.Where( a => a.UserSelectable && a.IsAuthorized( Security.Authorization.EDIT, _currentPerson ) ).ToList();
+                this.ViewableNoteTypes = value?.Where( a => a.IsAuthorized( Security.Authorization.VIEW, _currentPerson ) ).ToList();
+            }
         }
 
-        public List<NoteTypeCache> GetEditableNoteTypes( Person currentPerson )
-        {
-            return this.NoteTypes?.Where( a => a.UserSelectable && a.IsAuthorized( Security.Authorization.EDIT, currentPerson ) ).ToList();
-        }
+        private List<NoteTypeCache> _noteTypes;
+
+        public List<NoteTypeCache> ViewableNoteTypes { get; private set; }
+
+        public List<NoteTypeCache> EditableNoteTypes { get; private set; }
 
         public int? EntityId { get; set; }
 
