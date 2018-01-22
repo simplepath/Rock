@@ -7,13 +7,13 @@ namespace Rock.Migrations
     using System.Resources;
     
     [GeneratedCode("EntityFramework.Migrations", "6.1.3-40302")]
-    public sealed partial class AddedPrimaryFamilyAndAgeToPerson : IMigrationMetadata
+    public sealed partial class V8Features : IMigrationMetadata
     {
-        private readonly ResourceManager Resources = new ResourceManager(typeof(AddedPrimaryFamilyAndAgeToPerson));
+        private readonly ResourceManager Resources = new ResourceManager(typeof(V8Features));
         
         string IMigrationMetadata.Id
         {
-            get { return "201801031733052_AddedPrimaryFamilyAndAgeToPerson"; }
+            get { return "201801162056008_V8Features"; }
         }
         
         string IMigrationMetadata.Source

@@ -7,13 +7,13 @@ namespace Rock.Migrations
     using System.Resources;
     
     [GeneratedCode("EntityFramework.Migrations", "6.1.3-40302")]
-    public sealed partial class V8Features : IMigrationMetadata
+    public sealed partial class InteractionBlocks : IMigrationMetadata
     {
-        private readonly ResourceManager Resources = new ResourceManager(typeof(V8Features));
+        private readonly ResourceManager Resources = new ResourceManager(typeof(InteractionBlocks));
         
         string IMigrationMetadata.Id
         {
-            get { return "201712201338096_V8Features"; }
+            get { return "201801121251097_InteractionBlocks"; }
         }
         
         string IMigrationMetadata.Source

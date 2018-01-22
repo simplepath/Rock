@@ -15,6 +15,7 @@
 // </copyright>
 //
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.Entity;
 using System.Linq;
@@ -38,7 +39,7 @@ namespace RockWeb.Blocks.Reporting
 
     [LinkedPage( "Interaction Detail Page", "Page reference to the interaction detail page. This will be included as a variable in the Lava.", false, order: 1 )]
     [CodeEditorField( "Default Template", "The Lava template to use as default.", Rock.Web.UI.Controls.CodeEditorMode.Lava, Rock.Web.UI.Controls.CodeEditorTheme.Rock, 300, false, order: 2, defaultValue: @"
-    <div class='panel panel-block'>
+     <div class='panel panel-block'>
         <div class='panel-heading'>
 	        <h1 class='panel-title'>
                 <i class='fa fa-user'></i>
@@ -46,38 +47,69 @@ namespace RockWeb.Blocks.Reporting
             </h1>
         </div>
         <div class='panel-body'>
-	        <ul class='list-group margin-all-md'>
+
 	        {% for interaction in Interactions %}
 		        {% if InteractionDetailPage != null and InteractionDetailPage != ''  %}
-                    <a href='{{ InteractionDetailPage }}?InteractionId={{ interaction.Id }}'>
+                    <a href = '{{ InteractionDetailPage }}?interactionId={{ interaction.Id }}'>
                 {% endif %}
-		        <li class='list-group-item margin-b-md' style='background-color: #edeae6;'>
-                    <div class='row'>
-                        <div class='col-md-6'>
-                            <dl>
-                                <dt>Date / Time</dt><dd>{{ interaction.InteractionDateTime }}<dd/>
-                                <dt>Operation</dt><dd>{{ interaction.Operation }}<dd/>
-                            </dl>
+		        
+		         <div class='panel panel-widget'>
+                    <div class='panel-heading'>
+                        
+                        <div class='row'>
+                            <div class='col-md-12'>
+                                <span class='label label-info pull-left margin-r-md'>{{ interaction.Operation }}</span>
+                            
+                                {% if InteractionChannel.Name != '' %}<h1 class='panel-title pull-left'>{{ interaction.InteractionDateTime }}</h1>{% endif %}
+                                
+                                <div class='pull-right'><i class='fa fa-chevron-right'></i></div>
+                            </div>
                         </div>
-                        <div class='col-md-6'>
-                            <dl>
-                                <dt>Interaction</dt><dd>{{ interaction.InteractionData }}<dd/>
-                                {% if interaction.PersonAlias != null and interaction.PersonAlias.Person.Name.FullName != '' %}
-                                    <dt>Person</dt><dd>{{ interaction.PersonAlias.Person.FullName }}<dd/>
-                                {% endif %}
-                            </dl>
+                        
+                        <div class='row margin-t-md'>
+                            {% if interaction.InteractionSummary && interaction.InteractionSummary != '' %}
+                            <div class='col-md-6'>
+                                <dl>
+                                    <dt>Interaction Summary</dt>
+                                    <dd>{{ interaction.InteractionSummary }}</dd>
+                                </dl>
+                            </div>
+                            {% endif %}
+                            
+                            {% if interaction.InteractionData && interaction.InteractionData != '' %}
+                            <div class='col-md-6'>
+                                <dl>
+                                    <dt>Interaction Data</dt>
+                                    <dd>{{ interaction.InteractionData }}</dd>
+                                </dl>
+                            </div>
+                            {% endif %}
                         </div>
                     </div>
-		        </li>
+                </div>
+		        
 		        {% if InteractionDetailPage != null and InteractionDetailPage != ''  %}
     		        </a>
 		        {% endif %}
 	        {% endfor %}	
-	        </ul>
+	        <div class ='nav-paging'>
+            {% if PreviousPageNavigateUrl != null and PreviousPageNavigateUrl != ''  %}
+                <a Id ='lPrev' class = 'btn btn-primary btn-prev' href='{{ PreviousPageNavigateUrl }}'><i class='fa fa-chevron-left'></i>Prev<a/>
+            {% endif %}
+            {% if NextPageNavigateUrl != null and NextPageNavigateUrl != ''  %}
+                <a Id ='hlNext' class = 'btn btn-primary btn-next' href='{{ NextPageNavigateUrl }}'> Next <i class='fa fa-chevron-right'></i><a/>
+            {% endif %}
+            </div>
         </div>
     </div>" )]
+    [IntegerField( "Page Size", "The number of interactions to show per page.", true, 20, "", 3 )]
     public partial class InteractionList : Rock.Web.UI.RockBlock
     {
+        #region Fields
+
+        private int pageNumber = 0;
+
+        #endregion
 
         #region Base Control Methods
 
@@ -104,6 +136,11 @@ namespace RockWeb.Blocks.Reporting
 
             if ( !Page.IsPostBack )
             {
+                if ( !string.IsNullOrEmpty( PageParameter( "Page" ) ) )
+                {
+                    pageNumber = PageParameter( "Page" ).AsInteger();
+                }
+
                 ShowList( PageParameter( "componentId" ).AsInteger() );
             }
         }
@@ -133,6 +170,10 @@ namespace RockWeb.Blocks.Reporting
         /// </summary>
         public void ShowList( int componentId )
         {
+            int pageSize = GetAttributeValue( "PageSize" ).AsInteger();
+
+            int skipCount = pageNumber * pageSize;
+
             using ( var rockContext = new RockContext() )
             {
                 var component = new InteractionComponentService( rockContext ).Get( componentId );
@@ -142,14 +183,38 @@ namespace RockWeb.Blocks.Reporting
                         .Queryable().AsNoTracking()
                         .Where( a =>
                             a.InteractionComponentId == componentId )
-                        .ToList();
+                        .OrderByDescending( a => a.InteractionDateTime )
+                        .Skip( skipCount )
+                        .Take( pageSize + 1 );
 
                     var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( this.RockPage, this.CurrentPerson );
                     mergeFields.AddOrIgnore( "Person", CurrentPerson );
                     mergeFields.Add( "InteractionDetailPage", LinkedPageRoute( "InteractionDetailPage" ) );
                     mergeFields.Add( "InteractionChannel", component.Channel );
                     mergeFields.Add( "InteractionComponent", component );
-                    mergeFields.Add( "Interactions", interactions.ToList() );
+                    mergeFields.Add( "Interactions", interactions.ToList().Take( pageSize ) );
+
+                    // set next button
+                    if ( interactions.Count() > pageSize )
+                    {
+                        Dictionary<string, string> queryStringNext = new Dictionary<string, string>();
+                        queryStringNext.Add( "ComponentId", componentId.ToString() );
+                        queryStringNext.Add( "Page", ( pageNumber + 1 ).ToString() );
+
+                        var pageReferenceNext = new Rock.Web.PageReference( CurrentPageReference.PageId, CurrentPageReference.RouteId, queryStringNext );
+                        mergeFields.Add( "NextPageNavigateUrl", pageReferenceNext.BuildUrl() );
+                    }
+
+                    // set prev button
+                    if ( pageNumber != 0 )
+                    {
+                        Dictionary<string, string> queryStringPrev = new Dictionary<string, string>();
+                        queryStringPrev.Add( "ComponentId", componentId.ToString() );
+                        queryStringPrev.Add( "Page", ( pageNumber - 1 ).ToString() );
+
+                        var pageReferencePrev = new Rock.Web.PageReference( CurrentPageReference.PageId, CurrentPageReference.RouteId, queryStringPrev );
+                        mergeFields.Add( "PreviousPageNavigateUrl", pageReferencePrev.BuildUrl() );
+                    }
 
                     lContent.Text = component.Channel.InteractionListTemplate.IsNotNullOrWhitespace() ?
                         component.Channel.InteractionListTemplate.ResolveMergeFields( mergeFields ) :

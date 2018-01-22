@@ -42,16 +42,17 @@ namespace RockWeb.Blocks.Reporting
 
     [LinkedPage( "Session List Page", "Page reference to the session list page. This will be included as a variable in the Lava.", false, order: 0 )]
     [LinkedPage( "Component List Page", "Page reference to the component list page. This will be included as a variable in the Lava.", false, order: 1 )]
-    [CodeEditorField( "Default Template", "The Lava template to use as default.", Rock.Web.UI.Controls.CodeEditorMode.Lava, Rock.Web.UI.Controls.CodeEditorTheme.Rock, 300, false, order: 2, defaultValue: @"
-{% if InteractionChannel != null and InteractionChannel != '' %}
+    [CodeEditorField( "Default Template", "The Lava template to use as default.", Rock.Web.UI.Controls.CodeEditorMode.Lava, Rock.Web.UI.Controls.CodeEditorTheme.Rock, 300, false, order: 2, defaultValue: @"{% if InteractionChannel != null and InteractionChannel != '' %}
     <a href = '{% if InteractionChannel.UsesSession == true %}{{ SessionListPage }}{% else  %}{{ ComponentListPage }}{% endif %}?ChannelId={{ InteractionChannel.Id }}' >
-        <div class='row'>
-            <div class='col-md-6'>
-                {% if InteractionChannel.Name != '' %}<dl><dt>Name</dt><dd>{{ InteractionChannel.Name }}<dd/></dl>{% endif %}
-                {% if InteractionChannel.RetentionDuration != '' %}<dl><dt>Retention Duration</dt><dd>{{ InteractionChannel.RetentionDuration }}<dd/></dl>{% endif %}
-            </div>
-            <div class='col-md-6'>
-                {% if InteractionChannel.ChannelTypeMediumValue != null and InteractionChannel.ChannelTypeMediumValue != '' %}<dl><dt>Name</dt><dd>{{ InteractionChannel.ChannelTypeMediumValue.Value }}<dd/></dl>{% endif %}
+        <div class='panel panel-widget'>
+            <div class='panel-heading clearfix'>
+                {% if InteractionChannel.Name != '' %}<h1 class='panel-title pull-left'>{{ InteractionChannel.Name }}</h1>{% endif %}
+
+                <div class='pull-right margin-l-md'><i class='fa fa-chevron-right'></i></div>
+                
+                <div class='panel-labels'> 
+                    {% if InteractionChannel.ChannelTypeMediumValue != null and InteractionChannel.ChannelTypeMediumValue != '' %}<span class='label label-info'>{{ InteractionChannel.ChannelTypeMediumValue.Value }}</span>{% endif %}
+                </div>
             </div>
         </div>
     </a>
@@ -182,28 +183,31 @@ namespace RockWeb.Blocks.Reporting
 
                 // Parse the default template so that it does not need to be parsed multiple times
                 var defaultTemplate = Template.Parse( GetAttributeValue( "DefaultTemplate" ) );
-                var channelItems = new List<ChannelItem>();
+                var options = new Rock.Lava.CommonMergeFieldsOptions();
+                options.GetPageContext = false;
+                options.GetLegacyGlobalMergeFields = false;
 
-                foreach ( var interacationChannel in channelQry )
+                var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( this.RockPage, this.CurrentPerson, options );
+                mergeFields.Add( "ComponentListPage", LinkedPageRoute( "ComponentListPage" ) );
+                mergeFields.Add( "SessionListPage", LinkedPageRoute( "SessionListPage" ) );
+
+                var channelItems = new List<ChannelItem>();
+                foreach ( var channel in channelQry )
                 {
-                    if ( !interacationChannel.IsAuthorized( Authorization.VIEW, CurrentPerson ) )
+                    if ( !channel.IsAuthorized( Authorization.VIEW, CurrentPerson ) )
                     {
                         continue;
                     }
+                    var channelMergeFields = new Dictionary<string, object>( mergeFields );
+                    channelMergeFields.Add( "InteractionChannel", channel );
 
-                    var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( this.RockPage, this.CurrentPerson );
-                    mergeFields.AddOrIgnore( "Person", CurrentPerson );
-                    mergeFields.Add( "ComponentListPage", LinkedPageRoute( "ComponentListPage" ) );
-                    mergeFields.Add( "SessionListPage", LinkedPageRoute( "SessionListPage" ) );
-                    mergeFields.Add( "InteractionChannel", interacationChannel );
-
-                    string html = interacationChannel.ChannelListTemplate.IsNotNullOrWhitespace() ?
-                        interacationChannel.ChannelListTemplate.ResolveMergeFields( mergeFields ) :
-                        defaultTemplate.Render( Hash.FromDictionary( mergeFields ) );
+                    string html = channel.ChannelListTemplate.IsNotNullOrWhitespace() ?
+                        channel.ChannelListTemplate.ResolveMergeFields( channelMergeFields ) :
+                        defaultTemplate.Render( Hash.FromDictionary( channelMergeFields ) );
 
                     channelItems.Add( new ChannelItem
                     {
-                        Id = interacationChannel.Id,
+                        Id = channel.Id,
                         ChannelHtml = html
                     } );
                 }
