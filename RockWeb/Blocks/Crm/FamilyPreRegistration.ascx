@@ -21,9 +21,9 @@
 
                 <Rock:PanelWidget ID="pwParents" runat="server" Title="Adult Information" Expanded="true">
 
-                    <asp:HiddenField ID="hfFamilyId" runat="server" />
-                    <asp:HiddenField ID="hfAdultId1" runat="server" />
-                    <asp:HiddenField ID="hfAdultId2" runat="server" />
+                    <asp:HiddenField ID="hfFamilyGuid" runat="server" />
+                    <asp:HiddenField ID="hfAdultGuid1" runat="server" />
+                    <asp:HiddenField ID="hfAdultGuid2" runat="server" />
 
                     <h4>First Adult</h4>
                     <div class="row">

@@ -506,12 +506,10 @@ namespace Rock.Web.UI.Controls
             Controls.Add( _lbDelete );
 
             _tbFirstName.CssClass = "form-control";
-            _tbFirstName.Placeholder = "First Name";
             _tbFirstName.Required = true;
             _tbFirstName.RequiredErrorMessage = "First Name is required for all children";
             _tbFirstName.Label = "First Name";
 
-            _tbLastName.Placeholder = "Last Name";
             _tbLastName.Required = true;
             _tbLastName.RequiredErrorMessage = "Last Name is required for all children";
             _tbLastName.Label = "Last Name";
