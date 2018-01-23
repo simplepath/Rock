@@ -73,13 +73,13 @@
     <Compile Include="Migrations\201801162056008_V8Features.Designer.cs">
       <DependentUpon>201801162056008_V8Features.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201801221745424_NotesUpdates.cs" />
+    <Compile Include="Migrations\201801221745424_NotesUpdates.Designer.cs">
+      <DependentUpon>201801221745424_NotesUpdates.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Version 7.0\Version 1.7.1\201801121251097_InteractionBlocks.cs" />
     <Compile Include="Migrations\Version 7.0\Version 1.7.1\201801121251097_InteractionBlocks.Designer.cs">
       <DependentUpon>201801121251097_InteractionBlocks.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\201801112205511_NotesUpdate.cs" />
-    <Compile Include="Migrations\201801112205511_NotesUpdate.Designer.cs">
-      <DependentUpon>201801112205511_NotesUpdate.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Version 7.0\Version 1.7.0\201712192301416_MoveInteractionTemplates.cs" />
     <Compile Include="Migrations\Version 7.0\Version 1.7.0\201712192301416_MoveInteractionTemplates.Designer.cs">
@@ -2661,11 +2661,11 @@
     <EmbeddedResource Include="Migrations\201801162056008_V8Features.resx">
       <DependentUpon>201801162056008_V8Features.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201801221745424_NotesUpdates.resx">
+      <DependentUpon>201801221745424_NotesUpdates.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Migrations\Version 7.0\Version 1.7.1\201801121251097_InteractionBlocks.resx">
       <DependentUpon>201801121251097_InteractionBlocks.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201801112205511_NotesUpdate.resx">
-      <DependentUpon>201801112205511_NotesUpdate.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\Version 7.0\Version 1.7.0\201712192301416_MoveInteractionTemplates.resx">
       <DependentUpon>201712192301416_MoveInteractionTemplates.cs</DependentUpon>

@@ -12,24 +12,32 @@
     {% assign noteDateTimeText = noteDateTimeText | Append:editedLabel %}
 {% endif %}
 
-<article class="clearfix rollover-container {{ wrapperClass }}">
-    <img style="max-height: 50px; max-width: 50px;" src="{{ NoteCreatedByPerson.PhotoUrl }}">
-    <div class="details">
-        <h5>
-            {{ NoteCreatedByPerson.FullName }} <span class="date" title="{{ Note.ModifiedDateTime }}">{{ noteDateTimeText }}</span>
-        </h5>
+{% assign replyIndent = ReplyDepth | Times:10 %}
 
-        {{ NoteText }}
-    </div>
-    
-    {% if CanReply %}
-    <a class="btn btn-xs btn-default pull-right js-replynote">reply</a>
-    {% endif %}
+<div class="reply-div" style="margin-left: {{replyIndent}}px">
 
-    <div class="actions rollover-item">
-        {% if CanEdit %}
-        <a class="remove-note js-removenote" href="{{ DeleteNotePostBackUrl }}"><i class="fa fa-times"></i></a>
-        <a class="edit-note js-editnote" href="#"><i class="fa fa-pencil"></i></a>
-        {% endif %}
-    </div>
-</article>
+    <article class="clearfix rollover-container {{ wrapperClass }}">
+        <img style="max-height: 50px; max-width: 50px;" src="{{ NoteCreatedByPerson.PhotoUrl }}">
+        <div class="details">
+            <h5>
+                {{ NoteCreatedByPerson.FullName }} <span class="date" title="{{ Note.ModifiedDateTime }}">{{ noteDateTimeText }}</span>
+            </h5>
+            <div class="notetext">
+                {{ NoteText }}
+            </div>
+            <div class="note-actions">
+                {% if CanReply %}
+                <a class="btn btn-xs btn-default pull-right js-replynote">reply</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="actions rollover-item">
+            {% if CanEdit %}
+            <a class="remove-note js-removenote" href="{{ DeleteNotePostBackUrl }}"><i class="fa fa-times"></i></a>
+            <a class="edit-note js-editnote" href="#"><i class="fa fa-pencil"></i></a>
+            {% endif %}
+        </div>
+    </article>
+
+</div>

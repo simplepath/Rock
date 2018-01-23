@@ -51,8 +51,8 @@ namespace RockWeb.Blocks.Core
     [BooleanField("Allow Backdated Notes", "", false, "", 12)]
     [NoteTypeField("Note Types", "Optional list of note types to limit display to", true, "", "", "", false, "", "", 12)]
     [BooleanField( "Display Note Type Heading", "Should each note's Note Type be displayed as a heading above each note?", false, "", 13 )]
-    [CodeEditorField( "Note View Lava Template", "The Lava Template to use when rendering the readonly view of each note.", CodeEditorMode.Lava, CodeEditorTheme.Rock, 400, false, 
-        @"", 
+    [CodeEditorField( "Note View Lava Template", "The Lava Template to use when rendering the readonly view of each note.", CodeEditorMode.Lava, CodeEditorTheme.Rock, 400, false,
+        @"{% include '~~/Assets/Lava/NoteView.lava' %}", 
         order: 14 )]
     public partial class Notes : RockBlock, ISecondaryBlock
     {
@@ -103,7 +103,7 @@ namespace RockWeb.Blocks.Core
                         noteTypes = noteTypes.Where( n => configuredNoteTypes.Contains( n.Guid ) ).ToList();
                     }
 
-                    NoteControlOptions noteControlOptions = new NoteControlOptions( this.CurrentPerson )
+                    NoteControlOptions noteControlOptions = new NoteControlOptions()
                     {
                         EntityId = contextEntity.Id,
                         NoteTypes = noteTypes,

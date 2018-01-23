@@ -22,7 +22,7 @@ namespace Rock.Migrations
     /// <summary>
     ///
     /// </summary>
-    public partial class NotesUpdate : Rock.Migrations.RockMigration
+    public partial class NotesUpdates : Rock.Migrations.RockMigration
     {
         /// <summary>
         /// Operations to be performed during the upgrade process.
@@ -82,6 +82,9 @@ namespace Rock.Migrations
             AddColumn("dbo.NoteType", "AutoWatchAuthors", c => c.Boolean(nullable: false));
             CreateIndex("dbo.Note", "ParentNoteId");
             AddForeignKey("dbo.Note", "ParentNoteId", "dbo.Note", "Id");
+
+            // TODO
+            Sql( "update NoteType set AllowsFollowing = 1, AllowsReplies = 1, MaxReplyDepth = 4, AllowsMentions = 1" );
         }
         
         /// <summary>

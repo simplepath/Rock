@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Web.UI;
 using System.Web.UI.HtmlControls;
@@ -51,7 +52,18 @@ namespace Rock.Web.UI.Controls
         /// <value>
         /// The note control options.
         /// </value>
-        public NoteControlOptions NoteControlOptions { get; set; }
+        public NoteControlOptions NoteControlOptions
+        {
+            get
+            {
+                return ViewState["NoteControlOptions"] as NoteControlOptions;
+            }
+
+            set
+            {
+                ViewState["NoteControlOptions"] = value;
+            }
+        }
 
         /// <summary>
         /// Gets or sets a value indicating whether to display heading of the note container
@@ -209,8 +221,17 @@ namespace Rock.Web.UI.Controls
         protected override void OnLoad( EventArgs e )
         {
             base.OnLoad( e );
-            BindNotes();
-            _noteNew.EntityId = this.NoteControlOptions.EntityId;
+
+            if ( this.NoteControlOptions != null )
+            {
+                BindNotes();
+                _noteNew.EntityId = this.NoteControlOptions.EntityId;
+                _noteNew.ShowEditMode = this.NoteControlOptions.AddAlwaysVisible;
+            }
+            else
+            {
+                Debug.Assert( this.NoteControlOptions != null, "this.NoteControlOptions is null!" );
+            }
         }
 
         /// <summary>
@@ -224,34 +245,14 @@ namespace Rock.Web.UI.Controls
             _noteNew.ID = this.ID + "_noteNew";
             _noteNew.CssClass = "note-new js-notenew";
 
-            _noteNew.ShowEditMode = this.NoteControlOptions.AddAlwaysVisible;
-
-            var currentPerson = this.GetCurrentPerson();
-            if ( currentPerson != null )
-            {
-                _noteNew.CreatedByPhotoId = currentPerson.PhotoId;
-                _noteNew.CreatedByGender = currentPerson.Gender;
-                _noteNew.CreatedByName = currentPerson.FullName;
-                _noteNew.CreatedByPersonId = currentPerson.Id;
-                _noteNew.CreatedByAge = currentPerson.Age;
-            }
-            else
-            {
-                _noteNew.CreatedByPhotoId = null;
-                _noteNew.CreatedByGender = Gender.Male;
-                _noteNew.CreatedByName = string.Empty;
-                _noteNew.CreatedByPersonId = null;
-                _noteNew.CreatedByAge = null;
-            }
-
+            _noteNew.CreatedByPersonAlias = ( this.Page as RockPage )?.CurrentPersonAlias;
             _noteNew.SaveButtonClick += note_SaveButtonClick;
 
             Controls.Add( _noteNew );
-
             _rptNoteControls = new Repeater();
             _rptNoteControls.ID = this.ID + "_rptNoteControls";
             _rptNoteControls.ItemDataBound += _rptNoteControls_ItemDataBound;
-            _rptNoteControls.ItemTemplate = new NoteControlTemplate( this.NoteControlOptions, this.NotesUpdated );
+            _rptNoteControls.ItemTemplate = new NoteControlTemplate( this.NoteControlOptions, this.note_Updated );
             Controls.Add( _rptNoteControls );
 
             _lbShowMore = new LinkButton();
@@ -286,20 +287,13 @@ namespace Rock.Web.UI.Controls
             {
                 noteControl.ID = $"noteControl_{note.Guid.ToString( "N" )}";
                 noteControl.Note = note;
-                int replyDepth = 0;
-                var parentNoteId = note.ParentNoteId;
-                while ( parentNoteId.HasValue )
-                {
-                    parentNoteId = _viewableNoteList.FirstOrDefault( a => a.Id == parentNoteId.Value )?.ParentNoteId;
-                    replyDepth++;
-                }
-
-                noteControl.ReplyDepth = replyDepth;
-
-                noteControl.ChildNotes = _viewableNoteList.Where( a => a.ParentNoteId.HasValue && a.ParentNoteId.Value == note.Id ).ToList();
+                
+                // NoteContainer only shows Root Notes, so set ReplyDepth to 0
+                noteControl.ReplyDepth = 0;
                 noteControl.CanEdit = note.IsAuthorized( Authorization.ADMINISTRATE, this.GetCurrentPerson() );
                 var noteType = NoteTypeCache.Read( note.NoteTypeId );
-                noteControl.CanReply = noteType.AllowsReplies && replyDepth <= noteType.MaxReplyDepth;
+
+                noteControl.CanReply = noteType.AllowsReplies;
             }
         }
 
@@ -312,7 +306,7 @@ namespace Rock.Web.UI.Controls
             if ( this.Visible )
             {
                 var currentPerson = this.GetCurrentPerson();
-                var editableNoteTypes = NoteControlOptions.EditableNoteTypes;
+                var editableNoteTypes = NoteControlOptions.GetEditableNoteTypes( currentPerson );
                 bool canAdd = AddAllowed &&
                     editableNoteTypes.Any() &&
                     ( AllowAnonymousEntry || currentPerson != null );
@@ -359,7 +353,7 @@ namespace Rock.Web.UI.Controls
                     writer.RenderEndTag();
                 }
 
-                writer.AddAttribute( HtmlTextWriterAttribute.Class, "panel-body" );
+                writer.AddAttribute( HtmlTextWriterAttribute.Class, "panel-body js-notelist" );
                 writer.RenderBeginTag( HtmlTextWriterTag.Div );
 
                 if ( canAdd && SortDirection == ListSortDirection.Descending )
@@ -473,29 +467,30 @@ namespace Rock.Web.UI.Controls
             BindNotes();
         }
 
-        private List<Note> _viewableNoteList = null;
+        //private List<Note> _viewableNoteList = null;
 
         /// <summary>
         /// Loads the notes.
         /// </summary>
         public void BindNotes()
         {
-            EnsureChildControls();
             var currentPerson = this.GetCurrentPerson();
-            _viewableNoteList = new List<Note>();
-            var viewableNoteNotes = this.NoteControlOptions.ViewableNoteTypes;
-            var entityId = this.NoteControlOptions.EntityId;
+            var viewableNoteTypes = this.NoteControlOptions?.GetViewableNoteTypes( currentPerson );
+            var entityId = this.NoteControlOptions?.EntityId;
 
             ShowMoreOption = false;
-            if ( viewableNoteNotes != null && viewableNoteNotes.Any() && entityId.HasValue )
+            if ( viewableNoteTypes != null && viewableNoteTypes.Any() && entityId.HasValue )
             {
                 using ( var rockContext = new RockContext() )
                 {
-                    var viewableNoteTypeIds = viewableNoteNotes.Select( t => t.Id ).ToList();
+                    var viewableNoteTypeIds = viewableNoteTypes.Select( t => t.Id ).ToList();
+
+                    // only show Viewable Note Types for this Entity and only show the Root Notes (the NoteControl will take care of child notes)
                     var qry = new NoteService( rockContext ).Queryable( "CreatedByPersonAlias.Person" )
                         .Where( n =>
-                            viewableNoteTypeIds.Contains( n.NoteTypeId ) &&
-                            n.EntityId == entityId.Value );
+                            viewableNoteTypeIds.Contains( n.NoteTypeId ) 
+                            && n.EntityId == entityId.Value 
+                            && n.ParentNoteId == null);
 
                     if ( SortDirection == ListSortDirection.Descending )
                     {
@@ -512,13 +507,13 @@ namespace Rock.Web.UI.Controls
 
                     NoteCount = noteList.Count();
 
-                    _viewableNoteList = noteList.Where( a => a.IsAuthorized( Authorization.VIEW, currentPerson ) ).ToList();
-                    this.ShowMoreOption = ( SortDirection == ListSortDirection.Descending ) && ( _viewableNoteList.Count > this.DisplayCount );
+                    var viewableNoteList = noteList.Where( a => a.IsAuthorized( Authorization.VIEW, currentPerson ) ).ToList();
+                    this.ShowMoreOption = ( SortDirection == ListSortDirection.Descending ) && ( viewableNoteList.Count > this.DisplayCount );
+
+                    _rptNoteControls.DataSource = viewableNoteList;
+                    _rptNoteControls.DataBind();
                 }
             }
-
-            _rptNoteControls.DataSource = _viewableNoteList.Where( a => a.ParentNoteId == null );
-            _rptNoteControls.DataBind();
         }
 
         /// <summary>
