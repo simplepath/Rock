@@ -167,7 +167,7 @@ $('.js-panel-toggle').on('click', function (e) {
                             secondaryValue = originalValue + originalValue.Substring( 1, 3 );
                         }
 
-                        if ( originalValue != textBoxControl.Text && secondaryValue != textBoxControl.Text )
+                        if ( originalValue.ToLower() != textBoxControl.Text.ToLower() && secondaryValue.ToLower() != textBoxControl.Text.ToLower() )
                         {
                             overrideFile.Append( string.Format( "@{0}: {1};{2}", variableName, textBoxControl.Text, Environment.NewLine ) );
                         }
