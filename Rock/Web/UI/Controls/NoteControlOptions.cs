@@ -23,7 +23,7 @@ using Rock.Web.Cache;
 namespace Rock.Web.UI.Controls
 {
     [Serializable]
-    public class NoteControlOptions
+    public class NoteControlOptions : DotLiquid.Drop
     {
         public string NoteViewLavaTemplate { get; set; }
 

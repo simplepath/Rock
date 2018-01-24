@@ -16,6 +16,7 @@
 //
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity.ModelConfiguration;
@@ -161,6 +162,30 @@ namespace Rock.Model
         public virtual Note ParentNote { get; set; }
 
         /// <summary>
+        /// Gets or sets the child notes.
+        /// </summary>
+        /// <value>
+        /// The child notes.
+        /// </value>
+        [DataMember]
+        public virtual ICollection<Note> ChildNotes { get; set; } = new Collection<Note>();
+
+        /// <summary>
+        /// Gets the created by person photo URL.
+        /// </summary>
+        /// <value>
+        /// The created by person photo URL.
+        /// </value>
+        [LavaInclude]
+        public virtual string CreatedByPersonPhotoUrl
+        {
+            get
+            {
+                return Person.GetPersonPhotoUrl( this.CreatedByPersonAlias.Person );
+            }
+        }
+
+        /// <summary>
         /// Gets the parent security authority of this Note. Where security is inherited from.
         /// </summary>
         /// <value>
@@ -246,7 +271,7 @@ namespace Rock.Model
         public NoteConfiguration()
         {
             this.HasRequired( p => p.NoteType ).WithMany().HasForeignKey( p => p.NoteTypeId ).WillCascadeOnDelete( true );
-            this.HasOptional( p => p.ParentNote ).WithMany().HasForeignKey( p => p.ParentNoteId ).WillCascadeOnDelete( false );
+            this.HasOptional( p => p.ParentNote ).WithMany( p => p.ChildNotes ).HasForeignKey( p => p.ParentNoteId ).WillCascadeOnDelete( false );
         }
     }
 

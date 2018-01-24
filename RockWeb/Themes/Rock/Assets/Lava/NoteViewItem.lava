@@ -1,0 +1,63 @@
+﻿{% if Note.IsAlert %}
+    {% assign wrapperClass = "highlight" %}
+{% elsif Note.IsPrivate %}
+    {% assign wrapperClass = "personal" %}
+{% else %}
+    {% assign wrapperClass = "" %}
+{% endif %}
+
+{% assign noteDateTimeText = Note.CreatedDateTime | HumanizeDateTime %}
+{% if Note.ModifiedDateTime > Note.CreatedDateTime %}
+    {% capture editedLabel %} (edited {{ Note.ModifiedDateTime | HumanizeDateTime }}) {% endcapture %}
+    {% assign noteDateTimeText = noteDateTimeText | Append:editedLabel %}
+{% endif %}
+
+{% if NoteReplyDepth <= Note.NoteType.MaxReplyDepth %}
+{% assign CanReply = true %}
+{% else %}
+{% assign CanReply = false %}
+{% endif %}
+
+<div class="note-view-item js-noteviewitem" data-note-id="{{ Note.Id }}">
+    <div class='note-details'>
+        <article class="clearfix rollover-container {{ wrapperClass }}">
+            <img style="max-height: 50px; max-width: 50px;" src="{{ Note.CreatedByPersonPhotoUrl }}">
+            <div class="details">
+                <h5>
+                    {{ Note.CreatedByPersonName }} <span class="date" title="{{ Note.ModifiedDateTime }}">{{ noteDateTimeText }}</span>
+                </h5>
+                <div class="notetext">
+                    {{ Note.Text }}
+                </div>
+                <div class="note-actions">
+                    {% if CanReply %}
+                    <a class="btn btn-xs btn-default pull-right js-replynote">reply</a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="actions rollover-item">
+                {% assign canEdit = Note | HasRightsTo:'Edit' %}
+                {% if canEdit %}
+                <a class="remove-note js-removenote" href="#"><i class="fa fa-times"></i></a>
+                <a class="edit-note js-editnote" href="#"><i class="fa fa-pencil"></i></a>
+                {% endif %}
+            </div>
+        </article>
+    </div>
+
+    {% comment %}
+        Maintain the NoteReplyDepth by incrementing here (for every Note), and then decrementing after each child so indicate we are at the same level
+    {% endcomment %}
+    {% assign NoteReplyDepth = NoteReplyDepth | Plus:1 %}
+    <div class='note-childnotes' style="margin-left:20px;">
+        {% for Note in Note.ChildNotes %}
+        {% include '~~/Assets/Lava/NoteViewItem.lava' %}
+        {% assign NoteReplyDepth = NoteReplyDepth | Minus:1 %}
+        {% endfor %}
+    </div>
+
+
+
+
+</div>

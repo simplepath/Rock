@@ -2,59 +2,64 @@
     'use strict';
     Sys.Application.add_load(function () {
 
-        // Initialize NoteContainer events
-        $('.js-notecontainer .js-addnote').click(function () {
-            // display the 'note-new' as the first note in the list
+        // Initialize NoteEditor and NoteContainer events
+        $('.js-notecontainer .js-addnote,.js-editnote,.js-replynote').click(function (e) {
+            debugger
+            var addNote = $(this).hasClass('js-addnote');
+            var editNote = $(this).hasClass('js-editnote');
+            var replyNote = $(this).hasClass('js-replynote');
+
             var $noteContainer = $(this).closest('.js-notecontainer');
-            var $newNoteControl = $noteContainer.find('.js-notenew');
-            $newNoteControl.detach();
-            var $noteList = $noteContainer.find('.js-notelist').first();
-            $noteList.prepend($newNoteControl);
+            var $noteEditor = $noteContainer.find('.js-note-editor');
+            $noteEditor.detach();
 
             // clear out any previously entered stuff
-            var $parentNoteIdHiddenFile = $newNoteControl.find('.js-parentnoteid');
-            $parentNoteIdHiddenFile.val('');
-            $newNoteControl.find('textarea').val('');
-            $newNoteControl.find('input:checkbox').prop('checked', false);
+            $noteEditor.find('.js-parentnoteid').val('');
+            $noteEditor.find('textarea').val('');
+            $noteEditor.find('input:checkbox').prop('checked', false);
 
-            // slide the notecontrol edit panel into view
-            $newNoteControl.find('.js-noteedit').slideDown();
-        });
+            if (addNote) {
+                // display the 'noteEditor' as the first note in the list
+                var $noteList = $noteContainer.find('.js-notelist').first();
+                $noteList.prepend($noteEditor);
+            }
+            else {
+                var $currentNote = $(this).closest('.js-noteviewitem');
+                var currentNoteId = $currentNote.attr("data-note-id");
 
-        // Initialize NoteControl events
-        $('.js-notecontainer .js-replynote').click(function (e) {
+                if (replyNote) {
+                    // display the 'noteEditor' as a reply to the current note
+                    $noteEditor.find('js-parentnoteid').val('currentNoteId');
+                    $noteEditor.insertAfter($currentNote);
+                }
+                else if (editNote) {
+                    // display the 'noteEditor' in place of the currentNote
+                    $noteEditor.find('js-noteid').val('currentNoteId');
+                    e.preventDefault();
+                    $noteEditor.insertAfter($currentNote);
+                    $currentNote.hide();
+                }
+            }
 
-            // display the 'note-new' as a reply to the current note
-            var $newNoteControl = $(this).closest('.panel-note').find('.js-notenew');
-            $newNoteControl.detach();
-            var $currentNote = $(this).closest('.js-notecontrol');
-            $newNoteControl.insertAfter($currentNote);
-
-            // set the new note's parentNoteId as the current note's id
-            var $noteIdHiddenFile = $currentNote.find('.js-noteid');
-            var $parentNoteIdHiddenFile = $newNoteControl.find('.js-parentnoteid');
-            $parentNoteIdHiddenFile.val($noteIdHiddenFile.val());
-
-            // clear out any previously entered stuff
-            $newNoteControl.find('textarea').val('');
-            $newNoteControl.find('input:checkbox').prop('checked', false);
-
-            // slide the notecontrol edit panel into view
-            $newNoteControl.find('.js-noteedit').slideDown();
-        });
-
-        $('.js-notecontainer .js-editnote').click(function (e) {
-            e.preventDefault();
-            $(this).closest('.js-notecontrol').find('.js-noteedit').slideDown();
+            // slide the noteeditor edit panel into view
+            $noteEditor.find('.js-noteedit').slideDown();
         });
 
         $('.js-notecontainer .js-editnote-cancel').click(function (e) {
+            debugger
+            var $noteContainer = $(this).closest('.js-notecontainer');
+            var $noteEditor = $noteContainer.find('.js-note-editor');
+            // TODO var noteId = $noteEditor.find('')
+            $noteEditor.slideUp();
+
             $(this).closest('.js-notecontrol').find('.js-noteedit').slideUp();
         });
 
         $('.js-notecontainer .js-removenote').click(function (e) {
+            debugger
             e.preventDefault();
             e.stopImmediatePropagation();
+            // TODO var noteId = $noteEditor.find('')
             return Rock.dialogs.confirmDelete(event, 'Note');
         });
     });
