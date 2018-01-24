@@ -17,14 +17,11 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Web.UI;
 using System.Web.UI.HtmlControls;
 using System.Web.UI.WebControls;
 using Rock.Data;
-using Rock.Lava;
 using Rock.Model;
 using Rock.Security;
 using Rock.Web.Cache;
@@ -35,8 +32,10 @@ namespace Rock.Web.UI.Controls
     /// Displays a Rock Note.
     /// </summary>
     [ToolboxData( "<{0}:NoteControl runat=server></{0}:NoteControl>" )]
+    [Obsolete("No Longer Supported")]
     public class NoteControl : CompositeControl
     {
+
         #region Fields
 
         private DropDownList _ddlNoteType;
@@ -44,19 +43,14 @@ namespace Rock.Web.UI.Controls
         private CheckBox _cbAlert;
         private CheckBox _cbPrivate;
         private LinkButton _lbSaveNote;
+        private LinkButton _lbEditNote;
+        private LinkButton _lbDeleteNote;
         private SecurityButton _sbSecurity;
         private DateTimePicker _dtCreateDate;
-        private HiddenFieldWithClass _hfParentNoteId;
-        private HiddenFieldWithClass _hfNoteId;
-        private Repeater _rptChildNoteControls;
-
-        private LinkButton _lbDeleteNote;
 
         #endregion
 
         #region Properties
-
-        public NoteControlOptions NoteControlOptions { get; private set; }
 
         /// <summary>
         /// Sets the note.
@@ -68,17 +62,69 @@ namespace Rock.Web.UI.Controls
         {
             set
             {
-                EnsureChildControls();
                 this.NoteId = value.Id;
                 this.NoteTypeId = value.NoteTypeId;
                 this.EntityId = value.EntityId;
                 this.Caption = value.Caption;
-                this.CreatedByPersonAlias = value.CreatedByPersonAlias;
+
+                if (value.CreatedByPersonAlias != null && value.CreatedByPersonAlias.Person != null)
+                {
+                    this.CreatedByName = value.CreatedByPersonAlias.Person.FullName;
+                    this.CreatedByPhotoId = value.CreatedByPersonAlias.Person.PhotoId;
+                    this.CreatedByGender = value.CreatedByPersonAlias.Person.Gender;
+                    this.CreatedByPersonId = value.CreatedByPersonAlias.Person.Id;
+                    this.CreatedByAge = value.CreatedByPersonAlias.Person.Age;
+                }
+                else
+                {
+                    this.CreatedByName = string.Empty;
+                    this.CreatedByPhotoId = null;
+                    this.CreatedByGender = Gender.Male;
+                    this.CreatedByPersonId = null;
+                    this.CreatedByAge = null;
+                }
+
                 this.CreatedDateTime = value.CreatedDateTime;
                 this.Text = value.Text;
                 this.IsAlert = value.IsAlert.HasValue && value.IsAlert.Value;
                 this.IsPrivate = value.IsPrivateNote;
-                this.ParentNoteId = value.ParentNoteId;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the note types.
+        /// </summary>
+        /// <value>
+        /// The note types.
+        /// </value>
+        public List<NoteTypeCache> NoteTypes
+        {
+            get
+            {
+                EnsureChildControls();
+                var result = new List<NoteTypeCache>();
+                foreach( ListItem li in _ddlNoteType.Items )
+                {
+                    int? id = li.Value.AsIntegerOrNull();
+                    if ( id.HasValue )
+                    {
+                        var noteType = NoteTypeCache.Read( id.Value );
+                        {
+                            if ( noteType != null )
+                            {
+                                result.Add( noteType);
+                            }
+                        }
+                    }
+                }
+                return result;
+            }
+            set
+            {
+                EnsureChildControls();
+                _ddlNoteType.DataSource = value;
+                _ddlNoteType.DataBind();
+                _ddlNoteType.Visible = value.Count() > 1;
             }
         }
 
@@ -90,18 +136,16 @@ namespace Rock.Web.UI.Controls
         /// </value>
         public int? NoteTypeId
         {
-            get
+            get 
             {
                 int? noteTypeId = ViewState["NoteTypeId"] as int?;
-                if ( !noteTypeId.HasValue && NoteControlOptions.NoteTypes.Any() )
+                if ( !noteTypeId.HasValue && NoteTypes.Any() )
                 {
-                    noteTypeId = NoteControlOptions.NoteTypes.First().Id;
+                    noteTypeId = NoteTypes.First().Id;
                 }
-
                 return noteTypeId ?? 0;
             }
-
-            set
+            set 
             {
                 ViewState["NoteTypeId"] = value;
 
@@ -115,8 +159,8 @@ namespace Rock.Web.UI.Controls
                     _ddlNoteType.SelectedIndex = -1;
                 }
             }
-        }
-
+        }        
+        
         /// <summary>
         /// Gets or sets the note id.
         /// </summary>
@@ -125,15 +169,8 @@ namespace Rock.Web.UI.Controls
         /// </value>
         public int? NoteId
         {
-            get
-            {
-                return _hfNoteId.Value.AsIntegerOrNull();
-            }
-
-            set
-            {
-                _hfNoteId.Value = value.ToString();
-            }
+            get { return ViewState["NoteId"] as int?; }
+            set { ViewState["NoteId"] = value; }
         }
 
         /// <summary>
@@ -158,6 +195,18 @@ namespace Rock.Web.UI.Controls
         {
             get { return ViewState["Caption"] as string ?? string.Empty; }
             set { ViewState["Caption"] = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether an add view is always visible.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [add always visible]; otherwise, <c>false</c>.
+        /// </value>
+        public bool AddAlwaysVisible
+        {
+            get { return ViewState["AddAlwaysVisible"] as bool? ?? false; }
+            set { ViewState["AddAlwaysVisible"] = value; }
         }
 
         /// <summary>
@@ -219,13 +268,9 @@ namespace Rock.Web.UI.Controls
             get
             {
                 object gender = this.ViewState["Gender"];
-                return gender != null ? ( Gender ) gender : Gender.Male;
+                return gender != null ? (Gender)gender : Gender.Male;
             }
-
-            set
-            {
-                ViewState["Gender"] = value;
-            }
+            set { ViewState["Gender"] = value; }
         }
 
         /// <summary>
@@ -236,15 +281,8 @@ namespace Rock.Web.UI.Controls
         /// </value>
         public DateTime? CreatedDateTime
         {
-            get
-            {
-                return ViewState["CreatedDateTime"] as DateTime?;
-            }
-
-            set
-            {
-                ViewState["CreatedDateTime"] = value;
-            }
+            get { return ViewState["CreatedDateTime"] as DateTime?; }
+            set { ViewState["CreatedDateTime"] = value; }
         }
 
         /// <summary>
@@ -255,21 +293,20 @@ namespace Rock.Web.UI.Controls
         /// </value>
         public string Label
         {
-            get
+            get 
             {
                 return ViewState["Label"] as string ?? "Note";
             }
-
-            set
+            set 
             {
                 ViewState["Label"] = value;
-                if ( value != null )
+                if (value != null)
                 {
                     _tbNote.Placeholder = string.Format( "Write a {0}...", value.ToLower() );
                 }
             }
         }
-
+        
         /// <summary>
         /// Gets or sets the text.
         /// </summary>
@@ -278,15 +315,8 @@ namespace Rock.Web.UI.Controls
         /// </value>
         public string Text
         {
-            get
-            {
-                return _tbNote.Text;
-            }
-
-            set
-            {
-                _tbNote.Text = value;
-            }
+            get { return _tbNote.Text; }
+            set { _tbNote.Text = value; }
         }
 
         /// <summary>
@@ -297,15 +327,8 @@ namespace Rock.Web.UI.Controls
         /// </value>
         public bool IsAlert
         {
-            get
-            {
-                return _cbAlert.Checked;
-            }
-
-            set
-            {
-                _cbAlert.Checked = value;
-            }
+            get { return _cbAlert.Checked; }
+            set { _cbAlert.Checked = value; }
         }
 
         /// <summary>
@@ -316,34 +339,8 @@ namespace Rock.Web.UI.Controls
         /// </value>
         public bool IsPrivate
         {
-            get
-            {
-                return _cbPrivate.Checked;
-            }
-
-            set
-            {
-                _cbPrivate.Checked = value;
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the parent note identifier.
-        /// </summary>
-        /// <value>
-        /// The parent note identifier.
-        /// </value>
-        public int? ParentNoteId
-        {
-            get
-            {
-                return _hfParentNoteId.Value.AsIntegerOrNull();
-            }
-
-            set
-            {
-                _hfParentNoteId.Value = value.ToString();
-            }
+            get { return _cbPrivate.Checked; }
+            set { _cbPrivate.Checked = value; }
         }
 
         /// <summary>
@@ -354,62 +351,102 @@ namespace Rock.Web.UI.Controls
         /// </value>
         public bool CanEdit
         {
-            get
-            {
-                return ViewState["CanEdit"] as bool? ?? false;
-            }
-
-            set
-            {
-                ViewState["CanEdit"] = value;
-            }
+            get { return ViewState["CanEdit"] as bool? ?? false; }
+            set { ViewState["CanEdit"] = value; }
         }
 
         /// <summary>
-        /// Gets or sets a value indicating whether start this note in Edit mode instead of View mode
+        /// Gets or sets a value indicating whether the Note Type should be displayed a heading to the note.
         /// </summary>
         /// <value>
-        ///   <c>true</c> if [show edit]; otherwise, <c>false</c>.
+        /// <c>true</c> if display note type heading; otherwise, <c>false</c>.
         /// </value>
-        public bool ShowEditMode
+        public bool DisplayNoteTypeHeading
+        {
+            get { return ViewState["DisplayNoteTypeHeading"] as bool? ?? false; }
+            set { ViewState["DisplayNoteTypeHeading"] = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the display type.
+        /// </summary>
+        /// <value>
+        /// The display type.
+        /// </value>
+        public virtual NoteDisplayType DisplayType
         {
             get
             {
-                return ViewState["ShowEditMode"] as bool? ?? false;
+                object displayType = this.ViewState["NoteDisplayType"];
+                return displayType != null ? (NoteDisplayType)displayType : NoteDisplayType.Full;
             }
 
             set
             {
-                ViewState["ShowEditMode"] = value;
+                this.ViewState["NoteDisplayType"] = value;
             }
         }
 
         /// <summary>
-        /// Gets or sets a value indicating whether this instance can reply.
+        /// Gets or sets a value indicating whether [show alert check box].
         /// </summary>
         /// <value>
-        ///   <c>true</c> if this instance can reply; otherwise, <c>false</c>.
+        ///   <c>true</c> if [show alert check box]; otherwise, <c>false</c>.
         /// </value>
-        public bool CanReply
+        public bool ShowAlertCheckBox
         {
-            get
-            {
-                return ViewState["CanReply"] as bool? ?? false;
-            }
-
-            set
-            {
-                ViewState["CanReply"] = value;
-            }
+            get { return ViewState["ShowAlertCheckBox"] as bool? ?? false; }
+            set { ViewState["ShowAlertCheckBox"] = value; }
         }
 
         /// <summary>
-        /// Gets the article class.
+        /// Gets or sets a value indicating whether [show private check box].
         /// </summary>
         /// <value>
-        /// The article class.
+        /// <c>true</c> if [show private check box]; otherwise, <c>false</c>.
         /// </value>
-        [Obsolete]
+        public bool ShowPrivateCheckBox
+        {
+            get { return ViewState["ShowPrivateCheckBox"] as bool? ?? false; }
+            set { ViewState["ShowPrivateCheckBox"] = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether [show security button].
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [show security button]; otherwise, <c>false</c>.
+        /// </value>
+        public bool ShowSecurityButton
+        {
+            get { return ViewState["ShowSecurityButton"] as bool? ?? false; }
+            set { ViewState["ShowSecurityButton"] = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether [show create date input]
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if [show create date input]; otherwise <c>false</c>.
+        /// </value>
+        public bool ShowCreateDateInput
+        {
+            get { return ViewState["ShowCreateDateInput"] as bool? ?? false; }
+            set { ViewState["ShowCreateDateInput"] = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether person icon should used instead of icon representing the note type.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [use person icon]; otherwise, <c>false</c>.
+        /// </value>
+        public bool UsePersonIcon
+        {
+            get { return ViewState["UsePersonIcon"] as bool? ?? false; }
+            set { ViewState["UsePersonIcon"] = value; }
+        }
+
         private string ArticleClass
         {
             get
@@ -428,12 +465,23 @@ namespace Rock.Web.UI.Controls
             }
         }
 
-        /// <summary>
-        /// Gets the icon class.
-        /// </summary>
-        /// <value>
-        /// The icon class.
-        /// </value>
+        private string CSSClass
+        {
+            get
+            {
+                if ( NoteTypeId.HasValue )
+                {
+                    var noteType = NoteTypeCache.Read( NoteTypeId.Value );
+                    if ( noteType != null )
+                    {
+                        return noteType.CssClass;
+                    }
+                }
+
+                return string.Empty;
+            }
+        }
+
         private string IconClass
         {
             get
@@ -449,72 +497,57 @@ namespace Rock.Web.UI.Controls
 
                 return "fa fa-comment";
             }
+
         }
 
-        /// <summary>
-        /// Gets the reply depth.
-        /// </summary>
-        /// <value>
-        /// The reply depth.
-        /// </value>
-        public int ReplyDepth { get; internal set; }
-
-        /// <summary>
-        /// Gets or sets the created by person alias.
-        /// </summary>
-        /// <value>
-        /// The created by person alias.
-        /// </value>
-        public PersonAlias CreatedByPersonAlias
-        {
-            get
-            {
-                return _createdByPersonAlias;
-            }
-
-            set
-            {
-                _createdByPersonAlias = value;
-                this.CreatedByPhotoId = _createdByPersonAlias?.Person?.PhotoId;
-                this.CreatedByGender = _createdByPersonAlias?.Person?.Gender ?? Gender.Male;
-                this.CreatedByName = _createdByPersonAlias?.Person?.FullName;
-                this.CreatedByPersonId = _createdByPersonAlias?.Person?.Id;
-                this.CreatedByAge = _createdByPersonAlias?.Person?.Age;
-            }
-        }
-
-        private PersonAlias _createdByPersonAlias = null;
 
         #endregion
 
         #region Constructor
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="NoteControl" /> class.
+        /// Initializes a new instance of the <see cref="NoteControl"/> class.
         /// </summary>
-        /// <param name="noteContainer">The note container.</param>
-        /// <param name="note">The note.</param>
-        public NoteControl( NoteControlOptions noteControlOptions )
+        public NoteControl()
         {
-            this.NoteControlOptions = noteControlOptions;
             _ddlNoteType = new DropDownList();
-
             _tbNote = new RockTextBox();
-            _hfNoteId = new HiddenFieldWithClass();
             _tbNote.Placeholder = "Write a note...";
             _cbAlert = new CheckBox();
             _cbPrivate = new CheckBox();
             _lbSaveNote = new LinkButton();
+            _lbEditNote = new LinkButton();
             _lbDeleteNote = new LinkButton();
             _sbSecurity = new SecurityButton();
             _dtCreateDate = new DateTimePicker();
-            _hfParentNoteId = new HiddenFieldWithClass();
-            _rptChildNoteControls = new Repeater();
         }
 
         #endregion
 
         #region Base Control Methods
+
+        /// <summary>
+        /// Raises the <see cref="E:System.Web.UI.Control.Init" /> event.
+        /// </summary>
+        /// <param name="e">An <see cref="T:System.EventArgs" /> object that contains the event data.</param>
+        protected override void OnInit( EventArgs e )
+        {
+            base.OnInit( e );
+
+            string script = @"
+    $('a.edit-note').click(function (e) {
+        e.preventDefault();
+        $(this).closest('.note').children().slideToggle( 'slow' );
+    });
+    $('a.edit-note-cancel').click(function () {
+        $(this).closest('.note').children().slideToggle( 'slow' );
+    });
+    $('a.remove-note').click(function() {
+        return Rock.dialogs.confirmDelete( event, 'Note' );
+    });
+";
+            ScriptManager.RegisterStartupScript( this, this.GetType(), "edit-note", script, true );
+        }
 
         /// <summary>
         /// Raises the <see cref="E:System.Web.UI.Control.Load" /> event.
@@ -526,20 +559,12 @@ namespace Rock.Web.UI.Controls
 
             if ( Page.IsPostBack )
             {
+                EnsureChildControls();
                 if ( CanEdit && _ddlNoteType.Visible )
                 {
                     NoteTypeId = _ddlNoteType.SelectedValueAsInt();
                 }
             }
-            else
-            {
-                var editableNoteTypes = this.NoteControlOptions.GetEditableNoteTypes( ( this.Page as RockPage )?.CurrentPerson );
-                _ddlNoteType.DataSource = editableNoteTypes;
-                _ddlNoteType.DataBind();
-                _ddlNoteType.Visible = editableNoteTypes.Count() > 1;
-            }
-
-            BindChildNotes();
         }
 
         /// <summary>
@@ -555,40 +580,38 @@ namespace Rock.Web.UI.Controls
             _ddlNoteType.DataTextField = "Name";
             Controls.Add( _ddlNoteType );
 
-            _hfNoteId.ID = this.ID + "_hfNoteId";
-            _hfNoteId.CssClass = "js-noteid";
-            Controls.Add( _hfNoteId );
-
-            _hfParentNoteId.ID = this.ID + "_hfParentNoteId";
-            _hfParentNoteId.CssClass = "js-parentnoteid";
-            Controls.Add( _hfParentNoteId );
-
             _tbNote.ID = this.ID + "_tbNewNote";
             _tbNote.TextMode = TextBoxMode.MultiLine;
-            _tbNote.CssClass = "js-notetext";
             _tbNote.ValidateRequestMode = ValidateRequestMode.Disabled;
-            Controls.Add( _tbNote );
+            Controls.Add(_tbNote);
 
             _cbAlert.ID = this.ID + "_cbAlert";
             _cbAlert.Text = "Alert";
-            Controls.Add( _cbAlert );
+            Controls.Add(_cbAlert);
 
             _cbPrivate.ID = this.ID + "_cbPrivate";
             _cbPrivate.Text = "Private";
-            Controls.Add( _cbPrivate );
+            Controls.Add(_cbPrivate);
 
             _lbSaveNote.ID = this.ID + "_lbSaveNote";
             _lbSaveNote.Attributes["class"] = "btn btn-primary btn-xs";
             _lbSaveNote.CausesValidation = false;
             _lbSaveNote.Click += lbSaveNote_Click;
 
-            Controls.Add( _lbSaveNote );
+            Controls.Add(_lbSaveNote);
 
-            // Create the DeleteNote linkbutton so we can get the PostBack script, but don't actually render it. 
+            var iEdit = new HtmlGenericControl( "i" );
+            iEdit.Attributes["class"] = "fa fa-pencil";
+            _lbEditNote.Controls.Add( iEdit );
+
             _lbDeleteNote.ID = this.ID + "_lbDeleteNote";
-            _lbDeleteNote.Click += _lbDeleteNote_Click;
-            _lbDeleteNote.Visible = false;
+            _lbDeleteNote.Attributes["class"] = "remove-note";
+            _lbDeleteNote.CausesValidation = false;
+            _lbDeleteNote.Click += lbDeleteNote_Click;
             Controls.Add( _lbDeleteNote );
+            var iDelete = new HtmlGenericControl( "i" );
+            iDelete.Attributes["class"] = "fa fa-times";
+            _lbDeleteNote.Controls.Add( iDelete );
 
             _sbSecurity.ID = "_sbSecurity";
             _sbSecurity.Attributes["class"] = "btn btn-security btn-xs security pull-right";
@@ -596,109 +619,9 @@ namespace Rock.Web.UI.Controls
 
             _dtCreateDate.ID = this.ID + "_tbCreateDate";
             _dtCreateDate.Label = "Note Created Date";
-            Controls.Add( _dtCreateDate );
+            Controls.Add(_dtCreateDate);
 
             Controls.Add( _sbSecurity );
-
-            _rptChildNoteControls.ID = this.ID + "_rptChildNoteControls";
-            _rptChildNoteControls.ItemCommand += _rptChildNoteControls_ItemCommand;
-            _rptChildNoteControls.ItemCreated += _rptChildNoteControls_ItemCreated;
-            _rptChildNoteControls.ItemDataBound += _rptChildNoteControls_ItemDataBound;
-            _rptChildNoteControls.ItemTemplate = new NoteControlTemplate( this.NoteControlOptions, childNote_Updated );
-            Controls.Add( _rptChildNoteControls );
-            Debug.WriteLine( $"Controls.Add( _rptChildNoteControls ) {this.NoteId} " );
-        }
-
-       
-
-        private void _rptChildNoteControls_ItemCommand( object source, RepeaterCommandEventArgs e )
-        {
-            Debug.WriteLine( $"_rptChildNoteControls_ItemCommand: {e.CommandArgument} {e.CommandName}" );
-        }
-
-        /// <summary>
-        /// Handles the Updated event of the childNote control.
-        /// </summary>
-        /// <param name="sender">The source of the event.</param>
-        /// <param name="e">The <see cref="NoteEventArgs"/> instance containing the event data.</param>
-        protected void childNote_Updated( object sender, NoteEventArgs e )
-        {
-            BindChildNotes();
-        }
-
-        /// <summary>
-        /// Handles the Click event of the _lbDeleteNote control.
-        /// </summary>
-        /// <param name="sender">The source of the event.</param>
-        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
-        private void _lbDeleteNote_Click( object sender, EventArgs e )
-        {
-            DeleteNote();
-        }
-
-        private void _rptChildNoteControls_ItemCreated( object sender, RepeaterItemEventArgs e )
-        {
-            Note note = e.Item.DataItem as Note;
-            Debug.WriteLine( $"_rptChildNoteControls_ItemCreated {note?.Id} {note?.Text}" );
-            NoteControl noteControl = e.Item.FindControl( "noteControl" ) as NoteControl;
-            if ( note != null && noteControl != null )
-            {
-                //noteControl.ID = $"noteControl_{note.Guid.ToString( "N" )}";
-                noteControl.Note = note;
-                int replyDepth = this.ReplyDepth + 1;
-
-                noteControl.ReplyDepth = replyDepth;
-
-                noteControl.CanEdit = note.IsAuthorized( Authorization.ADMINISTRATE, ( this.Page as RockPage )?.CurrentPerson );
-                var noteType = NoteTypeCache.Read( note.NoteTypeId );
-                noteControl.CanReply = noteType.AllowsReplies && replyDepth <= noteType.MaxReplyDepth;
-            }
-        }
-
-        /// <summary>
-        /// Handles the ItemDataBound event of the _rptChildNoteControls control.
-        /// </summary>
-        /// <param name="sender">The source of the event.</param>
-        /// <param name="e">The <see cref="RepeaterItemEventArgs"/> instance containing the event data.</param>
-        private void _rptChildNoteControls_ItemDataBound( object sender, RepeaterItemEventArgs e )
-        {
-            Note note = e.Item.DataItem as Note;
-            Debug.WriteLine( $"_rptChildNoteControls_ItemDataBound {note.Id} {note.Text}" );
-            NoteControl noteControl = e.Item.FindControl( "noteControl" ) as NoteControl;
-            if ( note != null && noteControl != null )
-            {
-                //noteControl.ID = $"noteControl_{note.Guid.ToString( "N" )}";
-                noteControl.Note = note;
-                int replyDepth = this.ReplyDepth + 1;
-
-                noteControl.ReplyDepth = replyDepth;
-
-                noteControl.CanEdit = note.IsAuthorized( Authorization.ADMINISTRATE, ( this.Page as RockPage )?.CurrentPerson );
-                var noteType = NoteTypeCache.Read( note.NoteTypeId );
-                noteControl.CanReply = noteType.AllowsReplies && replyDepth <= noteType.MaxReplyDepth;
-            }
-        }
-
-        /// <summary>
-        /// Binds the child notes.
-        /// </summary>
-        public void BindChildNotes()
-        {
-            using ( var rockContext = new RockContext() )
-            {
-                if ( this.NoteId.HasValue )
-                {
-                    var qry = new NoteService( rockContext ).Queryable( "CreatedByPersonAlias.Person" )
-                        .Where( n => n.ParentNoteId == this.NoteId )
-                        .OrderByDescending( n => n.IsAlert == true ).ThenBy( n => n.CreatedDateTime );
-
-                    var noteList = qry.ToList();
-                    _rptChildNoteControls.DataSource = noteList;
-                    _rptChildNoteControls.DataBind();
-
-                    Debug.WriteLine( $"BindChildNotes {this.ParentNoteId} {noteList.Count}" );
-                }
-            }
         }
 
         /// <summary>
@@ -707,68 +630,53 @@ namespace Rock.Web.UI.Controls
         /// <param name="writer">The <see cref="T:System.Web.UI.HtmlTextWriter" /> object that receives the control content.</param>
         public override void RenderControl( HtmlTextWriter writer )
         {
-            var noteType = NoteTypeId.HasValue ? NoteTypeCache.Read( NoteTypeId.Value ) : null;
-            StringBuilder noteCss = new StringBuilder();
-            noteCss.Append( "note js-notecontrol" );
-            if ( !string.IsNullOrEmpty( noteType?.CssClass ) )
+            if ( CSSClass != string.Empty )
             {
-                noteCss.Append( " " + noteType.CssClass );
+                writer.AddAttribute( HtmlTextWriterAttribute.Class, "note " + CSSClass );
             }
-
-            if ( !string.IsNullOrEmpty( this.CssClass ) )
+            else
             {
-                noteCss.Append( " " + this.CssClass );
+                writer.AddAttribute( HtmlTextWriterAttribute.Class, "note" );
             }
-
-            writer.AddAttribute( HtmlTextWriterAttribute.Class, noteCss.ToString() );
-            if ( this.Style[HtmlTextWriterStyle.Display] != null )
-            {
-                writer.AddStyleAttribute( HtmlTextWriterStyle.Display, this.Style[HtmlTextWriterStyle.Display] );
-            }
-
+            
             if ( this.NoteId.HasValue )
             {
                 writer.AddAttribute( "rel", this.NoteId.Value.ToStringSafe() );
             }
-
             writer.RenderBeginTag( HtmlTextWriterTag.Div );
 
             // Edit Mode HTML...
-            writer.AddAttribute( HtmlTextWriterAttribute.Class, "panel panel-noteentry js-noteedit" );
-            if ( !ShowEditMode )
+            writer.AddAttribute( HtmlTextWriterAttribute.Class, "panel panel-noteentry" );
+            if ( NoteId.HasValue || !AddAlwaysVisible )
             {
                 writer.AddStyleAttribute( HtmlTextWriterStyle.Display, "none" );
             }
-
             writer.RenderBeginTag( HtmlTextWriterTag.Div );
 
             writer.AddAttribute( HtmlTextWriterAttribute.Class, "panel-body" );
             writer.RenderBeginTag( HtmlTextWriterTag.Div );
 
-            if ( NoteControlOptions.DisplayType == NoteDisplayType.Full && NoteControlOptions.UsePersonIcon )
+            if ( DisplayType == NoteDisplayType.Full && UsePersonIcon )
             {
-                writer.Write( Person.GetPersonPhotoImageTag( CreatedByPersonId, CreatedByPhotoId, null, CreatedByGender, null, 50, 50 ) );
+                writer.Write( Person.GetPersonPhotoImageTag( CreatedByPersonId, CreatedByPhotoId, null, CreatedByGender, null, 50, 50) );
             }
 
-            writer.AddAttribute( HtmlTextWriterAttribute.Class, "noteentry-control" );
-            writer.RenderBeginTag( HtmlTextWriterTag.Div );
+            writer.AddAttribute(HtmlTextWriterAttribute.Class, "noteentry-control");
+            writer.RenderBeginTag(HtmlTextWriterTag.Div);
             _ddlNoteType.RenderControl( writer );
             _tbNote.RenderControl( writer );
             writer.RenderEndTag();
 
-            _hfNoteId.RenderControl( writer );
-            _hfParentNoteId.RenderControl( writer );
-
             // The optional create date text box, but only for new notes...
-            if ( NoteControlOptions.ShowCreateDateInput && !NoteId.HasValue )
+            if (ShowCreateDateInput && !NoteId.HasValue)
             {
-                writer.AddAttribute( HtmlTextWriterAttribute.Class, "createDate clearfix" );
-                writer.RenderBeginTag( HtmlTextWriterTag.Div );
-                _dtCreateDate.RenderControl( writer );
+                writer.AddAttribute(HtmlTextWriterAttribute.Class, "createDate clearfix");
+                writer.RenderBeginTag(HtmlTextWriterTag.Div);
+                _dtCreateDate.RenderControl(writer);
                 writer.RenderEndTag();  // createDate div
             }
 
-            if ( NoteControlOptions.DisplayType == NoteDisplayType.Full )
+            if (DisplayType == NoteDisplayType.Full)
             {
                 // Options
                 writer.AddAttribute( HtmlTextWriterAttribute.Class, "settings clearfix" );
@@ -777,19 +685,19 @@ namespace Rock.Web.UI.Controls
                 writer.AddAttribute( HtmlTextWriterAttribute.Class, "options pull-left" );
                 writer.RenderBeginTag( HtmlTextWriterTag.Div );
 
-                if ( NoteControlOptions.ShowAlertCheckBox )
+                if ( ShowAlertCheckBox )
                 {
                     _cbAlert.RenderControl( writer );
                 }
 
-                if ( NoteControlOptions.ShowPrivateCheckBox )
+                if ( ShowPrivateCheckBox )
                 {
                     _cbPrivate.RenderControl( writer );
                 }
 
                 writer.RenderEndTag();
 
-                if ( NoteControlOptions.ShowSecurityButton && this.NoteId.HasValue )
+                if ( ShowSecurityButton && this.NoteId.HasValue )
                 {
                     _sbSecurity.EntityId = this.NoteId.Value;
                     _sbSecurity.Title = this.Label;
@@ -803,16 +711,17 @@ namespace Rock.Web.UI.Controls
 
             writer.AddAttribute( HtmlTextWriterAttribute.Class, "panel-footer" );
             writer.RenderBeginTag( HtmlTextWriterTag.Div );
-
+            
             _lbSaveNote.Text = "Save " + Label;
-            _lbSaveNote.CommandName = "SaveNote";
-            _lbSaveNote.CommandArgument = this.NoteId.ToString();
             _lbSaveNote.RenderControl( writer );
 
-            writer.AddAttribute( HtmlTextWriterAttribute.Class, "edit-note-cancel js-editnote-cancel btn btn-link btn-xs" );
-            writer.RenderBeginTag( HtmlTextWriterTag.A );
-            writer.Write( "Cancel" );
-            writer.RenderEndTag();
+            if ( NoteId.HasValue || !AddAlwaysVisible )
+            {
+                writer.AddAttribute( HtmlTextWriterAttribute.Class, "edit-note-cancel btn btn-link btn-xs" );
+                writer.RenderBeginTag( HtmlTextWriterTag.A );
+                writer.Write( "Cancel" );
+                writer.RenderEndTag();
+            }
 
             writer.RenderEndTag();  // panel-footer div
 
@@ -821,166 +730,113 @@ namespace Rock.Web.UI.Controls
             if ( NoteId.HasValue )
             {
                 // View Mode HTML...
-                var rockBlock = this.RockBlock();
-                var noteMergeFields = LavaHelper.GetCommonMergeFields( rockBlock?.RockPage, rockBlock?.CurrentPerson, new CommonMergeFieldsOptions { GetLegacyGlobalMergeFields = false } );
-                var rockContext = new RockContext();
-                var noteService = new NoteService( rockContext );
-                Person noteCreatedByPerson = null;
-                int? noteCreatedByPersonAliasId = null;
-                if ( this.NoteId.HasValue )
+                writer.AddAttribute( HtmlTextWriterAttribute.Class, ArticleClass );
+                writer.RenderBeginTag( "article" );
+
+                if ( DisplayType == NoteDisplayType.Full )
                 {
-                    var note = noteService.Get( this.NoteId.Value );
-                    noteMergeFields.Add( "Note", note );
-                    noteCreatedByPersonAliasId = note?.CreatedByPersonAliasId;
-                    noteCreatedByPerson = note?.CreatedByPersonAlias?.Person;
+                    if ( UsePersonIcon )
+                    {
+                        writer.Write( Person.GetPersonPhotoImageTag( CreatedByPersonId, CreatedByPhotoId, CreatedByAge, CreatedByGender, null, 50, 50) );
+                    }
+                    else
+                    {
+                        writer.AddAttribute( HtmlTextWriterAttribute.Class, IconClass );
+                        writer.RenderBeginTag( HtmlTextWriterTag.I );
+                        writer.RenderEndTag();
+                    }
                 }
 
-                noteMergeFields.Add( "NoteCreatedByPersonAliasId", noteCreatedByPersonAliasId );
-                noteMergeFields.Add( "NoteCreatedByPerson", noteCreatedByPerson );
+                writer.AddAttribute( HtmlTextWriterAttribute.Class, "details" );
+                writer.RenderBeginTag( HtmlTextWriterTag.Div );
 
                 // first, encode the text to ensure html tags get encoded
                 string renderedText = Text.EncodeHtml();
 
                 // convert any http, etc text into clickable links (do this before applying Markdown)
                 renderedText = renderedText.Linkify();
-
+                
                 // convert any markdown into HTML, and convert into crlf into <br />
                 renderedText = renderedText.ConvertMarkdownToHtml( true );
 
-                noteMergeFields.Add( "NoteText", renderedText );
-
-                noteMergeFields.Add( "NoteControlOptions.", this.NoteControlOptions );
-                noteMergeFields.Add( "Label", this.Label );
-                noteMergeFields.Add( "CanEdit", this.CanEdit );
-                noteMergeFields.Add( "CanReply", this.CanReply );
-                noteMergeFields.Add( "IsPrivate", this.IsPrivate );
-                noteMergeFields.Add( "IsAlert", this.IsAlert );
-                noteMergeFields.Add( "ReplyDepth", this.ReplyDepth );
-
-                var deleteScript = this.Page.ClientScript.GetPostBackEventReference( _lbDeleteNote, this.NoteId.ToString(), true );
-                noteMergeFields.Add( "DeleteNotePostBackUrl", $"javascript:{deleteScript}" );
-
-                if ( this.NoteTypeId.HasValue )
+                if ( DisplayType == NoteDisplayType.Full )
                 {
-                    noteMergeFields.Add( "NoteType", NoteTypeCache.Read( this.NoteTypeId.Value ) );
-                }
+                    // Heading
+                    writer.RenderBeginTag( HtmlTextWriterTag.H5 );
 
-                string noteHtml = this.NoteControlOptions.NoteViewLavaTemplate.ResolveMergeFields( noteMergeFields );
-                bool useLava = true;
+                    if ( DisplayNoteTypeHeading & this.NoteTypeId.HasValue )
+                    {
+                        var noteType = NoteTypeCache.Read( this.NoteTypeId.Value );
+                        if ( noteType != null )
+                        {
+                            writer.RenderBeginTag( HtmlTextWriterTag.Strong );
+                            writer.Write( noteType.Name + " &nbsp; " );
+                            writer.RenderEndTag();
+                        }
+                    }
 
-                if ( useLava )
-                {
-                    writer.Write( noteHtml );
+                    string heading = Caption;
+                    if ( string.IsNullOrWhiteSpace( Caption ) )
+                    {
+                        heading = CreatedByName;
+                    }
+                    writer.Write( heading.EncodeHtml() );
+                    if ( CreatedDateTime.HasValue )
+                    {
+                        writer.Write( " " );
+                        writer.AddAttribute( "class", "date" );
+                        writer.RenderBeginTag( HtmlTextWriterTag.Span );
+                        writer.Write( CreatedDateTime.Value.ToRelativeDateString( 6 ) );
+                        writer.RenderEndTag();
+                    }
+                    writer.RenderEndTag();
+
+                    writer.Write( renderedText );
                 }
                 else
                 {
-                    // TODO remove this
-                    writer.AddAttribute( HtmlTextWriterAttribute.Class, ArticleClass );
-                    writer.RenderBeginTag( "article" );
-
-                    if ( NoteControlOptions.DisplayType == NoteDisplayType.Full )
+                    writer.Write( renderedText );
+                    writer.Write( " - " );
+                    if ( !string.IsNullOrWhiteSpace( CreatedByName ) )
                     {
-                        if ( NoteControlOptions.UsePersonIcon )
-                        {
-                            writer.Write( Person.GetPersonPhotoImageTag( CreatedByPersonId, CreatedByPhotoId, CreatedByAge, CreatedByGender, null, 50, 50 ) );
-                        }
-                        else
-                        {
-                            writer.AddAttribute( HtmlTextWriterAttribute.Class, IconClass );
-                            writer.RenderBeginTag( HtmlTextWriterTag.I );
-                            writer.RenderEndTag();
-                        }
+                        writer.AddAttribute( "class", "note-author" );
+                        writer.RenderBeginTag( HtmlTextWriterTag.Span );
+                        writer.Write( CreatedByName );
+                        writer.RenderEndTag();
+                        writer.Write( " " );
                     }
+                    if ( CreatedDateTime.HasValue )
+                    {
+                        writer.AddAttribute( "class", "note-created" );
+                        writer.RenderBeginTag( HtmlTextWriterTag.Span );
+                        writer.Write( CreatedDateTime.Value.ToRelativeDateString( 6 ) );
+                        writer.RenderEndTag();
+                    }
+                }
 
-                    writer.AddAttribute( HtmlTextWriterAttribute.Class, "details" );
+                writer.RenderEndTag();  // Details Div
+
+                if ( CanEdit )
+                {
+                    writer.AddAttribute( HtmlTextWriterAttribute.Class, "actions rollover-item" );
                     writer.RenderBeginTag( HtmlTextWriterTag.Div );
 
-                    if ( NoteControlOptions.DisplayType == NoteDisplayType.Full )
-                    {
-                        // Heading
-                        writer.RenderBeginTag( HtmlTextWriterTag.H5 );
+                    _lbDeleteNote.RenderControl( writer );
 
-                        if ( NoteControlOptions.DisplayNoteTypeHeading )
-                        {
-                            if ( noteType != null )
-                            {
-                                writer.RenderBeginTag( HtmlTextWriterTag.Strong );
-                                writer.Write( noteType.Name + " &nbsp; " );
-                                writer.RenderEndTag();
-                            }
-                        }
+                    writer.AddAttribute( HtmlTextWriterAttribute.Class, "edit-note" );
+                    writer.AddAttribute( HtmlTextWriterAttribute.Href, "#" );
+                    writer.RenderBeginTag( HtmlTextWriterTag.A );
+                    writer.AddAttribute( HtmlTextWriterAttribute.Class, "fa fa-pencil" );
+                    writer.RenderBeginTag( HtmlTextWriterTag.I );
+                    writer.RenderEndTag();
+                    writer.RenderEndTag();  // A
 
-                        string heading = Caption;
-                        if ( string.IsNullOrWhiteSpace( Caption ) )
-                        {
-                            heading = CreatedByName;
-                        }
-
-                        writer.Write( heading.EncodeHtml() );
-                        if ( CreatedDateTime.HasValue )
-                        {
-                            writer.Write( " " );
-                            writer.AddAttribute( "class", "date" );
-                            writer.RenderBeginTag( HtmlTextWriterTag.Span );
-                            writer.Write( CreatedDateTime.Value.ToRelativeDateString( 6 ) );
-                            writer.RenderEndTag();
-                        }
-
-                        writer.RenderEndTag();
-
-                        writer.Write( renderedText );
-                    }
-                    else
-                    {
-                        writer.Write( renderedText );
-                        writer.Write( " - " );
-                        if ( !string.IsNullOrWhiteSpace( CreatedByName ) )
-                        {
-                            writer.AddAttribute( "class", "note-author" );
-                            writer.RenderBeginTag( HtmlTextWriterTag.Span );
-                            writer.Write( CreatedByName );
-                            writer.RenderEndTag();
-                            writer.Write( " " );
-                        }
-
-                        if ( CreatedDateTime.HasValue )
-                        {
-                            writer.AddAttribute( "class", "note-created" );
-                            writer.RenderBeginTag( HtmlTextWriterTag.Span );
-                            writer.Write( CreatedDateTime.Value.ToRelativeDateString( 6 ) );
-                            writer.RenderEndTag();
-                        }
-                    }
-
-                    writer.RenderEndTag();  // Details Div
-
-                    if ( CanEdit )
-                    {
-                        writer.AddAttribute( HtmlTextWriterAttribute.Class, "actions rollover-item" );
-                        writer.RenderBeginTag( HtmlTextWriterTag.Div );
-
-                        writer.AddAttribute( HtmlTextWriterAttribute.Class, "edit-note js-editnote" );
-                        writer.AddAttribute( HtmlTextWriterAttribute.Href, "#" );
-                        writer.RenderBeginTag( HtmlTextWriterTag.A );
-                        writer.AddAttribute( HtmlTextWriterAttribute.Class, "fa fa-pencil" );
-                        writer.RenderBeginTag( HtmlTextWriterTag.I );
-                        writer.RenderEndTag();
-                        writer.RenderEndTag();  // A
-
-                        writer.RenderEndTag();  // actions
-                    }
-
-                    writer.RenderEndTag();  // article
+                    writer.RenderEndTag();  // actions
                 }
+
+                writer.RenderEndTag();  // article
             }
 
-            writer.RenderEndTag();
-
-            writer.AddAttribute( HtmlTextWriterAttribute.Class, "js-notereplies note-replies" );
-            writer.RenderBeginTag( HtmlTextWriterTag.Div );
-
-            Debug.WriteLine( $"_rptChildNoteControls.RenderControl {this.NoteId}" );
-            _rptChildNoteControls.RenderControl( writer );
             writer.RenderEndTag();
         }
 
@@ -1001,7 +857,7 @@ namespace Rock.Web.UI.Controls
             }
 
             var rockPage = this.Page as RockPage;
-            if ( rockPage != null && NoteTypeId.HasValue )
+            if (rockPage != null && NoteTypeId.HasValue)
             {
                 var currentPerson = rockPage.CurrentPerson;
 
@@ -1019,7 +875,6 @@ namespace Rock.Web.UI.Controls
                     note = new Note();
                     note.IsSystem = false;
                     note.EntityId = EntityId;
-                    note.ParentNoteId = _hfParentNoteId.Value.AsIntegerOrNull();
                     service.Add( note );
                 }
 
@@ -1028,12 +883,11 @@ namespace Rock.Web.UI.Controls
                 {
                     note.Caption = IsPrivate ? "You - Personal Note" : string.Empty;
                 }
-
                 note.Text = Text;
                 note.IsAlert = IsAlert;
                 note.IsPrivateNote = IsPrivate;
 
-                if ( NoteControlOptions.ShowCreateDateInput )
+                if (ShowCreateDateInput)
                 {
                     note.CreatedDateTime = _dtCreateDate.SelectedDateTime;
                 }
@@ -1048,9 +902,11 @@ namespace Rock.Web.UI.Controls
         }
 
         /// <summary>
-        /// Deletes the note.
+        /// Handles the Click event of the lbDeleteNote control.
         /// </summary>
-        protected void DeleteNote()
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
+        protected void lbDeleteNote_Click( object sender, EventArgs e )
         {
             var rockPage = this.Page as RockPage;
             if ( rockPage != null )
@@ -1066,16 +922,8 @@ namespace Rock.Web.UI.Controls
                     note = service.Get( NoteId.Value );
                     if ( note != null && note.IsAuthorized( Authorization.EDIT, currentPerson ) )
                     {
-                        string errorMessage;
-                        if ( service.CanDelete( note, out errorMessage ) )
-                        {
-                            service.Delete( note );
-                            rockContext.SaveChanges();
-                        }
-                        else
-                        {
-                            // TODO
-                        }
+                        service.Delete( note );
+                        rockContext.SaveChanges();
                     }
                 }
 
@@ -1083,6 +931,7 @@ namespace Rock.Web.UI.Controls
                 {
                     DeleteButtonClick( this, new NoteEventArgs( NoteId ) );
                 }
+
             }
         }
 
@@ -1100,51 +949,6 @@ namespace Rock.Web.UI.Controls
         /// </summary>
         public event EventHandler<NoteEventArgs> DeleteButtonClick;
 
-        public event EventHandler<NoteEventArgs> ChildNotesUpdated;
-
         #endregion
     }
-
-    /// <summary>
-    /// Note Event Argument includes id of note updated
-    /// </summary>
-    public class NoteEventArgs : EventArgs
-    {
-        /// <summary>
-        /// Gets the note identifier.
-        /// </summary>
-        /// <value>
-        /// The note identifier.
-        /// </value>
-        public int? NoteId { get; private set; }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="NoteEventArgs"/> class.
-        /// </summary>
-        /// <param name="noteId">The note identifier.</param>
-        public NoteEventArgs( int? noteId )
-        {
-            NoteId = noteId;
-        }
-    }
-
-    #region Enums
-
-    /// <summary>
-    /// 
-    /// </summary>
-    public enum NoteDisplayType
-    {
-        /// <summary>
-        /// The full
-        /// </summary>
-        Full,
-
-        /// <summary>
-        /// The light
-        /// </summary>
-        Light
-    }
-
-    #endregion
 }
