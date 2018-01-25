@@ -18,6 +18,7 @@ using System;
 using System.Linq;
 using System.Text;
 using System.Web.UI;
+using System.Web.UI.HtmlControls;
 using System.Web.UI.WebControls;
 
 using Rock.Data;
@@ -40,17 +41,25 @@ namespace Rock.Web.UI.Controls
         private CheckBox _cbAlert;
         private CheckBox _cbPrivate;
         private LinkButton _lbSaveNote;
-        private SecurityButton _sbSecurity;
+
+        // NOTE: Intentially using a HtmlAnchor for security instead of SecurityButton since the URL will need to be set in Javascript
+        private HtmlAnchor _aSecurity;
+
         private DateTimePicker _dtCreateDate;
         private HiddenFieldWithClass _hfParentNoteId;
         private HiddenFieldWithClass _hfNoteId;
-
-        private LinkButton _lbDeleteNote;
+        private ModalAlert _mdEditWarning;
 
         #endregion
 
         #region Properties
 
+        /// <summary>
+        /// Gets the note control options.
+        /// </summary>
+        /// <value>
+        /// The note control options.
+        /// </value>
         public NoteControlOptions NoteControlOptions { get; private set; }
 
         /// <summary>
@@ -366,10 +375,10 @@ namespace Rock.Web.UI.Controls
             _cbAlert = new CheckBox();
             _cbPrivate = new CheckBox();
             _lbSaveNote = new LinkButton();
-            _lbDeleteNote = new LinkButton();
-            _sbSecurity = new SecurityButton();
+            _aSecurity = new HtmlAnchor();
             _dtCreateDate = new DateTimePicker();
             _hfParentNoteId = new HiddenFieldWithClass();
+            _mdEditWarning = new ModalAlert();
         }
 
         #endregion
@@ -408,7 +417,7 @@ namespace Rock.Web.UI.Controls
             base.CreateChildControls();
 
             _ddlNoteType.ID = this.ID + "_ddlNoteType";
-            _ddlNoteType.CssClass = "form-control input-sm input-width-lg noteentry-notetype";
+            _ddlNoteType.CssClass = "form-control input-sm input-width-lg noteentry-notetype js-notenotetype";
             _ddlNoteType.DataValueField = "Id";
             _ddlNoteType.DataTextField = "Name";
             Controls.Add( _ddlNoteType );
@@ -429,11 +438,16 @@ namespace Rock.Web.UI.Controls
 
             _cbAlert.ID = this.ID + "_cbAlert";
             _cbAlert.Text = "Alert";
+            _cbAlert.CssClass = "js-notealert";
             Controls.Add( _cbAlert );
 
             _cbPrivate.ID = this.ID + "_cbPrivate";
             _cbPrivate.Text = "Private";
+            _cbPrivate.CssClass = "js-noteprivate";
             Controls.Add( _cbPrivate );
+
+            _mdEditWarning.ID = this.ID + "_mdEditWarning";
+            Controls.Add( _mdEditWarning );
 
             _lbSaveNote.ID = this.ID + "_lbSaveNote";
             _lbSaveNote.Attributes["class"] = "btn btn-primary btn-xs";
@@ -442,57 +456,14 @@ namespace Rock.Web.UI.Controls
 
             Controls.Add( _lbSaveNote );
 
-            // Create the DeleteNote linkbutton so we can get the PostBack script, but don't actually render it. 
-            _lbDeleteNote.ID = this.ID + "_lbDeleteNote";
-            _lbDeleteNote.Click += _lbDeleteNote_Click;
-            _lbDeleteNote.Visible = false;
-            Controls.Add( _lbDeleteNote );
-
-            _sbSecurity.ID = "_sbSecurity";
-            _sbSecurity.Attributes["class"] = "btn btn-security btn-xs security pull-right";
-            _sbSecurity.EntityTypeId = EntityTypeCache.Read( typeof( Rock.Model.Note ) ).Id;
+            _aSecurity.ID = "_aSecurity";
+            _aSecurity.Attributes["class"] = "btn btn-security btn-xs security pull-right fa fa-lock js-notesecurity";
+            _aSecurity.Attributes["data-entitytype-id"] = EntityTypeCache.Read( typeof( Rock.Model.Note ) ).Id.ToString();
+            Controls.Add( _aSecurity );
 
             _dtCreateDate.ID = this.ID + "_tbCreateDate";
             _dtCreateDate.Label = "Note Created Date";
             Controls.Add( _dtCreateDate );
-
-            Controls.Add( _sbSecurity );
-        }
-
-        private void _lbDeleteNote_Click( object sender, EventArgs e )
-        {
-            var rockPage = this.Page as RockPage;
-            if ( rockPage != null )
-            {
-                var currentPerson = rockPage.CurrentPerson;
-
-                var rockContext = new RockContext();
-                var service = new NoteService( rockContext );
-                Note note = null;
-
-                if ( NoteId.HasValue )
-                {
-                    note = service.Get( NoteId.Value );
-                    if ( note != null && note.IsAuthorized( Authorization.EDIT, currentPerson ) )
-                    {
-                        string errorMessage;
-                        if ( service.CanDelete( note, out errorMessage ) )
-                        {
-                            service.Delete( note );
-                            rockContext.SaveChanges();
-                        }
-                        else
-                        {
-                            // TODO
-                        }
-                    }
-                }
-
-                if ( DeleteButtonClick != null )
-                {
-                    DeleteButtonClick( this, new NoteEventArgs( NoteId ) );
-                }
-            }
         }
 
         /// <summary>
@@ -503,7 +474,7 @@ namespace Rock.Web.UI.Controls
         {
             var noteType = NoteTypeId.HasValue ? NoteTypeCache.Read( NoteTypeId.Value ) : null;
             StringBuilder noteCss = new StringBuilder();
-            noteCss.Append( "note js-notecontrol" );
+            noteCss.Append( "note js-note-editor" );
             if ( !string.IsNullOrEmpty( noteType?.CssClass ) )
             {
                 noteCss.Append( " " + noteType.CssClass );
@@ -520,6 +491,11 @@ namespace Rock.Web.UI.Controls
                 writer.AddStyleAttribute( HtmlTextWriterStyle.Display, this.Style[HtmlTextWriterStyle.Display] );
             }
 
+            if ( !ShowEditMode )
+            {
+                writer.AddStyleAttribute( HtmlTextWriterStyle.Display, "none" );
+            }
+
             if ( this.NoteId.HasValue )
             {
                 writer.AddAttribute( "rel", this.NoteId.Value.ToStringSafe() );
@@ -528,11 +504,7 @@ namespace Rock.Web.UI.Controls
             writer.RenderBeginTag( HtmlTextWriterTag.Div );
 
             // Edit Mode HTML...
-            writer.AddAttribute( HtmlTextWriterAttribute.Class, "panel panel-noteentry js-noteedit" );
-            if ( !ShowEditMode )
-            {
-                writer.AddStyleAttribute( HtmlTextWriterStyle.Display, "none" );
-            }
+            writer.AddAttribute( HtmlTextWriterAttribute.Class, "panel panel-noteentry" );
 
             writer.RenderBeginTag( HtmlTextWriterTag.Div );
 
@@ -583,11 +555,10 @@ namespace Rock.Web.UI.Controls
 
                 writer.RenderEndTag();
 
-                if ( NoteControlOptions.ShowSecurityButton && this.NoteId.HasValue )
+                if ( NoteControlOptions.ShowSecurityButton )
                 {
-                    _sbSecurity.EntityId = this.NoteId.Value;
-                    _sbSecurity.Title = this.Label;
-                    _sbSecurity.RenderControl( writer );
+                    _aSecurity.Attributes["data-title"] = this.Label;
+                    _aSecurity.RenderControl( writer );
                 }
 
                 writer.RenderEndTag();  // settings div
@@ -597,6 +568,8 @@ namespace Rock.Web.UI.Controls
 
             writer.AddAttribute( HtmlTextWriterAttribute.Class, "panel-footer" );
             writer.RenderBeginTag( HtmlTextWriterTag.Div );
+
+            _mdEditWarning.RenderControl( writer );
 
             _lbSaveNote.Text = "Save " + Label;
             _lbSaveNote.CommandName = "SaveNote";
@@ -653,6 +626,15 @@ namespace Rock.Web.UI.Controls
                     note.ParentNoteId = _hfParentNoteId.Value.AsIntegerOrNull();
                     service.Add( note );
                 }
+                else
+                {
+                    if ( !note.IsAuthorized( Authorization.EDIT, currentPerson ) )
+                    {
+                        // if somehow a person is trying to edit a note that they aren't authorized to edit, don't update the note
+                        _mdEditWarning.Show( "Not authorized to edit note", ModalAlertType.Warning );
+                        return;
+                    }
+                }
 
                 note.NoteTypeId = NoteTypeId.Value;
                 if ( string.IsNullOrWhiteSpace( note.Caption ) )
@@ -686,11 +668,6 @@ namespace Rock.Web.UI.Controls
         /// Occurs when [save button click].
         /// </summary>
         public event EventHandler<NoteEventArgs> SaveButtonClick;
-
-        /// <summary>
-        /// Occurs when [delete button click].
-        /// </summary>
-        public event EventHandler<NoteEventArgs> DeleteButtonClick;
 
         #endregion
     }

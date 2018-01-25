@@ -41,6 +41,9 @@ namespace Rock.Web.UI.Controls
 
         private NoteEditor _noteEditor;
         private LinkButton _lbShowMore;
+        private HiddenFieldWithClass _hfCurrentNoteId;
+        private LinkButton _lbDeleteNote;
+        private ModalAlert _mdDeleteWarning;
 
         #endregion
 
@@ -230,12 +233,30 @@ namespace Rock.Web.UI.Controls
 
             _noteEditor = new NoteEditor( this.NoteControlOptions );
             _noteEditor.ID = this.ID + "_noteEditor";
-            _noteEditor.CssClass = "note-new js-note-editor";
+            _noteEditor.CssClass = "note-new";
 
             _noteEditor.CreatedByPersonAlias = ( this.Page as RockPage )?.CurrentPersonAlias;
             _noteEditor.SaveButtonClick += note_SaveButtonClick;
 
             Controls.Add( _noteEditor );
+
+            // Create a hidden field that javascript will populate with the selected note
+            _hfCurrentNoteId = new HiddenFieldWithClass();
+            _hfCurrentNoteId.ID = this.ID + "_hfCurrentNoteId";
+            _hfCurrentNoteId.CssClass = "js-currentnoteid";
+            Controls.Add( _hfCurrentNoteId );
+
+            // Create a hidden DeleteNote linkbutton that will hookup to the Lava'd Delete button
+            _lbDeleteNote = new LinkButton();
+            _lbDeleteNote.ID = this.ID + "_lbDeleteNote";
+            _lbDeleteNote.CssClass = "js-delete-postback";
+            _lbDeleteNote.Click += _lbDeleteNote_Click;
+            _lbDeleteNote.Style[HtmlTextWriterStyle.Display] = "none";
+            Controls.Add( _lbDeleteNote );
+
+            _mdDeleteWarning = new ModalAlert();
+            _mdDeleteWarning.ID = this.ID + "_mdDeleteWarning";
+            Controls.Add( _mdDeleteWarning );
 
             _lbShowMore = new LinkButton();
             _lbShowMore.ID = "lbShowMore";
@@ -254,6 +275,44 @@ namespace Rock.Web.UI.Controls
             var iDownPost = new HtmlGenericControl( "i" );
             iDownPost.Attributes.Add( "class", "fa fa-angle-down" );
             _lbShowMore.Controls.Add( iDownPost );
+        }
+
+        /// <summary>
+        /// Handles the Click event of the _lbDeleteNote control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
+        private void _lbDeleteNote_Click( object sender, EventArgs e )
+        {
+            var rockPage = this.Page as RockPage;
+            if ( rockPage != null )
+            {
+                var currentPerson = rockPage.CurrentPerson;
+
+                var rockContext = new RockContext();
+                var service = new NoteService( rockContext );
+                Note note = null;
+                int? noteId = _hfCurrentNoteId.Value.AsIntegerOrNull();
+
+                if ( noteId.HasValue )
+                {
+                    note = service.Get( noteId.Value );
+                    if ( note != null && note.IsAuthorized( Authorization.EDIT, currentPerson ) )
+                    {
+                        string errorMessage;
+                        if ( service.CanDelete( note, out errorMessage ) )
+                        {
+                            service.Delete( note );
+                            rockContext.SaveChanges();
+                        }
+                        else
+                        {
+                            _mdDeleteWarning.Show( errorMessage, ModalAlertType.Information );
+                            return;
+                        }
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -325,6 +384,9 @@ namespace Rock.Web.UI.Controls
                     _noteEditor.RenderControl( writer );
                 }
 
+                _hfCurrentNoteId.RenderControl( writer );
+                _lbDeleteNote.RenderControl( writer );
+                _mdDeleteWarning.RenderControl( writer );
                 using ( var rockContext = new RockContext() )
                 {
                     List<Note> viewableNoteList = GetViewableNoteList( rockContext, currentPerson );
@@ -338,7 +400,6 @@ namespace Rock.Web.UI.Controls
                     var rockBlock = this.RockBlock();
                     var noteMergeFields = LavaHelper.GetCommonMergeFields( rockBlock?.RockPage, currentPerson, new CommonMergeFieldsOptions { GetLegacyGlobalMergeFields = false } );
                     noteMergeFields.Add( "NoteControlOptions", this.NoteControlOptions );
-
                     noteMergeFields.Add( "NoteList", viewableNoteList );
 
                     var noteTreeHtml = this.NoteControlOptions.NoteViewLavaTemplate.ResolveMergeFields( noteMergeFields );
