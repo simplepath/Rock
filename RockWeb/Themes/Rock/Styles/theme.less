@@ -192,8 +192,11 @@ textarea:focus,
   padding-right: 60px;
 }
 
-/*#endregion */
+.panel-widget > .panel-heading {
+  background-color: @gray-lighter;
+}
 
+/*#endregion */
 /*#region
 // 4. Theme Styling          */
 // -------------------------
@@ -208,11 +211,40 @@ textarea:focus,
 
 .rock-top-header {
   background-color: @brand-color;
-  height: @navbar-top-height;
   margin-bottom: 0;
 
   @media (max-width: @screen-sm-max) {
     position: relative;
+  }
+
+  .header-content {
+    padding: 12px;
+  }
+
+  .bookmarks {
+    & > li {
+      float: left;
+    }
+  }
+
+  .navbar-zone-login {
+    float: right;
+  }
+
+  .navbar-zone-header {
+    float: left;
+  }
+
+  @media (min-width: @screen-sm-min) {
+    height: @navbar-top-height;
+
+    .header-content {
+      padding: 0;
+    }
+
+    .navbar-zone-header {
+      float: right;
+    }
   }
 
   .navbar-toggle {
@@ -368,7 +400,6 @@ textarea:focus,
   }
 
   .dropdown-menu {
-
     border: 0;
 
     a {
@@ -383,16 +414,18 @@ textarea:focus,
       }
     }
 
-    &:after {
-      border-bottom: 8px solid #fff;
-      border-left: 8px solid transparent;
-      border-right: 8px solid transparent;
-      top: -8px;
-      content: "";
-      display: inline-block;
-      left: 42px;
-      margin-left: -6px;
-      position: absolute;
+    @media (min-width: @screen-sm-min) {
+      &:after {
+        border-bottom: 8px solid #fff;
+        border-left: 8px solid transparent;
+        border-right: 8px solid transparent;
+        top: -8px;
+        content: "";
+        display: inline-block;
+        left: 75px;
+        margin-left: -6px;
+        position: absolute;
+      }
     }
   }
 }
@@ -587,8 +620,13 @@ body.navbar-side-close {
 // sub page styles
 .main-content {
 
-  .page-content {
+  #page-content {
     min-height: 600px;
+    padding: 12px;
+
+    @media (min-width: @screen-md-min) {
+      padding: 0;
+    }
   }
 
   #page-title {

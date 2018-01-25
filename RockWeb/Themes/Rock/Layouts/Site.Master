@@ -65,8 +65,8 @@
             <asp:HyperLink ID="hlHomeCorner" runat="server" NavigateUrl="~" ToolTip="Rock RMS" CssClass="navbar-brand-corner" />
             <asp:HyperLink ID="hlHomeCenter" runat="server" NavigateUrl="~" ToolTip="Rock RMS" CssClass="navbar-brand-center" />
 
-            <div class="collapse navbar-collapse">
-                <ul class="nav navbar-nav navbar-static-top">
+            <div class="header-content">
+                <ul class="nav navbar-nav navbar-static-top bookmarks">
                     <li><a href="">Reports</a></li>
                     <li><a href="">Event Registrations</a></li>
                     <li class="dropdown">
@@ -84,8 +84,8 @@
                     </li>
                 </ul>
 
-                <div class="navbar-zone-login pull-right"><Rock:Zone Name="Login" runat="server" /></div>
-                <div class="navbar-zone-header divided"><Rock:Zone Name="Header" runat="server" /></div>
+                <div class="navbar-zone-login"><Rock:Zone Name="Login" runat="server" /></div>
+                <div class="navbar-zone-header"><Rock:Zone Name="Header" runat="server" /></div>
             </div>
             
         </nav>

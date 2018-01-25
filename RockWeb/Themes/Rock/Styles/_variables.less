@@ -2,21 +2,53 @@
 @brand-color: #ee7725; // This is the primary brand color that will be used for the header, primary buttons and other accents. #color
 @brand-light-color: #fbd3b7; // The light version of the brand color. #color
 
-@body-background: #F0F0F0; // The page background color. #color
+@body-background: #f0f0f0; // The page background color. #color
 @text-color: #545454; // The default text color. #color
 @link-color: #4f89bd; // The color for all links. #color
 
 
 @navbarside-background-color: #3a3935; // This is the background color for the right-hand menu. #color
 
+@modal-header-background: #3a3935; // The header color for modal dialogs. #color
+@modal-footer-background: #b4b4b4; // The header color for modal dialogs. #color
+@modal-backdrop-background: #000; // The backdrop color that overlays the page when a modal is displayed. #color
+
+// Text *show in editor*
+@text-selection-background: #5eb9c1; // Text selection background color (used when people select text with the mouse). #color
+@text-selection-color: #fff; // Text selection text color (used when people select text with the mouse). #color
+@font-family-sans-serif: 'OpenSans', 'Helvetica Neue', Helvetica, Arial, sans-serif; // The base font to use for text. Be sure when defining this font that the various weights are configured.
+@font-size-base: 14px; // The default text size.
+@line-height-base: 1.428571429; // The default line height.
+//--
+@help-color: #86b8cc; // The color of the help icon used in Rock. #color
+@required-field-color: #eca9a7; // Color of the small dot that denotes required fields. #color
 
 
+// Bootstrap Colors *show in editor*
+@brand-success: #7accbe; // #color
+@brand-warning: #ffc870; // #color
+@brand-danger: #ef6262; // #color
+@brand-info: #8dcadf; // #color
+@brand-critical: #ee7624; // #color
+
+// Modals
+@modal-header-bg: @modal-header-background; // The header color for modal dialogs. #color
+@modal-footer-bg: @modal-footer-background; // The header color for modal dialogs. #color
+@modal-backdrop-bg: @modal-backdrop-background; // The backdrop color that overlays the page when a modal is displayed. #color
+
+@modal-header-text-color: #fff;
+@modal-body-bg: @body-bg;
+@modal-body-text-color: @text-color;
+@modal-dropshadow-color: rgba(0,0,0,0.6);
+@modal-backdrop-opacity: .4;
+@modal-footer-text-color: #fff;
 
 
 
 
 
 // Helper Colors
+@text-selection-bg: @text-selection-background;
 @navbarside-color: rgba(255, 255, 255, 0.8);
 @navbarside-width: 100px;
 @navbarside-sub-bg: lighten(@navbarside-background-color, 8%);
@@ -27,6 +59,7 @@
 
 @body-bg: @body-background;
 
+@brand-primary: @brand-color; // #color
 @brand-primary: @brand-color; // #color
 @brand-success: #7ACCBE; // #color
 @brand-warning: #FFC870; // #color
@@ -60,17 +93,7 @@
 
 
 
-// Text *show in editor*
 
-
-@text-selection-bg:      #afd074;                   // Text selection background color (used when people select text with the mouse). #color
-@text-selection-color:   #fff;                      // Text selection text color (used when people select text with the mouse). #color
-@font-family-sans-serif: 'OpenSans', 'Helvetica Neue', Helvetica, Arial, sans-serif;    // The base font to use for text. Be sure when defining this font that the various weights are configured.
-@font-size-base:          14px;         // The default text size.
-@line-height-base:        1.428571429;  // The default line height.
-//--
-@help-color: #86b8cc;                   // The color of the help icon used in Rock. #color
-@required-field-color: #eca9a7;         // Color of the small dot that denotes required fields. #color
 
 //// Heading Sizes
 @font-size-h1:            floor(@font-size-base * 2.60);    // ~36px
@@ -81,7 +104,7 @@
 @font-size-h6:            ceil(@font-size-base * 0.85);     // ~12px
 
 
-// Bootstrap Colors *show in editor*
+// Bootstrap Colors 
 
 //// Bootstrap Colors {The primary colors defined by the Bootstrap framework. [More Information](http://getbootstrap.com/customize/#colors)}
 
@@ -280,19 +303,6 @@
 @note-personal-bg: @alert-info-bg;
 @note-personal-text: @alert-info-text;
 @note-personal-border: @alert-info-border;
-
-// Modals
-@modal-header-bg: @theme-2;
-@modal-header-text-color: @theme-2-text;
-@modal-body-bg: @body-bg;
-@modal-body-text-color: @text-color;
-@modal-footer-bg: @theme-4;
-@modal-footer-text-color: @theme-4-text;
-@modal-dropshadow-color: rgba(0,0,0,0.6);
-
-//// Backdrop
-@modal-backdrop-bg:           #fff;
-@modal-backdrop-opacity:      .4;
 
 // Tooltip
 @tooltip-header-bg: @theme-8;
