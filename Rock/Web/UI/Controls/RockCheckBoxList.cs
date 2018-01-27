@@ -392,20 +392,26 @@ namespace Rock.Web.UI.Controls
    function StrikeOffCheckbox( checkboxControl ){{
                 if ( checkboxControl.prop( 'checked' ) )
                 {{
-                    checkboxControl.prev().addClass( 'strikethrough' );
+                    checkboxControl.parent('label').addClass( 'strikethrough' );
                 }}
                 else
                 {{
-                    checkboxControl.prev().removeClass( 'strikethrough' );
+                    checkboxControl.parent('label').removeClass( 'strikethrough' );
                 }}
 
             }}
 
-
         $( "".checklist .checkbox input[type=checkbox]"").click( function() {{
                 StrikeOffCheckbox($( this ) );
             }})
-");
+
+            var checkboxes = $(""input[id ^= '{0}']:checked"");
+
+            for ( var i = 0; i < checkboxes.length; i++ )
+            {{
+                    StrikeOffCheckbox( $(checkboxes[i]) );
+            }}
+", this.ClientID);
 
                 ScriptManager.RegisterStartupScript( this, typeof( RockCheckBoxList ), "RockCheckBoxListScript_" + this.ClientID, script, true );
             }

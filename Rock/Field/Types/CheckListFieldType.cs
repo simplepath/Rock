@@ -22,10 +22,11 @@ using System.Linq.Expressions;
 using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-
+using Newtonsoft.Json;
 using Rock.Model;
 using Rock.Reporting;
 using Rock.Web.UI.Controls;
+using static Rock.Web.UI.Controls.ListItems;
 
 namespace Rock.Field.Types
 {
@@ -37,7 +38,7 @@ namespace Rock.Field.Types
     {
         #region Configuration
 
-        private const string VALUES_KEY = "values";
+        private const string VALUES_KEY = "listItems";
 
         /// <summary>
         /// Gets whether default value is allowed.
@@ -63,10 +64,10 @@ namespace Rock.Field.Types
         {
             List<Control> controls = new List<Control>();
 
-            var vl = new ValueList();
-            controls.Add( vl );
-            vl.Label = "Values";
-            vl.Help = "The list of the values to display.";
+            var li = new ListItems();
+            controls.Add( li );
+            li.Label = "Values";
+            li.Help = "The list of the values to display.";
             return controls;
         }
 
@@ -83,9 +84,9 @@ namespace Rock.Field.Types
 
             if ( controls != null )
             {
-                if ( controls.Count > 0 && controls[0] != null && controls[0] is ValueList )
+                if ( controls.Count > 0 && controls[0] != null && controls[0] is ListItems )
                 {
-                    configurationValues[VALUES_KEY].Value = ( ( ValueList ) controls[0] ).Value;
+                    configurationValues[VALUES_KEY].Value = ( ( ListItems ) controls[0] ).Value;
                 }
             }
 
@@ -101,9 +102,9 @@ namespace Rock.Field.Types
         {
             if ( controls != null && configurationValues != null )
             {
-                if ( controls.Count > 0 && controls[0] != null && controls[0] is ValueList && configurationValues.ContainsKey( VALUES_KEY ) )
+                if ( controls.Count > 0 && controls[0] != null && controls[0] is ListItems && configurationValues.ContainsKey( VALUES_KEY ) )
                 {
-                    ( ( ValueList ) controls[0] ).Value = GetUrlDecodedValues( configurationValues[VALUES_KEY].Value );
+                    ( ( ListItems ) controls[0] ).Value = configurationValues[VALUES_KEY].Value;
                 }
 
             }
@@ -125,7 +126,8 @@ namespace Rock.Field.Types
         {
             if ( !string.IsNullOrWhiteSpace( value ) && configurationValues.ContainsKey( VALUES_KEY ) )
             {
-                return GetUrlDecodedValues( value );
+
+                return GetUrlDecodedValues( configurationValues[VALUES_KEY].Value, value );
             }
 
             return base.FormatValue( parentControl, value, configurationValues, condensed );
@@ -153,10 +155,10 @@ namespace Rock.Field.Types
 
                 if ( configurationValues.ContainsKey( VALUES_KEY ) )
                 {
-                    var values = GetUrlDecodedValues( configurationValues[VALUES_KEY].Value ).Split( new char[] { '|' } ).ToList();
+                    var values = JsonConvert.DeserializeObject<List<KeyValuePair>>( configurationValues[VALUES_KEY].Value );
                     foreach ( var val in values )
                     {
-                        editControl.Items.Add( new ListItem( val ) );
+                        editControl.Items.Add( new ListItem( val.Value, val.Key.ToString() ) );
                     }
                 }
                 if ( editControl.Items.Count > 0 )
@@ -250,11 +252,18 @@ namespace Rock.Field.Types
 
         #region Private
 
-        public string GetUrlDecodedValues( string value )
+        public string GetUrlDecodedValues( string jsonKeyValuePairs, string value )
         {
-            string[] values = value.Split( new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries );
-            values = values.Select( s => HttpUtility.UrlDecode( s ) ).ToArray();
-            return values.ToList().AsDelimited( "|" );
+            if ( string.IsNullOrEmpty( jsonKeyValuePairs ) || string.IsNullOrEmpty(value) )
+            {
+                return string.Empty;
+            }
+            else
+            {
+                var values = value.Split( new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries ).AsGuidList();
+                var keyValuePairs = JsonConvert.DeserializeObject<List<KeyValuePair>>( jsonKeyValuePairs );
+                return keyValuePairs.Where( a => values.Contains( a.Key ) ).Select( a => a.Value ).ToList().AsDelimited( "," );
+            }
         }
         #endregion
     }
