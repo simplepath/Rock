@@ -619,29 +619,44 @@ th[align=center] {
 
 .btn-authentication {
   width: 100%;
-
+  margin-bottom: 8px;
   .button-variant(@btn-default-color; @btn-default-bg; @btn-default-border);
 
   &:hover {
     background-color: darken(@btn-default-bg, 10%);
   }
 
-  &.facebook:before {
-    margin-right: 12px;
-    font-family: 'FontAwesome';
-    content: @fa-var-facebook;
+  &.facebook {
+    background-color: #3d5a96;
+    color: #fff;
+
+    &:before {
+      margin-right: 12px;
+      font-family: 'FontAwesome';
+      content: @fa-var-facebook;
+    }
   }
 
-  &.google:before {
-    margin-right: 12px;
-    font-family: 'FontAwesome';
-    content: @fa-var-google;
+  &.google {
+    background-color: #ed4e23;
+    color: #fff;
+
+    &:before {
+      margin-right: 12px;
+      font-family: 'FontAwesome';
+      content: @fa-var-google;
+    }
   }
 
-  &.twitter:before {
-    margin-right: 12px;
-    font-family: 'FontAwesome';
-    content: @fa-var-twitter;
+  &.twitter {
+    background-color: #2aa3ef;
+    color: #fff;
+
+    &:before {
+      margin-right: 12px;
+      font-family: 'FontAwesome';
+      content: @fa-var-twitter;
+    }
   }
 }
 

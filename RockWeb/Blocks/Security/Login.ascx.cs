@@ -144,6 +144,11 @@ Sorry, your account has been locked.  Please contact our office at {{ 'Global' |
                 divOrgLogin.RemoveCssClass( "col-sm-6" );
                 divOrgLogin.AddCssClass( "col-sm-12" );
             }
+            else
+            {
+                // add a css class the panel to help with styling when there are other providers active
+                pnlLogin.CssClass += " external-auth-providers";
+            }
         }
 
         /// <summary>

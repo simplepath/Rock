@@ -1,6 +1,6 @@
 ﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="Login.ascx.cs" Inherits="RockWeb.Blocks.Security.Login" %>
 
-    <asp:Panel ID="pnlLogin" runat="server" DefaultButton="btnLogin">
+    <asp:Panel ID="pnlLogin" runat="server" DefaultButton="btnLogin" CssClass="login-block">
 
         <fieldset>
             <legend>Login</legend>
