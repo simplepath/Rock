@@ -23,9 +23,7 @@
 @font-face {
   font-family: 'OpenSans';
   src: url('../../../Assets/Fonts/OpenSans/OpenSans-Light-webfont.eot');
-  src: url('../../../Assets/Fonts/OpenSans/OpenSans-Light-webfont.eot?#iefix') format('embedded-opentype'),
-       url('../../../Assets/Fonts/OpenSans/OpenSans-Light-webfont.woff2') format('woff2'),
-       url('../../../Assets/Fonts/OpenSans/OpenSans-Light-webfont.woff') format('woff');
+  src: url('../../../Assets/Fonts/OpenSans/OpenSans-Light-webfont.eot?#iefix') format('embedded-opentype'), url('../../../Assets/Fonts/OpenSans/OpenSans-Light-webfont.woff2') format('woff2'), url('../../../Assets/Fonts/OpenSans/OpenSans-Light-webfont.woff') format('woff');
   font-weight: 300;
   font-style: normal;
 }
@@ -34,9 +32,7 @@
 @font-face {
   font-family: 'OpenSans';
   src: url('../../../Assets/Fonts/OpenSans/OpenSans-Regular-webfont.eot');
-  src: url('../../../Assets/Fonts/OpenSans/OpenSans-Regular-webfont.eot?#iefix') format('embedded-opentype'),
-       url('../../../Assets/Fonts/OpenSans/OpenSans-Regular-webfont.woff2') format('woff2'),
-       url('../../../Assets/Fonts/OpenSans/OpenSans-Regular-webfont.woff') format('woff');
+  src: url('../../../Assets/Fonts/OpenSans/OpenSans-Regular-webfont.eot?#iefix') format('embedded-opentype'), url('../../../Assets/Fonts/OpenSans/OpenSans-Regular-webfont.woff2') format('woff2'), url('../../../Assets/Fonts/OpenSans/OpenSans-Regular-webfont.woff') format('woff');
   font-weight: 400;
   font-style: normal;
 }
@@ -45,9 +41,7 @@
 @font-face {
   font-family: 'OpenSans';
   src: url('../../../Assets/Fonts/OpenSans/OpenSans-Semibold-webfont.eot');
-  src: url('../../../Assets/Fonts/OpenSans/OpenSans-Semibold-webfont.eot?#iefix') format('embedded-opentype'),
-       url('../../../Assets/Fonts/OpenSans/OpenSans-Semibold-webfont.woff2') format('woff2'),
-       url('../../../Assets/Fonts/OpenSans/OpenSans-Semibold-webfont.woff') format('woff');
+  src: url('../../../Assets/Fonts/OpenSans/OpenSans-Semibold-webfont.eot?#iefix') format('embedded-opentype'), url('../../../Assets/Fonts/OpenSans/OpenSans-Semibold-webfont.woff2') format('woff2'), url('../../../Assets/Fonts/OpenSans/OpenSans-Semibold-webfont.woff') format('woff');
   font-weight: 700;
   font-style: normal;
 }
@@ -56,9 +50,7 @@
 @font-face {
   font-family: 'OpenSans';
   src: url('../../../Assets/Fonts/OpenSans/OpenSans-Bold-webfont.eot');
-  src: url('../../../Assets/Fonts/OpenSans/OpenSans-Bold-webfont.eot?#iefix') format('embedded-opentype'),
-       url('../../../Assets/Fonts/OpenSans/OpenSans-Bold-webfont.woff2') format('woff2'),
-       url('../../../Assets/Fonts/OpenSans/OpenSans-Bold-webfont.woff') format('woff');
+  src: url('../../../Assets/Fonts/OpenSans/OpenSans-Bold-webfont.eot?#iefix') format('embedded-opentype'), url('../../../Assets/Fonts/OpenSans/OpenSans-Bold-webfont.woff2') format('woff2'), url('../../../Assets/Fonts/OpenSans/OpenSans-Bold-webfont.woff') format('woff');
   font-weight: 900;
   font-style: normal;
 }
@@ -86,7 +78,6 @@
 
 html {
   -ms-overflow-style: scrollbar; // need for IE 10 issue with scrollbars being on TOP of the content
-
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
 }
@@ -96,7 +87,6 @@ main {
 }
 
 body {
-  
 }
 
 h1, h2, h3, h4 {
@@ -112,9 +102,9 @@ input[type=text],
 textarea,
 .form-control {
   -webkit-transition: all .3s ease-in-out;
-     -moz-transition: all .3s ease-in-out;
-      -ms-transition: all .3s ease-in-out;
-       -o-transition: all .3s ease-in-out;
+  -moz-transition: all .3s ease-in-out;
+  -ms-transition: all .3s ease-in-out;
+  -o-transition: all .3s ease-in-out;
 }
 
 input[type=text]:focus,
@@ -131,6 +121,7 @@ textarea:focus,
   color: @text-selection-color;
   background: @text-selection-bg;
 }
+
 ::-moz-selection {
   color: @text-selection-color;
   background: @text-selection-bg;
@@ -143,8 +134,8 @@ textarea:focus,
 // 2. Bootstrap Overrides    */
 // -------------------------
 
-.nav .open > a, 
-.nav .open > a:focus, 
+.nav .open > a,
+.nav .open > a:focus,
 .nav .open > a:hover {
   background-color: transparent;
   border: 0;
@@ -196,6 +187,20 @@ textarea:focus,
   background-color: @gray-lighter;
 }
 
+.grid-select-field {
+  width: 80px;
+
+  .checkbox:last-child,
+  .radio:last-child {
+    margin-left: 8px;
+  }
+
+  .checkbox input[type=checkbox] + span.label-text:before,
+  .radio input[type=radio] + span.label-text:before {
+    margin: 0;
+  }
+}
+
 /*#endregion */
 /*#region
 // 4. Theme Styling          */
@@ -212,6 +217,7 @@ textarea:focus,
 .rock-top-header {
   background-color: @brand-color;
   margin-bottom: 0;
+  border: 0;
 
   @media (max-width: @screen-sm-max) {
     position: relative;
@@ -219,12 +225,6 @@ textarea:focus,
 
   .header-content {
     padding: 12px;
-  }
-
-  .bookmarks {
-    & > li {
-      float: left;
-    }
   }
 
   .navbar-zone-login {
@@ -262,7 +262,7 @@ textarea:focus,
     color: #fff;
     height: @navbar-top-height;
     width: @navbarside-width;
-    background-image: url(../../../Assets/Images/rock-logo-circle.svg);
+    background-image: url(../../../Assets/Images/rock-logo-circle-white.svg);
     background-repeat: no-repeat;
     background-position: center center;
     border-bottom: 1px solid lighten(@navbarside-background-color, 10%);
@@ -283,7 +283,7 @@ textarea:focus,
     display: block;
     height: @navbar-top-height;
     width: @navbar-top-height;
-    background-image: url(../../../Assets/Images/rock-logo-circle.svg);
+    background-image: url(../../../Assets/Images/rock-logo-circle-white.svg);
     background-repeat: no-repeat;
     background-size: 45px;
     background-position: center center;
@@ -294,19 +294,33 @@ textarea:focus,
     }
   }
 
-  .navbar-static-top {
-    margin-left: 24px;
+  .bookmarks {
+    margin: 0;
+
+    & > li {
+      padding-bottom: 12px;
+    }
 
     a {
       font-size: 14px;
       color: @navbartop-color;
-      line-height: @navbar-top-height;
+      line-height: 14px;
       padding: 0 16px;
 
       &:hover,
       &:focus {
         opacity: .8;
         background-color: transparent;
+      }
+
+      @media (min-width: @screen-sm-min) {
+        line-height: @navbar-top-height;
+        margin-left: 24px;
+
+        & > li {
+          float: left;
+          padding-bottom: 24px;
+        }
       }
     }
   }
@@ -349,43 +363,47 @@ textarea:focus,
     }
   }
 
-  .loginstatus > li {
-    min-width: inherit;
+  .loginstatus {
+    margin: 0;
 
-    > a {
-      color: @navbartop-color;
-      line-height: @navbar-top-height;
-      padding: 0 18px;
+    & > li {
+      min-width: inherit;
+
+      > a {
+        color: @navbartop-color;
+        line-height: @navbar-top-height;
+        padding: 0 18px;
 
 
-      .profile-photo {
-        height: 43px;
-        width: 43px;
-        border-radius: 50%;
-        float: left;
-        background-repeat: no-repeat;
-        background-size: cover;
-        margin-top: 17px;
-        margin-right: 12px;
+        .profile-photo {
+          height: 43px;
+          width: 43px;
+          border-radius: 50%;
+          float: left;
+          background-repeat: no-repeat;
+          background-size: cover;
+          margin-top: 17px;
+          margin-right: 12px;
+        }
+
+        span {
+          display: none;
+        }
+
+        .fa-caret-down:before {
+          content: @fa-var-chevron-down;
+        }
+
+        &:hover,
+        &:focus {
+          background-color: transparent;
+        }
       }
 
-      span {
-        display: none;
+      .dropdown-menu {
+        left: auto;
+        right: 0;
       }
-
-      .fa-caret-down:before {
-        content: @fa-var-chevron-down;
-      }
-
-      &:hover,
-      &:focus {
-        background-color: transparent;
-      }
-    }
-
-    .dropdown-menu {
-      left: auto;
-      right: 0;
     }
   }
 
@@ -403,7 +421,7 @@ textarea:focus,
     border: 0;
 
     a {
-      color: @text-color;
+      color: @navbartop-color;
       line-height: 34px;
       width: 100%;
 
@@ -411,6 +429,10 @@ textarea:focus,
         background-color: @brand-color;
         color: #fff;
         opacity: 1;
+      }
+
+      @media (min-width: @screen-sm-min) {
+        color: @text-color;
       }
     }
 
@@ -426,6 +448,21 @@ textarea:focus,
         margin-left: -6px;
         position: absolute;
       }
+    }
+  }
+
+  #header-collapse { // the collapse for the bookmarks search and login status
+    color: @navbarside-color;
+    background-color: @brand-light-color;
+    width: 100%;
+    font-size: 14px;
+    text-align: center;
+    padding: 12px 0;
+    display: none;
+    cursor: pointer;
+
+    @media (max-width: @screen-sm-min) {
+      display: block;
     }
   }
 }
@@ -629,7 +666,7 @@ body.navbar-side-close {
     }
   }
 
-  #page-title {
+  .page-title {
     background-color: @pagetitle-background;
     padding: 20px 35px;
 
@@ -658,13 +695,13 @@ body.navbar-side-close {
   @media (min-width: @screen-md-min) {
     margin: 35px 35px 0 35px;
 
-    #page-title {
+    .page-title {
       margin: -35px -35px 15px -35px;
     }
   }
 }
 
-.main-footer{
+.main-footer {
   padding: 15px 0;
 }
 
@@ -672,6 +709,32 @@ body.navbar-side-close {
 @media (min-width: @screen-md-min) {
   .personprofile {
     margin: -35px -35px 0;
+  }
+}
+
+// splash screen
+#splash {
+  #content {
+    position: absolute;
+    top: 50%;
+    margin-top: -300px;
+    width: 100%;
+  }
+
+  #logo {
+    margin: 0 auto 40px;
+    fill: @brand-color;
+    width: 120px;
+    height: 120px;
+  }
+
+  .login-block {
+    max-width: 400px;
+    margin: 0 auto;
+  }
+
+  .login-block.external-auth-providers {
+    max-width: 800px;
   }
 }
 
@@ -767,4 +830,5 @@ body.navbar-side-close {
 }
 
 /*#endregion */
-@import "_print.less"; @import "_css-overrides.less";
+@import "_print.less";
+@import "_css-overrides.less";
