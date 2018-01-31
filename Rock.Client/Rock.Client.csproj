@@ -145,6 +145,7 @@
     <Compile Include="CodeGenerated\GroupRequirement.cs" />
     <Compile Include="CodeGenerated\GroupRequirementType.cs" />
     <Compile Include="CodeGenerated\GroupScheduleExclusion.cs" />
+    <Compile Include="CodeGenerated\GroupSync.cs" />
     <Compile Include="CodeGenerated\GroupType.cs" />
     <Compile Include="CodeGenerated\GroupTypeLocationType.cs" />
     <Compile Include="CodeGenerated\GroupTypeRole.cs" />

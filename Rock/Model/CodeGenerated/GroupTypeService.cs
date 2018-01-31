@@ -119,13 +119,17 @@ namespace Rock.Model
         {
             target.Id = source.Id;
             target.AllowedScheduleTypes = source.AllowedScheduleTypes;
+            target.AllowGroupSync = source.AllowGroupSync;
             target.AllowMultipleLocations = source.AllowMultipleLocations;
+            target.AllowSpecificGroupMemberAttributes = source.AllowSpecificGroupMemberAttributes;
+            target.AllowSpecificGroupMemberWorkflows = source.AllowSpecificGroupMemberWorkflows;
             target.AttendanceCountsAsWeekendService = source.AttendanceCountsAsWeekendService;
             target.AttendancePrintTo = source.AttendancePrintTo;
             target.AttendanceRule = source.AttendanceRule;
             target.DefaultGroupRoleId = source.DefaultGroupRoleId;
             target.Description = source.Description;
             target.EnableLocationSchedules = source.EnableLocationSchedules;
+            target.EnableSpecificGroupRequirements = source.EnableSpecificGroupRequirements;
             target.ForeignGuid = source.ForeignGuid;
             target.ForeignKey = source.ForeignKey;
             target.GroupAttendanceRequiresLocation = source.GroupAttendanceRequiresLocation;

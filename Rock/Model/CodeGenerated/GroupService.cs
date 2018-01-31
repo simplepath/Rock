@@ -150,11 +150,9 @@ namespace Rock.Model
         public static void CopyPropertiesFrom( this Group target, Group source )
         {
             target.Id = source.Id;
-            target.AddUserAccountsDuringSync = source.AddUserAccountsDuringSync;
             target.AllowGuests = source.AllowGuests;
             target.CampusId = source.CampusId;
             target.Description = source.Description;
-            target.ExitSystemEmailId = source.ExitSystemEmailId;
             target.ForeignGuid = source.ForeignGuid;
             target.ForeignKey = source.ForeignKey;
             target.GroupCapacity = source.GroupCapacity;
@@ -168,8 +166,6 @@ namespace Rock.Model
             target.ParentGroupId = source.ParentGroupId;
             target.RequiredSignatureDocumentTemplateId = source.RequiredSignatureDocumentTemplateId;
             target.ScheduleId = source.ScheduleId;
-            target.SyncDataViewId = source.SyncDataViewId;
-            target.WelcomeSystemEmailId = source.WelcomeSystemEmailId;
             target.CreatedDateTime = source.CreatedDateTime;
             target.ModifiedDateTime = source.ModifiedDateTime;
             target.CreatedByPersonAliasId = source.CreatedByPersonAliasId;

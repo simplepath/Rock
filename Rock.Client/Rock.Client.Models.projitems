@@ -119,6 +119,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeGenerated\GroupRequirement.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGenerated\GroupRequirementType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGenerated\GroupScheduleExclusion.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGenerated\GroupSync.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGenerated\GroupType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGenerated\GroupTypeLocationType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGenerated\GroupTypeRole.cs" />

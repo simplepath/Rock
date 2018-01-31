@@ -38,7 +38,16 @@ namespace Rock.Client
         public Rock.Client.Enums.ScheduleType AllowedScheduleTypes { get; set; }
 
         /// <summary />
+        public bool AllowGroupSync { get; set; }
+
+        /// <summary />
         public bool AllowMultipleLocations { get; set; }
+
+        /// <summary />
+        public bool AllowSpecificGroupMemberAttributes { get; set; }
+
+        /// <summary />
+        public bool AllowSpecificGroupMemberWorkflows { get; set; }
 
         /// <summary />
         public bool AttendanceCountsAsWeekendService { get; set; }
@@ -57,6 +66,9 @@ namespace Rock.Client
 
         /// <summary />
         public bool? EnableLocationSchedules { get; set; }
+
+        /// <summary />
+        public bool EnableSpecificGroupRequirements { get; set; }
 
         /// <summary />
         public Guid? ForeignGuid { get; set; }
@@ -169,13 +181,17 @@ namespace Rock.Client
         {
             this.Id = source.Id;
             this.AllowedScheduleTypes = source.AllowedScheduleTypes;
+            this.AllowGroupSync = source.AllowGroupSync;
             this.AllowMultipleLocations = source.AllowMultipleLocations;
+            this.AllowSpecificGroupMemberAttributes = source.AllowSpecificGroupMemberAttributes;
+            this.AllowSpecificGroupMemberWorkflows = source.AllowSpecificGroupMemberWorkflows;
             this.AttendanceCountsAsWeekendService = source.AttendanceCountsAsWeekendService;
             this.AttendancePrintTo = source.AttendancePrintTo;
             this.AttendanceRule = source.AttendanceRule;
             this.DefaultGroupRoleId = source.DefaultGroupRoleId;
             this.Description = source.Description;
             this.EnableLocationSchedules = source.EnableLocationSchedules;
+            this.EnableSpecificGroupRequirements = source.EnableSpecificGroupRequirements;
             this.ForeignGuid = source.ForeignGuid;
             this.ForeignKey = source.ForeignKey;
             this.GroupAttendanceRequiresLocation = source.GroupAttendanceRequiresLocation;
