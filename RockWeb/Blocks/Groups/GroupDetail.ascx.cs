@@ -1445,8 +1445,7 @@ namespace RockWeb.Blocks.Groups
                         if ( selectedGroupType != null )
                         {
                             wpGroupSync.Visible = selectedGroupType.IsAuthorized( Authorization.ADMINISTRATE, CurrentPerson ) && ( selectedGroupType.AllowGroupSync || GroupSyncState.Any() );
-                            gGroupSyncs.Actions.ShowAdd = selectedGroupType.AllowGroupSync;
-                            wpMemberWorkflowTriggers.Visible = selectedGroupType.AllowSpecificGroupMemberWorkflows;
+                            wpMemberWorkflowTriggers.Visible = selectedGroupType.AllowSpecificGroupMemberWorkflows || group.GroupMemberWorkflowTriggers.Any();
                         }
                     }
                 }
@@ -1474,6 +1473,12 @@ namespace RockWeb.Blocks.Groups
                     wpGroupAttributes.Visible = true;
                     var excludeForEdit = group.Attributes.Where( a => !a.Value.IsAuthorized( Rock.Security.Authorization.EDIT, this.CurrentPerson ) ).Select( a => a.Key ).ToList();
                     Rock.Attribute.Helper.AddEditControls( group, phGroupAttributes, setValues, BlockValidationGroup, excludeForEdit );
+
+                    // Hide the panel if it won't show anything.
+                    if(excludeForEdit.Count() == group.Attributes.Count())
+                    {
+                        wpGroupAttributes.Visible = false;
+                    }
                 }
                 else
                 {
@@ -2771,8 +2776,8 @@ namespace RockWeb.Blocks.Groups
         {
             if ( CurrentGroupTypeCache != null )
             {
-                wpGroupMemberAttributes.Visible = GroupMemberAttributesInheritedState.Any() || CurrentGroupTypeCache.AllowSpecificGroupMemberAttributes;
-                rcwGroupMemberAttributes.Visible = CurrentGroupTypeCache.AllowSpecificGroupMemberAttributes;
+                wpGroupMemberAttributes.Visible = GroupMemberAttributesInheritedState.Any() || GroupMemberAttributesState.Any() || CurrentGroupTypeCache.AllowSpecificGroupMemberAttributes;
+                rcwGroupMemberAttributes.Visible = GroupMemberAttributesInheritedState.Any() || GroupMemberAttributesState.Any() || CurrentGroupTypeCache.AllowSpecificGroupMemberAttributes;
             }
 
             gGroupMemberAttributesInherited.AddCssClass( "inherited-attribute-grid" );
@@ -2802,13 +2807,15 @@ namespace RockWeb.Blocks.Groups
             var rockContext = new RockContext();
             var groupTypeGroupRequirements = new GroupRequirementService( rockContext ).Queryable().Where( a => a.GroupTypeId.HasValue && a.GroupTypeId == CurrentGroupTypeId ).ToList();
             var groupGroupRequirements = GroupRequirementsState.ToList();
+
             rcwGroupTypeGroupRequirements.Visible = groupTypeGroupRequirements.Any();
-            rcwGroupRequirements.Label = groupTypeGroupRequirements.Any() ? "Specific Group Requirements" : string.Empty;
+            rcwGroupRequirements.Label = groupGroupRequirements.Any() ? "Specific Group Requirements" : string.Empty;
+
             if ( CurrentGroupTypeCache != null )
             {
                 lGroupTypeGroupRequirementsFrom.Text = string.Format( "(From <a href='{0}' target='_blank'>{1}</a>)", this.ResolveUrl( "~/GroupType/" + CurrentGroupTypeCache.Id ), CurrentGroupTypeCache.Name );
-                rcwGroupRequirements.Visible = CurrentGroupTypeCache.EnableSpecificGroupRequirements;
-                wpGroupRequirements.Visible = groupTypeGroupRequirements.Any() || CurrentGroupTypeCache.EnableSpecificGroupRequirements;
+                rcwGroupRequirements.Visible = CurrentGroupTypeCache.EnableSpecificGroupRequirements || groupGroupRequirements.Any() || groupTypeGroupRequirements.Any();
+                wpGroupRequirements.Visible = groupTypeGroupRequirements.Any() || groupGroupRequirements.Any() || CurrentGroupTypeCache.EnableSpecificGroupRequirements;
             }
 
             gGroupTypeGroupRequirements.AddCssClass( "grouptype-group-requirements-grid" );
