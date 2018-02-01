@@ -43,8 +43,9 @@ namespace Rock.Web.UI.Controls
         private NoteEditor _noteEditor;
         private LinkButton _lbShowMore;
         private HiddenFieldWithClass _hfCurrentNoteId;
-        private LinkButton _lbDeleteNote;
         private ModalAlert _mdDeleteWarning;
+        private ModalDialog _mdConfirmDelete;
+        private Literal _lConfirmDeleteMsg;
 
         #endregion
 
@@ -260,6 +261,36 @@ namespace Rock.Web.UI.Controls
             {
                 Debug.Assert( this.NoteOptions != null, "this.NoteOptions is null!" );
             }
+
+            if ( this.Page.IsPostBack )
+            {
+                RouteAction();
+            }
+        }
+
+        /// <summary>
+        /// Routes the action.
+        /// </summary>
+        private void RouteAction()
+        {
+            if ( this.Page.Request.Form["__EVENTARGUMENT"] != null )
+            {
+                string[] eventArgs = this.Page.Request.Form["__EVENTARGUMENT"].Split( '^' );
+
+                if ( eventArgs.Length == 2 )
+                {
+                    string action = eventArgs[0];
+                    string parameters = eventArgs[1];
+
+                    switch ( action )
+                    {
+                        case "DeleteNote":
+                            int? noteId = parameters.AsIntegerOrNull();
+                            DisplayDeleteNote( noteId );
+                            break;
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -284,13 +315,15 @@ namespace Rock.Web.UI.Controls
             _hfCurrentNoteId.CssClass = "js-currentnoteid";
             Controls.Add( _hfCurrentNoteId );
 
-            // Create a hidden DeleteNote linkbutton that will hookup to the Lava'd Delete button
-            _lbDeleteNote = new LinkButton();
-            _lbDeleteNote.ID = this.ID + "_lbDeleteNote";
-            _lbDeleteNote.CssClass = "js-delete-postback";
-            _lbDeleteNote.Click += _lbDeleteNote_Click;
-            _lbDeleteNote.Style[HtmlTextWriterStyle.Display] = "none";
-            Controls.Add( _lbDeleteNote );
+            _mdConfirmDelete = new ModalDialog();
+            _mdConfirmDelete.ID = this.ID + "_mdConfirmDelete";
+            _mdConfirmDelete.Title = "Please Confirm";
+            _mdConfirmDelete.SaveButtonText = "Yes";
+            _mdConfirmDelete.SaveClick += _mdConfirmDelete_SaveClick;
+            Controls.Add( _mdConfirmDelete );
+            _lConfirmDeleteMsg = new Literal();
+            _lConfirmDeleteMsg.ID = this.ID + "_lConfirmDeleteMsg";
+            _mdConfirmDelete.Content.Controls.Add( _lConfirmDeleteMsg );
 
             _mdDeleteWarning = new ModalAlert();
             _mdDeleteWarning.ID = this.ID + "_mdDeleteWarning";
@@ -316,11 +349,32 @@ namespace Rock.Web.UI.Controls
         }
 
         /// <summary>
-        /// Handles the Click event of the _lbDeleteNote control.
+        /// Handles the SaveClick event of the _mdConfirmDelete control.
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
-        private void _lbDeleteNote_Click( object sender, EventArgs e )
+        private void _mdConfirmDelete_SaveClick( object sender, EventArgs e )
+        {
+            _mdConfirmDelete.Hide();
+            DeleteNote( _hfCurrentNoteId.Value.AsIntegerOrNull() );
+        }
+
+        /// <summary>
+        /// Displays the delete note.
+        /// </summary>
+        /// <param name="noteId">The note identifier.</param>
+        private void DisplayDeleteNote(int? noteId)
+        {
+            _lConfirmDeleteMsg.Text = "Are you sure you want to delete this note?";
+            _hfCurrentNoteId.Value = noteId.ToString();
+            _mdConfirmDelete.Show();
+        }
+
+        /// <summary>
+        /// Deletes the note.
+        /// </summary>
+        /// <param name="noteId">The note identifier.</param>
+        private void DeleteNote(int? noteId)
         {
             var rockPage = this.Page as RockPage;
             if ( rockPage != null )
@@ -330,7 +384,6 @@ namespace Rock.Web.UI.Controls
                 var rockContext = new RockContext();
                 var service = new NoteService( rockContext );
                 Note note = null;
-                int? noteId = _hfCurrentNoteId.Value.AsIntegerOrNull();
 
                 if ( noteId.HasValue )
                 {
@@ -424,7 +477,7 @@ namespace Rock.Web.UI.Controls
                 }
 
                 _hfCurrentNoteId.RenderControl( writer );
-                _lbDeleteNote.RenderControl( writer );
+                _mdConfirmDelete.RenderControl( writer );
                 _mdDeleteWarning.RenderControl( writer );
                 using ( var rockContext = new RockContext() )
                 {
@@ -441,7 +494,7 @@ namespace Rock.Web.UI.Controls
                     noteMergeFields.Add( "NoteOptions", this.NoteOptions );
                     noteMergeFields.Add( "NoteList", viewableNoteList );
 
-                    var noteTreeHtml = this.NoteOptions.NoteViewLavaTemplate.ResolveMergeFields( noteMergeFields );
+                    var noteTreeHtml = this.NoteOptions.NoteViewLavaTemplate.ResolveMergeFields( noteMergeFields ).ResolveClientIds( this.ParentUpdatePanel()?.ClientID );
                     writer.Write( noteTreeHtml );
                 }
 

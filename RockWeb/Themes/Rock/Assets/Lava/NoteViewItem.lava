@@ -71,7 +71,9 @@ any CSS Classes that are prefixed with 'js-' are hooks that are required for edi
             <div class="actions rollover-item">
                 {% assign canEdit = note | HasRightsTo:'Edit' %}
                 {% if canEdit %}
-                <a class="remove-note js-removenote" href="{{ DeleteNotePostBackUrl }}"><i class="fa fa-times"></i></a>
+                <a class="remove-note" href="#" onclick="{{ note.Id | Postback:'DeleteNote' }}">
+                    <i class="fa fa-times"></i>
+                </a>
                 <a class="edit-note js-editnote"><i class="fa fa-pencil"></i></a>
                 {% endif %}
             </div>

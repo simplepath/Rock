@@ -54,13 +54,13 @@
                         var $securityBtn = $noteEditor.find('.js-notesecurity');
                         $securityBtn.attr('data-entity-id', currentNoteId);
                         $securityBtn.show();
-                        
+
                         e.preventDefault();
                         $currentNote.prepend($noteEditor);
                     });
                 }
             }
-            
+
             if (editNote) {
                 // hide the readonly details of the note that we are editing then show the editor
                 $noteEditor.fadeIn();
@@ -88,22 +88,6 @@
 
             // show any notedetails that might have been hidden when doing the editing
             $noteEditor.closest('.js-noteviewitem').find('.js-notedetails').slideDown();
-        });
-
-        $('.js-notecontainer .js-removenote').click(function (e) {
-            var $currentNote = $(this).closest('.js-noteviewitem');
-            var currentNoteId = $currentNote.attr("data-note-id");
-            var $noteContainer = $(this).closest('.js-notecontainer');
-            $noteContainer.find(".js-currentnoteid").val(currentNoteId);
-
-            e.preventDefault();
-            e.stopImmediatePropagation();
-            var postbackJs = $noteContainer.find(".js-delete-postback").attr('href');
-            return Rock.dialogs.confirm('Are you sure you want to delete this note?', function (confirmed) {
-                if (confirmed) {
-                    window.location = postbackJs;
-                }
-            });
         });
     });
 }(Sys));
