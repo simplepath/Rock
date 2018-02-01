@@ -279,6 +279,8 @@ namespace RockWeb.Blocks.Core
             noteType.UserSelectable = cbUserSelectable.Checked;
             noteType.CssClass = tbCssClass.Text;
             noteType.IconCssClass = tbIconCssClass.Text;
+            noteType.AllowsReplies = cbAllowsReplies.Checked;
+            noteType.MaxReplyDepth = nbMaxReplyDepth.Text.AsIntegerOrNull();
 
             if ( noteType.IsValid )
             {
@@ -375,6 +377,8 @@ namespace RockWeb.Blocks.Core
                 cbUserSelectable.Checked = noteType.UserSelectable;
                 tbCssClass.Text = noteType.CssClass;
                 tbIconCssClass.Text = noteType.IconCssClass;
+                cbAllowsReplies.Checked = noteType.AllowsReplies;
+                nbMaxReplyDepth.Text = noteType.MaxReplyDepth.ToString();
                 entityTypePicker.SelectedEntityTypeId = noteType.EntityTypeId;
             }
             else
@@ -383,13 +387,26 @@ namespace RockWeb.Blocks.Core
                 cbUserSelectable.Checked = true;
                 tbCssClass.Text = string.Empty;
                 tbIconCssClass.Text = string.Empty;
+                cbAllowsReplies.Checked = false;
+                nbMaxReplyDepth.Text = string.Empty;
                 entityTypePicker.SelectedEntityTypeId = entityTypeFilter.SelectedValueAsInt( false );
             }
 
             hfIdValue.Value = noteTypeId.ToString();
+            cbAllowsReplies_CheckedChanged( null, null );
             modalDetails.Show();
         }
 
         #endregion
+
+        /// <summary>
+        /// Handles the CheckedChanged event of the cbAllowsReplies control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
+        protected void cbAllowsReplies_CheckedChanged( object sender, EventArgs e )
+        {
+            nbMaxReplyDepth.Visible = cbAllowsReplies.Checked;
+        }
     }
 }

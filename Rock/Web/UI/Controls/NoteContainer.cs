@@ -49,13 +49,7 @@ namespace Rock.Web.UI.Controls
 
         #region Properties
 
-        /// <summary>
-        /// Gets or sets the note control options.
-        /// </summary>
-        /// <value>
-        /// The note control options.
-        /// </value>
-        public NoteControlOptions NoteControlOptions { get; set; }
+        public NoteOptions NoteOptions { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether to display heading of the note container
@@ -214,13 +208,13 @@ namespace Rock.Web.UI.Controls
         {
             base.OnLoad( e );
 
-            if ( this.NoteControlOptions != null )
+            if ( this.NoteOptions != null )
             {
-                _noteEditor.EntityId = this.NoteControlOptions.EntityId;
+                _noteEditor.EntityId = this.NoteOptions.EntityId;
             }
             else
             {
-                Debug.Assert( this.NoteControlOptions != null, "this.NoteControlOptions is null!" );
+                Debug.Assert( this.NoteOptions != null, "this.NoteOptions is null!" );
             }
         }
 
@@ -231,7 +225,7 @@ namespace Rock.Web.UI.Controls
         {
             Controls.Clear();
 
-            _noteEditor = new NoteEditor( this.NoteControlOptions );
+            _noteEditor = new NoteEditor( this.NoteOptions );
             _noteEditor.ID = this.ID + "_noteEditor";
             _noteEditor.CssClass = "note-new";
 
@@ -324,15 +318,16 @@ namespace Rock.Web.UI.Controls
             if ( this.Visible )
             {
                 var currentPerson = ( this.Page as RockPage )?.CurrentPerson;
-                var editableNoteTypes = NoteControlOptions.GetEditableNoteTypes( currentPerson );
+                var editableNoteTypes = NoteOptions.GetEditableNoteTypes( currentPerson );
                 bool canAdd = AddAllowed &&
                     editableNoteTypes.Any() &&
                     ( AllowAnonymousEntry || currentPerson != null );
 
                 string cssClass = "panel panel-note js-notecontainer" +
-                    ( this.NoteControlOptions.DisplayType == NoteDisplayType.Light ? " panel-note-light" : string.Empty );
+                    ( this.NoteOptions.DisplayType == NoteDisplayType.Light ? " panel-note-light" : string.Empty );
 
                 writer.AddAttribute( HtmlTextWriterAttribute.Class, cssClass );
+                writer.AddAttribute( "data-sortdirection", this.SortDirection.ConvertToString( false ) );
                 writer.RenderBeginTag( "section" );
 
                 // Heading
@@ -363,7 +358,7 @@ namespace Rock.Web.UI.Controls
                         writer.RenderEndTag();
                     }
 
-                    if ( !NoteControlOptions.AddAlwaysVisible && canAdd && SortDirection == ListSortDirection.Descending )
+                    if ( !NoteOptions.AddAlwaysVisible && canAdd && SortDirection == ListSortDirection.Descending )
                     {
                         RenderAddButton( writer );
                     }
@@ -371,12 +366,12 @@ namespace Rock.Web.UI.Controls
                     writer.RenderEndTag();
                 }
 
-                writer.AddAttribute( HtmlTextWriterAttribute.Class, "panel-body js-notelist" );
+                writer.AddAttribute( HtmlTextWriterAttribute.Class, "panel-body" );
                 writer.RenderBeginTag( HtmlTextWriterTag.Div );
 
                 if ( canAdd && SortDirection == ListSortDirection.Descending )
                 {
-                    if ( !ShowHeading && !NoteControlOptions.AddAlwaysVisible )
+                    if ( !ShowHeading && !NoteOptions.AddAlwaysVisible )
                     {
                         RenderAddButton( writer );
                     }
@@ -399,16 +394,16 @@ namespace Rock.Web.UI.Controls
 
                     var rockBlock = this.RockBlock();
                     var noteMergeFields = LavaHelper.GetCommonMergeFields( rockBlock?.RockPage, currentPerson, new CommonMergeFieldsOptions { GetLegacyGlobalMergeFields = false } );
-                    noteMergeFields.Add( "NoteControlOptions", this.NoteControlOptions );
+                    noteMergeFields.Add( "NoteOptions", this.NoteOptions );
                     noteMergeFields.Add( "NoteList", viewableNoteList );
 
-                    var noteTreeHtml = this.NoteControlOptions.NoteViewLavaTemplate.ResolveMergeFields( noteMergeFields );
+                    var noteTreeHtml = this.NoteOptions.NoteViewLavaTemplate.ResolveMergeFields( noteMergeFields );
                     writer.Write( noteTreeHtml );
                 }
 
                 if ( canAdd && SortDirection == ListSortDirection.Ascending )
                 {
-                    if ( !NoteControlOptions.AddAlwaysVisible )
+                    if ( !NoteOptions.AddAlwaysVisible )
                     {
                         RenderAddButton( writer );
                     }
@@ -507,8 +502,8 @@ namespace Rock.Web.UI.Controls
         /// </summary>
         private List<Note> GetViewableNoteList( RockContext rockContext, Person currentPerson )
         {
-            var viewableNoteTypes = this.NoteControlOptions?.GetViewableNoteTypes( currentPerson );
-            var entityId = this.NoteControlOptions?.EntityId;
+            var viewableNoteTypes = this.NoteOptions?.GetViewableNoteTypes( currentPerson );
+            var entityId = this.NoteOptions?.EntityId;
 
             ShowMoreOption = false;
             if ( viewableNoteTypes != null && viewableNoteTypes.Any() && entityId.HasValue )

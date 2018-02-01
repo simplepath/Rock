@@ -20,23 +20,41 @@ any CSS Classes that are prefixed with 'js-' are hooks that are required for edi
     {% assign noteDateTimeText =  noteDateTimeText | Append:' (' | Append:editedLabel | Append:')'%}
 {% endif %}
 
-{% if NoteReplyDepth <= Note.NoteType.MaxReplyDepth %}
-{% assign CanReply = true %}
-{% else %}
-{% assign CanReply = false %}
+{% assign CanReply = Note.NoteType.AllowsReplies %}
+{% if CanReply and Note.NoteType.MaxReplyDepth %}
+  {% if NoteReplyDepth > Note.NoteType.MaxReplyDepth %}
+    {% assign CanReply = false %}
+  {% endif %}
 {% endif %}
+
+{% assign noteText = Note.Text | Escape | Linkify | FromMarkdown %}
 
 <div class="note-view-item js-noteviewitem" data-note-id="{{ Note.Id }}">
     <div class='note-details js-notedetails'>
         <article class="clearfix rollover-container {{ wrapperClass }}">
+            {% if NoteOptions.DisplayType == 'Full' %}
+            {% if NoteOptions.UsePersonIcon %}
             <img style="max-height: 50px; max-width: 50px;" src="{{ Note.CreatedByPersonPhotoUrl }}">
+            {% else %}
+            <i class="{{ Note.NoteType.IconCssClass | Default:'fa fa-comment' }}"></i>
+            {% endif %}
+            {% endif %}
             <div class="details">
+                {% if NoteOptions.DisplayType == 'Full' %}
                 <h5>
-                    {{ Note.CreatedByPersonName }} <span class="date" title="{{ Note.ModifiedDateTime }}">{{ noteDateTimeText }}</span>
+                    {% if NoteOptions.DisplayNoteTypeHeading %}
+                    <strong>{{ Note.NoteType.Name }} </strong>
+                    {% endif %}
+                    {{ Note.Caption | Default:Note.CreatedByPersonName }} <span class="date" title="{{ Note.ModifiedDateTime }}">{{ noteDateTimeText }}</span>
                 </h5>
                 <div class="notetext">
-                    {{ Note.Text }}
+                    {{ noteText }}
                 </div>
+                {% else %}
+                {{ noteText }}
+                - <span class="note-author">{{ Note.CreatedByPersonName }}</span> <span class="note-created" title="{{ Note.ModifiedDateTime }}">{{ noteDateTimeText }}</span>
+                {% endif %}
+
                 <div class="note-actions">
                     {% if CanReply %}
                     <a class="btn btn-xs btn-default pull-right js-replynote"><i class="fa fa-reply"></i></a>

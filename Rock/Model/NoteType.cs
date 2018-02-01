@@ -163,7 +163,7 @@ namespace Rock.Model
         /// The maximum reply depth.
         /// </value>
         [DataMember]
-        public int MaxReplyDepth { get; set; }
+        public int? MaxReplyDepth { get; set; }
 
         /// <summary>
         /// Gets or sets the color of the background.

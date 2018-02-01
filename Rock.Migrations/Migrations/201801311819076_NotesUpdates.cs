@@ -75,16 +75,13 @@ namespace Rock.Migrations
             AddColumn("dbo.NoteType", "RequiresApprovals", c => c.Boolean(nullable: false));
             AddColumn("dbo.NoteType", "AllowsFollowing", c => c.Boolean(nullable: false));
             AddColumn("dbo.NoteType", "AllowsReplies", c => c.Boolean(nullable: false));
-            AddColumn("dbo.NoteType", "MaxReplyDepth", c => c.Int(nullable: false));
+            AddColumn("dbo.NoteType", "MaxReplyDepth", c => c.Int());
             AddColumn("dbo.NoteType", "BackgroundColor", c => c.String(maxLength: 100));
             AddColumn("dbo.NoteType", "SendApprovalNotifications", c => c.Boolean(nullable: false));
             AddColumn("dbo.NoteType", "AllowsMentions", c => c.Boolean(nullable: false));
             AddColumn("dbo.NoteType", "AutoWatchAuthors", c => c.Boolean(nullable: false));
             CreateIndex("dbo.Note", "ParentNoteId");
             AddForeignKey("dbo.Note", "ParentNoteId", "dbo.Note", "Id");
-
-            // TODO
-            Sql( "update NoteType set AllowsFollowing = 1, AllowsReplies = 1, MaxReplyDepth = 4, AllowsMentions = 1" );
         }
         
         /// <summary>

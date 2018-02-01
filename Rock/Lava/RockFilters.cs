@@ -3324,6 +3324,23 @@ namespace Rock.Lava
         }
 
         /// <summary>
+        /// Convert strings within the text that appear to be http/ftp/https links into clickable html links
+        /// </summary>
+        /// <param name="input">The input.</param>
+        /// <returns></returns>
+        public static string Linkify( string input)
+        {
+            if ( input != null )
+            {
+                return input.Linkify();
+            }
+            else
+            {
+                return input;
+            }
+        }
+
+        /// <summary>
         /// adds a meta tag to the head of the document
         /// </summary>
         /// <param name="input">The input to use for the content attribute of the tag.</param>

@@ -1514,7 +1514,7 @@
     <Compile Include="Web\UI\Controls\DynamicPlaceholder.cs" />
     <Compile Include="Web\UI\Controls\Grid\LavaField.cs" />
     <Compile Include="Web\UI\Controls\NoteEditor.cs" />
-    <Compile Include="Web\UI\Controls\NoteControlOptions.cs" />
+    <Compile Include="Web\UI\Controls\NoteOptions.cs" />
     <Compile Include="Web\UI\Controls\Pickers\DataViewsPicker.cs" />
     <Compile Include="Web\UI\Controls\Pickers\DatePartsPicker.cs" />
     <Compile Include="Web\UI\Controls\Pickers\FieldTypePicker.cs" />

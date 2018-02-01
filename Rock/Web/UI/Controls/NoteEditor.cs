@@ -55,12 +55,12 @@ namespace Rock.Web.UI.Controls
         #region Properties
 
         /// <summary>
-        /// Gets the note control options.
+        /// Gets the note options.
         /// </summary>
         /// <value>
-        /// The note control options.
+        /// The note options.
         /// </value>
-        public NoteControlOptions NoteControlOptions { get; private set; }
+        public NoteOptions NoteOptions { get; private set; }
 
         /// <summary>
         /// Sets the note.
@@ -95,9 +95,9 @@ namespace Rock.Web.UI.Controls
             get
             {
                 int? noteTypeId = ViewState["NoteTypeId"] as int?;
-                if ( !noteTypeId.HasValue && NoteControlOptions.NoteTypes.Any() )
+                if ( !noteTypeId.HasValue && NoteOptions.NoteTypes.Any() )
                 {
-                    noteTypeId = NoteControlOptions.NoteTypes.First().Id;
+                    noteTypeId = NoteOptions.NoteTypes.First().Id;
                 }
 
                 return noteTypeId ?? 0;
@@ -360,13 +360,12 @@ namespace Rock.Web.UI.Controls
         #region Constructor
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="NoteControl" /> class.
+        /// Initializes a new instance of the <see cref="NoteEditor"/> class.
         /// </summary>
-        /// <param name="noteContainer">The note container.</param>
-        /// <param name="note">The note.</param>
-        public NoteEditor( NoteControlOptions noteControlOptions )
+        /// <param name="noteOptions">The note options.</param>
+        public NoteEditor( NoteOptions noteOptions )
         {
-            this.NoteControlOptions = noteControlOptions;
+            this.NoteOptions = noteOptions;
             _ddlNoteType = new DropDownList();
 
             _tbNote = new RockTextBox();
@@ -402,7 +401,7 @@ namespace Rock.Web.UI.Controls
             }
             else
             {
-                var editableNoteTypes = this.NoteControlOptions.GetEditableNoteTypes( ( this.Page as RockPage )?.CurrentPerson );
+                var editableNoteTypes = this.NoteOptions.GetEditableNoteTypes( ( this.Page as RockPage )?.CurrentPerson );
                 _ddlNoteType.DataSource = editableNoteTypes;
                 _ddlNoteType.DataBind();
                 _ddlNoteType.Visible = editableNoteTypes.Count() > 1;
@@ -511,7 +510,7 @@ namespace Rock.Web.UI.Controls
             writer.AddAttribute( HtmlTextWriterAttribute.Class, "panel-body" );
             writer.RenderBeginTag( HtmlTextWriterTag.Div );
 
-            if ( NoteControlOptions.DisplayType == NoteDisplayType.Full && NoteControlOptions.UsePersonIcon )
+            if ( NoteOptions.DisplayType == NoteDisplayType.Full && NoteOptions.UsePersonIcon )
             {
                 writer.Write( Person.GetPersonPhotoImageTag( CreatedByPersonId, CreatedByPhotoId, null, CreatedByGender, null, 50, 50 ) );
             }
@@ -526,7 +525,7 @@ namespace Rock.Web.UI.Controls
             _hfParentNoteId.RenderControl( writer );
 
             // The optional create date text box, but only for new notes...
-            if ( NoteControlOptions.ShowCreateDateInput && !NoteId.HasValue )
+            if ( NoteOptions.ShowCreateDateInput && !NoteId.HasValue )
             {
                 writer.AddAttribute( HtmlTextWriterAttribute.Class, "createDate clearfix" );
                 writer.RenderBeginTag( HtmlTextWriterTag.Div );
@@ -534,7 +533,7 @@ namespace Rock.Web.UI.Controls
                 writer.RenderEndTag();  // createDate div
             }
 
-            if ( NoteControlOptions.DisplayType == NoteDisplayType.Full )
+            if ( NoteOptions.DisplayType == NoteDisplayType.Full )
             {
                 // Options
                 writer.AddAttribute( HtmlTextWriterAttribute.Class, "settings clearfix" );
@@ -543,19 +542,19 @@ namespace Rock.Web.UI.Controls
                 writer.AddAttribute( HtmlTextWriterAttribute.Class, "options pull-left" );
                 writer.RenderBeginTag( HtmlTextWriterTag.Div );
 
-                if ( NoteControlOptions.ShowAlertCheckBox )
+                if ( NoteOptions.ShowAlertCheckBox )
                 {
                     _cbAlert.RenderControl( writer );
                 }
 
-                if ( NoteControlOptions.ShowPrivateCheckBox )
+                if ( NoteOptions.ShowPrivateCheckBox )
                 {
                     _cbPrivate.RenderControl( writer );
                 }
 
                 writer.RenderEndTag();
 
-                if ( NoteControlOptions.ShowSecurityButton )
+                if ( NoteOptions.ShowSecurityButton )
                 {
                     _aSecurity.Attributes["data-title"] = this.Label;
                     _aSecurity.RenderControl( writer );
@@ -646,7 +645,7 @@ namespace Rock.Web.UI.Controls
                 note.IsAlert = IsAlert;
                 note.IsPrivateNote = IsPrivate;
 
-                if ( NoteControlOptions.ShowCreateDateInput )
+                if ( NoteOptions.ShowCreateDateInput )
                 {
                     note.CreatedDateTime = _dtCreateDate.SelectedDateTime;
                 }

@@ -22,13 +22,34 @@ using Rock.Web.Cache;
 
 namespace Rock.Web.UI.Controls
 {
-    [Serializable]
-    public class NoteControlOptions : DotLiquid.Drop
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <seealso cref="DotLiquid.Drop" />
+    public class NoteOptions : DotLiquid.Drop
     {
+        /// <summary>
+        /// Gets or sets the note view lava template.
+        /// </summary>
+        /// <value>
+        /// The note view lava template.
+        /// </value>
         public string NoteViewLavaTemplate { get; set; }
 
+        /// <summary>
+        /// Gets or sets the note type ids.
+        /// </summary>
+        /// <value>
+        /// The note type ids.
+        /// </value>
         private List<int> _noteTypeIds { get; set; }
 
+        /// <summary>
+        /// Gets or sets the note types.
+        /// </summary>
+        /// <value>
+        /// The note types.
+        /// </value>
         public List<NoteTypeCache> NoteTypes
         {
             get
@@ -42,18 +63,40 @@ namespace Rock.Web.UI.Controls
             }
         }
 
+        /// <summary>
+        /// Gets the viewable note types.
+        /// </summary>
+        /// <param name="currentPerson">The current person.</param>
+        /// <returns></returns>
         public List<NoteTypeCache> GetViewableNoteTypes( Person currentPerson )
         {
             return this.NoteTypes?.Where( a => a.IsAuthorized( Security.Authorization.VIEW, currentPerson ) ).ToList();
         }
 
+        /// <summary>
+        /// Gets the editable note types.
+        /// </summary>
+        /// <param name="currentPerson">The current person.</param>
+        /// <returns></returns>
         public List<NoteTypeCache> GetEditableNoteTypes( Person currentPerson )
         {
             return this.NoteTypes?.Where( a => a.UserSelectable && a.IsAuthorized( Security.Authorization.EDIT, currentPerson ) ).ToList();
         }
 
+        /// <summary>
+        /// Gets or sets the entity identifier.
+        /// </summary>
+        /// <value>
+        /// The entity identifier.
+        /// </value>
         public int? EntityId { get; set; }
 
+        /// <summary>
+        /// Gets or sets a value indicating whether [display note type heading].
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [display note type heading]; otherwise, <c>false</c>.
+        /// </value>
         public bool DisplayNoteTypeHeading { get; set; }
 
         public NoteDisplayType DisplayType { get; set; }

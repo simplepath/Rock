@@ -38,7 +38,7 @@
 
         </asp:Panel>
 
-        <Rock:ModalDialog ID="modalDetails" runat="server" Title="Category" ValidationGroup="EntityTypeName">
+        <Rock:ModalDialog ID="modalDetails" runat="server" Title="Note Type" ValidationGroup="bgNoteTypeDetails">
             <Content>
 
                 <asp:HiddenField ID="hfIdValue" runat="server" />
@@ -52,6 +52,8 @@
                     <div class="col-md-6">
                         <Rock:RockTextBox ID="tbCssClass" runat="server" Label="CSS Class" />
                         <Rock:RockTextBox ID="tbIconCssClass" runat="server" Label="Icon CSS Class" />
+                        <Rock:RockCheckBox ID="cbAllowsReplies" runat="server" Label="Allow Replies" AutoPostBack="true" OnCheckedChanged="cbAllowsReplies_CheckedChanged" />
+                        <Rock:NumberBox ID="nbMaxReplyDepth" runat="server" NumberType="Integer" MinimumValue="0" MaximumValue="9999" Label="Max Reply Depth" />
                     </div>
                 </div>
 

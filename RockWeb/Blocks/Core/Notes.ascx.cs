@@ -51,9 +51,7 @@ namespace RockWeb.Blocks.Core
     [BooleanField("Allow Backdated Notes", "", false, "", 12)]
     [NoteTypeField("Note Types", "Optional list of note types to limit display to", true, "", "", "", false, "", "", 12)]
     [BooleanField( "Display Note Type Heading", "Should each note's Note Type be displayed as a heading above each note?", false, "", 13 )]
-    [CodeEditorField( "Note View Lava Template", "The Lava Template to use when rendering the readonly view of each note.", CodeEditorMode.Lava, CodeEditorTheme.Rock, 400, false,
-        @"{% include '~~/Assets/Lava/NoteView.lava' %}", 
-        order: 14 )]
+    [CodeEditorField( "Note View Lava Template", "The Lava Template to use when rendering the readonly view of all the notes.", CodeEditorMode.Lava, CodeEditorTheme.Rock, 100, false, @"{% include '~~/Assets/Lava/NoteViewList.lava' %}", order: 14 )]
     public partial class Notes : RockBlock, ISecondaryBlock
     {
         #region Base Control Methods
@@ -103,7 +101,7 @@ namespace RockWeb.Blocks.Core
                         noteTypes = noteTypes.Where( n => configuredNoteTypes.Contains( n.Guid ) ).ToList();
                     }
 
-                    NoteControlOptions noteControlOptions = new NoteControlOptions()
+                    NoteOptions noteOptions = new NoteOptions()
                     {
                         EntityId = contextEntity.Id,
                         NoteTypes = noteTypes,
@@ -119,7 +117,7 @@ namespace RockWeb.Blocks.Core
                         UsePersonIcon = GetAttributeValue( "UsePersonIcon" ).AsBoolean()
                     };
 
-                    notesTimeline.NoteControlOptions = noteControlOptions;
+                    notesTimeline.NoteOptions = noteOptions;
                     notesTimeline.Title = GetAttributeValue( "Heading" );
                     notesTimeline.TitleIconCssClass = GetAttributeValue( "HeadingIcon" );
                     notesTimeline.AllowAnonymousEntry = GetAttributeValue( "Allow Anonymous" ).AsBoolean();
