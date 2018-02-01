@@ -279,6 +279,7 @@ namespace RockWeb.Blocks.Core
             noteType.UserSelectable = cbUserSelectable.Checked;
             noteType.CssClass = tbCssClass.Text;
             noteType.IconCssClass = tbIconCssClass.Text;
+            noteType.BackgroundColor = cpBackgroundColor.Text;
             noteType.AllowsReplies = cbAllowsReplies.Checked;
             noteType.MaxReplyDepth = nbMaxReplyDepth.Text.AsIntegerOrNull();
 
@@ -377,6 +378,7 @@ namespace RockWeb.Blocks.Core
                 cbUserSelectable.Checked = noteType.UserSelectable;
                 tbCssClass.Text = noteType.CssClass;
                 tbIconCssClass.Text = noteType.IconCssClass;
+                cpBackgroundColor.Text = noteType.BackgroundColor;
                 cbAllowsReplies.Checked = noteType.AllowsReplies;
                 nbMaxReplyDepth.Text = noteType.MaxReplyDepth.ToString();
                 entityTypePicker.SelectedEntityTypeId = noteType.EntityTypeId;
@@ -387,6 +389,7 @@ namespace RockWeb.Blocks.Core
                 cbUserSelectable.Checked = true;
                 tbCssClass.Text = string.Empty;
                 tbIconCssClass.Text = string.Empty;
+                cpBackgroundColor.Text = string.Empty;
                 cbAllowsReplies.Checked = false;
                 nbMaxReplyDepth.Text = string.Empty;
                 entityTypePicker.SelectedEntityTypeId = entityTypeFilter.SelectedValueAsInt( false );

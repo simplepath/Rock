@@ -14,9 +14,9 @@
 // limitations under the License.
 // </copyright>
 //
-using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using Rock.Model;
 using Rock.Web.Cache;
 
@@ -42,7 +42,7 @@ namespace Rock.Web.UI.Controls
         /// <value>
         /// The note type ids.
         /// </value>
-        private List<int> _noteTypeIds { get; set; }
+        private List<int> _noteTypeIds { get; set; } = new List<int>();
 
         /// <summary>
         /// Gets or sets the note types.
@@ -99,21 +99,68 @@ namespace Rock.Web.UI.Controls
         /// </value>
         public bool DisplayNoteTypeHeading { get; set; }
 
+        /// <summary>
+        /// Gets or sets the display type.
+        /// </summary>
+        /// <value>
+        /// The display type.
+        /// </value>
         public NoteDisplayType DisplayType { get; set; }
 
+        /// <summary>
+        /// Gets or sets a value indicating whether [show alert CheckBox].
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [show alert CheckBox]; otherwise, <c>false</c>.
+        /// </value>
         public bool ShowAlertCheckBox { get; set; }
 
+        /// <summary>
+        /// Gets or sets a value indicating whether [show private CheckBox].
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [show private CheckBox]; otherwise, <c>false</c>.
+        /// </value>
         public bool ShowPrivateCheckBox { get; set; }
 
+        /// <summary>
+        /// Gets or sets a value indicating whether [show security button].
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [show security button]; otherwise, <c>false</c>.
+        /// </value>
         public bool ShowSecurityButton { get; set; }
 
+        /// <summary>
+        /// Gets or sets a value indicating whether [show create date input].
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [show create date input]; otherwise, <c>false</c>.
+        /// </value>
         public bool ShowCreateDateInput { get; set; }
 
+        /// <summary>
+        /// Gets or sets a value indicating whether [use person icon].
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [use person icon]; otherwise, <c>false</c>.
+        /// </value>
         public bool UsePersonIcon { get; set; }
 
+        /// <summary>
+        /// Gets or sets a value indicating whether [add always visible].
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [add always visible]; otherwise, <c>false</c>.
+        /// </value>
         public bool AddAlwaysVisible { get; set; }
 
-        // use to be called 'Term'
+        /// <summary>
+        /// Gets or sets the note label (used to be called 'Term')
+        /// </summary>
+        /// <value>
+        /// The note label.
+        /// </value>
         public string NoteLabel { get; set; }
     }
 }

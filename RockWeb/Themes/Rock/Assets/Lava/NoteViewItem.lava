@@ -3,67 +3,73 @@
 any CSS Classes that are prefixed with 'js-' are hooks that are required for editing notes (see noteEditor.js and NoteContainer.cs)
 {% endcomment %}
 
-{% if Note.IsAlert %}
+{% if note.IsAlert %}
     {% assign wrapperClass = "highlight" %}
-{% elsif Note.IsPrivate %}
+{% elsif note.IsPrivate %}
     {% assign wrapperClass = "personal" %}
 {% else %}
     {% assign wrapperClass = "" %}
 {% endif %}
 
-{% assign noteDateTimeText = Note.CreatedDateTime | HumanizeDateTime %}
-{% if Note.ModifiedDateTime > Note.CreatedDateTime %}
-    {% capture editedLabel %}edited {{ Note.ModifiedDateTime | HumanizeDateTime }}{% endcapture %}
-    {% if Note.ModifiedByPersonName != Note.CreatedByPersonName %}
-        {% assign editedLabel = editedLabel | Append:' by ' | Append:Note.ModifiedByPersonName %}
+{% if note.NoteType.BackgroundColor %}
+    {% capture wrapperStyle %}background-color: {{ note.NoteType.BackgroundColor }}{% endcapture %}
+{% else %}
+    {% assign wrapperStyle = '' %}
+{% endif %}
+
+{% assign noteDateTimeText = note.CreatedDateTime | HumanizeDateTime %}
+{% if note.ModifiedDateTime > note.CreatedDateTime %}
+    {% capture editedLabel %}edited {{ note.ModifiedDateTime | HumanizeDateTime }}{% endcapture %}
+    {% if note.ModifiedByPersonName != note.CreatedByPersonName %}
+        {% assign editedLabel = editedLabel | Append:' by ' | Append:note.ModifiedByPersonName %}
     {% endif %}
     {% assign noteDateTimeText =  noteDateTimeText | Append:' (' | Append:editedLabel | Append:')'%}
 {% endif %}
 
-{% assign CanReply = Note.NoteType.AllowsReplies %}
-{% if CanReply and Note.NoteType.MaxReplyDepth %}
-  {% if NoteReplyDepth > Note.NoteType.MaxReplyDepth %}
-    {% assign CanReply = false %}
+{% assign canReply = note.NoteType.AllowsReplies %}
+{% if canReply and note.NoteType.MaxReplyDepth %}
+  {% if noteReplyDepth > note.NoteType.MaxReplyDepth %}
+    {% assign canReply = false %}
   {% endif %}
 {% endif %}
 
-{% assign noteText = Note.Text | Escape | Linkify | FromMarkdown %}
+{% assign noteText = note.Text | Escape | Linkify | FromMarkdown %}
 
-<div class="note-view-item js-noteviewitem" data-note-id="{{ Note.Id }}">
-    <div class='note-details js-notedetails'>
-        <article class="clearfix rollover-container {{ wrapperClass }}">
+<div class="note-view-item js-noteviewitem" data-note-id="{{ note.Id }}">
+    <div class='note {{ note.NoteType.CssClass }} note-details js-notedetails' rel="{{ note.Id }}">
+        <article class="clearfix rollover-container {{ wrapperClass }}" style="{{ wrapperStyle }}">
             {% if NoteOptions.DisplayType == 'Full' %}
             {% if NoteOptions.UsePersonIcon %}
-            <img style="max-height: 50px; max-width: 50px;" src="{{ Note.CreatedByPersonPhotoUrl }}">
+            <img style="max-height: 50px; max-width: 50px;" src="{{ note.CreatedByPersonPhotoUrl }}">
             {% else %}
-            <i class="{{ Note.NoteType.IconCssClass | Default:'fa fa-comment' }}"></i>
+            <i class="{{ note.NoteType.IconCssClass | Default:'fa fa-comment' }}"></i>
             {% endif %}
             {% endif %}
             <div class="details">
                 {% if NoteOptions.DisplayType == 'Full' %}
                 <h5>
                     {% if NoteOptions.DisplayNoteTypeHeading %}
-                    <strong>{{ Note.NoteType.Name }} </strong>
+                    <strong>{{ note.NoteType.Name }} </strong>
                     {% endif %}
-                    {{ Note.Caption | Default:Note.CreatedByPersonName }} <span class="date" title="{{ Note.ModifiedDateTime }}">{{ noteDateTimeText }}</span>
+                    {{ note.Caption | Default:note.CreatedByPersonName }} <span class="date" title="{{ note.ModifiedDateTime }}">{{ noteDateTimeText }}</span>
                 </h5>
                 <div class="notetext">
                     {{ noteText }}
                 </div>
                 {% else %}
                 {{ noteText }}
-                - <span class="note-author">{{ Note.CreatedByPersonName }}</span> <span class="note-created" title="{{ Note.ModifiedDateTime }}">{{ noteDateTimeText }}</span>
+                - <span class="note-author">{{ note.CreatedByPersonName }}</span> <span class="note-created" title="{{ note.ModifiedDateTime }}">{{ noteDateTimeText }}</span>
                 {% endif %}
 
                 <div class="note-actions">
-                    {% if CanReply %}
+                    {% if canReply %}
                     <a class="btn btn-xs btn-default pull-right js-replynote"><i class="fa fa-reply"></i></a>
                     {% endif %}
                 </div>
             </div>
 
             <div class="actions rollover-item">
-                {% assign canEdit = Note | HasRightsTo:'Edit' %}
+                {% assign canEdit = note | HasRightsTo:'Edit' %}
                 {% if canEdit %}
                 <a class="remove-note js-removenote" href="{{ DeleteNotePostBackUrl }}"><i class="fa fa-times"></i></a>
                 <a class="edit-note js-editnote"><i class="fa fa-pencil"></i></a>
@@ -73,13 +79,13 @@ any CSS Classes that are prefixed with 'js-' are hooks that are required for edi
     </div>
 
     {% comment %}
-    Maintain the NoteReplyDepth by incrementing here (for every Note), and then decrementing after each child so indicate we are at the same level
+    Maintain the noteReplyDepth by incrementing here (for every note), and then decrementing after each child so indicate we are at the same level
     {% endcomment %}
-    {% assign NoteReplyDepth = NoteReplyDepth | Plus:1 %}
+    {% assign noteReplyDepth = noteReplyDepth | Plus:1 %}
     <div class='note-childnotes js-childnotes' style="margin-left:20px;">
-        {% for Note in Note.ChildNotes %}
+        {% for note in note.ChildNotes %}
         {% include '~~/Assets/Lava/NoteViewItem.lava' %}
-        {% assign NoteReplyDepth = NoteReplyDepth | Minus:1 %}
+        {% assign noteReplyDepth = noteReplyDepth | Minus:1 %}
         {% endfor %}
     </div>
 </div>

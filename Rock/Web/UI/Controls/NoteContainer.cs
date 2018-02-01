@@ -58,8 +58,6 @@ namespace Rock.Web.UI.Controls
         /// </value>
         public NoteOptions NoteOptions { get; set; } = new NoteOptions();
 
-        #region obsolete properties
-
         /// <summary>
         /// Gets or sets the note types.
         /// </summary>
@@ -96,8 +94,6 @@ namespace Rock.Web.UI.Controls
                 NoteOptions.EntityId = value;
             }
         }
-
-        #endregion
 
         /// <summary>
         /// Gets or sets a value indicating whether to display heading of the note container

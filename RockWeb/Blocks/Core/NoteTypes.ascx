@@ -52,8 +52,9 @@
                     <div class="col-md-6">
                         <Rock:RockTextBox ID="tbCssClass" runat="server" Label="CSS Class" />
                         <Rock:RockTextBox ID="tbIconCssClass" runat="server" Label="Icon CSS Class" />
+                        <Rock:ColorPicker ID="cpBackgroundColor" runat="server" Label="Background Color" />
                         <Rock:RockCheckBox ID="cbAllowsReplies" runat="server" Label="Allow Replies" AutoPostBack="true" OnCheckedChanged="cbAllowsReplies_CheckedChanged" />
-                        <Rock:NumberBox ID="nbMaxReplyDepth" runat="server" NumberType="Integer" MinimumValue="0" MaximumValue="9999" Label="Max Reply Depth" />
+                        <Rock:NumberBox ID="nbMaxReplyDepth" runat="server" CssClass="input-width-sm" NumberType="Integer" MinimumValue="0" MaximumValue="9999" Label="Max Reply Depth" />
                     </div>
                 </div>
 
