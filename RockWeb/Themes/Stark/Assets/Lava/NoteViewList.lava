@@ -1,0 +1,6 @@
+﻿<div class="note-view-list js-notelist">
+    {% for Note in NoteList %}
+    {% assign NoteReplyDepth = 0 %}
+    {% include '~~/Assets/Lava/NoteViewItem.lava' %}
+    {% endfor %}
+</div>

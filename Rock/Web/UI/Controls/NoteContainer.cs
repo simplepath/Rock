@@ -28,6 +28,7 @@ using Rock.Data;
 using Rock.Lava;
 using Rock.Model;
 using Rock.Security;
+using Rock.Web.Cache;
 
 namespace Rock.Web.UI.Controls
 {
@@ -49,7 +50,54 @@ namespace Rock.Web.UI.Controls
 
         #region Properties
 
-        public NoteOptions NoteOptions { get; set; }
+        /// <summary>
+        /// Gets or sets the note options.
+        /// </summary>
+        /// <value>
+        /// The note options.
+        /// </value>
+        public NoteOptions NoteOptions { get; set; } = new NoteOptions();
+
+        #region obsolete properties
+
+        /// <summary>
+        /// Gets or sets the note types.
+        /// </summary>
+        /// <value>
+        /// The note types.
+        /// </value>
+        [Obsolete("Use NoteOptions.NoteTypes instead")]
+        public List<NoteTypeCache> NoteTypes
+        {
+            get
+            {
+                return NoteOptions?.NoteTypes;
+            }
+
+            set
+            {
+                NoteOptions.NoteTypes = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the entity identifier.
+        /// </summary>
+        [Obsolete( "Use NoteOptions.EntityId instead" )]
+        public int? EntityId
+        {
+            get
+            {
+                return NoteOptions?.EntityId;
+            }
+
+            set
+            {
+                NoteOptions.EntityId = value;
+            }
+        }
+
+        #endregion
 
         /// <summary>
         /// Gets or sets a value indicating whether to display heading of the note container
@@ -481,7 +529,7 @@ namespace Rock.Web.UI.Controls
         /// <summary>
         /// Clears the rows.
         /// </summary>
-        [Obsolete]
+        [Obsolete("Not Needed. Notes will be cleared and rebuilt automatically")]
         public void ClearNotes()
         {
             //
@@ -491,7 +539,7 @@ namespace Rock.Web.UI.Controls
         /// Rebuilds the notes.
         /// </summary>
         /// <param name="setSelection">if set to <c>true</c> [set selection].</param>
-        [Obsolete]
+        [Obsolete("Not Needed. Notes will be rebuilt automatically")]
         public void RebuildNotes( bool setSelection )
         {
             //

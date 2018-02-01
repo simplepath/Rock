@@ -575,15 +575,13 @@ namespace RockWeb.Blocks.Fundraising
             var noteType = NoteTypeCache.Read( this.GetAttributeValue( "NoteType" ).AsGuid() );
             if ( noteType != null )
             {
-                notesCommentsTimeline.NoteTypes = new List<NoteTypeCache> { noteType };
+                notesCommentsTimeline.NoteOptions.NoteTypes = new List<NoteTypeCache> { noteType };
             }
 
-            notesCommentsTimeline.EntityId = groupMember.Id;
+            notesCommentsTimeline.NoteOptions.EntityId = groupMember.Id;
 
             // show the Add button on comments for any logged in person
             notesCommentsTimeline.AddAllowed = true;
-
-            notesCommentsTimeline.RebuildNotes( true );
 
             var enableCommenting = group.GetAttributeValue( "EnableCommenting" ).AsBoolean();
 

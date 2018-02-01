@@ -34,7 +34,7 @@ namespace Rock.Web.UI.Controls
         /// <value>
         /// The note view lava template.
         /// </value>
-        public string NoteViewLavaTemplate { get; set; }
+        public string NoteViewLavaTemplate { get; set; } = "{% include '~~/Assets/Lava/NoteViewList.lava' %}";
 
         /// <summary>
         /// Gets or sets the note type ids.
