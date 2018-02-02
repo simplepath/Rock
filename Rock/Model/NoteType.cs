@@ -166,7 +166,7 @@ namespace Rock.Model
         public int? MaxReplyDepth { get; set; }
 
         /// <summary>
-        /// Gets or sets the color of the background.
+        /// Gets or sets the background color of each note
         /// </summary>
         /// <value>
         /// The color of the background.
@@ -174,6 +174,26 @@ namespace Rock.Model
         [DataMember]
         [MaxLength( 100 )]
         public string BackgroundColor { get; set; }
+
+        /// <summary>
+        /// Gets or sets the font color of the note text
+        /// </summary>
+        /// <value>
+        /// The color of the font.
+        /// </value>
+        [DataMember]
+        [MaxLength( 100 )]
+        public string FontColor { get; set; }
+
+        /// <summary>
+        /// Gets or sets the border color of each note
+        /// </summary>
+        /// <value>
+        /// The color of the border.
+        /// </value>
+        [DataMember]
+        [MaxLength( 100 )]
+        public string BorderColor { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether [send approval notifications].

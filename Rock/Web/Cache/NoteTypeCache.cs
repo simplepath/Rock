@@ -162,13 +162,31 @@ namespace Rock.Web.Cache
         public int? MaxReplyDepth { get; set; }
 
         /// <summary>
-        /// Gets or sets the color of the background.
+        /// Gets or sets the background color of each note
         /// </summary>
         /// <value>
         /// The color of the background.
         /// </value>
         [DataMember]
         public string BackgroundColor { get; set; }
+
+        /// <summary>
+        /// Gets or sets the font color of the note text
+        /// </summary>
+        /// <value>
+        /// The color of the font.
+        /// </value>
+        [DataMember]
+        public string FontColor { get; set; }
+
+        /// <summary>
+        /// Gets or sets the border color of each note
+        /// </summary>
+        /// <value>
+        /// The color of the border.
+        /// </value>
+        [DataMember]
+        public string BorderColor { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether [send approval notifications].
@@ -226,6 +244,8 @@ namespace Rock.Web.Cache
                 this.AllowsReplies = NoteType.AllowsReplies;
                 this.MaxReplyDepth = NoteType.MaxReplyDepth;
                 this.BackgroundColor = NoteType.BackgroundColor;
+                this.FontColor = NoteType.FontColor;
+                this.BorderColor = NoteType.BorderColor;
                 this.SendApprovalNotifications = NoteType.SendApprovalNotifications;
                 this.AllowsMentions = NoteType.AllowsMentions;
                 this.AutoWatchAuthors = NoteType.AutoWatchAuthors;
