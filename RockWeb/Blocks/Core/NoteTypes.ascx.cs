@@ -263,7 +263,7 @@ namespace RockWeb.Blocks.Core
             if ( noteType == null )
             {
                 var orders = service.Queryable()
-                    .Where( t => t.EntityTypeId == ( entityTypePicker.SelectedEntityTypeId ?? 0 ) )
+                    .Where( t => t.EntityTypeId == ( epEntityType.SelectedEntityTypeId ?? 0 ) )
                     .Select( t => t.Order )
                     .ToList();
 
@@ -273,7 +273,7 @@ namespace RockWeb.Blocks.Core
             }
 
             noteType.Name = tbName.Text;
-            noteType.EntityTypeId = entityTypePicker.SelectedEntityTypeId ?? 0;
+            noteType.EntityTypeId = epEntityType.SelectedEntityTypeId ?? 0;
             noteType.EntityTypeQualifierColumn = "";
             noteType.EntityTypeQualifierValue = "";
             noteType.UserSelectable = cbUserSelectable.Checked;
@@ -311,7 +311,8 @@ namespace RockWeb.Blocks.Core
             var entityTypes = new EntityTypeService( rockContext ).GetEntities()
                 .OrderBy( t => t.FriendlyName )
                 .ToList();
-            entityTypePicker.EntityTypes = entityTypes;
+
+            epEntityType.EntityTypes = entityTypes;
 
             // Load Entity Type Filter
             var noteTypeEntities = new NoteTypeService( rockContext ).Queryable()
@@ -337,6 +338,11 @@ namespace RockWeb.Blocks.Core
             rGrid.DataBind();
         }
 
+        /// <summary>
+        /// Gets the note types.
+        /// </summary>
+        /// <param name="rockContext">The rock context.</param>
+        /// <returns></returns>
         private IQueryable<NoteType> GetNoteTypes( RockContext rockContext = null )
         {
             int? entityTypeId = entityTypeFilter.SelectedValueAsInt( false );
@@ -346,6 +352,12 @@ namespace RockWeb.Blocks.Core
             return unorderedNoteTypes.OrderBy( a => a.EntityType.Name ).ThenBy( a => a.Order ).ThenBy( a => a.Name );
         }
 
+        /// <summary>
+        /// Gets the unordered note types.
+        /// </summary>
+        /// <param name="entityTypeId">The entity type identifier.</param>
+        /// <param name="rockContext">The rock context.</param>
+        /// <returns></returns>
         private IQueryable<NoteType> GetUnorderedNoteTypes( int? entityTypeId, RockContext rockContext = null )
         {
             rockContext = rockContext ?? new RockContext();
@@ -359,7 +371,6 @@ namespace RockWeb.Blocks.Core
             return queryable;
         }
 
-
         /// <summary>
         /// Shows the edit.
         /// </summary>
@@ -372,35 +383,31 @@ namespace RockWeb.Blocks.Core
                 noteType = new NoteTypeService( new RockContext() ).Get( noteTypeId.Value );
             }
 
-            if ( noteType != null )
+            if ( noteType == null )
             {
-                tbName.Text = noteType.Name;
-                cbUserSelectable.Checked = noteType.UserSelectable;
-                tbCssClass.Text = noteType.CssClass;
-                tbIconCssClass.Text = noteType.IconCssClass;
-                cpBackgroundColor.Text = noteType.BackgroundColor;
-                cbAllowsReplies.Checked = noteType.AllowsReplies;
-                nbMaxReplyDepth.Text = noteType.MaxReplyDepth.ToString();
-                entityTypePicker.SelectedEntityTypeId = noteType.EntityTypeId;
+                noteType = new NoteType();
             }
-            else
-            {
-                tbName.Text = string.Empty;
-                cbUserSelectable.Checked = true;
-                tbCssClass.Text = string.Empty;
-                tbIconCssClass.Text = string.Empty;
-                cpBackgroundColor.Text = string.Empty;
-                cbAllowsReplies.Checked = false;
-                nbMaxReplyDepth.Text = string.Empty;
-                entityTypePicker.SelectedEntityTypeId = entityTypeFilter.SelectedValueAsInt( false );
-            }
+
+            tbName.Text = noteType.Name;
+            cbUserSelectable.Checked = noteType.UserSelectable;
+            tbCssClass.Text = noteType.CssClass;
+            tbIconCssClass.Text = noteType.IconCssClass;
+            cpBackgroundColor.Text = noteType.BackgroundColor;
+            cpFontColor.Text = noteType.FontColor;
+            cpBorderColor.Text = noteType.BorderColor;
+            cbAllowsReplies.Checked = noteType.AllowsReplies;
+            nbMaxReplyDepth.Text = noteType.MaxReplyDepth.ToString();
+            epEntityType.SelectedEntityTypeId = noteType.EntityTypeId;
+
+            lEntityTypeReadOnly.Visible = noteType.IsSystem;
+            epEntityType.Visible = !noteType.IsSystem;
+            var entityType = EntityTypeCache.Read( noteType.EntityTypeId );
+            lEntityTypeReadOnly.Text = entityType != null ? entityType.FriendlyName : string.Empty;
 
             hfIdValue.Value = noteTypeId.ToString();
             cbAllowsReplies_CheckedChanged( null, null );
             modalDetails.Show();
         }
-
-        #endregion
 
         /// <summary>
         /// Handles the CheckedChanged event of the cbAllowsReplies control.
@@ -411,5 +418,7 @@ namespace RockWeb.Blocks.Core
         {
             nbMaxReplyDepth.Visible = cbAllowsReplies.Checked;
         }
+
+        #endregion
     }
 }

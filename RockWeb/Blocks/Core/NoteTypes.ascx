@@ -34,8 +34,6 @@
                 </div>
             </div>
 
-            
-
         </asp:Panel>
 
         <Rock:ModalDialog ID="modalDetails" runat="server" Title="Note Type" ValidationGroup="bgNoteTypeDetails">
@@ -46,15 +44,18 @@
                 <div class="row">
                     <div class="col-md-6">
                         <Rock:RockTextBox ID="tbName" runat="server" Label="Name" Required="true" />
-                        <Rock:EntityTypePicker ID="entityTypePicker" runat="server" Required="true" Label="Entity Type" IncludeGlobalOption="true" EnhanceForLongLists="true" />
+                        <Rock:RockLiteral ID="lEntityTypeReadOnly" runat="server" Visible="false" Label="Entity Type" />
+                        <Rock:EntityTypePicker ID="epEntityType" runat="server" Required="true" Label="Entity Type" IncludeGlobalOption="true" EnhanceForLongLists="true" />
                         <Rock:RockCheckBox ID="cbUserSelectable" runat="server" Label="User Selectable" Text="Yes" />
+                        <Rock:RockCheckBox ID="cbAllowsReplies" runat="server" Label="Allow Replies" AutoPostBack="true" OnCheckedChanged="cbAllowsReplies_CheckedChanged" Text="Yes" />
+                        <Rock:NumberBox ID="nbMaxReplyDepth" runat="server" CssClass="input-width-sm" NumberType="Integer" MinimumValue="0" MaximumValue="9999" Label="Max Reply Depth" />
                     </div>
                     <div class="col-md-6">
                         <Rock:RockTextBox ID="tbCssClass" runat="server" Label="CSS Class" />
                         <Rock:RockTextBox ID="tbIconCssClass" runat="server" Label="Icon CSS Class" />
                         <Rock:ColorPicker ID="cpBackgroundColor" runat="server" Label="Background Color" />
-                        <Rock:RockCheckBox ID="cbAllowsReplies" runat="server" Label="Allow Replies" AutoPostBack="true" OnCheckedChanged="cbAllowsReplies_CheckedChanged" />
-                        <Rock:NumberBox ID="nbMaxReplyDepth" runat="server" CssClass="input-width-sm" NumberType="Integer" MinimumValue="0" MaximumValue="9999" Label="Max Reply Depth" />
+                        <Rock:ColorPicker ID="cpFontColor" runat="server" Label="Font Color" />
+                        <Rock:ColorPicker ID="cpBorderColor" runat="server" Label="Border Color" />
                     </div>
                 </div>
 
