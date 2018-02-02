@@ -307,7 +307,7 @@ namespace Rock.Web.UI.Controls
             writer.AddAttribute( HtmlTextWriterAttribute.Id, this.ClientID );
             writer.RenderBeginTag( HtmlTextWriterTag.Span );
             writer.WriteLine();
-
+            
             _hfValue.RenderControl( writer );
             _hfValueDisableVrm.RenderControl( writer );
 
@@ -323,7 +323,7 @@ namespace Rock.Web.UI.Controls
             hfValueHtml.Value = valueHtml.ToString();
             hfValueHtml.RenderControl( writer );
 
-            writer.AddAttribute( HtmlTextWriterAttribute.Class, "list-items-rows" );
+            writer.AddAttribute( HtmlTextWriterAttribute.Class, "list-items-rows ui-sortable" );
             writer.RenderBeginTag( HtmlTextWriterTag.Span );
             writer.WriteLine();
 
@@ -342,7 +342,12 @@ namespace Rock.Web.UI.Controls
 
                     writer.AddAttribute( "class", "input-group-addon" );
                     writer.RenderBeginTag( HtmlTextWriterTag.Span );
+
+                    writer.AddAttribute( HtmlTextWriterAttribute.Href, "#" );
+                    writer.AddAttribute( HtmlTextWriterAttribute.Class, "minimal" );
+                    writer.RenderBeginTag( HtmlTextWriterTag.A );
                     writer.Write( "<i class='fa fa-bars'></i>" );
+                    writer.RenderEndTag();
                     writer.RenderEndTag();
 
                     writer.AddAttribute( HtmlTextWriterAttribute.Class, "form-control input-width-lg js-list-items-input" );
@@ -395,9 +400,31 @@ namespace Rock.Web.UI.Controls
             writer.RenderEndTag();
             writer.WriteLine();
 
-            //RegisterClientScript();
+            var postBackChangedscript = this.ValueChanged != null ? this.Page.ClientScript.GetPostBackEventReference( new PostBackOptions( this, "ValueChanged" ), true ) : "";
+            postBackChangedscript = postBackChangedscript.Replace( '\'', '"' );
+            var script = string.Format( @"Rock.controls.listItems.initialize({{ id: '{0}', valueChangedScript: '{1}' }});", this.ID, postBackChangedscript );
+            ScriptManager.RegisterStartupScript( this, this.GetType(), "list-items-script" + this.ClientID, script, true );
         }
 
+        /// <summary>
+        /// Occurs when [value changed].
+        /// </summary>
+        public event EventHandler ValueChanged;
+
+        /// <summary>
+        /// When implemented by a class, enables a server control to process an event raised when a form is posted to the server.
+        /// </summary>
+        /// <param name="eventArgument">A <see cref="T:System.String" /> that represents an optional event argument to be passed to the event handler.</param>
+        public void RaisePostBackEvent( string eventArgument )
+        {
+            if ( eventArgument == "ValueChanged" )
+            {
+                if ( ValueChanged != null )
+                {
+                    ValueChanged( this, new EventArgs() );
+                }
+            }
+        }
 
         public class KeyValuePair
         {

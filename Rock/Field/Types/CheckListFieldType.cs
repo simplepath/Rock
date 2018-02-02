@@ -43,7 +43,7 @@ namespace Rock.Field.Types
         /// <summary>
         /// Gets whether default value is allowed.
         /// </summary>
-        public override bool AllowDefaultValue { get { return false; } }
+        public override bool AllowDefaultValue { get { return true; } }
 
         /// <summary>
         /// Returns a list of the configuration keys
@@ -68,6 +68,7 @@ namespace Rock.Field.Types
             controls.Add( li );
             li.Label = "Values";
             li.Help = "The list of the values to display.";
+            li.ValueChanged += OnQualifierUpdated;
             return controls;
         }
 
@@ -126,8 +127,49 @@ namespace Rock.Field.Types
         {
             if ( !string.IsNullOrWhiteSpace( value ) && configurationValues.ContainsKey( VALUES_KEY ) )
             {
+                if ( string.IsNullOrEmpty( configurationValues[VALUES_KEY].Value ) || string.IsNullOrEmpty( value ) )
+                {
+                    return string.Empty;
+                }
+                else
+                {
+                    var keyValuePairs = JsonConvert.DeserializeObject<List<KeyValuePair>>( configurationValues[VALUES_KEY].Value );
+                    if ( condensed )
+                    {
+                        return GetUrlDecodedValues( keyValuePairs, value );
 
-                return GetUrlDecodedValues( configurationValues[VALUES_KEY].Value, value );
+
+                    }
+                    else
+                    {
+                        //    var lavaTemplate = @"
+                        //{% for keyValuePair in KeyValuePairs %}
+                        //    {% assign checked = 'false' %}
+                        //    {% if keyValuePair.Value != '' %}
+                        //    { { opportunityPhotoUrl | AddMetaTagToHead:'property','og:image' } }
+                        //    { { opportunityPhotoUrl | AddMetaTagToHead:'property','twitter:image' } }
+                        //    { { 'summary_large_image' | AddMetaTagToHead:'property','twitter:card' } }
+                        //    {% endif %}
+                        //    <div class='checkbox'>
+                        //    <label><input type='checkbox' /> {{ value }}</label>
+                        //    </div>
+                        //{% endfor %}
+                        //    ";
+                        //    Dictionary<string, object> mergeFields = Lava.LavaHelper.GetCommonMergeFields( parentControl?.RockBlock()?.RockPage, null, new Lava.CommonMergeFieldsOptions { GetLegacyGlobalMergeFields = false } );
+                        //    mergeFields.Add( "KeyValuePairs", keyValuePairs );
+                        //    mergeFields.Add( "Values",  );
+                        var values = value.Split( new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries ).AsGuidList();
+                        string formattedValue = string.Empty;
+                        foreach ( var keyValuePair in keyValuePairs )
+                        {
+                            formattedValue += string.Format( @"<div>
+                                <label><input type='checkbox' disabled='disabled' {1} /> {0}</label>
+                               </div>", keyValuePair.Value, values.Any( a => a == keyValuePair.Key ) ? "checked" : "" );
+                        }
+                        return formattedValue;
+                    }
+
+                }
             }
 
             return base.FormatValue( parentControl, value, configurationValues, condensed );
@@ -156,9 +198,12 @@ namespace Rock.Field.Types
                 if ( configurationValues.ContainsKey( VALUES_KEY ) )
                 {
                     var values = JsonConvert.DeserializeObject<List<KeyValuePair>>( configurationValues[VALUES_KEY].Value );
-                    foreach ( var val in values )
+                    if ( values != null )
                     {
-                        editControl.Items.Add( new ListItem( val.Value, val.Key.ToString() ) );
+                        foreach ( var val in values )
+                        {
+                            editControl.Items.Add( new ListItem( val.Value, val.Key.ToString() ) );
+                        }
                     }
                 }
                 if ( editControl.Items.Count > 0 )
@@ -226,17 +271,15 @@ namespace Rock.Field.Types
         #region Filter Control
 
         /// <summary>
-        /// Creates the control needed to filter (query) values using this field type.
+        /// Gets the type of the filter comparison.
         /// </summary>
-        /// <param name="configurationValues">The configuration values.</param>
-        /// <param name="id">The identifier.</param>
-        /// <param name="required">if set to <c>true</c> [required].</param>
-        /// <param name="filterMode">The filter mode.</param>
-        /// <returns></returns>
-        public override System.Web.UI.Control FilterControl( System.Collections.Generic.Dictionary<string, ConfigurationValue> configurationValues, string id, bool required, Rock.Reporting.FilterMode filterMode )
-        {
-            // This field type does not support filtering
-            return null;
+        /// <value>
+        /// The type of the filter comparison.
+        /// </value>
+        public override ComparisonType FilterComparisonType {
+            get {
+                return ComparisonHelper.ContainsFilterComparisonTypes;
+            }
         }
 
         /// <summary>
@@ -245,25 +288,75 @@ namespace Rock.Field.Types
         /// <returns></returns>
         public override bool HasFilterControl()
         {
-            return false;
+            return true;
+        }
+
+        /// <summary>
+        /// Formats the filter value value.
+        /// </summary>
+        /// <param name="configurationValues">The configuration values.</param>
+        /// <param name="value">The value.</param>
+        /// <returns></returns>
+        public override string FormatFilterValueValue( Dictionary<string, ConfigurationValue> configurationValues, string value )
+        {
+            if ( value != null && configurationValues.ContainsKey( VALUES_KEY ) )
+            {
+                var keyValuePairs = JsonConvert.DeserializeObject<List<KeyValuePair>>( configurationValues[VALUES_KEY].Value );
+                var values = value.Split( new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries ).AsGuidList();
+                return keyValuePairs.Where( a => values.Contains( a.Key ) ).Select( a => a.Value ).ToList().AsDelimited( " OR " );
+            }
+            return string.Empty;
+        }
+
+        /// <summary>
+        /// Gets a filter expression for an attribute value.
+        /// </summary>
+        /// <param name="configurationValues">The configuration values.</param>
+        /// <param name="filterValues">The filter values.</param>
+        /// <param name="parameterExpression">The parameter expression.</param>
+        /// <returns></returns>
+        public override Expression AttributeFilterExpression( Dictionary<string, ConfigurationValue> configurationValues, List<string> filterValues, ParameterExpression parameterExpression )
+        {
+            Expression comparison = null;
+            if ( filterValues.Count > 1 )
+            {
+                ComparisonType comparisonType = filterValues[0].ConvertToEnum<ComparisonType>( ComparisonType.Contains );
+
+                List<string> selectedValues = filterValues[1].Split( new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries ).ToList();
+
+                foreach ( var selectedValue in selectedValues )
+                {
+                    var searchValue = "," + selectedValue + ",";
+                    var qryToExtract = new AttributeValueService( new Data.RockContext() ).Queryable().Where( a => ( "," + a.Value + "," ).Contains( searchValue ) );
+                    var valueExpression = FilterExpressionExtractor.Extract<AttributeValue>( qryToExtract, parameterExpression, "a" );
+
+                    if ( comparisonType != ComparisonType.Contains )
+                    {
+                        valueExpression = Expression.Not( valueExpression );
+                    }
+
+                    if ( comparison == null )
+                    {
+                        comparison = valueExpression;
+                    }
+                    else
+                    {
+                        comparison = Expression.Or( comparison, valueExpression );
+                    }
+                }
+            }
+
+            return comparison;
         }
 
         #endregion
 
         #region Private
 
-        public string GetUrlDecodedValues( string jsonKeyValuePairs, string value )
+        public string GetUrlDecodedValues( List<KeyValuePair> keyValuePairs, string value )
         {
-            if ( string.IsNullOrEmpty( jsonKeyValuePairs ) || string.IsNullOrEmpty(value) )
-            {
-                return string.Empty;
-            }
-            else
-            {
-                var values = value.Split( new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries ).AsGuidList();
-                var keyValuePairs = JsonConvert.DeserializeObject<List<KeyValuePair>>( jsonKeyValuePairs );
-                return keyValuePairs.Where( a => values.Contains( a.Key ) ).Select( a => a.Value ).ToList().AsDelimited( "," );
-            }
+            var values = value.Split( new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries ).AsGuidList();
+            return keyValuePairs.Where( a => values.Contains( a.Key ) ).Select( a => a.Value ).ToList().AsDelimited( "," );
         }
         #endregion
     }
