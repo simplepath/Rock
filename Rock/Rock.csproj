@@ -345,6 +345,7 @@
     <Compile Include="Address\SmartyStreets.cs" />
     <Compile Include="Address\VerificationComponent.cs" />
     <Compile Include="Address\VerificationContainer.cs" />
+    <Compile Include="AssemblyInitializer.cs" />
     <Compile Include="Attribute\AccountFieldAttribute.cs" />
     <Compile Include="Attribute\AccountsFieldAttribute.cs" />
     <Compile Include="Attribute\AddressFieldAttribute.cs" />
@@ -1472,6 +1473,13 @@
     <Compile Include="Web\Cache\InteractionChannelCache.cs" />
     <Compile Include="Web\Cache\InteractionComponentCache.cs" />
     <Compile Include="Web\Cache\LavaShortcodeCache.cs" />
+    <Compile Include="Web\HttpModules\HttpModuleComponent.cs" />
+    <Compile Include="Web\HttpModules\HttpModuleContainer.cs" />
+    <Compile Include="Web\HttpModules\GreenHeaderHttpModule.cs" />
+    <Compile Include="Web\HttpModules\RedirectorHttpModule.cs" />
+    <Compile Include="Web\HttpModules\RedHeaderHttpModule.cs" />
+    <Compile Include="Web\HttpModules\RedirectorOptions.cs" />
+    <Compile Include="Web\HttpModules\RedirectorRule.cs" />
     <Compile Include="Web\UI\Controls\Communication\PushNotification.cs" />
     <Compile Include="Web\Cache\WorkflowActionFormAttributeCache.cs" />
     <Compile Include="Web\Cache\WorkflowActivityTypeCache.cs" />

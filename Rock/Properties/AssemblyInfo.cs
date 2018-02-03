@@ -16,6 +16,7 @@
 //
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Web;
 
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
@@ -30,3 +31,6 @@ using System.Runtime.InteropServices;
 // The following GUID is for the ID of the typelib if this project is exposed to COM
 [assembly: Guid( "a2b98b90-6dcb-4049-ad04-353c9b46a113" )]
 
+// The following attribute will set an initializer to be run early in the ASP.Net pipeline on application
+// start. Your can find more information on how this works at: https://haacked.com/archive/2010/05/16/three-hidden-extensibility-gems-in-asp-net-4.aspx/
+[assembly: PreApplicationStartMethod(typeof( Rock.AssemblyInitializer ), "Initialize" )]
