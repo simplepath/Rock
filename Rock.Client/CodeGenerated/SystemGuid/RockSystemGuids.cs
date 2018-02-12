@@ -84,6 +84,7 @@ namespace Rock.Client.SystemGuid
     {
         public const string COMMUNICATION_DETAIL = "CEDC742C-0AB3-487D-ABC2-77A0A443AEBF";
         public const string COMMUNICATION_ENTRY = "D9834641-7F39-4CFA-8CB2-E64068127565";
+        public const string COMMUNICATION_ENTRY_WIZARD = "F7D464E2-5F7C-47BA-84DB-7CC7B0B623C0";
         public const string CONTENT_CHANNEL_VIEW = "143A2345-3E26-4ED0-A2FE-42AAF11B4C0F";
         public const string HTML_CONTENT = "19B61D65-37E3-459F-A44F-DEF0089118A3";
         public const string PAGE_MENU = "CACB9D1A-A820-4587-986A-D66A69EE9948";
@@ -385,6 +386,7 @@ namespace Rock.Client.SystemGuid
         public const string INTEGER = "A75DFC58-7A1B-4799-BF31-451B2BBE38FF";
         public const string INTEGER_RANGE = "9D5F21E0-DEA0-4E8E-BA42-71151F6A8ED4";
         public const string KEY_VALUE_LIST = "73B02051-0D38-4AD9-BF81-A2D477DE4F70";
+        public const string LABEL = "8814CF68-435F-40F4-9A4C-ED6582835E0E";
         public const string LAVA_COMMANDS = "4BD9088F-5CC6-89B1-45FC-A2AAFFC7CC0D";
         public const string LOCATION = "B0B9EFE3-F09F-4604-AD1B-76B298A85D83";
         public const string MEMO = "C28C7BF3-A552-4D77-9408-DEDCF760CED0";
