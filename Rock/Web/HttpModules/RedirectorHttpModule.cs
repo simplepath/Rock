@@ -25,6 +25,35 @@ namespace com.minecartstudio.Redirector
         private static List<RedirectorRule> _redirectorRules = null;
         private static RedirectorOptions _redirectorOptions = null;
 
+        #region Properties
+
+        /// <summary>
+        /// Gets the option file path.
+        /// </summary>
+        /// <value>
+        /// The option file path.
+        /// </value>
+        public static string OptionFilePath {
+            get {
+                return HttpContext.Current.Server.MapPath( REDIRECTOR_OPTIONS_FILE );
+            }
+        }
+
+        /// <summary>
+        /// Gets the rules file path.
+        /// </summary>
+        /// <value>
+        /// The rules file path.
+        /// </value>
+        public static string RulesFilePath
+        {
+            get
+            {
+                return HttpContext.Current.Server.MapPath( REDIRECTOR_RULES_FILE );
+            }
+        }
+        #endregion
+
         public override void Dispose()
         {
             
@@ -77,7 +106,7 @@ namespace com.minecartstudio.Redirector
             // load options
             if ( _redirectorOptions == null )
             {
-                if ( File.Exists( REDIRECTOR_OPTIONS_FILE ) )
+                if ( File.Exists( RedirectorHttpModule.OptionFilePath ) )
                 {
                     LoadOptionsFromFile();
                 }
@@ -91,7 +120,7 @@ namespace com.minecartstudio.Redirector
             // load rules
             if ( _redirectorRules == null )
             {
-                if ( File.Exists( REDIRECTOR_RULES_FILE ) )
+                if ( File.Exists( RedirectorHttpModule.RulesFilePath ) )
                 {
                     LoadRulesFromFile();
                 }
@@ -110,7 +139,7 @@ namespace com.minecartstudio.Redirector
         {
             try
             {
-                _redirectorOptions = JsonConvert.DeserializeObject<RedirectorOptions>( File.ReadAllText( HttpContext.Current.Server.MapPath( REDIRECTOR_OPTIONS_FILE) ) );
+                _redirectorOptions = JsonConvert.DeserializeObject<RedirectorOptions>( File.ReadAllText( RedirectorHttpModule.OptionFilePath ) );
             }
             catch( Exception )
             {
@@ -126,7 +155,7 @@ namespace com.minecartstudio.Redirector
         {
             try
             {
-                _redirectorRules = JsonConvert.DeserializeObject<List<RedirectorRule>>( File.ReadAllText( HttpContext.Current.Server.MapPath( REDIRECTOR_RULES_FILE ) ) );
+                _redirectorRules = JsonConvert.DeserializeObject<List<RedirectorRule>>( File.ReadAllText( RedirectorHttpModule.RulesFilePath ) );
             }
             catch ( Exception )
             {
