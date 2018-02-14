@@ -77,6 +77,8 @@ namespace Rock.Migrations
             AddColumn("dbo.NoteType", "AllowsReplies", c => c.Boolean(nullable: false));
             AddColumn("dbo.NoteType", "MaxReplyDepth", c => c.Int());
             AddColumn("dbo.NoteType", "BackgroundColor", c => c.String(maxLength: 100));
+            AddColumn("dbo.NoteType", "FontColor", c => c.String(maxLength: 100));
+            AddColumn("dbo.NoteType", "BorderColor", c => c.String(maxLength: 100));
             AddColumn("dbo.NoteType", "SendApprovalNotifications", c => c.Boolean(nullable: false));
             AddColumn("dbo.NoteType", "AllowsMentions", c => c.Boolean(nullable: false));
             AddColumn("dbo.NoteType", "AutoWatchAuthors", c => c.Boolean(nullable: false));
@@ -109,6 +111,8 @@ namespace Rock.Migrations
             DropColumn("dbo.NoteType", "AutoWatchAuthors");
             DropColumn("dbo.NoteType", "AllowsMentions");
             DropColumn("dbo.NoteType", "SendApprovalNotifications");
+            DropColumn("dbo.NoteType", "BorderColor");
+            DropColumn("dbo.NoteType", "FontColor");
             DropColumn("dbo.NoteType", "BackgroundColor");
             DropColumn("dbo.NoteType", "MaxReplyDepth");
             DropColumn("dbo.NoteType", "AllowsReplies");
