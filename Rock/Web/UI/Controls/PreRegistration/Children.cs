@@ -111,7 +111,7 @@ namespace Rock.Web.UI.Controls
                     {
                         i++;
                         var childRow = control as PreRegistrationChildRow;
-                        childRow.Caption = $"Child {i}";
+                        childRow.Caption = childRow.ExistingName.IsNotNullOrWhitespace() ? childRow.ExistingName : $"Child {i}";
                         childRow.RenderControl( writer );
                     }
                 }

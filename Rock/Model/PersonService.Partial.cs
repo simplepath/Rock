@@ -1550,7 +1550,7 @@ namespace Rock.Model
         /// Gets the related people.
         /// </summary>
         /// <param name="personIds">The person ids.</param>
-        /// <param name="roleGuids">The role guids.</param>
+        /// <param name="roleIds">The role ids.</param>
         /// <returns></returns>
         public IEnumerable<GroupMember> GetRelatedPeople( List<int> personIds, List<int> roleIds )
         {

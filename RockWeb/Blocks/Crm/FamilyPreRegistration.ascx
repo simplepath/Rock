@@ -2,9 +2,11 @@
 
 <asp:UpdatePanel ID="upnlContent" runat="server">
     <ContentTemplate>
-        <Rock:NotificationBox ID="nbWarning" runat="server" NotificationBoxType="Warning" />
 
-         <div class="panel panel-block">
+        <Rock:NotificationBox ID="nbError" runat="server" NotificationBoxType="Danger" />
+        <asp:ValidationSummary ID="valSummary" runat="server" HeaderText="Please Correct the Following" CssClass="alert alert-danger" />
+
+        <div class="panel panel-block">
 
             <div class="panel-body">
 
@@ -25,7 +27,8 @@
                     <asp:HiddenField ID="hfAdultGuid1" runat="server" />
                     <asp:HiddenField ID="hfAdultGuid2" runat="server" />
 
-                    <h4>First Adult</h4>
+                    <h4>
+                        <asp:Literal ID="lAdultHeading1" runat="server" /></h4>
                     <div class="row">
                         <div class="col-md-3">
                             <Rock:DataTextBox ID="tbFirstName1" runat="server" SourceTypeName="Rock.Model.Person" PropertyName="NickName" Label="First Name" Required="true" />
@@ -52,10 +55,11 @@
                         </asp:Panel>
                         <Rock:DynamicPlaceholder ID="phAttributes1" runat="server" />
                     </div>
-                    
+
                     <hr />
 
-                    <h4>Second Adult</h4>
+                    <h4>
+                        <asp:Literal ID="lAdultHeading2" runat="server" /></h4>
                     <div class="row">
                         <div class="col-md-3">
                             <Rock:DataTextBox ID="tbFirstName2" runat="server" SourceTypeName="Rock.Model.Person" PropertyName="NickName" Label="First Name" Required="true" />
@@ -82,12 +86,12 @@
                         </asp:Panel>
                         <Rock:DynamicPlaceholder ID="phAttributes2" runat="server" />
                     </div>
-                    
+
                     <hr />
 
                     <div class="row">
                         <div class="col-md-6">
-                            <Rock:AddressControl ID="acAddress" Label="Address" runat="server" UseStateAbbreviation="false" UseCountryAbbreviation="false" />
+                            <Rock:AddressControl ID="acAddress" Label="Address" runat="server" UseStateAbbreviation="true" UseCountryAbbreviation="false" />
                         </div>
                         <asp:Panel ID="pnlFamilyAttributes" runat="server" CssClass="col-md-6">
                             <div class="row">

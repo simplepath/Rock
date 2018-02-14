@@ -36,7 +36,7 @@ using Rock.Web.UI.Controls;
 namespace RockWeb.Blocks.Crm
 {
     [DisplayName( "Family Pre Registration" )]
-    [Category( "Check-in" )]
+    [Category( "CRM" )]
     [Description( "Provides a way to allow people to pre-register their families for weekend check-in." )]
 
     [BooleanField( "Show Campus", "Should the campus field be displayed?", true, "", 0 )]
@@ -46,7 +46,14 @@ namespace RockWeb.Blocks.Crm
     [BooleanField( "Auto Match", "Should this block attempt to match people to to current records in the database.", true, "", 4 )]
     [DefinedValueField( Rock.SystemGuid.DefinedType.PERSON_CONNECTION_STATUS, "Connection Status", "The connection status that should be used when adding new people.", false, false, Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_VISITOR, "", 5 )]
     [DefinedValueField( Rock.SystemGuid.DefinedType.PERSON_RECORD_STATUS, "Record Status", "The record status that should be used when adding new people.", false, false, Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_ACTIVE, "", 6 )]
-    [WorkflowTypeField( "Workflow Type", "The workflow type to launch when a family is added.", true, false, "", "", 7 )]
+    [WorkflowTypeField( "Workflow Types", @"
+The workflow type(s) to launch when a family is added. The primary family will be passed to each workflow as the entity. Additionally if the workflow type has a date or datetime attribute
+with a key of 'PlannedVisitDate' that attribute will be set to the selected planned visit date when the workflow is launched.
+", true, false, "", "", 7 )]
+    [CodeEditorField( "Redirect URL", @"
+The URL to redirect user to when they have completed the registration. The merge fields that are available includes 'Family', which is an object for the primary family 
+that is created/updated, and 'RelatedChildren', which is a list of the children who have a relationship with the family, but are not in the family.
+", CodeEditorMode.Lava, CodeEditorTheme.Rock, 200, false, "", "", 8 )]
 
     [CustomDropdownListField( "Suffix", "How should Suffix be displayed for adults?", "Hide,Optional", false, "Hide", "Adult Fields", 0, "AdultSuffix" )]
     [CustomDropdownListField( "Gender", "How should Gender be displayed for adults?", "Hide,Optional,Required", false, "Optional", "Adult Fields", 1, "AdultGender" )]
@@ -113,7 +120,7 @@ ORDER BY [Text]", false, "", "Child Relationship", 2, "CanCheckinRelationships" 
         /// <value>
         /// The group members.
         /// </value>
-        protected List<Child> Children { get; set; }
+        protected List<PreRegistrationChild> Children { get; set; }
 
         #endregion
 
@@ -127,8 +134,7 @@ ORDER BY [Text]", false, "", "Child Relationship", 2, "CanCheckinRelationships" 
         {
             base.LoadViewState( savedState );
 
-            string json = ViewState["ChildMembers"] as string;
-            Children = json.IsNotNullOrWhitespace() ? JsonConvert.DeserializeObject<List<Child>>( json ) : new List<Child>();
+            Children = ViewState["Children"] as List<PreRegistrationChild> ?? new List<PreRegistrationChild>();
 
             BuildAdultAttributes( false, null, null );
             BuildFamilyAttributes( false, null );
@@ -172,6 +178,8 @@ ORDER BY [Text]", false, "", "Child Relationship", 2, "CanCheckinRelationships" 
         {
             base.OnLoad( e );
 
+            nbError.Visible = false;
+
             if ( !Page.IsPostBack )
             {
                 SetControls();
@@ -190,12 +198,7 @@ ORDER BY [Text]", false, "", "Child Relationship", 2, "CanCheckinRelationships" 
         /// </returns>
         protected override object SaveViewState()
         {
-            var jsonSetting = new JsonSerializerSettings
-            {
-                ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-                ContractResolver = new Rock.Utility.IgnoreUrlEncodedKeyContractResolver()
-            };
-            ViewState["ChildMembers"] = JsonConvert.SerializeObject( Children, Formatting.None, jsonSetting );
+            ViewState["Children"] = Children;
 
             return base.SaveViewState();
         }
@@ -234,7 +237,7 @@ ORDER BY [Text]", false, "", "Child Relationship", 2, "CanCheckinRelationships" 
         private void ChildRow_DeleteClick( object sender, EventArgs e )
         {
             var row = sender as PreRegistrationChildRow;
-            var child = Children.FirstOrDefault( m => m.Person.Guid.Equals( row.PersonGuid ) );
+            var child = Children.FirstOrDefault( m => m.Guid.Equals( row.PersonGuid ) );
             if ( child != null )
             {
                 Children.Remove( child );
@@ -250,175 +253,434 @@ ORDER BY [Text]", false, "", "Child Relationship", 2, "CanCheckinRelationships" 
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void btnSave_Click( object sender, EventArgs e )
         {
-            var familyGroupType = GroupTypeCache.Read( Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY.AsGuid() );
-            var adultRoleId = familyGroupType.Roles.FirstOrDefault( r => r.Guid == Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_ADULT.AsGuid() ).Id;
-
-            var recordTypePersonId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
-            var recordStatusValue = DefinedValueCache.Read( GetAttributeValue( "RecordStatus" ).AsGuid() ) ?? 
-                DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_ACTIVE.AsGuid() );
-            var connectionStatusValue = DefinedValueCache.Read( GetAttributeValue( "ConnectionStatus" ).AsGuid() ) ??
-                DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_VISITOR.AsGuid() );
-
-            var showSuffix = GetAttributeValue( "AdultSuffix" ) != "Hide";
-            var showGender = GetAttributeValue( "AdultGender" ) != "Hide";
-            var showBirthDate = GetAttributeValue( "AdultBirthdate" ) != "Hide";
-            var showEmail = GetAttributeValue( "AdultEmail" ) != "Hide";
-            var showMobilePhone = GetAttributeValue( "AdultMobilePhone" ) != "Hide";
-
-            var groupService = new GroupService( _rockContext );
-            var personService = new PersonService( _rockContext );
-
-            Group family = null;
-            Person adult1 = null;
-            Person adult2 = null;
-
-            Guid? familyGuid = hfFamilyGuid.Value.AsGuidOrNull();
-            if ( familyGuid.HasValue )
+            if ( ValidateInfo() )
             {
-                family = groupService.Get( familyGuid.Value );
-            }
+                // Get some system values
+                var familyGroupType = GroupTypeCache.Read( Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY.AsGuid() );
+                var adultRoleId = familyGroupType.Roles.FirstOrDefault( r => r.Guid == Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_ADULT.AsGuid() ).Id;
+                var childRoleId = familyGroupType.Roles.FirstOrDefault( r => r.Guid == Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_CHILD.AsGuid() ).Id;
 
-            var primaryFamilyMembers = new List<GroupMember>();
+                var knownRelationshipGroupType = GroupTypeCache.Read( Rock.SystemGuid.GroupType.GROUPTYPE_KNOWN_RELATIONSHIPS.AsGuid() );
+                var canCheckInRole = knownRelationshipGroupType.Roles.FirstOrDefault( r => r.Guid == Rock.SystemGuid.GroupRole.GROUPROLE_KNOWN_RELATIONSHIPS_CAN_CHECK_IN.AsGuid() );
+                var knownRelationshipOwnerRoleGuid = Rock.SystemGuid.GroupRole.GROUPROLE_KNOWN_RELATIONSHIPS_OWNER.AsGuid();
 
-            if ( tbFirstName1.Text.IsNotNullOrWhitespace() && tbLastName1.Text.IsNotNullOrWhitespace() )
-            {
+                var recordTypePersonId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
+                var recordStatusValue = DefinedValueCache.Read( GetAttributeValue( "RecordStatus" ).AsGuid() ) ?? DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_ACTIVE.AsGuid() );
+                var connectionStatusValue = DefinedValueCache.Read( GetAttributeValue( "ConnectionStatus" ).AsGuid() ) ?? DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_VISITOR.AsGuid() );
+
+                // ...and some block settings
+                bool autoMatch = GetAttributeValue( "AutoMatch" ).AsBoolean();
+                var showSuffix = GetAttributeValue( "AdultSuffix" ) != "Hide";
+                var showGender = GetAttributeValue( "AdultGender" ) != "Hide";
+                var showBirthDate = GetAttributeValue( "AdultBirthdate" ) != "Hide";
+                var showEmail = GetAttributeValue( "AdultEmail" ) != "Hide";
+                var showMobilePhone = GetAttributeValue( "AdultMobilePhone" ) != "Hide";
+                var familyRelationships = GetAttributeValue( "FamilyRelationships" ).SplitDelimitedValues().AsIntegerList();
+                var canCheckinRelationships = GetAttributeValue( "CanCheckinRelationships" ).SplitDelimitedValues().AsIntegerList();
+
+                // ...and some service objects
+                var personService = new PersonService( _rockContext );
+                var groupService = new GroupService( _rockContext );
+                var groupMemberService = new GroupMemberService( _rockContext );
+                var groupLocationService = new GroupLocationService( _rockContext );
+
+                // Check to see if we're viewing an existing family
+                Group primaryFamily = null;
+                Guid? familyGuid = hfFamilyGuid.Value.AsGuidOrNull();
+                if ( familyGuid.HasValue )
+                {
+                    primaryFamily = groupService.Get( familyGuid.Value );
+                }
+
+                // Variable for storing our adult ids
+                var adultIds = new List<int>();
+
+                // Process the first adult
+                Person adult1 = null;
                 Guid? adult1Guid = hfAdultGuid1.Value.AsGuidOrNull();
                 if ( adult1Guid.HasValue )
                 {
                     adult1 = personService.Get( adult1Guid.Value );
                 }
-                if ( adult1 == null )
-                {
-                    adult1 = new Person();
-                    adult1.Guid = hfAdultGuid1.Value.AsGuidOrNull() ?? Guid.NewGuid();
-                    adult1.RecordTypeValueId = recordTypePersonId;
-                    adult1.RecordStatusReasonValueId = recordStatusValue != null ? recordStatusValue.Id : (int?)null;
-                    adult1.ConnectionStatusValueId = connectionStatusValue != null ? connectionStatusValue.Id : (int?)null;
-                }
-                adult1.NickName = tbFirstName1.Text;
-                adult1.LastName = tbLastName1.Text;
-                adult1.SuffixValueId = showSuffix ? dvpSuffix1.SelectedValueAsInt() : adult1.SuffixValueId;
-                adult1.Gender = showGender ? ddlGender1.SelectedValueAsEnum<Gender>() : adult1.Gender;
-                adult1.SetBirthDate( showBirthDate ? dpBirthDate1.SelectedDate : adult1.BirthDate );
-                adult1.Email = showEmail ? tbEmail1.Text : adult1.Email;
 
-                var groupMember = family != null ? family.Members.FirstOrDefault( m => m.Person.Guid == adult1.Guid ) : null;
-                if ( groupMember == null )
+                // Check to see if a name was entered for this adult
+                if ( tbFirstName1.Text.IsNotNullOrWhitespace() && tbLastName1.Text.IsNotNullOrWhitespace() )
                 {
-                    groupMember = new GroupMember();
-                }
-                groupMember.GroupRoleId = adultRoleId;
-                groupMember.Person = adult1;
-                primaryFamilyMembers.Add( groupMember );
-            }
+                    // If not editing an existing person, attempt to match them to existing (if configured to do so)
+                    if ( adult1 == null && showEmail && autoMatch )
+                    {
+                        var people = personService.GetByMatch( tbFirstName1.Text, tbLastName1.Text, tbEmail1.Text );
+                        if ( people.Count() == 1 )
+                        {
+                            adult1 = people.First();
+                            if ( primaryFamily == null )
+                            {
+                                primaryFamily = adult1.GetFamily( _rockContext );
+                            }
+                        }
+                    }
 
-            if ( tbFirstName2.Text.IsNotNullOrWhitespace() && tbLastName2.Text.IsNotNullOrWhitespace() )
-            {
+                    // If this is a new person, add them.
+                    if ( adult1 == null )
+                    {
+                        adult1 = new Person();
+                        personService.Add( adult1 );
+
+                        adult1.RecordTypeValueId = recordTypePersonId;
+                        adult1.RecordStatusReasonValueId = recordStatusValue != null ? recordStatusValue.Id : (int?)null;
+                        adult1.ConnectionStatusValueId = connectionStatusValue != null ? connectionStatusValue.Id : (int?)null;
+                    }
+
+                    // Set the properties from UI
+                    adult1.NickName = tbFirstName1.Text;
+                    adult1.LastName = tbLastName1.Text;
+                    adult1.SuffixValueId = showSuffix ? dvpSuffix1.SelectedValueAsInt() : adult1.SuffixValueId;
+                    adult1.Gender = showGender ? ddlGender1.SelectedValueAsEnum<Gender>() : adult1.Gender;
+                    adult1.SetBirthDate( showBirthDate ? dpBirthDate1.SelectedDate : adult1.BirthDate );
+                    adult1.Email = showEmail ? tbEmail1.Text : adult1.Email;
+
+                    // Save the person
+                    _rockContext.SaveChanges();
+
+                    // Save the mobile phone number
+                    if ( showMobilePhone )
+                    {
+                        SavePhoneNumber( adult1.Id, pnMobilePhone1 );
+                    }
+
+                    // Save any attribute values
+                    adult1.LoadAttributes( _rockContext );
+                    Helper.GetEditValues( phAttributes1, adult1 );
+                    adult1.SaveAttributeValues( _rockContext );
+
+                    adultIds.Add( adult1.Id );
+                }
+                else
+                {
+                    // If name is blank, check to see if we had a person before editing, if so, remove that person from the family
+                    if ( primaryFamily != null && adult1 != null )
+                    {
+                        RemovePersonFromFamily( familyGroupType.Id, primaryFamily.Id, adult1.Id );
+                    }
+                    adult1 = null;
+                }
+
+                // Process the second adult
+                Person adult2 = null;
                 Guid? adult2Guid = hfAdultGuid2.Value.AsGuidOrNull();
                 if ( adult2Guid.HasValue )
                 {
                     adult2 = personService.Get( adult2Guid.Value );
                 }
-                if ( adult2 == null )
-                {
-                    adult2 = new Person();
-                    adult2.Guid = hfAdultGuid2.Value.AsGuidOrNull() ?? Guid.NewGuid();
-                    adult2.RecordTypeValueId = recordTypePersonId;
-                    adult2.RecordStatusReasonValueId = recordStatusValue != null ? recordStatusValue.Id : (int?)null;
-                    adult2.ConnectionStatusValueId = connectionStatusValue != null ? connectionStatusValue.Id : (int?)null;
-                }
-                adult2.NickName = tbFirstName2.Text;
-                adult2.LastName = tbLastName2.Text;
-                adult2.SuffixValueId = showSuffix ? dvpSuffix2.SelectedValueAsInt() : adult2.SuffixValueId;
-                adult2.Gender = showGender ? ddlGender2.SelectedValueAsEnum<Gender>() : adult2.Gender;
-                adult2.SetBirthDate( showBirthDate ? dpBirthDate2.SelectedDate : adult2.BirthDate );
-                adult2.Email = showEmail ? tbEmail2.Text : adult2.Email;
 
-                var groupMember = family != null ? family.Members.FirstOrDefault( m => m.Person.Guid == adult2.Guid ) : null;
-                if ( groupMember == null )
+                // Check to see if a name was entered for this adult
+                if ( tbFirstName2.Text.IsNotNullOrWhitespace() && tbLastName2.Text.IsNotNullOrWhitespace() )
                 {
-                    groupMember = new GroupMember();
+                    // If not editing an existing person, attempt to match them to existing (if configured to do so)
+                    if ( adult2 == null && showEmail && autoMatch )
+                    {
+                        var people = personService.GetByMatch( tbFirstName2.Text, tbLastName2.Text, tbEmail2.Text );
+                        if ( people.Count() == 1 )
+                        {
+                            adult2 = people.First();
+                            if ( primaryFamily == null )
+                            {
+                                primaryFamily = adult1.GetFamily( _rockContext );
+                            }
+                        }
+                    }
+
+                    // If this is a new person, add them.
+                    if ( adult2 == null )
+                    {
+                        adult2 = new Person();
+                        personService.Add( adult2 );
+
+                        adult2.RecordTypeValueId = recordTypePersonId;
+                        adult2.RecordStatusReasonValueId = recordStatusValue != null ? recordStatusValue.Id : (int?)null;
+                        adult2.ConnectionStatusValueId = connectionStatusValue != null ? connectionStatusValue.Id : (int?)null;
+                    }
+
+                    // Set the properties from UI
+                    adult2.NickName = tbFirstName2.Text;
+                    adult2.LastName = tbLastName2.Text;
+                    adult2.SuffixValueId = showSuffix ? dvpSuffix2.SelectedValueAsInt() : adult2.SuffixValueId;
+                    adult2.Gender = showGender ? ddlGender2.SelectedValueAsEnum<Gender>() : adult2.Gender;
+                    adult2.SetBirthDate( showBirthDate ? dpBirthDate2.SelectedDate : adult2.BirthDate );
+                    adult2.Email = showEmail ? tbEmail2.Text : adult2.Email;
+
+                    // Save the person
+                    _rockContext.SaveChanges();
+
+                    // Save the mobile phone number
+                    if ( showMobilePhone )
+                    {
+                        SavePhoneNumber( adult2.Id, pnMobilePhone2 );
+                    }
+
+                    // Save any attribute values
+                    adult2.LoadAttributes( _rockContext );
+                    Helper.GetEditValues( phAttributes2, adult2 );
+                    adult2.SaveAttributeValues( _rockContext );
+
+                    adultIds.Add( adult2.Id );
                 }
-                groupMember.GroupRoleId = adultRoleId;
-                groupMember.Person = adult2;
-                primaryFamilyMembers.Add( groupMember );
+                else
+                {
+                    // If name is blank, check to see if we had a person before editing, if so, remove that person from the family
+                    if ( primaryFamily != null && adult2 != null )
+                    {
+                        RemovePersonFromFamily( familyGroupType.Id, primaryFamily.Id, adult2.Id );
+                    }
+                    adult2 = null;
+                }
+
+                // If we do have existing family, set it's campus if the campus selection was visible
+                if ( primaryFamily != null )
+                {
+                    if ( cpCampus.Visible )
+                    {
+                        primaryFamily.CampusId = cpCampus.SelectedValueAsInt();
+                    }
+                }
+                else
+                {
+                    // Otherwise, create a new family and save it
+                    primaryFamily = CreateNewFamily( familyGroupType.Id );
+                    groupService.Add( primaryFamily );
+                }
+
+                // Save the family
+                _rockContext.SaveChanges();
+
+                // Make sure adults are part of the primary family, and if not, add them.
+                foreach( int id in adultIds )
+                {
+                    var currentFamilyMember = primaryFamily.Members.FirstOrDefault( m => m.PersonId == id );
+                    if ( currentFamilyMember == null )
+                    {
+                        currentFamilyMember = new GroupMember();
+                        groupMemberService.Add( currentFamilyMember );
+
+                        currentFamilyMember.GroupId = primaryFamily.Id;
+                        currentFamilyMember.PersonId = id;
+                        currentFamilyMember.GroupRoleId = adultRoleId;
+                        currentFamilyMember.GroupMemberStatus = GroupMemberStatus.Active;
+
+                        _rockContext.SaveChanges();
+                    }
+                }
+
+                // Save the family address
+                var homeLocationType = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME.AsGuid() );
+                if ( homeLocationType != null )
+                {
+                    var groupLocation = primaryFamily.GroupLocations
+                        .FirstOrDefault( l =>
+                            l.GroupLocationTypeValueId.HasValue &&
+                            l.GroupLocationTypeValueId.Value == homeLocationType.Id );
+                    if ( groupLocation == null )
+                    {
+                        groupLocation = new GroupLocation();
+                        groupLocationService.Add( groupLocation );
+
+                        groupLocation.GroupLocationTypeValueId = homeLocationType.Id;
+                        groupLocation.GroupId = primaryFamily.Id;
+                        groupLocation.IsMailingLocation = true;
+                        groupLocation.IsMappedLocation = true;
+                    }
+
+                    var loc = new Location();
+                    acAddress.GetValues( loc );
+                    groupLocation.Location = new LocationService( _rockContext ).Get(
+                        loc.Street1, loc.Street2, loc.City, loc.State, loc.PostalCode, loc.Country, primaryFamily, true );
+
+                    _rockContext.SaveChanges();
+                }
+
+                // Save any family attribute values
+                primaryFamily.LoadAttributes( _rockContext );
+                Helper.GetEditValues( phFamilyAttributes, primaryFamily );
+                primaryFamily.SaveAttributeValues( _rockContext );
+
+                // Get the adult known relationship groups
+                var knownRelationshipGroupIds = groupMemberService.Queryable()
+                    .Where( m =>
+                        m.GroupRole.Guid == knownRelationshipOwnerRoleGuid &&
+                        adultIds.Contains( m.PersonId ) )
+                    .Select( m => m.GroupId )
+                    .ToList();
+
+                // Get current relationships
+                var currentRelationships = new Dictionary<int, int>();
+                var roleIds = _relationshipTypes.Select( r => r.Key ).ToList();
+                foreach( var groupMember in new PersonService( _rockContext )
+                    .GetRelatedPeople( adultIds, roleIds )
+                    .OrderBy( m => m.GroupRole.Order ) )
+                {
+                    currentRelationships.AddOrIgnore( groupMember.PersonId, groupMember.GroupRoleId );
+                }
+
+                // Create a variable for storing the related child ids (not those in the primary family)
+                var relatedChildIds = new List<int>();
+
+                // Loop through each of the children
+                var newFamilyIds = new Dictionary<string, int>();
+                foreach ( var child in Children )
+                {
+                    // Save the child's person information
+                    Person person = null;
+                    if ( person.Id > 0 )
+                    {
+                        person = personService.Get( child.Id );
+                    }
+
+                    // If not editing an existing person, attempt to match them to existing (if configured to do so)
+                    if ( adult1 == null && showEmail && autoMatch )
+                    {
+                        var people = personService.GetByMatch( tbFirstName1.Text, tbLastName1.Text, tbEmail1.Text );
+                        if ( people.Count() == 1 )
+                        {
+                            adult1 = people.First();
+                        }
+                    }
+
+                    if ( person == null )
+                    {
+                        person = new Person();
+                        personService.Add( person );
+
+                        person.Guid = child.Guid;
+                        person.RecordTypeValueId = recordTypePersonId;
+                        person.RecordStatusReasonValueId = recordStatusValue != null ? recordStatusValue.Id : (int?)null;
+                        person.ConnectionStatusValueId = connectionStatusValue != null ? connectionStatusValue.Id : (int?)null;
+                    }
+
+                    person.NickName = child.NickName;
+                    person.LastName = child.LastName;
+                    person.SuffixValueId = child.SuffixValueId;
+                    person.Gender = child.Gender;
+                    person.SetBirthDate( child.BirthDate );
+                    person.GradeOffset = child.GradeOffset;
+
+                    _rockContext.SaveChanges();
+
+                    // Save the attributes for the child
+                    person.LoadAttributes();
+                    foreach( var keyVal in child.AttributeValues )
+                    {
+                        person.SetAttributeValue( keyVal.Key, keyVal.Value );
+                    }
+                    person.SaveAttributeValues( _rockContext );
+
+                    // Get the child's current family/relationship state
+                    bool inPrimaryFamily = primaryFamily.Members.Any( m => m.PersonId == person.Id );
+                    int? existingRelationshipId = currentRelationships.ContainsKey( person.Id ) ? currentRelationships[person.Id] : (int?)null;
+
+                    // Get what the family/relationship state should be for the child
+                    bool shouldBeInPrimaryFamily = familyRelationships.Contains( child.RelationshipType ?? 0 );
+                    int? newRelationshipId = shouldBeInPrimaryFamily ? (int?)null : child.RelationshipType;
+                    bool canCheckin = !shouldBeInPrimaryFamily && canCheckinRelationships.Contains( child.RelationshipType ?? -1 );
+
+                    // Check to see if child needs to be added to the primary family, and if so, add them 
+                    if ( !inPrimaryFamily && shouldBeInPrimaryFamily )
+                    {
+                        var familyMember = new GroupMember();
+                        groupMemberService.Add( familyMember );
+
+                        familyMember.GroupId = primaryFamily.Id;
+                        familyMember.PersonId = adult2.Id;
+                        familyMember.GroupRoleId = childRoleId;
+                        familyMember.GroupMemberStatus = GroupMemberStatus.Active;
+
+                        _rockContext.SaveChanges();
+                    }
+
+                    // If person should not be part of the primary family...
+                    if ( !shouldBeInPrimaryFamily )
+                    {
+                        // Make sure they have another family
+                        EnsurePersonInOtherFamily( familyGroupType.Id, primaryFamily.Id, person.Id, person.LastName, childRoleId, newFamilyIds );
+
+                        // If the selected relationship for this person, should also create the can-check in relationship, make sure to add it
+                        if ( canCheckinRelationships.Contains( child.RelationshipType ?? -1 ) )
+                        {
+                            foreach ( var adultId in adultIds )
+                            {
+                                groupMemberService.CreateKnownRelationship( adultId, person.Id, newRelationshipId.Value );
+                            }
+                        }
+
+                        // Add them to our list of related child ids
+                        relatedChildIds.Add( person.Id );
+                    }
+
+                    // Check to see if child needs to be removed from the primary family
+                    if ( !shouldBeInPrimaryFamily && inPrimaryFamily )
+                    {
+                        RemovePersonFromFamily( familyGroupType.Id, primaryFamily.Id, person.Id );
+                    }
+
+                    // If child has a relationship type, make sure they belong to a family, and ensure that they have that relationship with each adult
+                    if ( newRelationshipId.HasValue )
+                    {
+                        foreach ( var adultId in adultIds )
+                        {
+                            groupMemberService.CreateKnownRelationship( adultId, person.Id, newRelationshipId.Value );
+                        }
+                    }
+
+                    // If child had a previous different type of relationship, remove that relationship from each adult
+                    if ( existingRelationshipId.HasValue && ( !newRelationshipId.HasValue || newRelationshipId.Value != existingRelationshipId.Value ) )
+                    {
+                        foreach( var adultId in adultIds )
+                        {
+                            groupMemberService.DeleteKnownRelationship( adultId, person.Id, existingRelationshipId.Value );
+                        }
+                    }
+
+                }
+
+                List<Guid> workflows = GetAttributeValue( "Workflow Types" ).SplitDelimitedValues().AsGuidList();
+                string redirectUrl = GetAttributeValue( "Redirect URL" );
+                if ( workflows.Any() || redirectUrl.IsNotNullOrWhitespace() )
+                {
+                    var family = groupService.Get( primaryFamily.Id );
+                    var relatedChilren = personService.Queryable().Where( p => relatedChildIds.Contains( p.Id ) ).ToList();
+
+                    // Look for any workflows
+                    if ( workflows.Any() )
+                    {
+                        // Create parameters for the visit date
+                        var workflowParameters = new Dictionary<string, string>();
+                        if ( dpPlannedDate.Visible )
+                        {
+                            DateTime? visitDate = dpPlannedDate.SelectedDate;
+                            if ( visitDate.HasValue )
+                            {
+                                workflowParameters.Add( "PlannedVisitDate", visitDate.Value.ToString( "o" ) );
+                            }
+                        }
+
+                        // Launch all the workflows
+                        foreach ( var wfGuid in workflows )
+                        {
+                            family.LaunchWorkflow( wfGuid, family.Name, workflowParameters );
+                        }
+                    }
+
+                    if ( redirectUrl.IsNotNullOrWhitespace() )
+                    {
+                        var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( this.RockPage, this.CurrentPerson );
+                        mergeFields.Add( "Family", family );
+                        mergeFields.Add( "RelatedChildren", relatedChilren );
+                        var url = ResolveUrl( redirectUrl.ResolveMergeFields( mergeFields ) );
+
+                        Response.Redirect( url, false );
+                        Context.ApplicationInstance.CompleteRequest();
+                    }
+                }
             }
-
-            //var rockContext = new RockContext();
-            //var groupMemberService = new GroupMemberService( rockContext );
-            //var workflowService = new WorkflowService( rockContext );
-            //var knownRelationshipGroupType = GroupTypeCache.Read( Rock.SystemGuid.GroupType.GROUPTYPE_KNOWN_RELATIONSHIPS );
-
-            //GetGuardianData( recordTypePersonId, recordStatusActiveId );
-
-            //List<GroupMemberRow> groupMemberRows = GetCustomGroupMembers( rockContext );
-
-
-
-            //rockContext.WrapTransaction( () =>
-            //{
-
-            //    var primaryFamily = AddOrUpdateFamily( rockContext, groupMemberRows.Where( a => a.IsPrimaryFamilyMember ).ToList() );
-
-            //    if ( primaryFamily != null )
-            //    {
-            //        if ( !string.IsNullOrEmpty( acAddress.Street1 ) )
-            //        {
-            //            Location location = new Location();
-            //            acAddress.GetValues( location );
-            //            GroupService.AddNewGroupAddress( rockContext, primaryFamily, Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME, location );
-            //        }
-            //    }
-
-            //    var groupedOtherMembers = groupMemberRows
-            //                         .Where( a => !a.IsPrimaryFamilyMember )
-            //                         .GroupBy( a => a.Person.LastName )
-            //                         .Select( a => new { a.Key, Members = a.ToList() } )
-            //                         .ToList();
-
-            //    foreach ( var otherFamily in groupedOtherMembers )
-            //    {
-            //        AddOrUpdateFamily( rockContext, otherFamily.Members );
-            //        foreach ( var member in otherFamily.Members )
-            //        {
-            //            var relationshipRole = knownRelationshipGroupType.Roles.FirstOrDefault( r => r.Guid == member.ChildKnownRelationship.Value );
-            //            if ( relationshipRole != null )
-            //            {
-            //                groupMemberRows.Where( a => a.IsPrimaryFamilyMember && !a.IsChild ).ToList()
-            //                .ForEach( a => groupMemberService.CreateKnownRelationship( member.Person.Id, a.Person.Id, relationshipRole.Id ) );
-            //            }
-            //        }
-
-            //    }
-
-            //    primaryFamily.LoadAttributes();
-
-            //    Rock.Attribute.Helper.GetEditValues( phAttributes, primaryFamily );
-
-            //    primaryFamily.SaveAttributeValues( rockContext );
-
-            //    var workflows = GetAttributeValue( "FamilyWorkflow" ).SplitDelimitedValues().AsGuidList();
-            //    if ( primaryFamily != null )
-            //    {
-            //        foreach ( var workflowGuid in workflows )
-            //        {
-            //            var workflowType = WorkflowTypeCache.Read( workflowGuid );
-
-            //            if ( workflowType != null )
-            //            {
-            //                var workflow = Workflow.Activate( workflowType, primaryFamily.Name );
-            //                workflow.SetAttributeValue( "ParentIds", PrimaryFamilyMember.Select( a => a.Id ).ToList().AsDelimited( "," ) );
-            //                workflow.SetAttributeValue( "ChildIds", ChildMembers.Select( a => a.Id ).ToList().AsDelimited( "," ) );
-            //                workflow.SetAttributeValue( "PlannedVisitDate", dpPlannedDate.SelectedDate );
-            //                List<string> workflowErrors;
-            //                workflowService.Process( workflow, primaryFamily, out workflowErrors );
-            //            }
-            //        }
-            //    }
-
-            //} );
-
-            //Response.Redirect( string.Format( "~/Person/{0}", PrimaryFamilyMember[0].Id ), false );
         }
 
         #endregion
@@ -495,7 +757,7 @@ ORDER BY [Text]", false, "", "Child Relationship", 2, "CanCheckinRelationships" 
                 var families = CurrentPerson.GetFamilies( _rockContext );
                 if ( families.Any() )
                 {
-                    // Get their spousse
+                    // Get their spouse
                     spouse = CurrentPerson.GetSpouse( _rockContext );
                     if ( spouse != null )
                     {
@@ -537,6 +799,7 @@ ORDER BY [Text]", false, "", "Child Relationship", 2, "CanCheckinRelationships" 
             }
 
             // Set First Adult's Values
+            lAdultHeading1.Text = adult1 != null ? adult1.FullName : "First Adult";
             hfAdultGuid1.Value = adult1 != null ? adult1.Id.ToString() : string.Empty;
             tbFirstName1.Text = adult1 != null ? adult1.NickName : String.Empty;
             tbLastName1.Text = adult1 != null ? adult1.LastName : String.Empty;
@@ -547,6 +810,7 @@ ORDER BY [Text]", false, "", "Child Relationship", 2, "CanCheckinRelationships" 
             SetPhoneNumber( adult1, pnMobilePhone1 );
 
             // Set Second Adult's Values
+            lAdultHeading2.Text = adult2 != null ? adult2.FullName : "Second Adult";
             hfAdultGuid2.Value = adult2 != null ? adult2.Guid.ToString() : string.Empty;
             tbFirstName2.Text = adult2 != null ? adult2.NickName : String.Empty;
             tbLastName2.Text = adult2 != null ? adult2.LastName : String.Empty;
@@ -556,19 +820,35 @@ ORDER BY [Text]", false, "", "Child Relationship", 2, "CanCheckinRelationships" 
             tbEmail2.Text = ( adult2 != null ? adult2.Email : string.Empty );
             SetPhoneNumber( adult2, pnMobilePhone2 );
 
-            Children = new List<Child>();
+            Children = new List<PreRegistrationChild>();
 
-            hfFamilyGuid.Value = family != null ? family.Guid.ToString() : string.Empty;
             if ( family != null )
             {
+                // Set the campus from the family
                 cpCampus.SetValue( family.CampusId );
+
+                // Set the address from the family
+                var homeLocationType = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME.AsGuid() );
+                if ( homeLocationType != null )
+                {
+                    var location = family.GroupLocations
+                        .Where( l =>
+                            l.GroupLocationTypeValueId.HasValue &&
+                            l.GroupLocationTypeValueId.Value == homeLocationType.Id )
+                        .Select( l => l.Location )
+                        .FirstOrDefault();
+                    acAddress.SetValues( location );
+                }
+                else
+                {
+                    acAddress.SetValues( null );
+                }
 
                 // Find all the children in the family
                 var childRoleGuid = Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_CHILD.AsGuid();
                 foreach( var groupMember in family.Members.Where( m => m.GroupRole.Guid == childRoleGuid ) )
                 {
-                    var child = new Child();
-                    child.Person = groupMember.Person;
+                    var child = new PreRegistrationChild( groupMember.Person );
                     child.RelationshipType = 0;
                     Children.Add( child );
                 }
@@ -584,18 +864,26 @@ ORDER BY [Text]", false, "", "Child Relationship", 2, "CanCheckinRelationships" 
                     adultIds.Add( adult2.Id );
                 }
                 var roleIds = _relationshipTypes.Select( r => r.Key ).ToList();
-                foreach ( var groupMember in new PersonService( _rockContext ).GetRelatedPeople( adultIds, roleIds ) )
+                foreach ( var groupMember in new PersonService( _rockContext )
+                    .GetRelatedPeople( adultIds, roleIds )
+                    .OrderBy( m => m.GroupRole.Order ) )
                 {
-                    var child = new Child();
-                    child.Person = groupMember.Person;
-                    child.RelationshipType = groupMember.GroupRoleId;
-                    Children.Add( child );
+                    if ( !Children.Any( c => c.Id == groupMember.PersonId ) )
+                    {
+                        var child = new PreRegistrationChild( groupMember.Person );
+                        child.RelationshipType = groupMember.GroupRoleId;
+                        Children.Add( child );
+                    }
                 }
 
-                Children = Children.OrderByDescending( c => c.Person.Age ).ToList();
+                // Order the children by age
+                Children = Children.OrderByDescending( c => c.Age ).ToList();
+
+                hfFamilyGuid.Value = family.Guid.ToString();
             }
             else
             {
+                // Set campus to the default
                 Guid? campusGuid = GetAttributeValue( "DefaultCampus" ).AsGuidOrNull();
                 if ( campusGuid.HasValue )
                 {
@@ -605,6 +893,11 @@ ORDER BY [Text]", false, "", "Child Relationship", 2, "CanCheckinRelationships" 
                         cpCampus.SetValue( defaultCampus.Id );
                     }
                 }
+
+                // Clear the address
+                acAddress.SetValues( null );
+
+                hfFamilyGuid.Value = string.Empty;
             }
 
             // Adult Attributes
@@ -739,8 +1032,7 @@ ORDER BY [Text]", false, "", "Child Relationship", 2, "CanCheckinRelationships" 
             person.LastName = tbLastName1.Text;
             person.GradeOffset = null;
 
-            var child = new Child();
-            child.Person = person;
+            var child = new PreRegistrationChild( person );
 
             Children.Add( child );
         }
@@ -766,15 +1058,15 @@ ORDER BY [Text]", false, "", "Child Relationship", 2, "CanCheckinRelationships" 
 
             foreach ( var child in Children )
             {
-                if ( child != null && child.Person != null )
+                if ( child != null )
                 {
                     var childRow = new PreRegistrationChildRow();
                     prChildren.Controls.Add( childRow );
 
                     childRow.DeleteClick += ChildRow_DeleteClick;
-                    string childGuidString = child.Person.Guid.ToString().Replace( "-", "_" );
+                    string childGuidString = child.Guid.ToString().Replace( "-", "_" );
                     childRow.ID = string.Format( "row_{0}", childGuidString );
-                    childRow.PersonGuid = child.Person.Guid;
+                    childRow.PersonGuid = child.Guid;
 
                     childRow.ShowSuffix = showSuffix;
                     childRow.ShowGender = showGender;
@@ -792,14 +1084,16 @@ ORDER BY [Text]", false, "", "Child Relationship", 2, "CanCheckinRelationships" 
 
                     if ( setSelection )
                     {
-                        childRow.FirstName = child.Person.FirstName;
-                        childRow.LastName = child.Person.LastName;
-                        childRow.SuffixValueId = child.Person.SuffixValueId;
-                        childRow.Gender = child.Person.Gender;
-                        childRow.BirthDate = child.Person.BirthDate;
-                        childRow.GradeOffset = child.Person.GradeOffset;
+                        childRow.ExistingName = child.ExistingName;
+                        childRow.NickName = child.NickName;
+                        childRow.LastName = child.LastName;
+                        childRow.SuffixValueId = child.SuffixValueId;
+                        childRow.Gender = child.Gender;
+                        childRow.BirthDate = child.BirthDate;
+                        childRow.GradeOffset = child.GradeOffset;
                         childRow.RelationshipType = child.RelationshipType;
-                        childRow.SetAttributeValues( child.Person );
+
+                        childRow.SetAttributeValues( child );
                     }
 
                 }
@@ -811,26 +1105,26 @@ ORDER BY [Text]", false, "", "Child Relationship", 2, "CanCheckinRelationships" 
         /// </summary>
         private void GetChildrenData()
         {
-            Children = new List<Child>();
+            Children = new List<PreRegistrationChild>();
 
             foreach( var childRow in prChildren.ChildRows )
             {
-                var child = new Child();
-                child.RelationshipType = childRow.RelationshipType;
-
                 var person = new Person();
                 person.Guid = childRow.PersonGuid ?? Guid.NewGuid();
-                person.FirstName = childRow.FirstName;
+                person.FirstName = childRow.NickName;
                 person.LastName = childRow.LastName;
                 person.SuffixValueId = childRow.SuffixValueId;
                 person.Gender = childRow.Gender;
                 person.SetBirthDate( childRow.BirthDate );
                 person.GradeOffset = childRow.GradeOffset;
-
                 person.LoadAttributes();
-                childRow.GetAttributeValues( person );
 
-                child.Person = person;
+                var child = new PreRegistrationChild( person );
+                child.ExistingName = childRow.ExistingName;
+                child.RelationshipType = childRow.RelationshipType;
+                child.AttributeValues = person.AttributeValues.ToDictionary( v => v.Key, v => v.Value.Value );
+
+                childRow.GetAttributeValues( child );
 
                 Children.Add( child );
             }
@@ -882,300 +1176,212 @@ ORDER BY [Text]", false, "", "Child Relationship", 2, "CanCheckinRelationships" 
             return AttributeList;
         }
 
-        ///// <summary>
-        ///// Gets the control data.
-        ///// </summary>
-        //private void GetControlData()
-        //{
-        //    ChildMembers = new List<Person>();
-        //    ChildRelationToGuardian = new Dictionary<Guid, int?>();
+        /// <summary>
+        /// Validates the information being updated
+        /// </summary>
+        /// <returns></returns>
+        private bool ValidateInfo()
+        {
+            var errorMessages = new List<string>();
 
-        //    int recordTypePersonId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
-        //    int recordStatusActiveId = DefinedValueCache.Read( GetAttributeValue( "RecordStatus" ).AsGuid() ).Id;
-        //    var connectionStatusValue = DefinedValueCache.Read( GetAttributeValue( "ConnectionStatus" ).AsGuid() );
+            if ( tbFirstName1.Text.IsNullOrWhiteSpace() && tbFirstName2.Text.IsNullOrWhiteSpace() )
+            {
+                errorMessages.Add( "The name of at least one adult needs to be entered" );
+            }
 
+            if (
+                ( tbFirstName1.Text.IsNotNullOrWhitespace() && tbLastName1.Text.IsNullOrWhiteSpace() ) ||
+                ( tbLastName1.Text.IsNullOrWhiteSpace() && tbLastName1.Text.IsNotNullOrWhitespace() ) ||
+                ( tbFirstName2.Text.IsNotNullOrWhitespace() && tbLastName2.Text.IsNullOrWhiteSpace() ) ||
+                ( tbLastName2.Text.IsNullOrWhiteSpace() && tbLastName2.Text.IsNotNullOrWhitespace() ) 
+            )
+            {
+                errorMessages.Add( "A First and Last name is required for each person" );
+            }
 
-        //    foreach ( NewChildMembersRow row in prChildren.GroupMemberRows )
-        //    {
-        //        var person = new Person();
-        //        person = new Person();
-        //        person.Guid = row.PersonGuid.Value;
-        //        person.RecordTypeValueId = recordTypePersonId;
-        //        person.RecordStatusValueId = recordStatusActiveId;
-        //        person.FirstName = row.FirstName.Humanize( LetterCasing.Title );
-        //        person.LastName = row.LastName.Humanize( LetterCasing.Title );
-        //        person.SuffixValueId = row.SuffixValueId;
-        //        person.Gender = row.Gender;
-        //        GetBirthDate( row.BirthDate, person );
+            if ( errorMessages.Any() )
+            {
+                nbError.Title = "Please Correct the Following";
+                nbError.Text = string.Format( "<ul><li>{0}</li></ul>", errorMessages.AsDelimited( "</li><li>" ) );
+                nbError.Visible = true;
 
-        //        string mobileNumber = PhoneNumber.CleanNumber( row.MobilePhone );
-        //        if ( !string.IsNullOrWhiteSpace( mobileNumber ) )
-        //        {
-        //            var cellPhoneNumber = new PhoneNumber();
-        //            cellPhoneNumber.NumberTypeValueId = _cellPhone.Id;
-        //            cellPhoneNumber.Number = mobileNumber;
-        //            cellPhoneNumber.CountryCode = PhoneNumber.CleanNumber( row.MobilePhoneCountryCode );
-        //            cellPhoneNumber.NumberFormatted = PhoneNumber.FormattedNumber( cellPhoneNumber.CountryCode, mobileNumber );
-        //            person.PhoneNumbers.Add( cellPhoneNumber );
-        //        }
+                return false;
+            }
 
-        //        if ( row.AttributeRow != null )
-        //        {
-        //            person.LoadAttributes();
-        //            row.AttributeRow.GetEditValues( person );
-        //        }
+            return true;
+        }
 
-        //        ChildRelationToGuardian.Add( person.Guid, row.RelationToGuardianValueId );
-        //        ChildMembers.Add( person );
-        //    }
-        //}
+        /// <summary>
+        /// Creates a new family group.
+        /// </summary>
+        /// <param name="familyGroupTypeId">The family group type identifier.</param>
+        /// <returns></returns>
+        private Group CreateNewFamily( int familyGroupTypeId )
+        {
+            // If we don't have an existing family, create a new family
+            var family = new Group();
+            family.Name = ( tbLastName1.Text.IsNotNullOrWhitespace() ? tbLastName1.Text : tbLastName2.Text ) + " Family";
+            family.GroupTypeId = familyGroupTypeId;
 
-        //private void GetGuardianData( int recordTypePersonId, int recordStatusActiveId )
-        //{
-        //    PrimaryFamilyMember = new List<Person>();
+            // If the campus selection was visible, set the families campus based on selection, otherwise, use default campus value
+            if ( cpCampus.Visible )
+            {
+                family.CampusId = cpCampus.SelectedValueAsInt();
+            }
+            else
+            {
+                Guid? campusGuid = GetAttributeValue( "DefaultCampus" ).AsGuidOrNull();
+                if ( campusGuid.HasValue )
+                {
+                    var defaultCampus = CampusCache.Read( campusGuid.Value );
+                    if ( defaultCampus != null )
+                    {
+                        family.CampusId = defaultCampus.Id;
+                    }
+                }
+            }
 
-        //    var adultRoleId = _groupType.Roles
-        //        .Where( r => r.Guid.Equals( Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_ADULT.AsGuid() ) )
-        //        .Select( r => r.Id )
-        //        .FirstOrDefault();
+            return family;
+        }
 
-        //    #region first Guardian
-        //    var firstGuardian = new Person();
-        //    firstGuardian.Guid = Guid.NewGuid();
-        //    firstGuardian.RecordTypeValueId = recordTypePersonId;
-        //    firstGuardian.RecordStatusValueId = recordStatusActiveId;
+        /// <summary>
+        /// Ensures the person in other family.
+        /// </summary>
+        /// <param name="familyGroupTypeId">The family group type identifier.</param>
+        /// <param name="primaryfamilyId">The primaryfamily identifier.</param>
+        /// <param name="personId">The person identifier.</param>
+        /// <param name="lastName">The last name.</param>
+        /// <param name="childRoleId">The child role identifier.</param>
+        /// <param name="newFamilyIds">The new family ids.</param>
+        private void EnsurePersonInOtherFamily( int familyGroupTypeId, int primaryfamilyId, int personId, string lastName, int childRoleId, Dictionary<string, int> newFamilyIds )
+        {
+            var groupMemberService = new GroupMemberService( _rockContext );
 
+            // Get any other family memberships.
+            if ( groupMemberService.Queryable()
+                .Any( m =>
+                    m.Group.GroupTypeId == familyGroupTypeId &&
+                    m.PersonId == personId &&
+                    m.GroupId != primaryfamilyId ) )
+            {
+                // They have other families, so just return
+                return;
+            }
 
-        //    firstGuardian.FirstName = tbFirstName.Text.Humanize( LetterCasing.Title );
-        //    firstGuardian.LastName = tbLastName.Text.Humanize( LetterCasing.Title );
-        //    firstGuardian.SuffixValueId = dvpSuffix.SelectedValueAsInt();
-        //    firstGuardian.Gender = ddlGender.SelectedValueAsEnum<Gender>();
-        //    GetBirthDate( dpBirthDate.SelectedDate, firstGuardian );
+            // Check to see if we've already created a family with someone who has same last name
+            string key = lastName.ToLower();
+            int? newFamilyId = newFamilyIds.ContainsKey( key ) ? newFamilyIds[key] : (int?)null;
 
-        //    firstGuardian.LoadAttributes();
-        //    foreach ( var control in phGuardian1.Controls )
-        //    {
-        //        if ( control is NewChildAttributesRow )
-        //        {
-        //            var rockControl = control as NewChildAttributesRow;
-        //            rockControl.GetEditValues( firstGuardian );
-        //        }
-        //    }
-        //    firstGuardian.Email = tbNewPersonEmail.Text;
-        //    string firstParentPhone = PhoneNumber.CleanNumber( pnNewPersonPhoneNumber.Number );
-        //    if ( !string.IsNullOrWhiteSpace( firstParentPhone ) )
-        //    {
-        //        var cellPhoneNumber = new PhoneNumber();
-        //        cellPhoneNumber.NumberTypeValueId = _cellPhone.Id;
-        //        cellPhoneNumber.Number = firstParentPhone;
-        //        cellPhoneNumber.CountryCode = PhoneNumber.CleanNumber( pnNewPersonPhoneNumber.CountryCode );
-        //        cellPhoneNumber.NumberFormatted = PhoneNumber.FormattedNumber( cellPhoneNumber.CountryCode, cellPhoneNumber.Number );
-        //        firstGuardian.PhoneNumbers.Add( cellPhoneNumber );
-        //    }
+            // If not, create a new family
+            if ( !newFamilyId.HasValue )
+            {
+                var family = CreateNewFamily( familyGroupTypeId );
+                new GroupService( _rockContext ).Add( family );
+                _rockContext.SaveChanges();
 
-        //    PrimaryFamilyMember.Add( firstGuardian );
+                newFamilyId = family.Id;
+                newFamilyIds.Add( key, family.Id );
+            }
 
-        //    #endregion
+            // Add the person to the family
+            var familyMember = new GroupMember();
+            groupMemberService.Add( familyMember );
 
-        //    #region second Guardian
+            familyMember.GroupId = newFamilyId.Value;
+            familyMember.PersonId = personId;
+            familyMember.GroupRoleId = childRoleId;
+            familyMember.GroupMemberStatus = GroupMemberStatus.Active;
 
-        //    var secondGuardian = new Person();
-        //    secondGuardian = new Person();
-        //    secondGuardian.Guid = Guid.NewGuid();
-        //    secondGuardian.RecordTypeValueId = recordTypePersonId;
-        //    secondGuardian.RecordStatusValueId = recordStatusActiveId;
-        //    secondGuardian.FirstName = tbFirstName2.Text.Humanize( LetterCasing.Title );
-        //    secondGuardian.LastName = tbLastName2.Text.Humanize( LetterCasing.Title );
-        //    secondGuardian.SuffixValueId = dvpSuffix2.SelectedValueAsInt();
-        //    secondGuardian.Gender = rblGender2.SelectedValueAsEnum<Gender>();
-        //    GetBirthDate( dpBirthDate2.SelectedDate, firstGuardian );
+            _rockContext.SaveChanges();
+        }
 
-        //    secondGuardian.LoadAttributes();
-        //    foreach ( var control in phGuardian2.Controls )
-        //    {
-        //        if ( control is NewChildAttributesRow )
-        //        {
-        //            var rockControl = control as NewChildAttributesRow;
-        //            rockControl.GetEditValues( secondGuardian );
-        //        }
-        //    }
+        /// <summary>
+        /// Removes a person from a family.
+        /// </summary>
+        /// <param name="familyGroupTypeId">The family group type identifier.</param>
+        /// <param name="familyId">The family identifier.</param>
+        /// <param name="personId">The person identifier.</param>
+        private void RemovePersonFromFamily( int familyGroupTypeId, int familyId, int personId )
+        {
+            var groupMemberService = new GroupMemberService( _rockContext );
 
-        //    secondGuardian.Email = tbNewPersonEmail2.Text;
+            // Get all their current group memberships.
+            var groupMembers = groupMemberService.Queryable()
+                .Where( m =>
+                    m.Group.GroupTypeId == familyGroupTypeId &&
+                    m.PersonId == personId )
+                .ToList();
 
-        //    string secondParentPhone = PhoneNumber.CleanNumber( pnNewPersonPhoneNumber2.Number );
-        //    if ( !string.IsNullOrWhiteSpace( secondParentPhone ) )
-        //    {
-        //        var cellPhoneNumber = new PhoneNumber();
-        //        cellPhoneNumber.NumberTypeValueId = _cellPhone.Id;
-        //        cellPhoneNumber.Number = secondParentPhone;
-        //        cellPhoneNumber.CountryCode = PhoneNumber.CleanNumber( pnNewPersonPhoneNumber2.CountryCode );
-        //        cellPhoneNumber.NumberFormatted = PhoneNumber.FormattedNumber( cellPhoneNumber.CountryCode, cellPhoneNumber.Number );
-        //        secondGuardian.PhoneNumbers.Add( cellPhoneNumber );
-        //    }
+            // Find their membership in current family, if not found, skip processing, as something is amiss.
+            var currentFamilyMembership = groupMembers.FirstOrDefault( m => m.GroupId == familyId );
+            if ( currentFamilyMembership != null )
+            {
+                // If the person does not currently belong to any other families, we'll have to create a new family for them, and move them to that new group
+                if ( !groupMembers.Where( m => m.GroupId != familyId ).Any() )
+                {
+                    var newGroup = new Group();
+                    newGroup.Name = currentFamilyMembership.Person.LastName + " Family";
+                    newGroup.GroupTypeId = familyGroupTypeId;
+                    newGroup.CampusId = currentFamilyMembership.Group.CampusId;
+                    new GroupService( _rockContext ).Add( newGroup );
+                    _rockContext.SaveChanges();
 
-        //    PrimaryFamilyMember.Add( secondGuardian );
+                    // If person's previous giving group was this family, set it to their new family id
+                    if ( currentFamilyMembership.Person.GivingGroupId.HasValue && currentFamilyMembership.Person.GivingGroupId == currentFamilyMembership.GroupId )
+                    {
+                        currentFamilyMembership.Person.GivingGroupId = newGroup.Id;
+                    }
 
-        //    #endregion
-        //}
+                    currentFamilyMembership.Group = newGroup;
+                    _rockContext.SaveChanges();
+                }
+                else
+                {
+                    // Otherwise, just remove them from the current family
+                    groupMemberService.Delete( currentFamilyMembership );
+                    _rockContext.SaveChanges();
+                }
+            }
+        }
 
-        //private void GetBirthDate( DateTime? birthday, Person person )
-        //{
-        //    if ( birthday.HasValue )
-        //    {
-        //        // If setting a future birthdate, subtract a century until birthdate is not greater than today.
-        //        var today = RockDateTime.Today;
-        //        while ( birthday.Value.CompareTo( today ) > 0 )
-        //        {
-        //            birthday = birthday.Value.AddYears( -100 );
-        //        }
+        /// <summary>
+        /// Saves the phone number.
+        /// </summary>
+        /// <param name="personId">The person identifier.</param>
+        /// <param name="pnb">The PNB.</param>
+        private void SavePhoneNumber( int personId, PhoneNumberBox pnb )
+        {
+            var phoneNumberService = new PhoneNumberService( _rockContext );
 
-        //        person.BirthMonth = birthday.Value.Month;
-        //        person.BirthDay = birthday.Value.Day;
+            var phType = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() );
+            if ( phType != null )
+            {
+                var phoneNumber = phoneNumberService.Queryable()
+                    .Where( n =>
+                        n.PersonId == personId &&
+                        n.NumberTypeValueId.HasValue &&
+                        n.NumberTypeValueId.Value == phType.Id )
+                    .FirstOrDefault();
 
-        //        if ( birthday.Value.Year != DateTime.MinValue.Year )
-        //        {
-        //            person.BirthYear = birthday.Value.Year;
-        //        }
-        //        else
-        //        {
-        //            person.BirthYear = null;
-        //        }
-        //    }
-        //    else
-        //    {
-        //        person.SetBirthDate( null );
-        //    }
-        //}
+                if ( phoneNumber == null )
+                {
+                    phoneNumber = new PhoneNumber();
+                    phoneNumberService.Add( phoneNumber );
 
+                    phoneNumber.PersonId = personId;
+                    phoneNumber.NumberTypeValueId = phType.Id;
+                }
 
-        //private GroupMember ToGroupMember( Person person, bool isChild )
-        //{
-        //    int adultRoleId = _groupType.Roles.First( a => a.Guid == Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_ADULT.AsGuid() ).Id;
-        //    int childRoleId = _groupType.Roles.First( a => a.Guid == Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_CHILD.AsGuid() ).Id;
+                phoneNumber.CountryCode = PhoneNumber.CleanNumber( pnb.CountryCode );
+                phoneNumber.Number = PhoneNumber.CleanNumber( pnb.Number );
 
-        //    var groupMember = new GroupMember();
-        //    groupMember.GroupMemberStatus = GroupMemberStatus.Active;
-        //    groupMember.GroupRoleId = isChild ? childRoleId : adultRoleId;
-        //    groupMember.Person = person;
-        //    return groupMember;
-        //}
-
-
-        //private List<GroupMemberRow> GetCustomGroupMembers( RockContext rockContext )
-        //{
-        //    var personService = new PersonService( rockContext );
-        //    var definedValueService = new DefinedValueService( rockContext );
-
-        //    List<GroupMemberRow> groupMemberRows = new List<GroupMemberRow>();
-        //    foreach ( var member in PrimaryFamilyMember )
-        //    {
-
-        //        GroupMemberRow memberRow = new GroupMemberRow()
-        //        {
-        //            IsPrimaryFamilyMember = true,
-        //            IsChild = false
-        //        };
-
-        //        var matchedPerson = personService.GetByMatch( member.FirstName, member.LastName, member.Email );
-        //        if ( matchedPerson.Count() == 1 )
-        //        {
-        //            memberRow.IsExistingMember = true;
-        //            memberRow.Person = matchedPerson.Single();
-        //            memberRow.ExisitingFamily = memberRow.Person.GetFamily( rockContext );
-        //        }
-        //        else
-        //        {
-        //            memberRow.IsExistingMember = false;
-        //            memberRow.Person = member;
-        //        }
-
-        //        groupMemberRows.Add( memberRow );
-
-        //    }
-
-        //    foreach ( var member in ChildMembers )
-        //    {
-        //        int? relationToGuardianId = ChildRelationToGuardian[member.Guid];
-
-        //        GroupMemberRow memberRow = new GroupMemberRow()
-        //        {
-        //            IsChild = true
-        //        };
-        //        var matchedPerson = personService.GetByMatch( member.FirstName, member.LastName, member.Email );
-        //        if ( matchedPerson.Count() == 1 )
-        //        {
-        //            memberRow.IsExistingMember = true;
-        //            memberRow.Person = matchedPerson.Single();
-        //            memberRow.ExisitingFamily = memberRow.Person.GetFamily( rockContext );
-        //        }
-        //        else
-        //        {
-        //            memberRow.IsExistingMember = false;
-        //            memberRow.Person = member;
-        //        }
-
-        //        if ( relationToGuardianId.HasValue )
-        //        {
-        //            var relationToGuardian = definedValueService.Get( relationToGuardianId.Value );
-        //            relationToGuardian.LoadAttributes();
-        //            var knownRelationship = relationToGuardian.GetAttributeValue( "KnownRelationShip" ).AsGuidOrNull();
-        //            memberRow.ChildKnownRelationship = knownRelationship;
-        //            if ( !knownRelationship.HasValue )
-        //            {
-        //                memberRow.IsPrimaryFamilyMember = true;
-        //            }
-        //        }
-
-        //        groupMemberRows.Add( memberRow );
-        //    }
-
-        //    return groupMemberRows;
-        //}
-
-        //private Group AddOrUpdateFamily( RockContext rockContext, List<GroupMemberRow> groupMemberRows )
-        //{
-        //    int adultRoleId = _groupType.Roles.First( a => a.Guid == Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_ADULT.AsGuid() ).Id;
-        //    int childRoleId = _groupType.Roles.First( a => a.Guid == Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_CHILD.AsGuid() ).Id;
-
-        //    Group family = groupMemberRows.Where( a => a.IsExistingMember && a.ExisitingFamily != null )
-        //                                    .Select( a => a.ExisitingFamily )
-        //                                    .FirstOrDefault();
-
-
-
-        //    if ( family != null )
-        //    {
-        //        foreach ( var member in groupMemberRows )
-        //        {
-        //            if ( !( member.ExisitingFamily != null && member.ExisitingFamily.Id == family.Id ) )
-        //            {
-        //                PersonService.AddPersonToFamily( member.Person, !member.IsExistingMember, family.Id, member.IsChild ? childRoleId : adultRoleId, rockContext );
-        //            }
-        //        }
-        //    }
-        //    else
-        //    {
-        //        var allFamilyMembers = groupMemberRows.Select( a => ToGroupMember( a.Person, a.IsChild ) ).ToList();
-        //        family = GroupService.SaveNewFamily( rockContext, allFamilyMembers, cpCampus.SelectedValueAsInt(), true );
-        //    }
-
-        //    return family;
-        //}
-
+                _rockContext.SaveChanges();
+            }
+        }
 
         #endregion
     }
 
-    #region Helper Classes
-
-    public class Child
-    {
-        public Person Person { get; set; }
-
-        public int? RelationshipType { get; set; }
-    }
-
-    #endregion
 }
 
 

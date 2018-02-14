@@ -33,7 +33,7 @@ namespace Rock.Web.UI.Controls
     /// </summary>
     public class PreRegistrationChildRow : CompositeControl
     {
-        private RockTextBox _tbFirstName;
+        private RockTextBox _tbNickName;
         private RockTextBox _tbLastName;
         private DefinedValuePicker _ddlSuffix;
         private RockDropDownList _ddlGender;
@@ -49,6 +49,12 @@ namespace Rock.Web.UI.Controls
         {
             get { return ViewState["Caption"] as string ?? "Child"; }
             set { ViewState["Caption"] = value; }
+        }
+
+        public string ExistingName
+        {
+            get { return ViewState["ExistingName"] as string ?? string.Empty; }
+            set { ViewState["ExistingName"] = value; }
         }
 
         public bool ShowSuffix
@@ -237,23 +243,23 @@ namespace Rock.Web.UI.Controls
         }
 
         /// <summary>
-        /// Gets or sets the first name.
+        /// Gets or sets the nick name.
         /// </summary>
         /// <value>
         /// The first name.
         /// </value>
-        public string FirstName
+        public string NickName
         {
             get
             {
                 EnsureChildControls();
-                return _tbFirstName.Text;
+                return _tbNickName.Text;
             }
 
             set
             {
                 EnsureChildControls();
-                _tbFirstName.Text = value;
+                _tbNickName.Text = value;
             }
         }
 
@@ -298,7 +304,7 @@ namespace Rock.Web.UI.Controls
                 _ddlSuffix.SetValue( value );
             }
         }
-        
+
         /// <summary>
         /// Gets or sets the gender.
         /// </summary>
@@ -432,12 +438,12 @@ namespace Rock.Web.UI.Controls
         {
             get
             {
-                return _tbFirstName.ValidationGroup;
+                return _tbNickName.ValidationGroup;
             }
             set
             {
                 EnsureChildControls();
-                _tbFirstName.ValidationGroup = value;
+                _tbNickName.ValidationGroup = value;
                 _tbLastName.ValidationGroup = value;
                 _ddlSuffix.ValidationGroup = value;
                 _ddlGender.ValidationGroup = value;
@@ -462,7 +468,7 @@ namespace Rock.Web.UI.Controls
         public PreRegistrationChildRow()
             : base()
         {
-            _tbFirstName = new RockTextBox();
+            _tbNickName = new RockTextBox();
             _tbLastName = new RockTextBox();
             _ddlSuffix = new DefinedValuePicker();
             _ddlGender = new RockDropDownList();
@@ -483,7 +489,7 @@ namespace Rock.Web.UI.Controls
             base.CreateChildControls();
             Controls.Clear();
 
-            _tbFirstName.ID = "_tbFirstName";
+            _tbNickName.ID = "_tbNickName";
             _tbLastName.ID = "_tbLastName";
             _ddlSuffix.ID = "_ddlSuffix";
             _ddlGender.ID = "_ddlGender";
@@ -494,7 +500,7 @@ namespace Rock.Web.UI.Controls
             _phAttributes.ID = "_phAttributes";
             _lbDelete.ID = "_lbDelete";
 
-            Controls.Add( _tbFirstName );
+            Controls.Add( _tbNickName );
             Controls.Add( _tbLastName );
             Controls.Add( _ddlSuffix );
             Controls.Add( _dpBirthdate );
@@ -505,10 +511,10 @@ namespace Rock.Web.UI.Controls
             Controls.Add( _phAttributes );
             Controls.Add( _lbDelete );
 
-            _tbFirstName.CssClass = "form-control";
-            _tbFirstName.Required = true;
-            _tbFirstName.RequiredErrorMessage = "First Name is required for all children";
-            _tbFirstName.Label = "First Name";
+            _tbNickName.CssClass = "form-control";
+            _tbNickName.Required = true;
+            _tbNickName.RequiredErrorMessage = "First Name is required for all children";
+            _tbNickName.Label = "First Name";
 
             _tbLastName.Required = true;
             _tbLastName.RequiredErrorMessage = "Last Name is required for all children";
@@ -561,7 +567,7 @@ namespace Rock.Web.UI.Controls
                 _ddlRelationshipType.SelectedValue = relationshipTypeValue;
             }
 
-            foreach( var attribute in AttributeList )
+            foreach ( var attribute in AttributeList )
             {
                 attribute.AddControl( _phAttributes.Controls, "", "", false, true );
             }
@@ -595,7 +601,7 @@ namespace Rock.Web.UI.Controls
 
                 writer.AddAttribute( HtmlTextWriterAttribute.Class, "col-md-3" );
                 writer.RenderBeginTag( HtmlTextWriterTag.Div );
-                _tbFirstName.RenderControl( writer );
+                _tbNickName.RenderControl( writer );
                 writer.RenderEndTag();
 
 
@@ -650,7 +656,7 @@ namespace Rock.Web.UI.Controls
                     writer.RenderEndTag();
                 }
 
-                foreach( Control attributeCtrl in _phAttributes.Controls )
+                foreach ( Control attributeCtrl in _phAttributes.Controls )
                 {
                     writer.AddAttribute( HtmlTextWriterAttribute.Class, "col-md-3" );
                     writer.RenderBeginTag( HtmlTextWriterTag.Div );
@@ -681,25 +687,26 @@ namespace Rock.Web.UI.Controls
             }
         }
 
-        public void SetAttributeValues( Person person )
+        public void SetAttributeValues( PreRegistrationChild child )
         {
             EnsureChildControls();
 
             int i = 0;
             foreach ( var attribute in AttributeList )
             {
-                attribute.FieldType.Field.SetEditValue( attribute.GetControl( _phAttributes.Controls[i] ), attribute.QualifierValues, person.GetAttributeValue( attribute.Key ) );
+
+                attribute.FieldType.Field.SetEditValue( attribute.GetControl( _phAttributes.Controls[i] ), attribute.QualifierValues, child.GetAttributeValue( attribute.Key ) );
                 i++;
             }
         }
 
-        public void GetAttributeValues( Person person )
+        public void GetAttributeValues( PreRegistrationChild child )
         {
             EnsureChildControls();
             int i = 0;
-            foreach( var attribute in AttributeList )
+            foreach ( var attribute in AttributeList )
             {
-                person.SetAttributeValue( attribute.Key, attribute.FieldType.Field.GetEditValue( attribute.GetControl( _phAttributes.Controls[i] ), attribute.QualifierValues ) );
+                child.SetAttributeValue( attribute.Key, attribute.FieldType.Field.GetEditValue( attribute.GetControl( _phAttributes.Controls[i] ), attribute.QualifierValues ) );
             }
         }
 
@@ -722,4 +729,53 @@ namespace Rock.Web.UI.Controls
         public event EventHandler DeleteClick;
     }
 
+    /// <summary>
+    /// Helper Class for serializing child data in viewstate
+    /// </summary>
+    [Serializable]
+    public class PreRegistrationChild 
+    {
+        public int Id { get; set; }
+        public Guid Guid { get; set; }
+        public string NickName { get; set; }
+        public string LastName { get; set; }
+        public int? SuffixValueId { get; set; }
+        public Gender Gender { get; set; }
+        public int? Age { get; set; }
+        public DateTime? BirthDate { get; set; }
+        public int? GradeOffset { get; set; }
+
+        public string ExistingName { get; set; }
+        public int? RelationshipType { get; set; }
+
+        public Dictionary<string, string> AttributeValues { get; set; } = new Dictionary<string, string>();
+
+        public PreRegistrationChild( Person person )
+        {
+            Id = person.Id;
+            Guid = person.Guid;
+            NickName = person.NickName;
+            LastName = person.LastName;
+            SuffixValueId = person.SuffixValueId;
+            Gender = person.Gender;
+            BirthDate = person.BirthDate;
+            GradeOffset = person.GradeOffset;
+            Age = person.Age;
+
+            if ( Id > 0 )
+            {
+                ExistingName = person.FullName;
+            }
+        }
+
+        public string GetAttributeValue( string key )
+        {
+            return AttributeValues.ContainsKey( key ) ? AttributeValues[key] : string.Empty;
+        }
+
+        public void SetAttributeValue( string key, string value )
+        {
+            AttributeValues.AddOrReplace( key, value );
+        }
+    }
 }
