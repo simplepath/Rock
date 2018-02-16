@@ -97,6 +97,10 @@
     <Compile Include="Migrations\201802142016489_NotesUpdates.Designer.cs">
       <DependentUpon>201802142016489_NotesUpdates.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201802142138462_NotesUpdates2.cs" />
+    <Compile Include="Migrations\201802142138462_NotesUpdates2.Designer.cs">
+      <DependentUpon>201802142138462_NotesUpdates2.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Version 7.0\Version 1.7.1\201801121251097_InteractionBlocks.cs" />
     <Compile Include="Migrations\Version 7.0\Version 1.7.1\201801121251097_InteractionBlocks.Designer.cs">
       <DependentUpon>201801121251097_InteractionBlocks.cs</DependentUpon>
@@ -2698,6 +2702,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201802142016489_NotesUpdates.resx">
       <DependentUpon>201802142016489_NotesUpdates.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201802142138462_NotesUpdates2.resx">
+      <DependentUpon>201802142138462_NotesUpdates2.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\Version 7.0\Version 1.7.1\201801121251097_InteractionBlocks.resx">
       <DependentUpon>201801121251097_InteractionBlocks.cs</DependentUpon>

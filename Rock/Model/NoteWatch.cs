@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity.ModelConfiguration;
 using System.Linq;
@@ -41,6 +42,7 @@ namespace Rock.Model
 
         /// <summary>
         /// Set EntityTypeId and EntityId to watch all notes for a specific entity
+        /// NOTE: If EntityType is Person, make sure to watch the Person's PersonAlias' Persons
         /// </summary>
         /// <value>
         /// The entity identifier.
@@ -67,6 +69,16 @@ namespace Rock.Model
         public bool IsWatching { get; set; } = true;
 
         /// <summary>
+        /// Set AllowOverride to False to prevent people from adding an IsWatching=False on NoteWatch with the same filter that is marked as IsWatching=True
+        /// In other words, if a group is configured a NoteWatch, an individual shouldn't be able to add an un-watch if AllowOverride=False (and any un-watches that may have been already added would be ignored)
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [allow override]; otherwise, <c>false</c>.
+        /// </value>
+        [DataMember]
+        public bool AllowOverride { get; set; } = true;
+
+        /// <summary>
         /// Set/Get IsMentioned to indicate that the PersonAlias (or Group) was mentioned in the specified NoteId
         /// </summary>
         /// <value>
@@ -76,7 +88,7 @@ namespace Rock.Model
         public bool IsMentioned { get; set; }
 
         /// <summary>
-        /// Gets or sets the person alias identifier that is watching
+        /// Gets or sets the person alias id of the person watching this note watch
         /// </summary>
         /// <value>
         /// The person alias identifier.
@@ -85,7 +97,7 @@ namespace Rock.Model
         public int? PersonAliasId { get; set; }
 
         /// <summary>
-        /// Gets or sets the group that is watching
+        /// Gets or sets the group that is watching this note watch
         /// </summary>
         /// <value>
         /// The group identifier.
@@ -125,7 +137,7 @@ namespace Rock.Model
         public virtual Note Note { get; set; }
 
         /// <summary>
-        /// Gets or sets the person alias.
+        /// Gets or sets the person alias of the person watching this note watch
         /// </summary>
         /// <value>
         /// The person alias.
@@ -134,7 +146,7 @@ namespace Rock.Model
         public virtual PersonAlias PersonAlias { get; set; }
 
         /// <summary>
-        /// Gets or sets the group.
+        /// Gets or sets the group that is watching this note watch
         /// </summary>
         /// <value>
         /// The group.
@@ -145,6 +157,70 @@ namespace Rock.Model
         #endregion Virtual Properties
 
         #region Public Methods
+
+        /// <summary>
+        /// Returns true if this NoteWatch has valid "Watcher" parameters 
+        /// </summary>
+        /// <returns></returns>
+        public bool IsValidWatcher
+        {
+            get
+            {
+                if ( this.PersonAliasId.HasValue || this.GroupId.HasValue )
+                {
+                    return true;
+                }
+                else
+                {
+                    // only add a ValidationResult if IsValid has already been called
+                    if ( ValidationResults != null )
+                    {
+                        ValidationResults.Add( new ValidationResult( "An Person or Group must be specified as the watcher" ) );
+                    }
+
+                    return false;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Returns true if this NoteWatch has valid "Watch Filter" parameters 
+        /// </summary>
+        /// <returns></returns>
+        public bool IsValidWatchFilter
+        {
+            get
+            {
+                if ( this.EntityTypeId.HasValue || this.NoteTypeId.HasValue )
+                {
+                    return true;
+                }
+                else
+                {
+                    // only add a ValidationResult if IsValid has already been called
+                    if ( ValidationResults != null )
+                    {
+                        ValidationResults.Add( new ValidationResult( "An EntityType or NoteType must be specified for the watch filter" ) );
+                    }
+
+                    return false;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Returns true if ... is valid.
+        /// </summary>
+        /// <value>
+        /// A <see cref="T:System.Boolean" /> that is <c>true</c> if this instance is valid; otherwise, <c>false</c>.
+        /// </value>
+        public override bool IsValid
+        {
+            get
+            {
+                return base.IsValid && this.IsValidWatcher && this.IsValidWatchFilter;
+            }
+        }
 
         #endregion Public Methods
     }
