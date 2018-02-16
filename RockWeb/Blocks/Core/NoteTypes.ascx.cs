@@ -280,6 +280,9 @@ namespace RockWeb.Blocks.Core
             noteType.CssClass = tbCssClass.Text;
             noteType.IconCssClass = tbIconCssClass.Text;
             noteType.BackgroundColor = cpBackgroundColor.Text;
+            noteType.FontColor = cpFontColor.Text;
+            noteType.BorderColor = cpBorderColor.Text;
+
             noteType.AllowsReplies = cbAllowsReplies.Checked;
             noteType.MaxReplyDepth = nbMaxReplyDepth.Text.AsIntegerOrNull();
 
