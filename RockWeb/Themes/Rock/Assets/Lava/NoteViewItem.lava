@@ -11,11 +11,11 @@ any CSS Classes that are prefixed with 'js-' are hooks that are required for edi
     {% assign wrapperClass = "" %}
 {% endif %}
 
-{% if note.NoteType.BackgroundColor %}
-    {% capture wrapperStyle %}background-color: {{ note.NoteType.BackgroundColor }}{% endcapture %}
-{% else %}
-    {% assign wrapperStyle = '' %}
-{% endif %}
+{% capture fontStyle %}{% if note.NoteType.FontColor %}color: {{ note.NoteType.FontColor }}{% endif %}{% endcapture %}
+{% capture borderStyle %}{% if note.NoteType.BorderColor %}border-color: {{ note.NoteType.BorderColor }}{% endif %}{% endcapture %}
+{% capture backgroundStyle %}{% if note.NoteType.BackgroundColor %}background-color: {{ note.NoteType.BackgroundColor }}{% endif %}{% endcapture %}
+
+{% capture wrapperStyle %}{{ fontStyle }};{{ borderStyle }};{{ backgroundStyle }}{% endcapture %}
 
 {% assign noteDateTimeText = note.CreatedDateTime | HumanizeDateTime %}
 {% if note.ModifiedDateTime > note.CreatedDateTime %}
@@ -71,10 +71,10 @@ any CSS Classes that are prefixed with 'js-' are hooks that are required for edi
             <div class="actions rollover-item">
                 {% assign canEdit = note | HasRightsTo:'Edit' %}
                 {% if canEdit %}
-                <a class="remove-note" href="#" onclick="{{ note.Id | Postback:'DeleteNote' }}">
+                <a class="remove-note" href="#" style="{{ fontStyle }}" onclick="{{ note.Id | Postback:'DeleteNote' }}">
                     <i class="fa fa-times"></i>
                 </a>
-                <a class="edit-note js-editnote"><i class="fa fa-pencil"></i></a>
+                <a class="edit-note js-editnote" style="{{ fontStyle }}"><i class="fa fa-pencil"></i></a>
                 {% endif %}
             </div>
         </article>
