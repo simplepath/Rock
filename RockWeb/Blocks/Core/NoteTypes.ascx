@@ -44,18 +44,25 @@
                 <div class="row">
                     <div class="col-md-6">
                         <Rock:RockTextBox ID="tbName" runat="server" Label="Name" Required="true" />
-                        <Rock:RockLiteral ID="lEntityTypeReadOnly" runat="server" Visible="false" Label="Entity Type" />
                         <Rock:EntityTypePicker ID="epEntityType" runat="server" Required="true" Label="Entity Type" IncludeGlobalOption="true" EnhanceForLongLists="true" />
-                        <Rock:RockCheckBox ID="cbUserSelectable" runat="server" Label="User Selectable" Text="Yes" />
-                        <Rock:RockCheckBox ID="cbAllowsReplies" runat="server" Label="Allow Replies" AutoPostBack="true" OnCheckedChanged="cbAllowsReplies_CheckedChanged" Text="Yes" />
-                        <Rock:NumberBox ID="nbMaxReplyDepth" runat="server" CssClass="input-width-sm" NumberType="Integer" MinimumValue="0" MaximumValue="9999" Label="Max Reply Depth" />
-                    </div>
-                    <div class="col-md-6">
+                        <Rock:RockLiteral ID="lEntityTypeReadOnly" runat="server" Visible="false" Label="Entity Type" />
+                        
                         <Rock:RockTextBox ID="tbCssClass" runat="server" Label="CSS Class" />
                         <Rock:RockTextBox ID="tbIconCssClass" runat="server" Label="Icon CSS Class" />
                         <Rock:ColorPicker ID="cpBackgroundColor" runat="server" Label="Background Color" />
                         <Rock:ColorPicker ID="cpFontColor" runat="server" Label="Font Color" />
                         <Rock:ColorPicker ID="cpBorderColor" runat="server" Label="Border Color" />
+                    </div>
+                    <div class="col-md-6">
+                        <Rock:RockCheckBox ID="cbUserSelectable" runat="server" Label="User Selectable" Text="Yes" />
+                        <Rock:RockCheckBox ID="cbRequiresApprovals" runat="server" Label="Requires Approvals" Text="Yes" />
+                        <Rock:RockCheckBox ID="cbSendApprovalNotifications" runat="server" Label="Send Approval Notifications" Text="Yes" />
+                        <Rock:RockCheckBox ID="cbAllowsFollowing" runat="server" Label="Allows Following" Text="Yes" />
+                        <Rock:RockCheckBox ID="cbAutoWatchAuthors" runat="server" Label="Auto Watch Authors" Text="Yes" />
+                        
+                        <Rock:RockCheckBox ID="cbAllowsReplies" runat="server" Label="Allow Replies" AutoPostBack="true" OnCheckedChanged="cbAllowsReplies_CheckedChanged" Text="Yes" />
+
+                        <Rock:NumberBox ID="nbMaxReplyDepth" runat="server" CssClass="input-width-sm" NumberType="Integer" MinimumValue="0" MaximumValue="9999" Label="Max Reply Depth" />
                     </div>
                 </div>
 

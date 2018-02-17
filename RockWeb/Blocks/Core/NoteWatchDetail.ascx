@@ -16,7 +16,9 @@
 
                 <h4>Watched by</h4>
 
-                <Rock:NotificationBox ID="nbWatcherMustBeSelectWarning" runat="server" NotificationBoxType="Danger" Text="A Person or Group must be specified as the watcher" Visible="false" />
+                <Rock:NotificationBox ID="nbWatcherMustBeSelectWarning" runat="server" NotificationBoxType="Danger" Text="A Person or Group must be specified as the watcher" Dismissable="true" Visible="false" />
+                <Rock:NotificationBox ID="nbUnableToOverride" runat="server" NotificationBoxType="Danger" Text="Unable to set Watching to false. This would override another note watch that doesn't allow overrides." Dismissable="true" Visible="false" />
+                
 
                 <div class="row">
                     <div class="col-md-6">
@@ -32,7 +34,7 @@
                 
                 <h4>Watch Filter</h4>
 
-                <Rock:NotificationBox ID="nbWatchFilterMustBeSeletedWarning" runat="server" NotificationBoxType="Danger" Text="A Watch Filter must be specified." Visible="false" />
+                <Rock:NotificationBox ID="nbWatchFilterMustBeSeletedWarning" runat="server" NotificationBoxType="Danger" Text="A Watch Filter must be specified." Dismissable="true" Visible="false" />
 
                 <div class="row">
                     <div class="col-md-6">
@@ -45,20 +47,18 @@
                         </asp:Panel>
                     </div>
                     <div class="col-md-6">
+                        <Rock:NotificationBox ID="nbNoteTypeWarning" runat="server" NotificationBoxType="Danger" Text="This note type doesn't allow note watches." Dismissable="true" Visible="false" />
                         <Rock:RockDropDownList ID="ddlNoteType" runat="server" Label="Note Type" Help="Select a Note Type to watch all notes of this note" />
 
                         <Rock:RockLiteral ID="lWatchedNote" Label="Watching Note" runat="server" />
                     </div>
                 </div>
 
-
                 <div class="actions">
                     <asp:LinkButton ID="btnSave" runat="server" AccessKey="s" ToolTip="Alt+s" Text="Save" CssClass="btn btn-primary" OnClick="btnSave_Click" />
                     <asp:LinkButton ID="btnCancel" runat="server" AccessKey="c" ToolTip="Alt+c" Text="Cancel" CssClass="btn btn-link" CausesValidation="false" OnClick="btnCancel_Click" />
                 </div>
             </div>
-
-
 
         </asp:Panel>
 

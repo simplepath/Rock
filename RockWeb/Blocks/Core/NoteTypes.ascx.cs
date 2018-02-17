@@ -276,12 +276,18 @@ namespace RockWeb.Blocks.Core
             noteType.EntityTypeId = epEntityType.SelectedEntityTypeId ?? 0;
             noteType.EntityTypeQualifierColumn = "";
             noteType.EntityTypeQualifierValue = "";
-            noteType.UserSelectable = cbUserSelectable.Checked;
+            
             noteType.CssClass = tbCssClass.Text;
             noteType.IconCssClass = tbIconCssClass.Text;
             noteType.BackgroundColor = cpBackgroundColor.Text;
             noteType.FontColor = cpFontColor.Text;
             noteType.BorderColor = cpBorderColor.Text;
+
+            noteType.UserSelectable = cbUserSelectable.Checked;
+            noteType.RequiresApprovals = cbRequiresApprovals.Checked;
+            noteType.SendApprovalNotifications = cbSendApprovalNotifications.Checked;
+            noteType.AllowsFollowing = cbAllowsFollowing.Checked;
+            noteType.AutoWatchAuthors = cbAutoWatchAuthors.Checked;
 
             noteType.AllowsReplies = cbAllowsReplies.Checked;
             noteType.MaxReplyDepth = nbMaxReplyDepth.Text.AsIntegerOrNull();
@@ -391,23 +397,31 @@ namespace RockWeb.Blocks.Core
                 noteType = new NoteType();
             }
 
+            hfIdValue.Value = noteTypeId.ToString();
+
             tbName.Text = noteType.Name;
-            cbUserSelectable.Checked = noteType.UserSelectable;
+
+            lEntityTypeReadOnly.Visible = noteType.IsSystem;
+            epEntityType.Visible = !noteType.IsSystem;
+            epEntityType.SelectedEntityTypeId = noteType.EntityTypeId;
+            var entityType = EntityTypeCache.Read( noteType.EntityTypeId );
+            lEntityTypeReadOnly.Text = entityType != null ? entityType.FriendlyName : string.Empty;
+
             tbCssClass.Text = noteType.CssClass;
             tbIconCssClass.Text = noteType.IconCssClass;
             cpBackgroundColor.Text = noteType.BackgroundColor;
             cpFontColor.Text = noteType.FontColor;
             cpBorderColor.Text = noteType.BorderColor;
+
+            cbUserSelectable.Checked = noteType.UserSelectable;
+            cbRequiresApprovals.Checked = noteType.RequiresApprovals;
+            cbSendApprovalNotifications.Checked = noteType.SendApprovalNotifications;
+            cbAllowsFollowing.Checked = noteType.AllowsFollowing;
+            cbAutoWatchAuthors.Checked = noteType.AutoWatchAuthors;
+
             cbAllowsReplies.Checked = noteType.AllowsReplies;
             nbMaxReplyDepth.Text = noteType.MaxReplyDepth.ToString();
-            epEntityType.SelectedEntityTypeId = noteType.EntityTypeId;
-
-            lEntityTypeReadOnly.Visible = noteType.IsSystem;
-            epEntityType.Visible = !noteType.IsSystem;
-            var entityType = EntityTypeCache.Read( noteType.EntityTypeId );
-            lEntityTypeReadOnly.Text = entityType != null ? entityType.FriendlyName : string.Empty;
-
-            hfIdValue.Value = noteTypeId.ToString();
+            
             cbAllowsReplies_CheckedChanged( null, null );
             modalDetails.Show();
         }

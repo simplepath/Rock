@@ -144,12 +144,17 @@ namespace RockWeb.Blocks.Core
 
             noteWatch.PersonAliasId = ppWatcherPerson.PersonAliasId;
             noteWatch.GroupId = gpWatcherGroup.GroupId;
-            if (!noteWatch.IsValidWatcher)
+            noteWatch.IsWatching = cbIsWatching.Checked;
+            noteWatch.AllowOverride = cbAllowOverride.Checked;
+
+            // see if the Watcher parameters are valid
+            if ( !noteWatch.IsValidWatcher )
             {
                 nbWatcherMustBeSelectWarning.Visible = true;
                 return;
             }
 
+            // see if the Watch filters parameters are valid
             if ( !noteWatch.IsValidWatchFilter )
             {
                 nbWatchFilterMustBeSeletedWarning.Visible = true;
@@ -161,8 +166,30 @@ namespace RockWeb.Blocks.Core
                 return;
             }
 
-            noteWatch.IsWatching = cbIsWatching.Checked;
-            noteWatch.AllowOverride = cbAllowOverride.Checked;
+            // See if there is a matching filter that doesn't allow overrides
+            if ( noteWatch.IsWatching == false )
+            {
+                NoteWatch.OverrideDeniedReason? overrideDeniedReason;
+                if ( noteWatch.IsAllowedToUnwatch( rockContext, out overrideDeniedReason ) == false )
+                {
+                    nbUnableToOverride.Visible = true;
+                    return;
+                }
+            }
+
+            // see if the NoteType allows following
+            if ( noteWatch.NoteTypeId.HasValue )
+            {
+                var noteTypeCache = NoteTypeCache.Read( noteWatch.NoteTypeId.Value );
+                if ( noteTypeCache != null )
+                {
+                    if ( noteTypeCache.AllowsFollowing == false )
+                    {
+                        nbNoteTypeWarning.Visible = true;
+                        return;
+                    }
+                }
+            }
 
             rockContext.SaveChanges();
             NavigateToNoteWatchParentPage();
@@ -360,7 +387,7 @@ namespace RockWeb.Blocks.Core
                 gpWatcherGroup.Visible = false;
 
                 // make sure we are seeing details for a NoteWatch that the current person is watching
-                if ( !noteWatch.PersonAliasId.HasValue || !contextPerson.Aliases.Any( a => a.Id == noteWatch.PersonAliasId.Value))
+                if ( !noteWatch.PersonAliasId.HasValue || !contextPerson.Aliases.Any( a => a.Id == noteWatch.PersonAliasId.Value ) )
                 {
                     // The NoteWatchId in the url isn't a NoteWatch for the PersonContext, so just hide the block
                     pnlView.Visible = false;
@@ -372,7 +399,7 @@ namespace RockWeb.Blocks.Core
                 gpWatcherGroup.Enabled = false;
 
                 // make sure we are seeing details for a NoteWatch that the current group context is watching
-                if ( !noteWatch.GroupId.HasValue || !(contextGroup.Id != noteWatch.GroupId) )
+                if ( !noteWatch.GroupId.HasValue || !( contextGroup.Id != noteWatch.GroupId ) )
                 {
                     // The NoteWatchId in the url isn't a NoteWatch for the GroupContext, so just hide the block
                     pnlView.Visible = false;
@@ -441,9 +468,5 @@ namespace RockWeb.Blocks.Core
         }
 
         #endregion
-
-
-
-
     }
 }

@@ -19,10 +19,13 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
 using System.Data.Entity.ModelConfiguration;
 using System.Runtime.Serialization;
 
 using Rock.Data;
+using Rock.Web.Cache;
 
 namespace Rock.Model
 {
@@ -240,6 +243,47 @@ namespace Rock.Model
         }
 
         #endregion
+
+
+        #region overrides
+
+        /// <summary>
+        /// Method that will be called on an entity immediately after the item is saved by context
+        /// </summary>
+        /// <param name="dbContext">The database context.</param>
+        /// <param name="entry">The entry.</param>
+        /// <param name="state">The state.</param>
+        public override void PreSaveChanges( Data.DbContext dbContext, DbEntityEntry entry, EntityState state )
+        {
+            if ( state == EntityState.Added )
+            {
+                var noteType = NoteTypeCache.Read( this.NoteTypeId );
+                if ( noteType?.AutoWatchAuthors == true )
+                {
+                    // if this is a new note, and AutoWatchAuthors, then add a NoteWatch so the author will get notified when there are any replies
+                    var rockContext = dbContext as RockContext;
+                    if ( rockContext != null && this.CreatedByPersonAliasId.HasValue )
+                    {
+                        var noteWatchService = new NoteWatchService( rockContext );
+
+                        // we don't know the Note.Id yet, so just assign the NoteWatch.Note and EF will populate the NoteWatch.NoteId automatically
+                        var noteWatch = new NoteWatch
+                        {
+                            IsWatching = true,
+                            PersonAliasId = this.CreatedByPersonAliasId.Value,
+                            Note = this
+                        };
+
+                        noteWatchService.Add( noteWatch );
+                    }
+                }
+            }
+
+            base.PreSaveChanges( dbContext, entry, state );
+        }
+
+        #endregion
+
 
         #region Public Methods
 
