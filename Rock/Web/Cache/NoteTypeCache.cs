@@ -135,13 +135,13 @@ namespace Rock.Web.Cache
         public bool RequiresApprovals { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether [allows following].
+        /// Gets or sets a value indicating whether [allows watching].
         /// </summary>
         /// <value>
-        ///   <c>true</c> if [allows following]; otherwise, <c>false</c>.
+        ///   <c>true</c> if [allows watching]; otherwise, <c>false</c>.
         /// </value>
         [DataMember]
-        public bool AllowsFollowing { get; set; }
+        public bool AllowsWatching { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether [allows replies].
@@ -198,15 +198,6 @@ namespace Rock.Web.Cache
         public bool SendApprovalNotifications { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether [allows mentions].
-        /// </summary>
-        /// <value>
-        ///   <c>true</c> if [allows mentions]; otherwise, <c>false</c>.
-        /// </value>
-        [DataMember]
-        public bool AllowsMentions { get; set; }
-
-        /// <summary>
         /// Gets or sets a value indicating whether [automatic watch authors].
         /// </summary>
         /// <value>
@@ -218,6 +209,19 @@ namespace Rock.Web.Cache
         #endregion
 
         #region Methods
+
+        /// <summary>
+        /// A dictionary of actions that this class supports and the description of each.
+        /// </summary>
+        public override Dictionary<string, string> SupportedActions
+        {
+            get
+            {
+                var supportedActions = base.SupportedActions;
+                supportedActions.AddOrReplace( Rock.Security.Authorization.APPROVE, "The roles and/or users that have access to approve notes." );
+                return supportedActions;
+            }
+        }
 
         /// <summary>
         /// Copies from model.
@@ -240,14 +244,13 @@ namespace Rock.Web.Cache
                 this.IconCssClass = NoteType.IconCssClass;
                 this.Order = NoteType.Order;
                 this.RequiresApprovals = NoteType.RequiresApprovals;
-                this.AllowsFollowing = NoteType.AllowsFollowing;
+                this.AllowsWatching = NoteType.AllowsWatching;
                 this.AllowsReplies = NoteType.AllowsReplies;
                 this.MaxReplyDepth = NoteType.MaxReplyDepth;
                 this.BackgroundColor = NoteType.BackgroundColor;
                 this.FontColor = NoteType.FontColor;
                 this.BorderColor = NoteType.BorderColor;
                 this.SendApprovalNotifications = NoteType.SendApprovalNotifications;
-                this.AllowsMentions = NoteType.AllowsMentions;
                 this.AutoWatchAuthors = NoteType.AutoWatchAuthors;
             }
         }

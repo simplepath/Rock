@@ -116,13 +116,32 @@ namespace Rock.Model
         public int? ParentNoteId { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether this instance is approved.
+        /// Gets or sets the approval status.
         /// </summary>
         /// <value>
-        ///   <c>true</c> if this instance is approved; otherwise, <c>false</c>.
+        /// The approval status.
         /// </value>
         [DataMember]
-        public bool IsApproved { get; set; }
+        public NoteApprovalStatus ApprovalStatus { get; set; }
+
+        /// <summary>
+        /// Gets or sets the PersonAliasId of the <see cref="Rock.Model.Person"/> who either approved or declined the Note. If no approval action has been performed on this Note, this value will be null.
+        /// </summary>
+        /// <value>
+        /// A <see cref="System.Int32"/> representing the PersonAliasId of hte <see cref="Rock.Model.Person"/> who either approved or declined the ContentItem. This value will be null if no approval action has been
+        /// performed on this add.
+        /// </value>
+        [DataMember]
+        public int? ApprovedByPersonAliasId { get; set; }
+
+        /// <summary>
+        /// Gets or sets the approved date.
+        /// </summary>
+        /// <value>
+        /// The approved date.
+        /// </value>
+        [DataMember]
+        public DateTime? ApprovedDateTime { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether [notifications sent].
@@ -141,6 +160,33 @@ namespace Rock.Model
         /// </value>
         [DataMember]
         public bool ApprovalsSent { get; set; }
+
+        /// <summary>
+        /// Gets or sets the URL where the Note was created. Use NoteUrl with a hash anchor of the Note.NoteAnchorId so that Notifications and Approvals can know where to view the note
+        /// </summary>
+        /// <value>
+        /// The note URL.
+        /// </value>
+        [DataMember]
+        public string NoteUrl { get; set; }
+
+        /// <summary>
+        /// Gets or sets the last time the note text was edited. Use this instead of ModifiedDateTime to determine the last time a person edited a note 
+        /// </summary>
+        /// <value>
+        /// The edited date time.
+        /// </value>
+        [DataMember]
+        public DateTime? EditedDateTime { get; set; }
+
+        /// <summary>
+        /// Gets or sets the person alias that last edited the note text. Use this instead of ModifiedByPersonAliasId to determine the last person to edit the note text
+        /// </summary>
+        /// <value>
+        /// The edited by person alias identifier.
+        /// </value>
+        [DataMember]
+        public int? EditedByPersonAliasId { get; set; }
 
         #endregion
 
@@ -165,6 +211,15 @@ namespace Rock.Model
         public virtual Note ParentNote { get; set; }
 
         /// <summary>
+        /// Gets or sets the person alias that last edited the note text. Use this instead of ModifiedByPersonAlias to determine the last person to edit the note text
+        /// </summary>
+        /// <value>
+        /// The edited by person alias.
+        /// </value>
+        [DataMember]
+        public virtual PersonAlias EditedByPersonAlias { get; set; }
+
+        /// <summary>
         /// Gets or sets the child notes.
         /// </summary>
         /// <value>
@@ -185,6 +240,35 @@ namespace Rock.Model
             get
             {
                 return Person.GetPersonPhotoUrl( this.CreatedByPersonAlias.Person );
+            }
+        }
+
+        /// <summary>
+        /// Gets the id to use in the note's anchor tag
+        /// </summary>
+        /// <value>
+        /// The note anchor identifier.
+        /// </value>
+        [LavaInclude]
+        public virtual string NoteAnchorId => $"NoteRef-{this.Guid.ToString( "N" )}";
+
+        /// <summary>
+        /// Gets the name of the person that last edited the note text. Use this instead of ModifiedByPersonName to determine the last person to edit the note text
+        /// </summary>
+        /// <value>
+        /// The edited by person alias.
+        /// </value>
+        [LavaInclude]
+        public virtual string EditedByPersonName
+        {
+            get
+            {
+                if ( EditedByPersonAlias != null && EditedByPersonAlias.Person != null )
+                {
+                    return EditedByPersonAlias.Person.FullName;
+                }
+
+                return string.Empty;
             }
         }
 
@@ -316,7 +400,33 @@ namespace Rock.Model
         {
             this.HasRequired( p => p.NoteType ).WithMany().HasForeignKey( p => p.NoteTypeId ).WillCascadeOnDelete( true );
             this.HasOptional( p => p.ParentNote ).WithMany( p => p.ChildNotes ).HasForeignKey( p => p.ParentNoteId ).WillCascadeOnDelete( false );
+            this.HasOptional( p => p.EditedByPersonAlias ).WithMany().HasForeignKey( p => p.EditedByPersonAliasId ).WillCascadeOnDelete( false );
         }
+    }
+
+    #endregion
+
+    #region Enumerations
+
+    /// <summary>
+    /// Represents the approval status of a note
+    /// </summary>
+    public enum NoteApprovalStatus
+    {
+        /// <summary>
+        /// The <see cref="Note"/> is pending approval.
+        /// </summary>
+        PendingApproval = 0,
+
+        /// <summary>
+        /// The <see cref="Note"/> has been approved.
+        /// </summary>
+        Approved = 1,
+
+        /// <summary>
+        /// The <see cref="Note"/> was denied.
+        /// </summary>
+        Denied = 2
     }
 
     #endregion

@@ -88,16 +88,17 @@ namespace Rock.Model
         public static void CopyPropertiesFrom( this NoteWatch target, NoteWatch source )
         {
             target.Id = source.Id;
+            target.AllowOverride = source.AllowOverride;
             target.EntityId = source.EntityId;
             target.EntityTypeId = source.EntityTypeId;
             target.ForeignGuid = source.ForeignGuid;
             target.ForeignKey = source.ForeignKey;
             target.GroupId = source.GroupId;
-            target.IsMentioned = source.IsMentioned;
             target.IsWatching = source.IsWatching;
             target.NoteId = source.NoteId;
             target.NoteTypeId = source.NoteTypeId;
             target.PersonAliasId = source.PersonAliasId;
+            target.WatchReplies = source.WatchReplies;
             target.CreatedDateTime = source.CreatedDateTime;
             target.ModifiedDateTime = source.ModifiedDateTime;
             target.CreatedByPersonAliasId = source.CreatedByPersonAliasId;

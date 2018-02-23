@@ -94,15 +94,16 @@ namespace Rock.Model
         public static void CopyPropertiesFrom( this NoteType target, NoteType source )
         {
             target.Id = source.Id;
-            target.AllowsFollowing = source.AllowsFollowing;
-            target.AllowsMentions = source.AllowsMentions;
             target.AllowsReplies = source.AllowsReplies;
+            target.AllowsWatching = source.AllowsWatching;
             target.AutoWatchAuthors = source.AutoWatchAuthors;
             target.BackgroundColor = source.BackgroundColor;
+            target.BorderColor = source.BorderColor;
             target.CssClass = source.CssClass;
             target.EntityTypeId = source.EntityTypeId;
             target.EntityTypeQualifierColumn = source.EntityTypeQualifierColumn;
             target.EntityTypeQualifierValue = source.EntityTypeQualifierValue;
+            target.FontColor = source.FontColor;
             target.ForeignGuid = source.ForeignGuid;
             target.ForeignKey = source.ForeignKey;
             target.IconCssClass = source.IconCssClass;

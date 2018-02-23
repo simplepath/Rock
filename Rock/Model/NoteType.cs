@@ -139,13 +139,13 @@ namespace Rock.Model
         public bool RequiresApprovals { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether [allows following].
+        /// Gets or sets a value indicating whether [allows watching].
         /// </summary>
         /// <value>
-        ///   <c>true</c> if [allows following]; otherwise, <c>false</c>.
+        ///   <c>true</c> if [allows watching]; otherwise, <c>false</c>.
         /// </value>
         [DataMember]
-        public bool AllowsFollowing { get; set; }
+        public bool AllowsWatching { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether [allows replies].
@@ -205,15 +205,6 @@ namespace Rock.Model
         public bool SendApprovalNotifications { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether [allows mentions].
-        /// </summary>
-        /// <value>
-        ///   <c>true</c> if [allows mentions]; otherwise, <c>false</c>.
-        /// </value>
-        [DataMember]
-        public bool AllowsMentions { get; set; }
-
-        /// <summary>
         /// Gets or sets a value indicating whether [automatic watch authors].
         /// </summary>
         /// <value>
@@ -238,6 +229,19 @@ namespace Rock.Model
         #endregion
 
         #region Public Methods
+
+        /// <summary>
+        /// A dictionary of actions that this class supports and the description of each.
+        /// </summary>
+        public override Dictionary<string, string> SupportedActions
+        {
+            get
+            {
+                var supportedActions = base.SupportedActions;
+                supportedActions.AddOrReplace( Rock.Security.Authorization.APPROVE, "The roles and/or users that have access to approve notes." );
+                return supportedActions;
+            }
+        }
 
         /// <summary>
         /// Returns a <see cref="System.String" /> that represents this instance.

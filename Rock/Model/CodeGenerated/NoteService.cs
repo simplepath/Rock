@@ -96,14 +96,16 @@ namespace Rock.Model
             target.Id = source.Id;
             target.ApprovalsSent = source.ApprovalsSent;
             target.Caption = source.Caption;
+            target.EditedByPersonAliasId = source.EditedByPersonAliasId;
+            target.EditedDateTime = source.EditedDateTime;
             target.EntityId = source.EntityId;
             target.ForeignGuid = source.ForeignGuid;
             target.ForeignKey = source.ForeignKey;
             target.IsAlert = source.IsAlert;
-            target.IsApproved = source.IsApproved;
             target.IsPrivateNote = source.IsPrivateNote;
             target.IsSystem = source.IsSystem;
             target.NoteTypeId = source.NoteTypeId;
+            target.NoteUrl = source.NoteUrl;
             target.NotificationsSent = source.NotificationsSent;
             target.ParentNoteId = source.ParentNoteId;
             target.Text = source.Text;

@@ -286,7 +286,7 @@ namespace RockWeb.Blocks.Core
             noteType.UserSelectable = cbUserSelectable.Checked;
             noteType.RequiresApprovals = cbRequiresApprovals.Checked;
             noteType.SendApprovalNotifications = cbSendApprovalNotifications.Checked;
-            noteType.AllowsFollowing = cbAllowsFollowing.Checked;
+            noteType.AllowsWatching = cbAllowsWatching.Checked;
             noteType.AutoWatchAuthors = cbAutoWatchAuthors.Checked;
 
             noteType.AllowsReplies = cbAllowsReplies.Checked;
@@ -416,7 +416,7 @@ namespace RockWeb.Blocks.Core
             cbUserSelectable.Checked = noteType.UserSelectable;
             cbRequiresApprovals.Checked = noteType.RequiresApprovals;
             cbSendApprovalNotifications.Checked = noteType.SendApprovalNotifications;
-            cbAllowsFollowing.Checked = noteType.AllowsFollowing;
+            cbAllowsWatching.Checked = noteType.AllowsWatching;
             cbAutoWatchAuthors.Checked = noteType.AutoWatchAuthors;
 
             cbAllowsReplies.Checked = noteType.AllowsReplies;

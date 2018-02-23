@@ -65,7 +65,7 @@ namespace Rock.Web.UI.Controls
         /// <value>
         /// The note types.
         /// </value>
-        [Obsolete("Use NoteOptions.NoteTypes instead")]
+        [Obsolete( "Use NoteOptions.NoteTypes instead" )]
         public List<NoteTypeCache> NoteTypes
         {
             get
@@ -281,12 +281,21 @@ namespace Rock.Web.UI.Controls
                 {
                     string action = eventArgs[0];
                     string parameters = eventArgs[1];
+                    int? noteId;
 
                     switch ( action )
                     {
                         case "DeleteNote":
-                            int? noteId = parameters.AsIntegerOrNull();
+                            noteId = parameters.AsIntegerOrNull();
                             DisplayDeleteNote( noteId );
+                            break;
+                        case "ApproveNote":
+                            noteId = parameters.AsIntegerOrNull();
+                            ApproveNote( noteId, true );
+                            break;
+                        case "DenyApproveNote":
+                            noteId = parameters.AsIntegerOrNull();
+                            ApproveNote( noteId, false );
                             break;
                     }
                 }
@@ -363,7 +372,7 @@ namespace Rock.Web.UI.Controls
         /// Displays the delete note.
         /// </summary>
         /// <param name="noteId">The note identifier.</param>
-        private void DisplayDeleteNote(int? noteId)
+        private void DisplayDeleteNote( int? noteId )
         {
             _lConfirmDeleteMsg.Text = "Are you sure you want to delete this note?";
             _hfCurrentNoteId.Value = noteId.ToString();
@@ -374,7 +383,7 @@ namespace Rock.Web.UI.Controls
         /// Deletes the note.
         /// </summary>
         /// <param name="noteId">The note identifier.</param>
-        private void DeleteNote(int? noteId)
+        private void DeleteNote( int? noteId )
         {
             var rockPage = this.Page as RockPage;
             if ( rockPage != null )
@@ -401,6 +410,45 @@ namespace Rock.Web.UI.Controls
                             _mdDeleteWarning.Show( errorMessage, ModalAlertType.Information );
                             return;
                         }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Approves the note.
+        /// </summary>
+        /// <param name="noteId">The note identifier.</param>
+        /// <param name="approved">if set to <c>true</c> [approved].</param>
+        private void ApproveNote( int? noteId, bool approved )
+        {
+            var rockPage = this.Page as RockPage;
+            if ( rockPage != null )
+            {
+                var currentPerson = rockPage.CurrentPerson;
+
+                var rockContext = new RockContext();
+                var service = new NoteService( rockContext );
+                Note note = null;
+
+                if ( noteId.HasValue )
+                {
+                    note = service.Get( noteId.Value );
+                    if ( note != null && note.IsAuthorized( Authorization.APPROVE, currentPerson ) )
+                    {
+                        if ( approved )
+                        {
+                            note.ApprovalStatus = NoteApprovalStatus.Approved;
+                        }
+                        else
+                        {
+                            note.ApprovalStatus = NoteApprovalStatus.Denied;
+                        }
+
+                        note.ApprovedByPersonAliasId = currentPerson?.PrimaryAliasId;
+
+                        note.ApprovedDateTime = RockDateTime.Now;
+                        rockContext.SaveChanges();
                     }
                 }
             }
@@ -578,7 +626,7 @@ namespace Rock.Web.UI.Controls
         /// <summary>
         /// Clears the rows.
         /// </summary>
-        [Obsolete("Not Needed. Notes will be cleared and rebuilt automatically")]
+        [Obsolete( "Not Needed. Notes will be cleared and rebuilt automatically" )]
         public void ClearNotes()
         {
             //
@@ -588,7 +636,7 @@ namespace Rock.Web.UI.Controls
         /// Rebuilds the notes.
         /// </summary>
         /// <param name="setSelection">if set to <c>true</c> [set selection].</param>
-        [Obsolete("Not Needed. Notes will be rebuilt automatically")]
+        [Obsolete( "Not Needed. Notes will be rebuilt automatically" )]
         public void RebuildNotes( bool setSelection )
         {
             //
@@ -629,7 +677,11 @@ namespace Rock.Web.UI.Controls
 
                 NoteCount = noteList.Count();
 
+                // only get notes they have auth to VIEW
                 var viewableNoteList = noteList.Where( a => a.IsAuthorized( Authorization.VIEW, currentPerson ) ).ToList();
+
+                // also limit to notes that are approved (if approval is required) or are pending approval and the current person is an approver
+                viewableNoteList = viewableNoteList.Where( a => a.ApprovalStatus == NoteApprovalStatus.Approved || !NoteTypeCache.Read( a.NoteTypeId ).RequiresApprovals || a.IsAuthorized( Authorization.APPROVE, currentPerson ) ).ToList();
 
                 return viewableNoteList;
             }

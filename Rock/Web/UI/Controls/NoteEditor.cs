@@ -650,6 +650,26 @@ namespace Rock.Web.UI.Controls
                     note.CreatedDateTime = _dtCreateDate.SelectedDateTime;
                 }
 
+                note.EditedByPersonAliasId = currentPerson?.PrimaryAliasId;
+                note.EditedDateTime = RockDateTime.Now;
+                note.NoteUrl = this.RockBlock()?.CurrentPageReference?.BuildUrl();
+
+                if ( note.NoteType.RequiresApprovals )
+                {
+                    if ( note.IsAuthorized( Authorization.APPROVE, currentPerson ) )
+                    {
+                        note.ApprovalStatus = NoteApprovalStatus.Approved;
+                    }
+                    else
+                    {
+                        note.ApprovalStatus = NoteApprovalStatus.PendingApproval;
+                    }
+                }
+                else
+                {
+                    note.ApprovalStatus = NoteApprovalStatus.Approved;
+                }
+
                 rockContext.SaveChanges();
 
                 if ( SaveButtonClick != null )

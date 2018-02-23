@@ -105,7 +105,7 @@ namespace Rock.Jobs
                 }
 
                 // get all notes that haven't processed notifications yet
-                var notesToNotifyQuery = noteService.Queryable().Where( a => a.NotificationsSent == false && a.NoteType.AllowsFollowing == true );
+                var notesToNotifyQuery = noteService.Queryable().Where( a => a.NotificationsSent == false && a.NoteType.AllowsWatching == true );
                 if ( !notesToNotifyQuery.Any() )
                 {
                     // there aren't any notes that haven't had notifications processed yet

@@ -35,6 +35,9 @@ namespace Rock.Client
         public int Id { get; set; }
 
         /// <summary />
+        public bool AllowOverride { get; set; }
+
+        /// <summary />
         public int? EntityId { get; set; }
 
         /// <summary />
@@ -48,9 +51,6 @@ namespace Rock.Client
 
         /// <summary />
         public int? GroupId { get; set; }
-
-        /// <summary />
-        public bool IsMentioned { get; set; }
 
         /// <summary />
         public bool IsWatching { get; set; }
@@ -68,6 +68,9 @@ namespace Rock.Client
 
         /// <summary />
         public int? PersonAliasId { get; set; }
+
+        /// <summary />
+        public bool WatchReplies { get; set; }
 
         /// <summary>
         /// Leave this as NULL to let Rock set this
@@ -102,17 +105,18 @@ namespace Rock.Client
         public void CopyPropertiesFrom( NoteWatch source )
         {
             this.Id = source.Id;
+            this.AllowOverride = source.AllowOverride;
             this.EntityId = source.EntityId;
             this.EntityTypeId = source.EntityTypeId;
             this.ForeignGuid = source.ForeignGuid;
             this.ForeignKey = source.ForeignKey;
             this.GroupId = source.GroupId;
-            this.IsMentioned = source.IsMentioned;
             this.IsWatching = source.IsWatching;
             this.ModifiedAuditValuesAlreadyUpdated = source.ModifiedAuditValuesAlreadyUpdated;
             this.NoteId = source.NoteId;
             this.NoteTypeId = source.NoteTypeId;
             this.PersonAliasId = source.PersonAliasId;
+            this.WatchReplies = source.WatchReplies;
             this.CreatedDateTime = source.CreatedDateTime;
             this.ModifiedDateTime = source.ModifiedDateTime;
             this.CreatedByPersonAliasId = source.CreatedByPersonAliasId;

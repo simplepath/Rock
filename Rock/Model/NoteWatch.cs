@@ -65,6 +65,15 @@ namespace Rock.Model
         public bool IsWatching { get; set; } = true;
 
         /// <summary>
+        /// Gets or sets a value indicating whether [watch replies].
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [watch replies]; otherwise, <c>false</c>.
+        /// </value>
+        [DataMember]
+        public bool WatchReplies { get; set; } = false;
+
+        /// <summary>
         /// Set AllowOverride to False to prevent people from adding an IsWatching=False on NoteWatch with the same filter that is marked as IsWatching=True
         /// In other words, if a group is configured a NoteWatch, an individual shouldn't be able to add an un-watch if AllowOverride=False (and any un-watches that may have been already added would be ignored)
         /// </summary>
@@ -73,15 +82,6 @@ namespace Rock.Model
         /// </value>
         [DataMember]
         public bool AllowOverride { get; set; } = true;
-
-        /// <summary>
-        /// Set/Get IsMentioned to indicate that the PersonAlias (or Group) was mentioned in the specified NoteId
-        /// </summary>
-        /// <value>
-        ///   <c>true</c> if this instance is mentioned; otherwise, <c>false</c>.
-        /// </value>
-        [DataMember]
-        public bool IsMentioned { get; set; }
 
         /// <summary>
         /// Gets or sets the person alias id of the person watching this note watch

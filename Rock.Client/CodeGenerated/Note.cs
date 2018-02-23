@@ -41,6 +41,12 @@ namespace Rock.Client
         public string Caption { get; set; }
 
         /// <summary />
+        public int? EditedByPersonAliasId { get; set; }
+
+        /// <summary />
+        public DateTime? EditedDateTime { get; set; }
+
+        /// <summary />
         public int? EntityId { get; set; }
 
         /// <summary />
@@ -68,6 +74,9 @@ namespace Rock.Client
 
         /// <summary />
         public int NoteTypeId { get; set; }
+
+        /// <summary />
+        public string NoteUrl { get; set; }
 
         /// <summary />
         public bool NotificationsSent { get; set; }
@@ -113,6 +122,8 @@ namespace Rock.Client
             this.Id = source.Id;
             this.ApprovalsSent = source.ApprovalsSent;
             this.Caption = source.Caption;
+            this.EditedByPersonAliasId = source.EditedByPersonAliasId;
+            this.EditedDateTime = source.EditedDateTime;
             this.EntityId = source.EntityId;
             this.ForeignGuid = source.ForeignGuid;
             this.ForeignKey = source.ForeignKey;
@@ -122,6 +133,7 @@ namespace Rock.Client
             this.IsSystem = source.IsSystem;
             this.ModifiedAuditValuesAlreadyUpdated = source.ModifiedAuditValuesAlreadyUpdated;
             this.NoteTypeId = source.NoteTypeId;
+            this.NoteUrl = source.NoteUrl;
             this.NotificationsSent = source.NotificationsSent;
             this.ParentNoteId = source.ParentNoteId;
             this.Text = source.Text;
@@ -140,6 +152,12 @@ namespace Rock.Client
     /// </summary>
     public partial class Note : NoteEntity
     {
+        /// <summary />
+        public ICollection<Note> ChildNotes { get; set; }
+
+        /// <summary />
+        public PersonAlias EditedByPersonAlias { get; set; }
+
         /// <summary />
         public NoteType NoteType { get; set; }
 

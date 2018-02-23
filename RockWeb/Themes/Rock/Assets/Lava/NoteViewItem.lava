@@ -1,4 +1,4 @@
-﻿{% comment %}
+{% comment %}
 ##Important Notes when customizing##
 any CSS Classes that are prefixed with 'js-' are hooks that are required for editing notes (see noteEditor.js and NoteContainer.cs)
 {% endcomment %}
@@ -18,10 +18,10 @@ any CSS Classes that are prefixed with 'js-' are hooks that are required for edi
 {% capture wrapperStyle %}{{ fontStyle }};{{ borderStyle }};{{ backgroundStyle }}{% endcapture %}
 
 {% assign noteDateTimeText = note.CreatedDateTime | HumanizeDateTime %}
-{% if note.ModifiedDateTime > note.CreatedDateTime %}
-    {% capture editedLabel %}edited {{ note.ModifiedDateTime | HumanizeDateTime }}{% endcapture %}
-    {% if note.ModifiedByPersonName != note.CreatedByPersonName %}
-        {% assign editedLabel = editedLabel | Append:' by ' | Append:note.ModifiedByPersonName %}
+{% if note.EditedDateTime > note.CreatedDateTime %}
+    {% capture editedLabel %}edited {{ note.EditedDateTime | HumanizeDateTime }}{% endcapture %}
+    {% if note.EditedByPersonName != note.CreatedByPersonName %}
+        {% assign editedLabel = editedLabel | Append:' by ' | Append:note.EditedByPersonName %}
     {% endif %}
     {% assign noteDateTimeText =  noteDateTimeText | Append:' (' | Append:editedLabel | Append:')'%}
 {% endif %}
@@ -35,47 +35,79 @@ any CSS Classes that are prefixed with 'js-' are hooks that are required for edi
 
 {% assign noteText = note.Text | Escape | Linkify | FromMarkdown %}
 
-<div class="note-view-item js-noteviewitem" data-note-id="{{ note.Id }}">
+
+{% comment %}If this note requires approval and is not yet approved, we might see it if the current person created the note or is an approver, so render its approval status and approval actions{% endcomment %}
+{% if note.NoteType.RequiresApprovals and note.ApprovalStatus != 'Approved' %}
+    {% assign canApprove = note | HasRightsTo:'Approve' %}
+
+    {% capture approvalStatusHtml %}
+        {% if note.ApprovalStatus == 'Denied' %}
+            <span class="label label-danger">Not Approved</span>
+        {% elsif note.ApprovalStatus == 'PendingApproval' %}
+            <span class="label label-warning">Pending Approval</span>
+        {% endif %}
+    {% endcapture}
+    
+    {% capture approvalActionsHtml %}
+        {% if canApprove %}
+            <a class="approve-note btn btn-xs btn-success" href="#" style="{{ fontStyle }}" onclick="{{ note.Id | Postback:'ApproveNote' }}">
+                Approve
+            </a>
+            <a class="approve-note btn btn-xs btn-danger" href="#" style="{{ fontStyle }}" onclick="{{ note.Id | Postback:'DenyApproveNote' }}">
+                Deny
+            </a>
+        {% endif %}
+    {% endcapture %}
+
+{% endif %}
+
+<div class="note-view-item js-noteviewitem" data-note-id="{{ note.Id }}" id="{{ note.NoteAnchorId }}">
     <div class='note {{ note.NoteType.CssClass }} note-details js-notedetails' rel="{{ note.Id }}">
         <article class="clearfix rollover-container {{ wrapperClass }}" style="{{ wrapperStyle }}">
+            <div class="pull-left">{{ approvalStatusHtml }}</div>
             {% if NoteOptions.DisplayType == 'Full' %}
-            {% if NoteOptions.UsePersonIcon %}
-            <img style="max-height: 50px; max-width: 50px;" src="{{ note.CreatedByPersonPhotoUrl }}">
-            {% else %}
-            <i class="{{ note.NoteType.IconCssClass | Default:'fa fa-comment' }}"></i>
-            {% endif %}
+                {% if NoteOptions.UsePersonIcon %}
+                    <img style="max-height: 50px; max-width: 50px;" src="{{ note.CreatedByPersonPhotoUrl }}">
+                {% else %}
+                    <i class="{{ note.NoteType.IconCssClass | Default:'fa fa-comment' }}"></i>
+                {% endif %}
             {% endif %}
             <div class="details">
                 {% if NoteOptions.DisplayType == 'Full' %}
-                <h5>
-                    {% if NoteOptions.DisplayNoteTypeHeading %}
-                    <strong>{{ note.NoteType.Name }} </strong>
-                    {% endif %}
-                    {{ note.Caption | Default:note.CreatedByPersonName }} <span class="date" title="{{ note.ModifiedDateTime }}">{{ noteDateTimeText }}</span>
-                </h5>
-                <div class="notetext">
-                    {{ noteText }}
-                </div>
+                    <h5>
+                        {% if NoteOptions.DisplayNoteTypeHeading %}
+                        <strong>{{ note.NoteType.Name }} </strong>
+                        {% endif %}
+                        {{ note.Caption | Default:note.CreatedByPersonName }} <span class="date" title="{{ note.EditedDateTime }}">{{ noteDateTimeText }}</span>
+                    </h5>
+                    <div class="notetext">
+                        {{ noteText }}
+                    </div>
                 {% else %}
                 {{ noteText }}
-                - <span class="note-author">{{ note.CreatedByPersonName }}</span> <span class="note-created" title="{{ note.ModifiedDateTime }}">{{ noteDateTimeText }}</span>
+                    - <span class="note-author">{{ note.CreatedByPersonName }}</span> <span class="note-created" title="{{ note.EditedDateTime }}">{{ noteDateTimeText }}</span>
                 {% endif %}
 
                 <div class="note-actions">
                     {% if canReply %}
-                    <a class="btn btn-xs btn-default pull-right js-replynote"><i class="fa fa-reply"></i></a>
+                        <a class="btn btn-xs btn-default pull-right js-replynote"><i class="fa fa-reply"></i></a>
                     {% endif %}
                 </div>
             </div>
 
+
+
             <div class="actions rollover-item">
                 {% assign canEdit = note | HasRightsTo:'Edit' %}
                 {% if canEdit %}
-                <a class="remove-note" href="#" style="{{ fontStyle }}" onclick="{{ note.Id | Postback:'DeleteNote' }}">
-                    <i class="fa fa-times"></i>
-                </a>
-                <a class="edit-note js-editnote" style="{{ fontStyle }}"><i class="fa fa-pencil"></i></a>
+                    <a class="remove-note" href="#" style="{{ fontStyle }}" onclick="{{ note.Id | Postback:'DeleteNote' }}">
+                        <i class="fa fa-times"></i>
+                    </a>
+                    <a class="edit-note js-editnote" style="{{ fontStyle }}"><i class="fa fa-pencil"></i></a>
                 {% endif %}
+                {% approvalActionsHtml %}
+
+
             </div>
         </article>
     </div>

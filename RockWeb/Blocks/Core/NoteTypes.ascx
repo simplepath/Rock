@@ -57,7 +57,7 @@
                         <Rock:RockCheckBox ID="cbUserSelectable" runat="server" Label="User Selectable" Text="Yes" />
                         <Rock:RockCheckBox ID="cbRequiresApprovals" runat="server" Label="Requires Approvals" Text="Yes" />
                         <Rock:RockCheckBox ID="cbSendApprovalNotifications" runat="server" Label="Send Approval Notifications" Text="Yes" />
-                        <Rock:RockCheckBox ID="cbAllowsFollowing" runat="server" Label="Allows Following" Text="Yes" />
+                        <Rock:RockCheckBox ID="cbAllowsWatching" runat="server" Label="Allows Watching" Text="Yes" />
                         <Rock:RockCheckBox ID="cbAutoWatchAuthors" runat="server" Label="Auto Watch Authors" Text="Yes" />
                         
                         <Rock:RockCheckBox ID="cbAllowsReplies" runat="server" Label="Allow Replies" AutoPostBack="true" OnCheckedChanged="cbAllowsReplies_CheckedChanged" Text="Yes" />

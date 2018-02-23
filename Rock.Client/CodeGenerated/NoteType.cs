@@ -35,19 +35,19 @@ namespace Rock.Client
         public int Id { get; set; }
 
         /// <summary />
-        public bool AllowsFollowing { get; set; }
-
-        /// <summary />
-        public bool AllowsMentions { get; set; }
-
-        /// <summary />
         public bool AllowsReplies { get; set; }
+
+        /// <summary />
+        public bool AllowsWatching { get; set; }
 
         /// <summary />
         public bool AutoWatchAuthors { get; set; }
 
         /// <summary />
         public string BackgroundColor { get; set; }
+
+        /// <summary />
+        public string BorderColor { get; set; }
 
         /// <summary />
         public string CssClass { get; set; }
@@ -62,6 +62,9 @@ namespace Rock.Client
         public string EntityTypeQualifierValue { get; set; }
 
         /// <summary />
+        public string FontColor { get; set; }
+
+        /// <summary />
         public Guid? ForeignGuid { get; set; }
 
         /// <summary />
@@ -74,7 +77,7 @@ namespace Rock.Client
         public bool IsSystem { get; set; }
 
         /// <summary />
-        public int MaxReplyDepth { get; set; }
+        public int? MaxReplyDepth { get; set; }
 
         /// <summary>
         /// If the ModifiedByPersonAliasId is being set manually and should not be overwritten with current user when saved, set this value to true
@@ -129,15 +132,16 @@ namespace Rock.Client
         public void CopyPropertiesFrom( NoteType source )
         {
             this.Id = source.Id;
-            this.AllowsFollowing = source.AllowsFollowing;
-            this.AllowsMentions = source.AllowsMentions;
             this.AllowsReplies = source.AllowsReplies;
+            this.AllowsWatching = source.AllowsWatching;
             this.AutoWatchAuthors = source.AutoWatchAuthors;
             this.BackgroundColor = source.BackgroundColor;
+            this.BorderColor = source.BorderColor;
             this.CssClass = source.CssClass;
             this.EntityTypeId = source.EntityTypeId;
             this.EntityTypeQualifierColumn = source.EntityTypeQualifierColumn;
             this.EntityTypeQualifierValue = source.EntityTypeQualifierValue;
+            this.FontColor = source.FontColor;
             this.ForeignGuid = source.ForeignGuid;
             this.ForeignKey = source.ForeignKey;
             this.IconCssClass = source.IconCssClass;

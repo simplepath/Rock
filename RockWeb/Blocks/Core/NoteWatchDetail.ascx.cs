@@ -183,7 +183,7 @@ namespace RockWeb.Blocks.Core
                 var noteTypeCache = NoteTypeCache.Read( noteWatch.NoteTypeId.Value );
                 if ( noteTypeCache != null )
                 {
-                    if ( noteTypeCache.AllowsFollowing == false )
+                    if ( noteTypeCache.AllowsWatching == false )
                     {
                         nbNoteTypeWarning.Visible = true;
                         return;
