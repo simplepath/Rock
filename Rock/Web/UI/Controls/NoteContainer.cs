@@ -680,9 +680,6 @@ namespace Rock.Web.UI.Controls
                 // only get notes they have auth to VIEW
                 var viewableNoteList = noteList.Where( a => a.IsAuthorized( Authorization.VIEW, currentPerson ) ).ToList();
 
-                // also limit to notes that are approved (if approval is required) or are pending approval and the current person is an approver
-                viewableNoteList = viewableNoteList.Where( a => a.ApprovalStatus == NoteApprovalStatus.Approved || !NoteTypeCache.Read( a.NoteTypeId ).RequiresApprovals || a.IsAuthorized( Authorization.APPROVE, currentPerson ) ).ToList();
-
                 return viewableNoteList;
             }
 

@@ -22,9 +22,11 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Data.Entity.ModelConfiguration;
+using System.Linq;
 using System.Runtime.Serialization;
 
 using Rock.Data;
+using Rock.Security;
 using Rock.Web.Cache;
 
 namespace Rock.Model
@@ -229,6 +231,27 @@ namespace Rock.Model
         public virtual ICollection<Note> ChildNotes { get; set; } = new Collection<Note>();
 
         /// <summary>
+        /// Gets the childs note that the current person is allowed to view
+        /// </summary>
+        /// <value>
+        /// The viewable child notes.
+        /// </value>
+        [LavaInclude]
+        [NotMapped]
+        public virtual List<Note> ViewableChildNotes
+        {
+            get
+            {
+                // only get notes they have auth to VIEW ( note that VIEW has special rules based on approval status, etc. See Note.IsAuthorized for details )
+                var currentPerson = System.Web.HttpContext.Current?.Items["CurrentPerson"] as Person;
+
+                var viewableChildNotes = ChildNotes.ToList().Where( a => a.IsAuthorized( Rock.Security.Authorization.VIEW, currentPerson ) ).ToList();
+
+                return viewableChildNotes;
+            }
+        }
+
+        /// <summary>
         /// Gets the created by person photo URL.
         /// </summary>
         /// <value>
@@ -282,30 +305,89 @@ namespace Rock.Model
         {
             get
             {
-                return this.NoteType != null ? this.NoteType : base.ParentAuthority;
+                var noteType = NoteTypeCache.Read( this.NoteTypeId );
+                return noteType ?? base.ParentAuthority;
             }
         }
 
         /// <summary>
-        /// Determines whether the specified action is authorized.
+        /// Determines whether the specified action is authorized on this note.
+        /// Special note on the VIEW action: a person can view a note if they have normal VIEW access, but also have any of the following is true of the note:
+        ///  - Approved,
+        ///  - The current person is the one who created the note,
+        ///  - The current person is the one who last edited the note,
+        ///  - No Approval is required,
+        ///  - The current person is an approver
         /// </summary>
         /// <param name="action">The action.</param>
         /// <param name="person">The person.</param>
         /// <returns></returns>
         public override bool IsAuthorized( string action, Person person )
         {
-            if ( CreatedByPersonAlias != null && person != null &&
-                CreatedByPersonAlias.PersonId == person.Id )
+            if ( action.Equals( Rock.Security.Authorization.APPROVE, StringComparison.OrdinalIgnoreCase ) )
             {
-                return true;
+                // If checking the APPROVE action, let people Approve private notes that they created, otherwise just use the normal IsAuthorized
+                if ( this.IsPrivateNote && this.CreatedByPersonId == person.PrimaryAliasId )
+                {
+                    // private note that only the note creator can see, so the creator can self approve
+                    return true;
+                }
+                else
+                {
+                    
+                    return base.IsAuthorized( action, person );
+                }
             }
-
-            if ( IsPrivateNote )
+            else if ( action.Equals( Rock.Security.Authorization.VIEW, StringComparison.OrdinalIgnoreCase ) )
             {
+                // View has special rules depending on the approval status and APPROVE verb
+                
+                // first check if have normal VIEW access on the base
+                if ( !base.IsAuthorized( Authorization.VIEW, person )  )
+                {
+                    return false;
+                }
+
+                if ( this.ApprovalStatus == NoteApprovalStatus.Approved )
+                {
+                    return true;
+                }
+                else if ( this.CreatedByPersonAliasId == person?.PrimaryAliasId )
+                {
+                    return true;
+                }
+                else if ( this.EditedByPersonAliasId == person?.PrimaryAliasId )
+                {
+                    return true;
+                }
+                else if ( NoteTypeCache.Read( this.NoteTypeId )?.RequiresApprovals == false )
+                {
+                    return true;
+                }
+                else if ( this.IsAuthorized( Authorization.APPROVE, person ) )
+                {
+                    return true;
+                }
+
                 return false;
             }
+            else
+            {
+                // If this note was created by the logged person, they should be be able to do any action (except for APPROVE)
+                if ( CreatedByPersonAlias != null && person != null &&
+                    CreatedByPersonAlias.PersonId == person.Id )
+                {
+                    return true;
+                }
 
-            return base.IsAuthorized( action, person );
+                if ( IsPrivateNote )
+                {
+                    // if this is a private note, only the person that wrote the note can see it. So, if this note isn't owned by the current person, return false
+                    return false;
+                }
+
+                return base.IsAuthorized( action, person );
+            }
         }
 
         /// <summary>

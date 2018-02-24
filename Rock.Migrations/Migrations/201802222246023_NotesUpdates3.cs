@@ -43,6 +43,11 @@ namespace Rock.Migrations
             DropColumn("dbo.NoteType", "AllowsFollowing");
             DropColumn("dbo.NoteType", "AllowsMentions");
             DropColumn("dbo.NoteWatch", "IsMentioned");
+
+            // Update all current notes to Approved since approve is a new thing 
+            Sql( "UPDATE [Note] SET [ApprovalStatus] = 1 WHERE [ApprovalStatus] != 1" );
+
+            // TODO: Remove old NoteTypes block and add Pages, Blocks, etc for new NoteTypeList and NoteTypeDetail
         }
         
         /// <summary>

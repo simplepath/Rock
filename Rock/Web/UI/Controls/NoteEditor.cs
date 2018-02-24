@@ -654,7 +654,9 @@ namespace Rock.Web.UI.Controls
                 note.EditedDateTime = RockDateTime.Now;
                 note.NoteUrl = this.RockBlock()?.CurrentPageReference?.BuildUrl();
 
-                if ( note.NoteType.RequiresApprovals )
+                var noteType = NoteTypeCache.Read( note.NoteTypeId );
+
+                if ( noteType.RequiresApprovals )
                 {
                     if ( note.IsAuthorized( Authorization.APPROVE, currentPerson ) )
                     {
