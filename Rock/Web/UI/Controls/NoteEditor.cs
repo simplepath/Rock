@@ -636,9 +636,18 @@ namespace Rock.Web.UI.Controls
                 }
 
                 note.NoteTypeId = NoteTypeId.Value;
+                const string personalNoteCaption = "You - Personal Note";
                 if ( string.IsNullOrWhiteSpace( note.Caption ) )
                 {
-                    note.Caption = IsPrivate ? "You - Personal Note" : string.Empty;
+                    note.Caption = IsPrivate ? personalNoteCaption : string.Empty;
+                }
+                else
+                {
+                    // if the note still has the personalNoteCaption, but was changed to have IsPrivateNote to false, change the caption to empty string
+                    if ( note.Caption == personalNoteCaption && !IsPrivate )
+                    {
+                        note.Caption = string.Empty;
+                    }
                 }
 
                 note.Text = Text;

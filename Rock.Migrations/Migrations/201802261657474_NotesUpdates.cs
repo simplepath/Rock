@@ -95,6 +95,14 @@ namespace Rock.Migrations
             // Update all current notes to Approved since approve is a new thing 
             Sql( "UPDATE [Note] SET [ApprovalStatus] = 1 WHERE [ApprovalStatus] != 1" );
 
+            // Fix any Notes that have still have caption of 'You - Personal Note' but have IsPrivateNote = false (this fixes an issue where Notes that were created as IsPrivate but changed to Not Private have the wrong caption)
+            Sql( @"
+UPDATE [Note]
+SET [Caption] = ''
+WHERE [Caption] = 'You - Personal Note'
+	AND [IsPrivateNote] = 0
+" );
+
             // TODO: Remove old NoteTypes block and add Pages, Blocks, etc for new NoteTypeList and NoteTypeDetail
         }
 
