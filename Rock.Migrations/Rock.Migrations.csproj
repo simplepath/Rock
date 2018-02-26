@@ -4654,8 +4654,6 @@
       <Link>SqlServerTypes\x86\SqlServerSpatial110.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Migrations\201802260423490_spCheckin_AttendanceAnalyticsQuery_Attendees.sql" />
-    <Content Include="Migrations\201802260423490_spCheckin_AttendanceAnalyticsQuery_NonAttendees.sql" />
     <None Include="Migrations\201802092340176_Rollup_0209_spCrm_PersonDuplicateFinder.sql">
       <DependentUpon>201802092340176_Rollup_0209.cs</DependentUpon>
     </None>
