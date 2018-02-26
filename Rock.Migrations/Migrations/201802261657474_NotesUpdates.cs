@@ -39,7 +39,8 @@ namespace Rock.Migrations
                         EntityId = c.Int(),
                         NoteId = c.Int(),
                         IsWatching = c.Boolean(nullable: false),
-                        IsMentioned = c.Boolean(nullable: false),
+                        WatchReplies = c.Boolean(nullable: false),
+                        AllowOverride = c.Boolean(nullable: false),
                         PersonAliasId = c.Int(),
                         GroupId = c.Int(),
                         CreatedDateTime = c.DateTime(),
@@ -69,23 +70,34 @@ namespace Rock.Migrations
                 .Index(t => t.Guid, unique: true);
             
             AddColumn("dbo.Note", "ParentNoteId", c => c.Int());
-            AddColumn("dbo.Note", "IsApproved", c => c.Boolean(nullable: false));
+            AddColumn("dbo.Note", "ApprovalStatus", c => c.Int(nullable: false));
+            AddColumn("dbo.Note", "ApprovedByPersonAliasId", c => c.Int());
+            AddColumn("dbo.Note", "ApprovedDateTime", c => c.DateTime());
             AddColumn("dbo.Note", "NotificationsSent", c => c.Boolean(nullable: false));
             AddColumn("dbo.Note", "ApprovalsSent", c => c.Boolean(nullable: false));
+            AddColumn("dbo.Note", "NoteUrl", c => c.String());
+            AddColumn("dbo.Note", "EditedDateTime", c => c.DateTime());
+            AddColumn("dbo.Note", "EditedByPersonAliasId", c => c.Int());
             AddColumn("dbo.NoteType", "RequiresApprovals", c => c.Boolean(nullable: false));
-            AddColumn("dbo.NoteType", "AllowsFollowing", c => c.Boolean(nullable: false));
+            AddColumn("dbo.NoteType", "AllowsWatching", c => c.Boolean(nullable: false));
             AddColumn("dbo.NoteType", "AllowsReplies", c => c.Boolean(nullable: false));
             AddColumn("dbo.NoteType", "MaxReplyDepth", c => c.Int());
             AddColumn("dbo.NoteType", "BackgroundColor", c => c.String(maxLength: 100));
             AddColumn("dbo.NoteType", "FontColor", c => c.String(maxLength: 100));
             AddColumn("dbo.NoteType", "BorderColor", c => c.String(maxLength: 100));
             AddColumn("dbo.NoteType", "SendApprovalNotifications", c => c.Boolean(nullable: false));
-            AddColumn("dbo.NoteType", "AllowsMentions", c => c.Boolean(nullable: false));
             AddColumn("dbo.NoteType", "AutoWatchAuthors", c => c.Boolean(nullable: false));
             CreateIndex("dbo.Note", "ParentNoteId");
+            CreateIndex("dbo.Note", "EditedByPersonAliasId");
+            AddForeignKey("dbo.Note", "EditedByPersonAliasId", "dbo.PersonAlias", "Id");
             AddForeignKey("dbo.Note", "ParentNoteId", "dbo.Note", "Id");
+
+            // Update all current notes to Approved since approve is a new thing 
+            Sql( "UPDATE [Note] SET [ApprovalStatus] = 1 WHERE [ApprovalStatus] != 1" );
+
+            // TODO: Remove old NoteTypes block and add Pages, Blocks, etc for new NoteTypeList and NoteTypeDetail
         }
-        
+
         /// <summary>
         /// Operations to be performed during the downgrade process.
         /// </summary>
@@ -99,6 +111,7 @@ namespace Rock.Migrations
             DropForeignKey("dbo.NoteWatch", "EntityTypeId", "dbo.EntityType");
             DropForeignKey("dbo.NoteWatch", "CreatedByPersonAliasId", "dbo.PersonAlias");
             DropForeignKey("dbo.Note", "ParentNoteId", "dbo.Note");
+            DropForeignKey("dbo.Note", "EditedByPersonAliasId", "dbo.PersonAlias");
             DropIndex("dbo.NoteWatch", new[] { "Guid" });
             DropIndex("dbo.NoteWatch", new[] { "ModifiedByPersonAliasId" });
             DropIndex("dbo.NoteWatch", new[] { "CreatedByPersonAliasId" });
@@ -107,20 +120,25 @@ namespace Rock.Migrations
             DropIndex("dbo.NoteWatch", new[] { "NoteId" });
             DropIndex("dbo.NoteWatch", new[] { "EntityTypeId" });
             DropIndex("dbo.NoteWatch", new[] { "NoteTypeId" });
+            DropIndex("dbo.Note", new[] { "EditedByPersonAliasId" });
             DropIndex("dbo.Note", new[] { "ParentNoteId" });
             DropColumn("dbo.NoteType", "AutoWatchAuthors");
-            DropColumn("dbo.NoteType", "AllowsMentions");
             DropColumn("dbo.NoteType", "SendApprovalNotifications");
             DropColumn("dbo.NoteType", "BorderColor");
             DropColumn("dbo.NoteType", "FontColor");
             DropColumn("dbo.NoteType", "BackgroundColor");
             DropColumn("dbo.NoteType", "MaxReplyDepth");
             DropColumn("dbo.NoteType", "AllowsReplies");
-            DropColumn("dbo.NoteType", "AllowsFollowing");
+            DropColumn("dbo.NoteType", "AllowsWatching");
             DropColumn("dbo.NoteType", "RequiresApprovals");
+            DropColumn("dbo.Note", "EditedByPersonAliasId");
+            DropColumn("dbo.Note", "EditedDateTime");
+            DropColumn("dbo.Note", "NoteUrl");
             DropColumn("dbo.Note", "ApprovalsSent");
             DropColumn("dbo.Note", "NotificationsSent");
-            DropColumn("dbo.Note", "IsApproved");
+            DropColumn("dbo.Note", "ApprovedDateTime");
+            DropColumn("dbo.Note", "ApprovedByPersonAliasId");
+            DropColumn("dbo.Note", "ApprovalStatus");
             DropColumn("dbo.Note", "ParentNoteId");
             DropTable("dbo.NoteWatch");
         }

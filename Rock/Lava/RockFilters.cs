@@ -25,6 +25,7 @@ using System.Dynamic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Linq.Dynamic;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -760,6 +761,21 @@ namespace Rock.Lava
             length = length > ( input.Length - start ) ? ( input.Length - start ) : length;
 
             return input.Substring(start, length);
+        }
+
+        /// <summary>
+        /// Decrypts an encrypted string
+        /// </summary>
+        /// <param name="input">The input.</param>
+        /// <returns></returns>
+        public static string Decrypt( string input )
+        {
+            if ( input == null )
+            {
+                return input;
+            }
+
+            return Rock.Security.Encryption.DecryptString( input );
         }
 
         /// <summary>
@@ -3982,6 +3998,26 @@ namespace Rock.Lava
             }
 
             return inputList[indexInt.Value];
+        }
+
+        /// <summary>
+        /// Takes a collection and returns distinct values in that collection.
+        /// </summary>
+        /// <param name="input">A collection of objects.</param>
+        /// <returns>A collection of objects with no repeating elements.</returns>
+        /// <example>
+        ///     {{ '["Banana","Orange","Banana","Apple"]' | FromJSON | Uniq | Join:',' }}
+        /// </example>
+        public static object Uniq( object input )
+        {
+            IEnumerable e = input as IEnumerable;
+
+            if ( e == null )
+            {
+                return input;
+            }
+
+            return e.Distinct().Cast<object>().ToList();
         }
 
         #endregion
