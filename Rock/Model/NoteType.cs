@@ -213,6 +213,16 @@ namespace Rock.Model
         [DataMember]
         public bool AutoWatchAuthors { get; set; }
 
+        /// <summary>
+        /// A optional Lava Template that can be used to general a URL where Notes of this type can be approved
+        /// If this is left blank, the Approval URL will be a URL to the page (including a hash anchor to the note) where the note was originally created
+        /// </summary>
+        /// <value>
+        /// The approval URL template.
+        /// </value>
+        [DataMember]
+        public string ApprovalUrlTemplate { get; set; }
+
         #endregion
 
         #region Virtual Properties

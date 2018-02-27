@@ -155,6 +155,7 @@ namespace RockWeb.Blocks.Core
 
             noteType.AllowsReplies = cbAllowsReplies.Checked;
             noteType.MaxReplyDepth = nbMaxReplyDepth.Text.AsIntegerOrNull();
+            noteType.ApprovalUrlTemplate = ceApprovalUrlTemplate.Text;
 
             if ( noteType.IsValid )
             {
@@ -251,6 +252,7 @@ namespace RockWeb.Blocks.Core
 
             cbAllowsReplies.Checked = noteType.AllowsReplies;
             nbMaxReplyDepth.Text = noteType.MaxReplyDepth.ToString();
+            ceApprovalUrlTemplate.Text = noteType.ApprovalUrlTemplate;
 
             cbAllowsReplies_CheckedChanged( null, null );
         }
