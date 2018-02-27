@@ -16,7 +16,7 @@ namespace Rock.Jobs
     /// </summary>
     /// <seealso cref="Quartz.IJob" />
     [DisallowConcurrentExecution]
-    public class SendNoteWatchNotifications : IJob
+    public class SendNoteNotifications : IJob
     {
         /// <summary>
         /// Empty constructor for job initialization
@@ -25,7 +25,7 @@ namespace Rock.Jobs
         /// scheduler can instantiate the class whenever it needs.
         /// </para>
         /// </summary>
-        public SendNoteWatchNotifications()
+        public SendNoteNotifications()
         {
             //
         }
@@ -86,6 +86,15 @@ namespace Rock.Jobs
         /// </summary>
         /// <param name="context">The context.</param>
         public void Execute( IJobExecutionContext context )
+        {
+            SendNoteWatchNotifications( context );
+        }
+
+        /// <summary>
+        /// Sends the note watch notifications.
+        /// </summary>
+        /// <param name="context">The context.</param>
+        private static void SendNoteWatchNotifications( IJobExecutionContext context )
         {
             // get the job dataMap
             JobDataMap dataMap = context.JobDetail.JobDataMap;
@@ -195,11 +204,11 @@ namespace Rock.Jobs
 
                                 var personsToBlockNotification = personToNotifyList.Where( a => a.NoteWatch.IsWatching == true ).ToList();
 
-                                // remove any persons that have a 'IsWatching=False' watch that overrides another notewatch that has the same filter
+                                // remove any persons that have a 'IsWatching=False' that applies to this note, unless the notification was added from a notewatch with 'Allow Override = false'
                                 var personsNotify = personToNotifyList.Where( a =>
                                      a.NoteWatch.AllowOverride == false
                                     ||
-                                    !personsToBlockNotification.Any( b => b.PersonId == a.PersonId && b.NoteWatch.GetFilterCompareHash() == a.NoteWatch.GetFilterCompareHash() )
+                                    !personsToBlockNotification.Any( b => b.PersonId == a.PersonId )
                                     );
 
                                 // TODO send notifications
