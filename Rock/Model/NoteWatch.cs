@@ -219,6 +219,7 @@ namespace Rock.Model
 
             // find any notewatches that would be blocked by this note watch
 
+            // TODO, figure out if there is a way to predict what other note watches could possibly deny an override
             // TODO, only enforce individual's trying to override a note watch
             // only enforce override restrictions when the watcher is an individual 
             if ( this.PersonAliasId.HasValue )
@@ -308,6 +309,7 @@ namespace Rock.Model
             return true;
         }
 
+        /*
         /// <summary>
         /// Gets the filter compare hash that can be used to see if two NoteWatches have the same WatchFilter parameters
         /// </summary>
@@ -316,6 +318,7 @@ namespace Rock.Model
         {
             return $"{this.EntityTypeId}|{this.NoteTypeId}|{this.EntityId}|{this.NoteId}";
         }
+        */
 
         /// <summary>
         /// 

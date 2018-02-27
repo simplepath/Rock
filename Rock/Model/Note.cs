@@ -286,12 +286,33 @@ namespace Rock.Model
         {
             get
             {
-                if ( EditedByPersonAlias != null && EditedByPersonAlias.Person != null )
+                var editedByPerson = EditedByPersonAlias?.Person ?? CreatedByPersonAlias?.Person;
+                return editedByPerson?.FullName;
+            }
+        }
+
+        /// <summary>
+        /// Gets the name of the entity (If it is a Note on a Person, it would be the person's name, etc)
+        /// </summary>
+        /// <value>
+        /// The name of the entity.
+        /// </value>
+        [LavaInclude]
+        public virtual string EntityName
+        {
+            get
+            {
+                using ( var rockContext = new RockContext() )
                 {
-                    return EditedByPersonAlias.Person.FullName;
+                    var noteTypeEntityTypeId = NoteTypeCache.Read( this.NoteTypeId )?.EntityTypeId;
+                    if ( noteTypeEntityTypeId.HasValue && this.EntityId.HasValue )
+                    {
+                        var entity = new EntityTypeService( rockContext ).GetEntity( this.NoteType.EntityTypeId, this.EntityId.Value );
+                        return entity?.ToString();
+                    }
                 }
 
-                return string.Empty;
+                return null;
             }
         }
 
