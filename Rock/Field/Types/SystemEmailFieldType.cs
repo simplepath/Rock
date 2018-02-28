@@ -118,7 +118,7 @@ namespace Rock.Field.Types
             if ( value != null )
             {
                 if ( control != null && control is ListControl )
-                    ( (ListControl)control ).SelectedValue = value;
+                    ( ( ListControl ) control ).SelectedValue = value.AsGuidOrNull().ToString();
             }
         }
 
