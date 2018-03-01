@@ -38,6 +38,30 @@ namespace Rock.Jobs
         /// <summary>
         /// 
         /// </summary>
+        /// <seealso cref="System.Collections.Generic.List{Rock.Jobs.SendNoteNotifications.NoteWatchPersonToNotify}" />
+        private class NoteWatchPersonToNotifyList : List<SendNoteNotifications.NoteWatchPersonToNotify>
+        {
+            /// <summary>
+            /// Initializes a new instance of the <see cref="NoteWatchPersonToNotifyList"/> class.
+            /// </summary>
+            /// <param name="person">The person.</param>
+            public NoteWatchPersonToNotifyList( Person person )
+            {
+                this.Person = person;
+            }
+
+            /// <summary>
+            /// Gets or sets the person.
+            /// </summary>
+            /// <value>
+            /// The person.
+            /// </value>
+            public Person Person { get; set; }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         private class NoteWatchPersonToNotify
         {
             /// <summary>
@@ -76,14 +100,6 @@ namespace Rock.Jobs
             /// The note watch.
             /// </value>
             public NoteWatch NoteWatch { get; set; }
-
-            /// <summary>
-            /// Gets or sets a value indicating whether this <see cref="NoteWatchPersonToNotify"/> is overridden by another NoteWatch that had 'Is Watching = False'
-            /// </summary>
-            /// <value>
-            ///   <c>true</c> if overridden; otherwise, <c>false</c>.
-            /// </value>
-            public bool Overridden { get; set; }
         }
 
         /// <summary>
@@ -131,6 +147,9 @@ namespace Rock.Jobs
             _noteApprovalNotificationEmailGuid = dataMap.GetString( "NoteApprovalNotificationEmail" ).AsGuidOrNull();
 
             SendNoteWatchNotifications( context );
+            context.UpdateLastStatusMessage( $"{_noteWatchNotificationsSent} note watch notifications sent..." );
+            SendNoteApprovalNotifications( context );
+            context.UpdateLastStatusMessage( $"{_noteWatchNotificationsSent} note watch notifications sent, and {_noteApprovalNotificationsSent} note approval notifications sent" );
         }
 
         /// <summary>
@@ -148,6 +167,7 @@ namespace Rock.Jobs
                 // get all notes that are pending approval and haven't sent approval notifications yet
                 var notesThatNeedApprovalNotifyQuery = noteService.Queryable().Where( a =>
                     a.NoteType.RequiresApprovals
+                    && a.NoteType.SendApprovalNotifications
                     && a.ApprovalsSent == false
                     && a.ApprovalStatus == NoteApprovalStatus.PendingApproval
                     && a.EditedDateTime > _cutoffNoteEditDateTime );
@@ -161,29 +181,24 @@ namespace Rock.Jobs
                 noteIdsToProcessApprovalsList = notesThatNeedApprovalNotifyQuery.Select( a => a.Id ).ToList();
             }
 
-            // get the approvers for each notetypeId
-            Dictionary<int, List<Person>> noteTypeApprovers = new Dictionary<int, List<Person>>();
             using ( var rockContext = new RockContext() )
             {
-                var noteTypeService = new NoteTypeService( rockContext );
-                var noteTypeIdsForNotes = new Rock.Model.NoteService( rockContext ).Queryable()
-                    .Where( a => noteIdsToProcessApprovalsList.Contains( a.Id ) ).Select( a => a.NoteTypeId ).Distinct().ToList()
-                    .ToList();
+                // get the approvers for each notetypeId
+                Dictionary<int, List<Person>> noteTypeApprovers = new Dictionary<int, List<Person>>();
+
+                NoteTypeService noteTypeService = new NoteTypeService( rockContext );
+                var noteTypeIdsForNotes = new NoteService( rockContext ).Queryable()
+                    .Where( a => noteIdsToProcessApprovalsList.Contains( a.Id ) ).Select( a => a.NoteTypeId ).Distinct().ToList();
 
                 foreach ( var noteTypeId in noteTypeIdsForNotes )
                 {
                     var approvers = noteTypeService.GetApprovers( noteTypeId ).ToList();
                     noteTypeApprovers.Add( noteTypeId, approvers );
                 }
-            }
 
-            // make a list of notes for each approver so we can send a digest of notes to approve to each approver
-            Dictionary<Person, List<Note>> approverNotesToApproveList = new Dictionary<Person, List<Note>>();
-
-            foreach ( var noteId in noteIdsToProcessApprovalsList )
-            {
-                // use a fresh context per note
-                using ( var rockContext = new RockContext() )
+                // make a list of notes for each approver so we can send a digest of notes to approve to each approver
+                Dictionary<Person, List<Note>> approverNotesToApproveList = new Dictionary<Person, List<Note>>();
+                foreach ( var noteId in noteIdsToProcessApprovalsList )
                 {
                     var noteService = new Rock.Model.NoteService( rockContext );
                     var note = noteService.Get( noteId );
@@ -211,11 +226,14 @@ namespace Rock.Jobs
                         // if there are no approvers for this note type, leave it as pending approval
                     }
                 }
-            }
 
-            // send approval emails
-            if ( approverNotesToApproveList.Any() )
-            {
+                if ( !approverNotesToApproveList.Any() )
+                {
+                    // nothing to do so exit
+                    return;
+                }
+
+                // send approval emails
                 var recipients = new List<RecipientData>();
                 foreach ( var approverNotesToApprove in approverNotesToApproveList )
                 {
@@ -236,13 +254,13 @@ namespace Rock.Jobs
                         emailMessage.Send();
                         _noteApprovalNotificationsSent += recipients.Count();
 
-                        using ( var rockContext = new RockContext() )
+                        using ( var rockUpdateContext = new RockContext() )
                         {
                             var noteListIds = noteList.Select( a => a.Id ).ToList();
-                            var notesToMarkApprovalSent = new NoteService( rockContext ).Queryable().Where( a => noteListIds.Contains( a.Id ) );
+                            var notesToMarkApprovalSent = new NoteService( rockUpdateContext ).Queryable().Where( a => noteListIds.Contains( a.Id ) );
 
                             // use BulkUpdate to mark all the notes that we processed to ApprovalsSent = true
-                            rockContext.BulkUpdate( notesToMarkApprovalSent, n => new Note { ApprovalsSent = true } );
+                            rockUpdateContext.BulkUpdate( notesToMarkApprovalSent, n => new Note { ApprovalsSent = true } );
                         }
                     }
                 }
@@ -259,8 +277,8 @@ namespace Rock.Jobs
 
             using ( var rockContext = new RockContext() )
             {
-                var noteService = new Rock.Model.NoteService( rockContext );
-                var noteWatchService = new Rock.Model.NoteWatchService( rockContext );
+                var noteService = new NoteService( rockContext );
+                var noteWatchService = new NoteWatchService( rockContext );
                 var noteWatchQuery = noteWatchService.Queryable();
 
                 if ( !noteWatchQuery.Any() )
@@ -287,54 +305,52 @@ namespace Rock.Jobs
                 noteIdsToProcessNoteWatchesList = notesToNotifyQuery.Select( a => a.Id ).ToList();
             }
 
-            // make a list of notifications to send to each person
-            Dictionary<Person, List<NoteWatchPersonToNotify>> personNotificationDigestList = new Dictionary<Person, List<NoteWatchPersonToNotify>>();
-
-            foreach ( var noteId in noteIdsToProcessNoteWatchesList )
-            {
-                // use a fresh context per note
-                using ( var rockContext = new RockContext() )
-                {
-                    UpdateNoteWatchNotificationDigest( personNotificationDigestList, rockContext, noteId );
-                }
-            }
-
-            // Send NoteWatch notifications
-            if ( personNotificationDigestList.Any() )
-            {
-                var recipients = new List<RecipientData>();
-                foreach ( var personNotificationDigest in personNotificationDigestList )
-                {
-                    Person personToNotify = personNotificationDigest.Key;
-                    List<Note> noteList = personNotificationDigest.Value.Select( a => a.Note ).OrderBy( a => a.EditedDateTime ).ToList();
-
-                    // make sure a person doesn't get a notification on a note that they wrote
-                    noteList = noteList.Where( a => a.EditedByPersonAlias?.PersonId != personToNotify.Id ).ToList();
-
-                    if ( !string.IsNullOrEmpty( personToNotify.Email ) && personToNotify.IsEmailActive && noteList.Any() )
-                    {
-                        var mergeFields = new Dictionary<string, object>( _defaultMergeFields );
-                        mergeFields.Add( "NotifyPerson", personToNotify );
-                        mergeFields.Add( "NoteList", noteList );
-                        recipients.Add( new RecipientData( personToNotify.Email, mergeFields ) );
-                    }
-
-                    if ( _noteWatchNotificationEmailGuid.HasValue )
-                    {
-                        var emailMessage = new RockEmailMessage( _noteWatchNotificationEmailGuid.Value );
-                        emailMessage.SetRecipients( recipients );
-                        emailMessage.Send();
-                        _noteWatchNotificationsSent += recipients.Count();
-                    }
-                }
-            }
-
+            // make a list of notifications to send to each personId
+            Dictionary<int, NoteWatchPersonToNotifyList> personNotificationDigestList = new Dictionary<int, NoteWatchPersonToNotifyList>();
             using ( var rockContext = new RockContext() )
             {
-                var notesToMarkNotified = new NoteService( rockContext ).Queryable().Where( a => noteIdsToProcessNoteWatchesList.Contains( a.Id ) );
+                foreach ( int noteId in noteIdsToProcessNoteWatchesList )
+                {
+                    this.UpdateNoteWatchNotificationDigest( personNotificationDigestList, rockContext, noteId );
+                }
+
+                // Send NoteWatch notifications
+                if ( personNotificationDigestList.Any() )
+                {
+                    var recipients = new List<RecipientData>();
+                    foreach ( var personNotificationDigest in personNotificationDigestList )
+                    {
+                        Person personToNotify = personNotificationDigest.Value.Person;
+                        List<Note> noteList = personNotificationDigest.Value.Select( a => a.Note ).OrderBy( a => a.EditedDateTime ).ToList();
+
+                        // make sure a person doesn't get a notification on a note that they wrote
+                        noteList = noteList.Where( a => a.EditedByPersonAlias?.PersonId != personToNotify.Id ).ToList();
+
+                        if ( !string.IsNullOrEmpty( personToNotify.Email ) && personToNotify.IsEmailActive && noteList.Any() )
+                        {
+                            var mergeFields = new Dictionary<string, object>( _defaultMergeFields );
+                            mergeFields.Add( "Person", personToNotify );
+                            mergeFields.Add( "NoteList", noteList );
+                            recipients.Add( new RecipientData( personToNotify.Email, mergeFields ) );
+                        }
+
+                        if ( _noteWatchNotificationEmailGuid.HasValue )
+                        {
+                            var emailMessage = new RockEmailMessage( _noteWatchNotificationEmailGuid.Value );
+                            emailMessage.SetRecipients( recipients );
+                            emailMessage.Send();
+                            _noteWatchNotificationsSent += recipients.Count();
+                        }
+                    }
+                }
+            }
+
+            using ( var rockUpdateContext = new RockContext() )
+            {
+                var notesToMarkNotified = new NoteService( rockUpdateContext ).Queryable().Where( a => noteIdsToProcessNoteWatchesList.Contains( a.Id ) );
 
                 // use BulkUpdate to mark all the notes that we processed to NotificationsSent = true
-                rockContext.BulkUpdate( notesToMarkNotified, n => new Note { NotificationsSent = true } );
+                rockUpdateContext.BulkUpdate( notesToMarkNotified, n => new Note { NotificationsSent = true } );
             }
         }
 
@@ -344,11 +360,12 @@ namespace Rock.Jobs
         /// <param name="personNotificationDigestList">The person notification digest list.</param>
         /// <param name="rockContext">The rock context.</param>
         /// <param name="noteId">The note identifier.</param>
-        private void UpdateNoteWatchNotificationDigest( Dictionary<Person, List<NoteWatchPersonToNotify>> personNotificationDigestList, RockContext rockContext, int noteId )
+        private void UpdateNoteWatchNotificationDigest( Dictionary<int, NoteWatchPersonToNotifyList> personIdNotificationDigestList, RockContext rockContext, int noteId )
         {
             var noteService = new Rock.Model.NoteService( rockContext );
 
-            var note = noteService.Get( noteId );
+            var note = noteService.Queryable().Include( a => a.EditedByPersonAlias ).FirstOrDefault( a => a.Id == noteId );
+
             if ( note == null || !note.EntityId.HasValue )
             {
                 // shouldnt' happen
@@ -396,23 +413,23 @@ namespace Rock.Jobs
             // if there are any NoteWatches that relate to this note, process them
             if ( noteWatchesQuery.Any() )
             {
-                var noteWatchesForNote = noteWatchesQuery.Include( a => a.PersonAlias.Person ).AsNoTracking().ToList();
+                var noteWatchesForNote = noteWatchesQuery.Include( a => a.WatcherPersonAlias.Person ).AsNoTracking().ToList();
                 List<NoteWatchPersonToNotify> noteWatchPersonToNotifyListAll = new List<NoteWatchPersonToNotify>();
 
                 // loop thru Watches to get a list of people to possibly notify/override
                 foreach ( var noteWatch in noteWatchesForNote )
                 {
                     // if a specific person is the watcher, add them
-                    var watcherPerson = noteWatch.PersonAlias?.Person;
+                    var watcherPerson = noteWatch.WatcherPersonAlias?.Person;
                     if ( watcherPerson != null )
                     {
                         noteWatchPersonToNotifyListAll.Add( new NoteWatchPersonToNotify( watcherPerson, note, noteWatch ) );
                     }
 
-                    if ( noteWatch.GroupId.HasValue )
+                    if ( noteWatch.WatcherGroupId.HasValue )
                     {
                         var watcherPersonsFromGroup = new GroupMemberService( rockContext ).Queryable()
-                            .Where( a => a.GroupMemberStatus == GroupMemberStatus.Active && a.GroupId == noteWatch.GroupId.Value )
+                            .Where( a => a.GroupMemberStatus == GroupMemberStatus.Active && a.GroupId == noteWatch.WatcherGroupId.Value )
                             .Select( a => a.Person ).ToList();
 
                         if ( watcherPersonsFromGroup.Any() )
@@ -422,30 +439,38 @@ namespace Rock.Jobs
                     }
                 }
 
-                var personsToBlockNotification = noteWatchPersonToNotifyListAll.Where( a => a.NoteWatch.IsWatching == true ).ToList();
-
-                // remove any persons that have a 'IsWatching=False' that applies to this note, unless the notification was added from a notewatch with 'Allow Override = false'
-                var noteWatchPersonToNotifyList = noteWatchPersonToNotifyListAll.Where( a =>
-                     a.NoteWatch.AllowOverride == false
-                    || !personsToBlockNotification.Any( b => b.Person.Id == a.Person.Id ) ).ToList();
+                var noteWatchPersonToNotifyList = noteWatchPersonToNotifyListAll.Where( a => a.NoteWatch.IsWatching ).ToList();
+                var noteWatchPersonToNotifyListWatchDisabled = noteWatchPersonToNotifyListAll.Where( a => !a.NoteWatch.IsWatching ).ToList();
+                var noteWatchPersonToNotifyListNoOverride = noteWatchPersonToNotifyList.Where( a => a.NoteWatch.AllowOverride == false ).ToList();
 
                 foreach ( var noteWatchPersonToNotify in noteWatchPersonToNotifyList )
                 {
-                    List<NoteWatchPersonToNotify> personNotificationDigest;
-                    if ( personNotificationDigestList.ContainsKey( noteWatchPersonToNotify.Person ) )
+                    // check if somebody wanted to specifically NOT watch this (and there isn't another watch that prevents overrides)
+                    if ( noteWatchPersonToNotifyListWatchDisabled.Any( a => a.Person.Id == noteWatchPersonToNotify.Person.Id ) )
                     {
-                        personNotificationDigest = personNotificationDigestList[noteWatchPersonToNotify.Person] ?? new List<NoteWatchPersonToNotify>();
+                        // Person Requested to NOT watch, now make sure that they aren't force to watch based on Override = False
+                        if ( !noteWatchPersonToNotifyListNoOverride.Any( a => a.Person.Id == noteWatchPersonToNotify.Person.Id ) )
+                        {
+                            // person requested to NOT watch, and there aren't any overrides to prevent that, so jump out to the next one
+                            continue;
+                        }
+                    }
+
+                    NoteWatchPersonToNotifyList personToNotifyList;
+                    if ( personIdNotificationDigestList.ContainsKey( noteWatchPersonToNotify.Person.Id ) )
+                    {
+                        personToNotifyList = personIdNotificationDigestList[noteWatchPersonToNotify.Person.Id] ?? new NoteWatchPersonToNotifyList( noteWatchPersonToNotify.Person );
                     }
                     else
                     {
-                        personNotificationDigest = new List<NoteWatchPersonToNotify>();
-                        personNotificationDigestList.Add( noteWatchPersonToNotify.Person, personNotificationDigest );
+                        personToNotifyList = new NoteWatchPersonToNotifyList( noteWatchPersonToNotify.Person );
+                        personIdNotificationDigestList.Add( noteWatchPersonToNotify.Person.Id, personToNotifyList );
                     }
 
                     // only include the note if the watcher person is authorized to view the note
                     if ( noteWatchPersonToNotify.Note.IsAuthorized( Rock.Security.Authorization.VIEW, noteWatchPersonToNotify.Person ) )
                     {
-                        personNotificationDigest.Add( noteWatchPersonToNotify );
+                        personToNotifyList.Add( noteWatchPersonToNotify );
                     }
                 }
             }

@@ -206,6 +206,15 @@ namespace Rock.Web.Cache
         [DataMember]
         public bool AutoWatchAuthors { get; set; }
 
+        /// <summary>
+        /// Gets or sets the approval URL template.
+        /// </summary>
+        /// <value>
+        /// The approval URL template.
+        /// </value>
+        [DataMember]
+        public string ApprovalUrlTemplate { get; set; }
+
         #endregion
 
         #region Methods
@@ -252,6 +261,7 @@ namespace Rock.Web.Cache
                 this.BorderColor = NoteType.BorderColor;
                 this.SendApprovalNotifications = NoteType.SendApprovalNotifications;
                 this.AutoWatchAuthors = NoteType.AutoWatchAuthors;
+                this.ApprovalUrlTemplate = NoteType.ApprovalUrlTemplate;
             }
         }
 

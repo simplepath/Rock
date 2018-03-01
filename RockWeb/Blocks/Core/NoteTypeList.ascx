@@ -25,6 +25,9 @@
                                 <Rock:RockBoundField DataField="CssClass" HeaderText="CSS Class" />
                                 <Rock:RockBoundField DataField="IconCssClass" HeaderText="Icon CSS Class" />
                                 <Rock:BoolField DataField="UserSelectable" HeaderText="User Selectable" />
+                                <Rock:BoolField DataField="RequiresApprovals" HeaderText="Requires Approvals" />
+                                <Rock:BoolField DataField="AllowsWatching" HeaderText="Allows Watching" />
+                                <Rock:BoolField DataField="AllowsReplies" HeaderText="Allows Replies" />
                                 <Rock:BoolField DataField="IsSystem" HeaderText="System" />
                                 <Rock:SecurityField />
                                 <Rock:DeleteField OnClick="gNoteTypes_Delete" />

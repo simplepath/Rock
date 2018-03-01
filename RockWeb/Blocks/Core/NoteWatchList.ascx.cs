@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Web.UI;
+using System.Web.UI.WebControls;
 
 using Rock;
 using Rock.Attribute;
@@ -98,7 +99,7 @@ namespace RockWeb.Blocks.Core
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void Block_BlockUpdated( object sender, EventArgs e )
         {
-            // TODO
+            BindGrid();
         }
 
         /// <summary>
@@ -136,7 +137,7 @@ namespace RockWeb.Blocks.Core
         /// Navigates to note watch detail page including PersonId and GroupId if there is a Person or Group context set
         /// </summary>
         /// <param name="noteWatchId">The note watch identifier.</param>
-        protected void NavigateToNoteWatchDetailPage(int noteWatchId)
+        protected void NavigateToNoteWatchDetailPage( int noteWatchId )
         {
             Dictionary<string, string> queryParams = new Dictionary<string, string>();
             queryParams.Add( "NoteWatchId", noteWatchId.ToString() );
@@ -181,6 +182,45 @@ namespace RockWeb.Blocks.Core
             BindGrid();
         }
 
+        /// <summary>
+        /// Handles the RowDataBound event of the gList control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="System.Web.UI.WebControls.GridViewRowEventArgs"/> instance containing the event data.</param>
+        protected void gList_RowDataBound( object sender, System.Web.UI.WebControls.GridViewRowEventArgs e )
+        {
+            var noteWatch = e.Row.DataItem as NoteWatch;
+            if ( noteWatch == null )
+            {
+                return;
+            }
+
+            var lWatchingEntityType = e.Row.FindControl( "lWatchingEntityType" ) as Literal;
+            if ( lWatchingEntityType != null )
+            {
+                if ( noteWatch.EntityTypeId.HasValue )
+                {
+                    var entityType = EntityTypeCache.Read( noteWatch.EntityTypeId.Value );
+                    if ( entityType != null )
+                    {
+                        lWatchingEntityType.Text = entityType.FriendlyName;
+
+                        if ( noteWatch.EntityId.HasValue && noteWatch.EntityTypeId.HasValue )
+                        {
+                            using ( var rockContext = new RockContext() )
+                            {
+                                IEntity entity = new EntityTypeService( new RockContext() ).GetEntity( noteWatch.EntityTypeId.Value, noteWatch.EntityId.Value );
+                                if ( entity != null )
+                                {
+                                    lWatchingEntityType.Text = entityType.FriendlyName + " (" + entity.ToString() + ")";
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         #endregion
 
         #region Methods
@@ -193,7 +233,7 @@ namespace RockWeb.Blocks.Core
             RockContext rockContext = new RockContext();
             NoteWatchService noteWatchService = new NoteWatchService( rockContext );
 
-            var qry = noteWatchService.Queryable().Include( a => a.PersonAlias.Person ).Include( a => a.Group );
+            var qry = noteWatchService.Queryable().Include( a => a.WatcherPersonAlias.Person ).Include( a => a.WatcherGroup );
 
             Guid? blockEntityTypeGuid = this.GetAttributeValue( "EntityType" ).AsGuidOrNull();
             Guid? blockNoteTypeGuid = this.GetAttributeValue( "NoteType" ).AsGuidOrNull();
@@ -216,12 +256,12 @@ namespace RockWeb.Blocks.Core
             if ( contextPerson != null )
             {
                 // if there is a Person context, only list note watches that where the watcher is the person context
-                qry = qry.Where( a => a.PersonAliasId.HasValue && a.PersonAlias.PersonId == contextPerson.Id );
+                qry = qry.Where( a => a.WatcherPersonAliasId.HasValue && a.WatcherPersonAlias.PersonId == contextPerson.Id );
             }
             else if ( contextGroup != null )
             {
                 // if there is a Group context, only list note watches that where the watcher is the group context
-                qry = qry.Where( a => a.GroupId.HasValue && a.GroupId == contextGroup.Id );
+                qry = qry.Where( a => a.WatcherGroupId.HasValue && a.WatcherGroupId == contextGroup.Id );
             }
 
             var sortProperty = gList.SortProperty;
@@ -240,5 +280,7 @@ namespace RockWeb.Blocks.Core
         }
 
         #endregion
+
+
     }
 }

@@ -93,11 +93,11 @@ namespace Rock.Model
             target.EntityTypeId = source.EntityTypeId;
             target.ForeignGuid = source.ForeignGuid;
             target.ForeignKey = source.ForeignKey;
-            target.GroupId = source.GroupId;
+            target.WatcherGroupId = source.WatcherGroupId;
             target.IsWatching = source.IsWatching;
             target.NoteId = source.NoteId;
             target.NoteTypeId = source.NoteTypeId;
-            target.PersonAliasId = source.PersonAliasId;
+            target.WatcherPersonAliasId = source.WatcherPersonAliasId;
             target.WatchReplies = source.WatchReplies;
             target.CreatedDateTime = source.CreatedDateTime;
             target.ModifiedDateTime = source.ModifiedDateTime;

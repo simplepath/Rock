@@ -142,8 +142,8 @@ namespace RockWeb.Blocks.Core
                 }
             }
 
-            noteWatch.PersonAliasId = ppWatcherPerson.PersonAliasId;
-            noteWatch.GroupId = gpWatcherGroup.GroupId;
+            noteWatch.WatcherPersonAliasId = ppWatcherPerson.PersonAliasId;
+            noteWatch.WatcherGroupId = gpWatcherGroup.GroupId;
             noteWatch.IsWatching = cbIsWatching.Checked;
             noteWatch.AllowOverride = cbAllowOverride.Checked;
 
@@ -164,17 +164,6 @@ namespace RockWeb.Blocks.Core
             if ( !noteWatch.IsValid )
             {
                 return;
-            }
-
-            // See if there is a matching filter that doesn't allow overrides
-            if ( noteWatch.IsWatching == false )
-            {
-                NoteWatch.OverrideDeniedReason? overrideDeniedReason;
-                if ( noteWatch.IsAllowedToUnwatch( rockContext, out overrideDeniedReason ) == false )
-                {
-                    nbUnableToOverride.Visible = true;
-                    return;
-                }
             }
 
             // see if the NoteType allows following
@@ -284,6 +273,17 @@ namespace RockWeb.Blocks.Core
             }
         }
 
+        /// <summary>
+        /// Handles the CheckedChanged event of the cbIsWatching control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
+        protected void cbIsWatching_CheckedChanged( object sender, EventArgs e )
+        {
+            nbOverrideInfo.Visible = !cbIsWatching.Checked;
+            cbAllowOverride.Visible = cbIsWatching.Checked;
+        }
+
         #endregion
 
         #region Methods
@@ -371,13 +371,13 @@ namespace RockWeb.Blocks.Core
 
                 if ( contextPerson != null )
                 {
-                    noteWatch.PersonAliasId = contextPerson.PrimaryAliasId;
-                    noteWatch.PersonAlias = contextPerson.PrimaryAlias;
+                    noteWatch.WatcherPersonAliasId = contextPerson.PrimaryAliasId;
+                    noteWatch.WatcherPersonAlias = contextPerson.PrimaryAlias;
                 }
                 else if ( contextGroup != null )
                 {
-                    noteWatch.GroupId = contextGroup.Id;
-                    noteWatch.Group = contextGroup;
+                    noteWatch.WatcherGroupId = contextGroup.Id;
+                    noteWatch.WatcherGroup = contextGroup;
                 }
             }
 
@@ -387,7 +387,7 @@ namespace RockWeb.Blocks.Core
                 gpWatcherGroup.Visible = false;
 
                 // make sure we are seeing details for a NoteWatch that the current person is watching
-                if ( !noteWatch.PersonAliasId.HasValue || !contextPerson.Aliases.Any( a => a.Id == noteWatch.PersonAliasId.Value ) )
+                if ( !noteWatch.WatcherPersonAliasId.HasValue || !contextPerson.Aliases.Any( a => a.Id == noteWatch.WatcherPersonAliasId.Value ) )
                 {
                     // The NoteWatchId in the url isn't a NoteWatch for the PersonContext, so just hide the block
                     pnlView.Visible = false;
@@ -399,7 +399,7 @@ namespace RockWeb.Blocks.Core
                 gpWatcherGroup.Enabled = false;
 
                 // make sure we are seeing details for a NoteWatch that the current group context is watching
-                if ( !noteWatch.GroupId.HasValue || !( contextGroup.Id != noteWatch.GroupId ) )
+                if ( !noteWatch.WatcherGroupId.HasValue || !( contextGroup.Id != noteWatch.WatcherGroupId ) )
                 {
                     // The NoteWatchId in the url isn't a NoteWatch for the GroupContext, so just hide the block
                     pnlView.Visible = false;
@@ -413,18 +413,20 @@ namespace RockWeb.Blocks.Core
 
             ddlNoteType.SetValue( noteWatch.NoteTypeId );
 
-            if ( noteWatch.PersonAlias != null )
+            if ( noteWatch.WatcherPersonAlias != null )
             {
-                ppWatcherPerson.SetValue( noteWatch.PersonAlias.Person );
+                ppWatcherPerson.SetValue( noteWatch.WatcherPersonAlias.Person );
             }
             else
             {
                 ppWatcherPerson.SetValue( ( Person ) null );
             }
 
-            gpWatcherGroup.SetValue( noteWatch.Group );
+            gpWatcherGroup.SetValue( noteWatch.WatcherGroup );
 
             cbIsWatching.Checked = noteWatch.IsWatching;
+            cbIsWatching_CheckedChanged( null, null );
+
             cbAllowOverride.Checked = noteWatch.AllowOverride;
 
             ShowEntityPicker( etpEntityType.SelectedEntityTypeId );
@@ -468,5 +470,7 @@ namespace RockWeb.Blocks.Core
         }
 
         #endregion
+
+        
     }
 }

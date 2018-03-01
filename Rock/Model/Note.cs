@@ -317,6 +317,31 @@ namespace Rock.Model
         }
 
         /// <summary>
+        /// Gets the approval URL.
+        /// </summary>
+        /// <value>
+        /// The approval URL.
+        /// </value>
+        [LavaInclude]
+        public virtual string ApprovalUrl
+        {
+            get
+            {
+                string approvalUrlTemplate = NoteTypeCache.Read( this.NoteTypeId )?.ApprovalUrlTemplate;
+                if ( string.IsNullOrWhiteSpace( approvalUrlTemplate ) )
+                {
+                    approvalUrlTemplate = "{{ 'Global' | Attribute:'InternalApplicationRoot' }}{{ Note.NoteUrl }}#{{ Note.NoteAnchorId }}";
+                }
+
+                var mergeFields = new Dictionary<string, object> { { "Note", this } };
+
+                string approvalUrl = approvalUrlTemplate.ResolveMergeFields( mergeFields );
+
+                return approvalUrl;
+            }
+        }
+
+        /// <summary>
         /// Gets the parent security authority of this Note. Where security is inherited from.
         /// </summary>
         /// <value>
@@ -328,6 +353,18 @@ namespace Rock.Model
             {
                 var noteType = NoteTypeCache.Read( this.NoteTypeId );
                 return noteType ?? base.ParentAuthority;
+            }
+        }
+
+        /// <summary>
+        /// An optional additional parent authority.  (i.e for Notes, the NoteType is main parent
+        /// authority, but parent note is an additional parent authority )
+        /// </summary>
+        public override ISecured ParentAuthorityPre
+        {
+            get
+            {
+                return this.ParentNote ?? base.ParentAuthorityPre;
             }
         }
 
@@ -345,26 +382,30 @@ namespace Rock.Model
         /// <returns></returns>
         public override bool IsAuthorized( string action, Person person )
         {
-            if ( action.Equals( Rock.Security.Authorization.APPROVE, StringComparison.OrdinalIgnoreCase ) )
+            if ( this.IsPrivateNote )
             {
-                // If checking the APPROVE action, let people Approve private notes that they created, otherwise just use the normal IsAuthorized
-                if ( this.IsPrivateNote && this.CreatedByPersonId == person.PrimaryAliasId )
+                // If this is a private note, the creator has FULL access to it. Everybody else has NO access (including admins)
+                if ( this.CreatedByPersonAlias?.PersonId == person?.Id )
                 {
-                    // private note that only the note creator can see, so the creator can self approve
                     return true;
                 }
                 else
                 {
-                    
-                    return base.IsAuthorized( action, person );
+                    return false;
                 }
+            }
+
+            if ( action.Equals( Rock.Security.Authorization.APPROVE, StringComparison.OrdinalIgnoreCase ) )
+            {
+                // If checking the APPROVE action, let people Approve private notes that they created (see above), otherwise just use the normal IsAuthorized
+                return base.IsAuthorized( action, person );
             }
             else if ( action.Equals( Rock.Security.Authorization.VIEW, StringComparison.OrdinalIgnoreCase ) )
             {
                 // View has special rules depending on the approval status and APPROVE verb
-                
+
                 // first check if have normal VIEW access on the base
-                if ( !base.IsAuthorized( Authorization.VIEW, person )  )
+                if ( !base.IsAuthorized( Authorization.VIEW, person ) )
                 {
                     return false;
                 }
@@ -395,16 +436,9 @@ namespace Rock.Model
             else
             {
                 // If this note was created by the logged person, they should be be able to do any action (except for APPROVE)
-                if ( CreatedByPersonAlias != null && person != null &&
-                    CreatedByPersonAlias.PersonId == person.Id )
+                if ( CreatedByPersonAlias?.PersonId == person?.Id )
                 {
                     return true;
-                }
-
-                if ( IsPrivateNote )
-                {
-                    // if this is a private note, only the person that wrote the note can see it. So, if this note isn't owned by the current person, return false
-                    return false;
                 }
 
                 return base.IsAuthorized( action, person );
@@ -457,7 +491,7 @@ namespace Rock.Model
                         var noteWatch = new NoteWatch
                         {
                             IsWatching = true,
-                            PersonAliasId = this.CreatedByPersonAliasId.Value,
+                            WatcherPersonAliasId = this.CreatedByPersonAliasId.Value,
                             Note = this
                         };
 
