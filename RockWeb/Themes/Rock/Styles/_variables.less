@@ -17,7 +17,7 @@
 @text-selection-background: #5eb9c1; // Text selection background color (used when people select text with the mouse). #color
 @text-selection-color: #fff; // Text selection text color (used when people select text with the mouse). #color
 @font-family-sans-serif: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"; // The base font to use for text. Be sure when defining this font that the various weights are configured.
-@font-size-base: 14px; // The default text size.
+@font-size-base: 16px; // The default text size.
 @line-height-base: 1.428571429; // The default line height.
 //--
 @help-color: #86b8cc; // The color of the help icon used in Rock. #color
@@ -56,6 +56,7 @@
 @navbartop-color: #fff;
 
 @panel-bg: #fff; // The background color of the panel body.
+@panel-heading-bg: #f7f7f7; // The background color of the panel's header.
 
 @body-bg: @body-background;
 
@@ -189,7 +190,7 @@
 @input-group-addon-border-color: @input-border;             // Used for pre (dollar signs, etc.) and post ( percent signs) input addons as well as picker borders (highly recommended that you use the same color as the input border).
 
 //// Picker
-@picker-action-bg: #e3ded7;     // The background color of the actions bar at the bottom of the picker dropdown.
+@picker-action-bg: @panel-heading-bg;     // The background color of the actions bar at the bottom of the picker dropdown.
 
 
 //// Date Picker
@@ -207,7 +208,7 @@
 @panel-top-border-color:      darken(@panel-border, 10%);    // Color of the panel's top border often used as an accent color.
 @panel-border-radius:         @border-radius-base;
 //--
-@panel-heading-bg:            #fff;                  // The background color of the panel's header.
+
 @panel-heading-text-color:    #6a6a6a;             // The heading's text color.
 @panel-heading-border:        @panel-heading-bg;             // The headings border color.
 //--

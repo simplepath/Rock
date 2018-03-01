@@ -45,9 +45,6 @@ main {
   display: block;
 }
 
-body {
-}
-
 h1, h2, h3, h4 {
   font-weight: @font-weight-light;
 }
@@ -124,9 +121,7 @@ textarea:focus,
 .panel-block {
 
   > .panel-heading {
-    background-color: #fff;
-    font-size: 18px;
-    //margin: 0 20px;
+    font-size: 1.125em;
     padding: 15px;
     border-bottom: 1px solid @panel-border;
   }
@@ -156,6 +151,18 @@ textarea:focus,
   .checkbox input[type=checkbox] + span.label-text:before,
   .radio input[type=radio] + span.label-text:before {
     margin: 0;
+  }
+}
+
+.grid-actions {
+  .btn {
+    background-color: transparent;
+    border: 0;
+    font-size: 1.125em;
+
+    &:hover {
+      background-color: @btn-default-bg;
+    }
   }
 }
 
@@ -207,7 +214,7 @@ textarea:focus,
 
   .navbar-toggle {
     float: left;
-    font-size: 24px;
+    font-size: 1.500em;
     color: #fff;
     margin-top: 12px;
     margin-left: 27px;
@@ -220,13 +227,25 @@ textarea:focus,
     color: #fff;
     height: @navbar-top-height;
     width: @navbarside-width;
-    background-image: url(../../../Assets/Images/rock-logo-circle-white.svg);
-    background-repeat: no-repeat;
-    background-position: center center;
+    position: relative;
     border-bottom: 1px solid lighten(@navbarside-background-color, 10%);
     padding: 6px;
     background-size: 45px;
     float: left;
+
+    &:after {
+      content: "";
+      background-image: url(../../../Assets/Images/rock-logo-circle-white.svg);
+      background-size: 45px;
+      background-position: center center;
+      background-repeat: no-repeat;
+      opacity: 0.7;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      right: 0;
+      position: absolute;
+    }
 
     &:hover {
       background-color: @navbarside-background-color;
@@ -260,7 +279,7 @@ textarea:focus,
     }
 
     a {
-      font-size: 14px;
+      font-size: 1em;
       color: @navbartop-color;
       line-height: 14px;
       padding: 0 16px;
@@ -413,7 +432,7 @@ textarea:focus,
     color: @navbarside-color;
     background-color: @brand-light-color;
     width: 100%;
-    font-size: 14px;
+    font-size: 1em;
     text-align: center;
     padding: 12px 0;
     display: none;
@@ -454,7 +473,7 @@ textarea:focus,
 
   .navbar-toggle-side-left {
     height: @navbar-top-height;
-    font-size: 24px;
+    font-size: 1.500em;
     display: block;
     padding-top: 22px;
     padding-left: 38px;
@@ -499,7 +518,7 @@ textarea:focus,
       > i {
         display: block;
         padding: 24px 0;
-        font-size: 32px;
+        font-size: 2em;
 
         &:hover {
           color: @navbarside-color;
@@ -519,7 +538,6 @@ textarea:focus,
         display: none;
         width: 280px;
         padding: 9px 20px;
-        font-size: 14px;
         text-align: left;
         background-color: @navbarside-sub-bg;
         height: 100%;
@@ -546,7 +564,7 @@ textarea:focus,
 
         li.title {
           margin-bottom: 24px;
-          font-size: 24px;
+          font-size: 1.5em;
           font-weight: @font-weight-light;
           color: @navbarside-color;
         }
@@ -629,7 +647,7 @@ body.navbar-side-close {
     padding: 20px 35px;
 
     .title {
-      font-size: 28px;
+      font-size: 1.750em;
       margin: 0;
     }
 
@@ -642,7 +660,7 @@ body.navbar-side-close {
       padding: 8px 0;
       background-color: transparent;
       margin: 0;
-      font-size: 12px;
+      font-size: 0.875em;
 
       i {
         display: none;
