@@ -206,28 +206,39 @@ namespace Rock.Model
         }
 
         /// <summary>
-        /// Determines whether if this NoteWatch *might* have other watches that don't allow overrides
-        /// returns NULL if notewatch filter is invalid and AllowedToUnwatch can't be determined
+        ///  Determines whether if this note watch is able to set IsWatching to False without another notewatch completely preventing it
         /// </summary>
         /// <param name="rockContext">The rock context.</param>
-        /// <param name="deniedReasonMessage">if not allowed to unwatch, the reason the unwatch was denied</param>
+        /// <returns>
+        ///   <c>true</c> if [is able to un watch] [the specified rock context]; otherwise, <c>false</c>.
+        /// </returns>
+        public bool IsAbleToUnWatch( RockContext rockContext )
+        {
+            return !GetNonOverridableNoteWatches( rockContext ).Any();
+        }
+
+        /// <summary>
+        /// Returns all Non-Overridable NoteWatches that would prevent this NoteWatch from enabling IsWatching=False
+        /// Returns a Queryable of zero or more NoteWatches
+        /// </summary>
+        /// <param name="rockContext">The rock context.</param>
         /// <returns>
         ///   <c>true</c> if [is allowed to unwatch]; otherwise, <c>false</c>.
         /// </returns>
-        public bool MightNotAllowOverrides( RockContext rockContext )
+        public IQueryable<NoteWatch> GetNonOverridableNoteWatches( RockContext rockContext )
         {
             var noteWatchService = new NoteWatchService( rockContext );
 
-            // we are only concerned about watches that don't allow overrides
-            var noteWatchesWithNoOverrideQuery = noteWatchService.Queryable().Where( a => a.AllowOverride == false );
-
-            var watcherPerson = this.WatcherPersonAlias?.Person ?? new PersonAliasService( rockContext ).Get( this.WatcherPersonAliasId.Value ).Person;
+            // we are only concerned about other IsWatching watches that don't allow overrides
+            var noteWatchesWithOverrideNotAllowedQuery = noteWatchService.Queryable().Where( a => a.AllowOverride == false && a.IsWatching && a.Id != this.Id );
 
             // limit to notewatches for the same watcher person (or where the watcher person is part of the watcher group)
             if ( this.WatcherPersonAliasId.HasValue )
             {
+                var watcherPerson = this.WatcherPersonAlias?.Person ?? new PersonAliasService( rockContext ).Get( this.WatcherPersonAliasId.Value ).Person;
+
                 // limit to watch that are watched by the same person, or watched by a group that a person is an active member of
-                noteWatchesWithNoOverrideQuery = noteWatchesWithNoOverrideQuery
+                noteWatchesWithOverrideNotAllowedQuery = noteWatchesWithOverrideNotAllowedQuery
                     .Where( a =>
                         a.WatcherPersonAliasId.HasValue && a.WatcherPersonAlias.PersonId == this.WatcherPersonAlias.PersonId
                         ||
@@ -237,12 +248,12 @@ namespace Rock.Model
             else if ( this.WatcherGroupId.HasValue )
             {
                 // if the watcher is a Group, make sure it isn't trying to override another watch where the watcher is the same group
-                noteWatchesWithNoOverrideQuery = noteWatchesWithNoOverrideQuery.Where( a => a.WatcherGroupId.HasValue && a.WatcherGroupId.Value == this.WatcherGroupId.Value );
+                noteWatchesWithOverrideNotAllowedQuery = noteWatchesWithOverrideNotAllowedQuery.Where( a => a.WatcherGroupId.HasValue && a.WatcherGroupId.Value == this.WatcherGroupId.Value );
             }
             else
             {
-                // invalid NoteWatch
-                return false;
+                // invalid NoteWatch so just return a false query (no records)
+                return noteWatchesWithOverrideNotAllowedQuery.Where( a => false );
             }
 
             NoteTypeCache noteType = null;
@@ -253,12 +264,70 @@ namespace Rock.Model
 
             var noteWatchEntityTypeId = this.EntityTypeId ?? noteType?.EntityTypeId;
 
-            // Find NoteWatches that could override this note watch ( at a minimum, the EntityType must be the same )
-            noteWatchesWithNoOverrideQuery = noteWatchesWithNoOverrideQuery.Where( a =>
+            //// Find NoteWatches that could override this note watch
+            //// We are mostly looking for NoteWatches that are the same or less specific than this watch
+
+            // at a minimum, the EntityType must be the same
+            noteWatchesWithOverrideNotAllowedQuery = noteWatchesWithOverrideNotAllowedQuery.Where( a =>
                 ( a.EntityTypeId.HasValue && a.EntityTypeId.Value == noteWatchEntityTypeId )
                 || ( a.NoteTypeId.HasValue && a.NoteType.EntityTypeId == noteWatchEntityTypeId ) );
 
-            return noteWatchesWithNoOverrideQuery.Any();
+            // look for non-overridable notewatches that not specific to a NoteType, NoteId, or Entity,etc
+            var globalEntityTypeNoteWatchesWithNoOverridesQuery = noteWatchesWithOverrideNotAllowedQuery.Where( a =>
+                 a.NoteTypeId == null
+                 && a.NoteId == null
+                 && a.EntityId == null );
+
+            if ( globalEntityTypeNoteWatchesWithNoOverridesQuery.Any() )
+            {
+                // found at least one non-overridable notewatch that covers all notes for the note watch, so it any attempt to unwatch wouldn't block due to the override
+                return globalEntityTypeNoteWatchesWithNoOverridesQuery;
+            }
+
+            // if this notewatch is more specific, look for ones that are the same or less specific
+            if ( this.NoteTypeId.HasValue )
+            {
+                var noteTypeNoteWatchesWithNoOverridesQuery = noteWatchesWithOverrideNotAllowedQuery.Where( a =>
+                     ( a.NoteTypeId.HasValue && a.NoteTypeId.Value == this.NoteTypeId.Value )
+                     && a.NoteId == null
+                     && a.EntityId == null );
+
+                if ( noteTypeNoteWatchesWithNoOverridesQuery.Any() )
+                {
+                    // found at least one non-overridable notewatch that covers all notes for the note watch and NoteType, so it any attempt to unwatch wouldn't block due to the override
+                    return noteTypeNoteWatchesWithNoOverridesQuery;
+                }
+            }
+
+            if ( this.NoteId.HasValue )
+            {
+                var noteNoteWatchesWithNoOverridesQuery = noteWatchesWithOverrideNotAllowedQuery.Where( a =>
+                     ( a.NoteId.HasValue && a.NoteId.Value == this.NoteId.Value )
+                     && a.EntityId == null );
+
+                if ( noteNoteWatchesWithNoOverridesQuery.Any() )
+                {
+                    // found at least one non-overridable notewatch that covers this exact note for the note watch, so it any attempt to unwatch wouldn't block due to the override
+                    return noteNoteWatchesWithNoOverridesQuery;
+                }
+            }
+
+            if ( this.EntityId.HasValue )
+            {
+                var entityNoteWatchesWithNoOverridesQuery = noteWatchesWithOverrideNotAllowedQuery.Where( a =>
+                     a.NoteTypeId == null
+                    && a.NoteId == null
+                    && ( a.EntityId.HasValue && ( a.EntityId == this.EntityId.Value ) ) );
+
+                if ( entityNoteWatchesWithNoOverridesQuery.Any() )
+                {
+                    // found at least one non-overridable notewatch that covers this exact same entity for the note watch, so it any attempt to unwatch wouldn't block due to the override
+                    return entityNoteWatchesWithNoOverridesQuery;
+                }
+            }
+
+            // no non-overridable conditions found, so return a false query (no records)
+            return noteWatchesWithOverrideNotAllowedQuery.Where( a => false );
         }
 
         /// <summary>

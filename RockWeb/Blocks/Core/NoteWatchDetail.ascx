@@ -17,6 +17,7 @@
                 <h4>Watched by</h4>
 
                 <Rock:NotificationBox ID="nbWatcherMustBeSelectWarning" runat="server" NotificationBoxType="Danger" Text="A Person or Group must be specified as the watcher" Dismissable="true" Visible="false" />
+                <Rock:NotificationBox ID="nbUnableToOverride" runat="server" NotificationBoxType="Danger" Text="Unable to set Watching to false. This would override another note watch that doesn't allow overrides." Dismissable="true" Visible="false" />
 
                 <div class="row">
                     <div class="col-md-6">
@@ -25,7 +26,6 @@
                     </div>
                     <div class="col-md-6">
                         <Rock:RockCheckBox ID="cbIsWatching" runat="server" Label="Watching" AutoPostBack="true" OnCheckedChanged="cbIsWatching_CheckedChanged" Help="Set this to false to block notifications." />
-                        <Rock:NotificationBox ID="nbOverrideInfo" runat="server" NotificationBoxType="Info" Text="Heads Up. You may still receive notifications from another note watch if it is configured to send you the same notification, and does not allow overrides." Dismissable="true" Visible="false" />
                         <Rock:RockCheckBox ID="cbAllowOverride" runat="server" Label="Allow Override" Help="Set this to false to prevent other note watches from blocking this note watch." />
                     </div>
                 </div>

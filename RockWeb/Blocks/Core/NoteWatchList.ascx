@@ -22,6 +22,7 @@
 
                             <Rock:RockBoundField DataField="NoteType.Name" HeaderText="Watching Note Type" SortExpression="NoteType.Name" />
                             <Rock:RockLiteralField ID="lWatchingEntityType" HeaderText="Watching Entity Type" SortExpression="EntityType.Name" />
+                            <Rock:BoolField DataField="AllowOverride" HeaderText="Allow Overrides" SortExpression="AllowOverride" />
                             
                             <Rock:DeleteField OnClick="gList_Delete" />
                         </Columns>

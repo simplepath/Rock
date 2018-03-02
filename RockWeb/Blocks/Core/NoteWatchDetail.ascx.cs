@@ -166,6 +166,38 @@ namespace RockWeb.Blocks.Core
                 return;
             }
 
+            // See if there is a matching filter that doesn't allow overrides
+            if ( noteWatch.IsWatching == false )
+            {
+                if ( !noteWatch.IsAbleToUnWatch( rockContext ) )
+                {
+                    var nonOverridableNoteWatch = noteWatch.GetNonOverridableNoteWatches( rockContext ).FirstOrDefault();
+                    if ( nonOverridableNoteWatch != null )
+                    {
+                        string otherNoteWatchLink;
+                        if ( nonOverridableNoteWatch.IsAuthorized( Rock.Security.Authorization.VIEW, this.CurrentPerson ) )
+                        {
+                            var otherNoteWatchWatchPageReference = new Rock.Web.PageReference( this.CurrentPageReference );
+                            otherNoteWatchWatchPageReference.QueryString = new System.Collections.Specialized.NameValueCollection( otherNoteWatchWatchPageReference.QueryString );
+                            otherNoteWatchWatchPageReference.QueryString["NoteWatchId"] = nonOverridableNoteWatch.Id.ToString();
+                            otherNoteWatchLink = string.Format( "<a href='{0}'>note watch</a>", otherNoteWatchWatchPageReference.BuildUrl() );
+                        }
+                        else
+                        {
+                            otherNoteWatchLink = "note watch";
+                        }
+
+                        nbUnableToOverride.Text = string.Format( 
+                            "Unable to set Watching to false. This would override another {0} that doesn't allow overrides.",
+                            otherNoteWatchLink );
+
+                        nbUnableToOverride.Visible = true;
+                        return;
+                    }
+                    
+                }
+            }
+
             // see if the NoteType allows following
             if ( noteWatch.NoteTypeId.HasValue )
             {
@@ -280,7 +312,6 @@ namespace RockWeb.Blocks.Core
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void cbIsWatching_CheckedChanged( object sender, EventArgs e )
         {
-            nbOverrideInfo.Visible = !cbIsWatching.Checked;
             cbAllowOverride.Visible = cbIsWatching.Checked;
         }
 
