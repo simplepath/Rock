@@ -1,10 +1,25 @@
-﻿using System;
+﻿// <copyright>
+// Copyright by the Spark Development Network
+//
+// Licensed under the Rock Community License (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.rockrms.com/license
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+// </copyright>
+//
+using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Quartz;
+
 using Rock.Attribute;
 using Rock.Communication;
 using Rock.Data;
@@ -38,8 +53,7 @@ namespace Rock.Jobs
         /// <summary>
         /// 
         /// </summary>
-        /// <seealso cref="System.Collections.Generic.List{Rock.Jobs.SendNoteNotifications.NoteWatchPersonToNotify}" />
-        private class NoteWatchPersonToNotifyList : List<SendNoteNotifications.NoteWatchPersonToNotify>
+        private class NoteWatchPersonToNotifyList : List<NoteWatchPersonToNotify>
         {
             /// <summary>
             /// Initializes a new instance of the <see cref="NoteWatchPersonToNotifyList"/> class.
@@ -65,9 +79,9 @@ namespace Rock.Jobs
         private class NoteWatchPersonToNotify
         {
             /// <summary>
-            /// Initializes a new instance of the <see cref="NoteWatchPersonToNotify"/> class.
+            /// Initializes a new instance of the <see cref="NoteWatchPersonToNotify" /> class.
             /// </summary>
-            /// <param name="personId">The person identifier.</param>
+            /// <param name="person">The person.</param>
             /// <param name="note">The note.</param>
             /// <param name="noteWatch">The note watch.</param>
             public NoteWatchPersonToNotify( Person person, Note note, NoteWatch noteWatch )
@@ -357,7 +371,7 @@ namespace Rock.Jobs
         /// <summary>
         /// Updates the note watch notification digest.
         /// </summary>
-        /// <param name="personNotificationDigestList">The person notification digest list.</param>
+        /// <param name="personIdNotificationDigestList">The person identifier notification digest list.</param>
         /// <param name="rockContext">The rock context.</param>
         /// <param name="noteId">The note identifier.</param>
         private void UpdateNoteWatchNotificationDigest( Dictionary<int, NoteWatchPersonToNotifyList> personIdNotificationDigestList, RockContext rockContext, int noteId )

@@ -95,6 +95,9 @@ namespace Rock.Model
         {
             target.Id = source.Id;
             target.ApprovalsSent = source.ApprovalsSent;
+            target.ApprovalStatus = source.ApprovalStatus;
+            target.ApprovedByPersonAliasId = source.ApprovedByPersonAliasId;
+            target.ApprovedDateTime = source.ApprovedDateTime;
             target.Caption = source.Caption;
             target.EditedByPersonAliasId = source.EditedByPersonAliasId;
             target.EditedDateTime = source.EditedDateTime;

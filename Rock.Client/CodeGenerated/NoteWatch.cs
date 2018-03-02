@@ -50,9 +50,6 @@ namespace Rock.Client
         public string ForeignKey { get; set; }
 
         /// <summary />
-        public int? GroupId { get; set; }
-
-        /// <summary />
         public bool IsWatching { get; set; }
 
         /// <summary>
@@ -67,7 +64,10 @@ namespace Rock.Client
         public int? NoteTypeId { get; set; }
 
         /// <summary />
-        public int? PersonAliasId { get; set; }
+        public int? WatcherGroupId { get; set; }
+
+        /// <summary />
+        public int? WatcherPersonAliasId { get; set; }
 
         /// <summary />
         public bool WatchReplies { get; set; }
@@ -110,12 +110,12 @@ namespace Rock.Client
             this.EntityTypeId = source.EntityTypeId;
             this.ForeignGuid = source.ForeignGuid;
             this.ForeignKey = source.ForeignKey;
-            this.GroupId = source.GroupId;
             this.IsWatching = source.IsWatching;
             this.ModifiedAuditValuesAlreadyUpdated = source.ModifiedAuditValuesAlreadyUpdated;
             this.NoteId = source.NoteId;
             this.NoteTypeId = source.NoteTypeId;
-            this.PersonAliasId = source.PersonAliasId;
+            this.WatcherGroupId = source.WatcherGroupId;
+            this.WatcherPersonAliasId = source.WatcherPersonAliasId;
             this.WatchReplies = source.WatchReplies;
             this.CreatedDateTime = source.CreatedDateTime;
             this.ModifiedDateTime = source.ModifiedDateTime;
@@ -136,16 +136,16 @@ namespace Rock.Client
         public EntityType EntityType { get; set; }
 
         /// <summary />
-        public Group Group { get; set; }
-
-        /// <summary />
         public Note Note { get; set; }
 
         /// <summary />
         public NoteType NoteType { get; set; }
 
         /// <summary />
-        public PersonAlias PersonAlias { get; set; }
+        public Group WatcherGroup { get; set; }
+
+        /// <summary />
+        public PersonAlias WatcherPersonAlias { get; set; }
 
         /// <summary>
         /// NOTE: Attributes are only populated when ?loadAttributes is specified. Options for loadAttributes are true, false, 'simple', 'expanded' 

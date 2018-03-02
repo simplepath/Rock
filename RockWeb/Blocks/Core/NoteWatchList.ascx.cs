@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data.Entity;
 using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
@@ -24,7 +25,6 @@ using System.Web.UI.WebControls;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
-using System.Data.Entity;
 using Rock.Model;
 using Rock.Security;
 using Rock.Web.Cache;
@@ -59,7 +59,6 @@ namespace RockWeb.Blocks.Core
         protected override void OnInit( EventArgs e )
         {
             base.OnInit( e );
-
 
             gList.DataKeyNames = new string[] { "Id" };
             gList.Actions.AddClick += gList_Add;
@@ -247,7 +246,9 @@ namespace RockWeb.Blocks.Core
             {
                 // if an EntityType was specifiec in block settings, only list note watches for the specified entity type (or for NoteTypes of the specified EntityType)
                 int entityTypeId = EntityTypeCache.Read( blockEntityTypeGuid.Value ).Id;
-                qry = qry.Where( a => ( a.EntityTypeId.HasValue && a.EntityTypeId.Value == entityTypeId || ( a.NoteTypeId.HasValue && a.NoteType.EntityTypeId == entityTypeId ) ) );
+                qry = qry.Where( a =>
+                    ( a.EntityTypeId.HasValue && a.EntityTypeId.Value == entityTypeId )
+                    || ( a.NoteTypeId.HasValue && a.NoteType.EntityTypeId == entityTypeId ) );
             }
 
             var contextPerson = ContextEntity<Person>();
@@ -280,7 +281,5 @@ namespace RockWeb.Blocks.Core
         }
 
         #endregion
-
-
     }
 }

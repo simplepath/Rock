@@ -96,6 +96,7 @@ namespace Rock.Model
             target.Id = source.Id;
             target.AllowsReplies = source.AllowsReplies;
             target.AllowsWatching = source.AllowsWatching;
+            target.ApprovalUrlTemplate = source.ApprovalUrlTemplate;
             target.AutoWatchAuthors = source.AutoWatchAuthors;
             target.BackgroundColor = source.BackgroundColor;
             target.BorderColor = source.BorderColor;

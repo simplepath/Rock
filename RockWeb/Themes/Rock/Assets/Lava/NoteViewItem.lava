@@ -35,7 +35,6 @@ any CSS Classes that are prefixed with 'js-' are hooks that are required for edi
 
 {% assign noteText = note.Text | Escape | Linkify | FromMarkdown %}
 
-
 {% comment %}If this note requires approval and is not yet approved, we might see it if the current person created the note or is an approver, so render its approval status and approval actions{% endcomment %}
 {% assign approvalStatusHtml = '' %}
 {% assign approvalActionsHtml = '' %}
@@ -62,7 +61,6 @@ any CSS Classes that are prefixed with 'js-' are hooks that are required for edi
     {% endcapture %}
 
 {% endif %}
-
 
 <div class="note-view-item js-noteviewitem" data-note-id="{{ note.Id }}" id="{{ note.NoteAnchorId }}">
 	
@@ -101,8 +99,6 @@ any CSS Classes that are prefixed with 'js-' are hooks that are required for edi
                     {% endif %}
                 </div>
             </div>
-
-
 
             <div class="actions rollover-item">
                 

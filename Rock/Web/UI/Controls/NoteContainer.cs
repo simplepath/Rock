@@ -33,7 +33,7 @@ using Rock.Web.Cache;
 namespace Rock.Web.UI.Controls
 {
     /// <summary>
-    /// Note Editor control
+    /// Note Container control
     /// </summary>
     [ToolboxData( "<{0}:NoteContainer runat=server></{0}:NoteContainer>" )]
     public class NoteContainer : CompositeControl, INamingContainer
@@ -259,7 +259,7 @@ namespace Rock.Web.UI.Controls
             }
             else
             {
-                Debug.Assert( this.NoteOptions != null, "this.NoteOptions is null!" );
+                Debug.Assert( this.NoteOptions != null, "this.NoteOptions is null" );
             }
 
             if ( this.Page.IsPostBack )

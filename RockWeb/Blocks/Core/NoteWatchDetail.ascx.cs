@@ -17,19 +17,17 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.IO;
 using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 
 using Rock;
+using Rock.Attribute;
+using Rock.Constants;
 using Rock.Data;
 using Rock.Model;
 using Rock.Web.Cache;
-using Rock.Web.UI.Controls;
-using Rock.Attribute;
 using Rock.Web.UI;
-using Rock.Constants;
 
 namespace RockWeb.Blocks.Core
 {
@@ -187,14 +185,13 @@ namespace RockWeb.Blocks.Core
                             otherNoteWatchLink = "note watch";
                         }
 
-                        nbUnableToOverride.Text = string.Format( 
+                        nbUnableToOverride.Text = string.Format(
                             "Unable to set Watching to false. This would override another {0} that doesn't allow overrides.",
                             otherNoteWatchLink );
 
                         nbUnableToOverride.Visible = true;
                         return;
                     }
-                    
                 }
             }
 
@@ -384,7 +381,6 @@ namespace RockWeb.Blocks.Core
             NoteWatch noteWatch = null;
             if ( noteWatchId > 0 )
             {
-
                 noteWatch = new NoteWatchService( rockContext ).Get( noteWatchId );
                 lActionTitle.Text = ActionTitle.Edit( NoteWatch.FriendlyTypeName ).FormatAsHtmlTitle();
                 pdAuditDetails.SetEntity( noteWatch, ResolveRockUrl( "~" ) );
@@ -501,7 +497,5 @@ namespace RockWeb.Blocks.Core
         }
 
         #endregion
-
-        
     }
 }

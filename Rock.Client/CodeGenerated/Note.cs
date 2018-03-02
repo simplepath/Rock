@@ -38,6 +38,15 @@ namespace Rock.Client
         public bool ApprovalsSent { get; set; }
 
         /// <summary />
+        public Rock.Client.Enums.NoteApprovalStatus ApprovalStatus { get; set; }
+
+        /// <summary />
+        public int? ApprovedByPersonAliasId { get; set; }
+
+        /// <summary />
+        public DateTime? ApprovedDateTime { get; set; }
+
+        /// <summary />
         public string Caption { get; set; }
 
         /// <summary />
@@ -57,9 +66,6 @@ namespace Rock.Client
 
         /// <summary />
         public bool? IsAlert { get; set; }
-
-        /// <summary />
-        public bool IsApproved { get; set; }
 
         /// <summary />
         public bool IsPrivateNote { get; set; }
@@ -121,6 +127,9 @@ namespace Rock.Client
         {
             this.Id = source.Id;
             this.ApprovalsSent = source.ApprovalsSent;
+            this.ApprovalStatus = source.ApprovalStatus;
+            this.ApprovedByPersonAliasId = source.ApprovedByPersonAliasId;
+            this.ApprovedDateTime = source.ApprovedDateTime;
             this.Caption = source.Caption;
             this.EditedByPersonAliasId = source.EditedByPersonAliasId;
             this.EditedDateTime = source.EditedDateTime;
@@ -128,7 +137,6 @@ namespace Rock.Client
             this.ForeignGuid = source.ForeignGuid;
             this.ForeignKey = source.ForeignKey;
             this.IsAlert = source.IsAlert;
-            this.IsApproved = source.IsApproved;
             this.IsPrivateNote = source.IsPrivateNote;
             this.IsSystem = source.IsSystem;
             this.ModifiedAuditValuesAlreadyUpdated = source.ModifiedAuditValuesAlreadyUpdated;

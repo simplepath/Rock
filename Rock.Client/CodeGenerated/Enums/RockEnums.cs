@@ -405,20 +405,21 @@ namespace Rock.Client.Enums
 
     /// <summary>
     /// </summary>
+    public enum NoteApprovalStatus
+    {
+        PendingApproval = 0x0,
+        Approved = 0x1,
+        Denied = 0x2,
+    }
+
+    /// <summary>
+    /// </summary>
     public enum NotificationClassification
     {
         Success = 0x0,
         Info = 0x1,
         Warning = 0x2,
         Danger = 0x3,
-    }
-
-    /// <summary>
-    /// </summary>
-    public enum OverrideDeniedReason
-    {
-        OverridesPersonNoteWatch = 0x0,
-        OverridesGroupNoteWatch = 0x1,
     }
 
     /// <summary>

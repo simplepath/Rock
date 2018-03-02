@@ -15,10 +15,9 @@
 // </copyright>
 //
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Web.UI;
+
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -32,24 +31,24 @@ namespace RockWeb.Blocks.Core
     /// <summary>
     /// Context aware block for adding notes to an entity.
     /// </summary>
-    [DisplayName("Notes")]
-    [Category("Core")]
-    [Description("Context aware block for adding notes to an entity.")]
+    [DisplayName( "Notes" )]
+    [Category( "Core" )]
+    [Description( "Context aware block for adding notes to an entity." )]
 
     [ContextAware]
-    [TextField("Heading", "The text to display as the heading.  If left blank, the Note Type name will be used.", false, "", "", 1)]
-    [TextField("Heading Icon CSS Class", "The css class name to use for the heading icon. ", false, "fa fa-sticky-note-o", "", 2, "HeadingIcon")]
-    [TextField("Note Term", "The term to use for note (i.e. 'Note', 'Comment').", false, "Note", "", 3)]
-    [CustomDropdownListField("Display Type", "The format to use for displaying notes.", "Full,Light", true, "Full", "", 4)]
-    [BooleanField("Use Person Icon", "", false, "", 5)]
-    [BooleanField("Show Alert Checkbox", "", true, "", 6)]
-    [BooleanField("Show Private Checkbox", "", true, "", 7)]
-    [BooleanField("Show Security Button", "", true, "", 8)]
-    [BooleanField("Allow Anonymous", "", false, "", 9)]
-    [BooleanField("Add Always Visible", "Should the add entry screen always be visible (vs. having to click Add button to display the entry screen).", false, "", 10)]
-    [CustomDropdownListField("Display Order", "Descending will render with entry field at top and most recent note at top.  Ascending will render with entry field at bottom and most recent note at the end.  Ascending will also disable the more option", "Ascending,Descending", true, "Descending", "", 11)]
-    [BooleanField("Allow Backdated Notes", "", false, "", 12)]
-    [NoteTypeField("Note Types", "Optional list of note types to limit display to", true, "", "", "", false, "", "", 12)]
+    [TextField( "Heading", "The text to display as the heading.  If left blank, the Note Type name will be used.", false, "", "", 1 )]
+    [TextField( "Heading Icon CSS Class", "The css class name to use for the heading icon. ", false, "fa fa-sticky-note-o", "", 2, "HeadingIcon" )]
+    [TextField( "Note Term", "The term to use for note (i.e. 'Note', 'Comment').", false, "Note", "", 3 )]
+    [CustomDropdownListField( "Display Type", "The format to use for displaying notes.", "Full,Light", true, "Full", "", 4 )]
+    [BooleanField( "Use Person Icon", "", false, "", 5 )]
+    [BooleanField( "Show Alert Checkbox", "", true, "", 6 )]
+    [BooleanField( "Show Private Checkbox", "", true, "", 7 )]
+    [BooleanField( "Show Security Button", "", true, "", 8 )]
+    [BooleanField( "Allow Anonymous", "", false, "", 9 )]
+    [BooleanField( "Add Always Visible", "Should the add entry screen always be visible (vs. having to click Add button to display the entry screen).", false, "", 10 )]
+    [CustomDropdownListField( "Display Order", "Descending will render with entry field at top and most recent note at top.  Ascending will render with entry field at bottom and most recent note at the end.  Ascending will also disable the more option", "Ascending,Descending", true, "Descending", "", 11 )]
+    [BooleanField( "Allow Backdated Notes", "", false, "", 12 )]
+    [NoteTypeField( "Note Types", "Optional list of note types to limit display to", true, "", "", "", false, "", "", 12 )]
     [BooleanField( "Display Note Type Heading", "Should each note's Note Type be displayed as a heading above each note?", false, "", 13 )]
     [CodeEditorField( "Note View Lava Template", "The Lava Template to use when rendering the readonly view of all the notes.", CodeEditorMode.Lava, CodeEditorTheme.Rock, 100, false, @"{% include '~~/Assets/Lava/NoteViewList.lava' %}", order: 14 )]
     public partial class Notes : RockBlock, ISecondaryBlock
@@ -60,7 +59,7 @@ namespace RockWeb.Blocks.Core
         /// Raises the <see cref="E:System.Web.UI.Control.Init" /> event.
         /// </summary>
         /// <param name="e">An <see cref="T:System.EventArgs" /> object that contains the event data.</param>
-        protected override void OnInit(EventArgs e)
+        protected override void OnInit( EventArgs e )
         {
             base.OnInit( e );
 
@@ -148,7 +147,7 @@ namespace RockWeb.Blocks.Core
         /// Hook so that other blocks can set the visibility of all ISecondaryBlocks on its page
         /// </summary>
         /// <param name="visible">if set to <c>true</c> [visible].</param>
-        public void SetVisible(bool visible)
+        public void SetVisible( bool visible )
         {
             notesTimeline.Visible = visible;
         }

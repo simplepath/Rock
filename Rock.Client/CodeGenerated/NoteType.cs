@@ -41,6 +41,9 @@ namespace Rock.Client
         public bool AllowsWatching { get; set; }
 
         /// <summary />
+        public string ApprovalUrlTemplate { get; set; }
+
+        /// <summary />
         public bool AutoWatchAuthors { get; set; }
 
         /// <summary />
@@ -134,6 +137,7 @@ namespace Rock.Client
             this.Id = source.Id;
             this.AllowsReplies = source.AllowsReplies;
             this.AllowsWatching = source.AllowsWatching;
+            this.ApprovalUrlTemplate = source.ApprovalUrlTemplate;
             this.AutoWatchAuthors = source.AutoWatchAuthors;
             this.BackgroundColor = source.BackgroundColor;
             this.BorderColor = source.BorderColor;
