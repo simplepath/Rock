@@ -287,17 +287,17 @@ namespace RockWeb.Blocks.Core
             // enable the EntityType picker if a specific entity is no longer selected
             int? entityId = nbWatchedEntityId.Text.AsIntegerOrNull();
             etpEntityType.Enabled = entityId == null;
-            lWatchedEntityText.Text = string.Empty;
+            lWatchedEntityName.Visible = entityId != null;
             if ( entityId.HasValue && etpEntityType.SelectedEntityTypeId.HasValue )
             {
                 var watchedEntity = new EntityTypeService( new RockContext() ).GetEntity( etpEntityType.SelectedEntityTypeId.Value, entityId.Value );
                 if ( watchedEntity != null )
                 {
-                    lWatchedEntityText.Text = watchedEntity.ToString();
+                    lWatchedEntityName.Text = watchedEntity.ToString();
                 }
                 else
                 {
-                    lWatchedEntityText.Text = string.Format( "<span class='label label-danger'>{0} with Id {1} not found</span>", EntityTypeCache.Read( etpEntityType.SelectedEntityTypeId.Value ).FriendlyName, entityId );
+                    lWatchedEntityName.Text = string.Format( "<span class='label label-danger'>{0} with Id {1} not found</span>", EntityTypeCache.Read( etpEntityType.SelectedEntityTypeId.Value ).FriendlyName, entityId );
                 }
             }
         }
@@ -348,8 +348,7 @@ namespace RockWeb.Blocks.Core
         {
             ppWatchedPerson.Visible = false;
             gpWatchedGroup.Visible = false;
-            nbWatchedEntityId.Visible = false;
-            lWatchedEntityText.Visible = false;
+            pnlWatchedEntityGeneric.Visible = false;
             if ( entityTypeId.HasValue )
             {
                 if ( entityTypeId.Value == EntityTypeCache.GetId<Rock.Model.Person>() )
@@ -362,8 +361,7 @@ namespace RockWeb.Blocks.Core
                 }
                 else
                 {
-                    nbWatchedEntityId.Visible = true;
-                    lWatchedEntityText.Visible = true;
+                    pnlWatchedEntityGeneric.Visible = true;
                 }
             }
         }
@@ -476,7 +474,7 @@ namespace RockWeb.Blocks.Core
                     }
                     else
                     {
-                        lWatchedEntityText.Text = watchedEntity.ToString();
+                        lWatchedEntityName.Text = watchedEntity.ToString();
                         nbWatchedEntityId.Text = watchedEntity.Id.ToString();
                     }
 

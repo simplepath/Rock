@@ -30,7 +30,6 @@
                     </div>
                 </div>
 
-
                 <h4>Watch Filter</h4>
 
                 <Rock:NotificationBox ID="nbWatchFilterMustBeSeletedWarning" runat="server" NotificationBoxType="Danger" Text="A Watch Filter must be specified." Dismissable="true" Visible="false" />
@@ -41,8 +40,10 @@
                         <asp:Panel ID="pnlWatchedEntity" runat="server">
                             <Rock:PersonPicker ID="ppWatchedPerson" runat="server" Visible="false" Label="Watching Person" OnSelectPerson="ppWatchedPerson_SelectPerson" Help="Select a Person to watch notes added to this person." />
                             <Rock:GroupPicker ID="gpWatchedGroup" runat="server" Visible="false" Label="Watching Group" OnSelectItem="gpWatchedGroup_SelectItem" Help="Select a Group to watch notes added to this group." />
-                            <Rock:NumberBox ID="nbWatchedEntityId" runat="server" Visible="false" Label="Watching EntityId" AutoPostBack="true" OnTextChanged="nbWatchedEntityId_TextChanged" Help="Specify the entity id to watch notes added to the specified entity." />
-                            <Rock:RockLiteral ID="lWatchedEntityText" Label="Watching" runat="server" Visible="false" />
+                            <asp:Panel ID="pnlWatchedEntityGeneric" runat="server" Visible="false">
+                                <Rock:NumberBox ID="nbWatchedEntityId" runat="server" Label="EntityId" AutoPostBack="true" OnTextChanged="nbWatchedEntityId_TextChanged" Help="Specify the entity id to watch notes added to the specified entity." />
+                                <Rock:RockLiteral ID="lWatchedEntityName" Label="Name" runat="server" Visible="false" />
+                            </asp:Panel>
                         </asp:Panel>
                     </div>
                     <div class="col-md-6">
