@@ -230,6 +230,11 @@ namespace RockWeb.Blocks.Administration
             cb48MonAsPrevious.Checked = Rock.Web.SystemSettings.GetValue( SystemSetting.NCOA_SET_48_MONTH_AS_PREVIOUS ).AsBoolean();
             cbInvalidAddressAsPrevious.Checked = Rock.Web.SystemSettings.GetValue( SystemSetting.NCOA_SET_INVALID_AS_PREVIOUS ).AsBoolean();
 
+            //Get Bootstrap Button Configuration
+            tbCompleteText.Text = Rock.Web.SystemSettings.GetValue( SystemSetting.BOOTSTRAP_BUTTON_COMPLETE_TEXT );
+            tbDataLoadingText.Text = Rock.Web.SystemSettings.GetValue( SystemSetting.BOOTSTRAP_BUTTON_DATA_LOADING_TEXT );
+            nbCompletedTimeout.Text = Rock.Web.SystemSettings.GetValue( SystemSetting.BOOTSTRAP_BUTTON_COMPLETED_TIMEOUT );
+
             _reactivateSettings = Rock.Web.SystemSettings.GetValue( SystemSetting.DATA_AUTOMATION_REACTIVATE_PEOPLE ).FromJsonOrNull<ReactivatePeople>() ?? new ReactivatePeople();
             _inactivateSettings = Rock.Web.SystemSettings.GetValue( SystemSetting.DATA_AUTOMATION_INACTIVATE_PEOPLE ).FromJsonOrNull<InactivatePeople>() ?? new InactivatePeople();
             _campusSettings = Rock.Web.SystemSettings.GetValue( SystemSetting.DATA_AUTOMATION_UPDATE_FAMILY_CAMPUS ).FromJsonOrNull<UpdateFamilyCampus>() ?? new UpdateFamilyCampus();
@@ -249,8 +254,10 @@ namespace RockWeb.Blocks.Administration
             nbPersonAttributes.Text = _reactivateSettings.PersonAttributesDays.ToStringSafe();
             rlbPersonAttributes.SetValues( _reactivateSettings.PersonAttributes ?? new List<int>() );
             cbIncludeDataView.Checked = _reactivateSettings.IsIncludeDataViewEnabled;
+            dvIncludeDataView.EntityTypeId = EntityTypeCache.Read( typeof( Rock.Model.Person ) ).Id;
             dvIncludeDataView.SetValue( _reactivateSettings.IncludeDataView );
             cbExcludeDataView.Checked = _reactivateSettings.IsExcludeDataViewEnabled;
+            dvExcludeDataView.EntityTypeId = EntityTypeCache.Read( typeof( Rock.Model.Person ) ).Id;
             dvExcludeDataView.SetValue( _reactivateSettings.ExcludeDataView );
             cbInteractions.Checked = _reactivateSettings.IsInteractionsEnabled;
 
@@ -290,6 +297,7 @@ namespace RockWeb.Blocks.Administration
             nbNoPersonAttributes.Text = _inactivateSettings.NoPersonAttributesDays.ToStringSafe();
             rlbNoPersonAttributes.SetValues( _inactivateSettings.PersonAttributes ?? new List<int>() );
             cbNotInDataView.Checked = _inactivateSettings.IsNotInDataviewEnabled;
+            dvNotInDataView.EntityTypeId = EntityTypeCache.Read( typeof( Rock.Model.Person ) ).Id;
             dvNotInDataView.SetValue( _inactivateSettings.NotInDataview );
             cbNoInteractions.Checked = _inactivateSettings.IsNoInteractionsEnabled;
 
@@ -344,6 +352,11 @@ namespace RockWeb.Blocks.Administration
         {
             //Save General
             Rock.Web.SystemSettings.SetValue( SystemSetting.GENDER_AUTO_FILL_CONFIDENCE, nbGenderAutoFill.Text );
+
+            // Bootstrap Button Configuration
+            Rock.Web.SystemSettings.SetValue( SystemSetting.BOOTSTRAP_BUTTON_DATA_LOADING_TEXT, tbDataLoadingText.Text );
+            Rock.Web.SystemSettings.SetValue( SystemSetting.BOOTSTRAP_BUTTON_COMPLETE_TEXT, tbCompleteText.Text );
+            Rock.Web.SystemSettings.SetValue( SystemSetting.BOOTSTRAP_BUTTON_COMPLETED_TIMEOUT, nbCompletedTimeout.Text );
 
             // Ncoa Configuration
             Rock.Web.SystemSettings.SetValue( SystemSetting.NCOA_MINIMUM_MOVE_DISTANCE_TO_INACTIVATE, nbMinMoveDistance.Text );
@@ -446,7 +459,7 @@ namespace RockWeb.Blocks.Administration
 
             _campusSettings.IsMostFamilyAttendanceEnabled = cbMostFamilyAttendance.Checked;
             _campusSettings.MostFamilyAttendancePeriod = nbMostFamilyAttendance.Text.AsInteger();
-            
+
             _campusSettings.IsMostFamilyGivingEnabled = cbMostFamilyGiving.Checked;
             _campusSettings.MostFamilyGivingPeriod = nbMostFamilyGiving.Text.AsInteger();
 
@@ -456,7 +469,7 @@ namespace RockWeb.Blocks.Administration
             _campusSettings.IgnoreIfManualUpdatePeriod = nbIgnoreIfManualUpdate.Text.AsInteger();
 
             _campusSettings.IsIgnoreCampusChangesEnabled = cbIgnoreCampusChanges.Checked;
-            _campusSettings.IgnoreCampusChanges = 
+            _campusSettings.IgnoreCampusChanges =
                 _ignoreCampusChangeRows
                     .Where( a => a.CampusCriteria.HasValue && a.FromCampusId.HasValue && a.ToCampusId.HasValue )
                     .Select( a => new IgnoreCampusChangeItem

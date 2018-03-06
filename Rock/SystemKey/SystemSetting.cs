@@ -24,14 +24,24 @@ namespace Rock.SystemKey
     public class SystemSetting
     {
         /// <summary>
-        /// Sample System Setting
-        /// </summary>
-        //public const string SAMPLE_SYSTEM_SETTING = "core_SampleSystemSetting";
-
-        /// <summary>
         /// Percent Confidence threshold for automatically setting gender based on a name
         /// </summary>
         public const string GENDER_AUTO_FILL_CONFIDENCE = "core_GenderAutoFillConfidence";
+
+        /// <summary>
+        /// Thetext to use when the postback is completed.
+        /// </summary>
+        public const string BOOTSTRAP_BUTTON_COMPLETE_TEXT = "core_BootstrapCompleteText";
+
+        /// <summary>
+        /// The text to use when the button has been clicked.
+        /// </summary>
+        public const string BOOTSTRAP_BUTTON_DATA_LOADING_TEXT = "core_BootstrapButtonDataLoadingText";
+
+        /// <summary>
+        /// The time in millisecond to reset the button text back to original after setting the Completed text.
+        /// </summary>
+        public const string BOOTSTRAP_BUTTON_COMPLETED_TIMEOUT = "core_BootstrapButtonCompletedTimeout";
 
         /// <summary>
         /// The minimum distance in miles person/family has to have moved before automatically inactivatingn their record
@@ -63,5 +73,14 @@ namespace Rock.SystemKey
         /// </summary>
         public const string DATA_AUTOMATION_UPDATE_FAMILY_CAMPUS = "core_DataAutomationUpdateFamilyCampus";
 
+        /// <summary>
+        /// The font awesome pro key
+        /// </summary>
+        public const string FONT_AWESOME_PRO_KEY = "core_FontAwesomeProKey";
+
+        /// <summary>
+        /// Enable multi time zone support. Default is false
+        /// </summary>
+        public const string ENABLE_MULTI_TIME_ZONE_SUPPORT = "core_EnableMultiTimeZoneSupport";
     }
 }
