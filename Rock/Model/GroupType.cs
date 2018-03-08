@@ -580,6 +580,15 @@ namespace Rock.Model
         [DataMember]
         public bool AllowSpecificGroupMemberWorkflows { get; set; }
 
+        /// <summary>
+        /// Gets or sets a value indicating whether group history should be enabled for groups of this type
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [enable group history]; otherwise, <c>false</c>.
+        /// </value>
+        [DataMember]
+        public bool EnableGroupHistory { get; set; } = false;
+
         #endregion
 
         #region Virtual Properties

@@ -148,6 +148,33 @@ namespace Rock.Model
         [DataMember]
         public int? GroupOrder { get; set; }
 
+        /// <summary>
+        /// Gets or sets the date that this group member became inactive
+        /// </summary>
+        /// <value>
+        /// The in active date time.
+        /// </value>
+        [DataMember]
+        public DateTime? InactiveDateTime { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether this group member is archived (soft deleted)
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if this instance is archived; otherwise, <c>false</c>.
+        /// </value>
+        [DataMember]
+        public bool IsArchived { get; set; } = false;
+
+        /// <summary>
+        /// Gets or sets the date time that this group member was archived (soft deleted)
+        /// </summary>
+        /// <value>
+        /// The archived date time.
+        /// </value>
+        [DataMember]
+        public DateTime? ArchivedDateTime { get; set; }
+
         #endregion
 
         #region Virtual Properties
