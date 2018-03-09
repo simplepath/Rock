@@ -242,6 +242,15 @@ namespace Rock.Model
         [DataMember]
         public DateTime? ArchivedDateTime { get; set; }
 
+        /// <summary>
+        /// Gets or sets the PersonAliasId that archived (soft deleted) this group
+        /// </summary>
+        /// <value>
+        /// The archived by person alias identifier.
+        /// </value>
+        [DataMember]
+        public int? ArchivedByPersonAliasId { get; set; }
+
         #endregion
 
         #region Virtual Properties
@@ -290,6 +299,15 @@ namespace Rock.Model
         /// </value>
         [DataMember]
         public virtual SignatureDocumentTemplate RequiredSignatureDocumentTemplate { get; set; }
+
+        /// <summary>
+        /// Gets or sets the PersonAlias that archived (soft deleted) this group
+        /// </summary>
+        /// <value>
+        /// The archived by person alias.
+        /// </value>
+        [DataMember]
+        public virtual PersonAlias ArchivedByPersonAlias { get; set; }
 
         /// <summary>
         /// Gets or sets a collection the Groups that are children of this group.
@@ -905,6 +923,7 @@ namespace Rock.Model
             this.HasOptional( p => p.Campus ).WithMany().HasForeignKey( p => p.CampusId ).WillCascadeOnDelete( false );
             this.HasOptional( p => p.Schedule ).WithMany().HasForeignKey( p => p.ScheduleId ).WillCascadeOnDelete( false );
             this.HasOptional( p => p.RequiredSignatureDocumentTemplate ).WithMany().HasForeignKey( p => p.RequiredSignatureDocumentTemplateId ).WillCascadeOnDelete( false );
+            this.HasOptional( p => p.ArchivedByPersonAlias ).WithMany().HasForeignKey( p => p.ArchivedByPersonAliasId ).WillCascadeOnDelete( false );
         }
     }
 

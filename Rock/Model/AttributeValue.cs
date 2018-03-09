@@ -16,6 +16,7 @@
 //
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity.ModelConfiguration;
@@ -187,6 +188,16 @@ namespace Rock.Model
         [DataMember]
         [LavaIgnore]
         public virtual Attribute Attribute { get; set; }
+
+        /// <summary>
+        /// Gets or sets the a list of previous values that this attribute value had (If Attribute.EnableHistory is enabled)
+        /// </summary>
+        /// <value>
+        /// The attribute values historical.
+        /// </value>
+        [DataMember]
+        [LavaIgnore]
+        public virtual ICollection<AttributeValueHistorical> AttributeValuesHistorical { get; set; } = new Collection<AttributeValueHistorical>();
 
         /// <summary>
         /// Gets the value formatted.
