@@ -118,6 +118,17 @@ textarea:focus,
 /*#region
 // 3. Rock Overrides         */
 // -------------------------
+.list-as-blocks h3 {
+  font-size: 1em;
+}
+
+.wizard {
+  margin: -35px;
+  margin-top: -16px;
+  margin-bottom: 24px;
+}
+
+
 .panel-block {
 
   > .panel-heading {
@@ -138,6 +149,21 @@ textarea:focus,
 
 .panel-widget > .panel-heading {
   background-color: @gray-lighter;
+}
+
+// grid styles
+
+td.grid-actions {
+  font-size: 1em;
+  padding: 0 !important;
+  
+  a.btn {
+    opacity: .7;
+
+    &:hover {
+      opacity: 1;
+    }
+  }
 }
 
 .grid-select-field {
@@ -309,7 +335,8 @@ textarea:focus,
     color: @navbartop-color;
     border: 0;
     width: 340px;
-
+    font-size: 0.875em;
+    
     i {
       margin-top: 14px;
       margin-left: 6px;
@@ -324,8 +351,13 @@ textarea:focus,
     .dropdown {
       margin-top: 10px;
 
+
       .navbar-link {
         color: @navbartop-color;
+      }
+
+      .dropdown-menu {
+        font-size: 1em;;
       }
     }
 
@@ -451,8 +483,6 @@ textarea:focus,
     margin-left: 100px;
   }
 }
-
-
 
 .navbar-static-side {
   position: fixed;
@@ -657,7 +687,7 @@ body.navbar-side-close {
     }
 
     .breadcrumb {
-      padding: 8px 0;
+      padding: 8px 0 0;
       background-color: transparent;
       margin: 0;
       font-size: 0.875em;
@@ -707,6 +737,10 @@ body.navbar-side-close {
   .login-block {
     max-width: 400px;
     margin: 0 auto;
+
+    legend {
+      display: none;
+    }
   }
 
   .login-block.external-auth-providers {
@@ -716,11 +750,21 @@ body.navbar-side-close {
 
 /*#endregion */
 
+/*#region
+// 5. Specific Page Styling        */
+// -------------------------
+.personprofile {
+  .title .firstname,
+  .title .lastname {
+    font-weight: 700;
+  }
+}
+
+/*#endregion */
 
 /*#region
-// 5. Components          */
+// 6. Components          */
 // -------------------------
-
 // radio buttons & checkboxes - fancy styling
 .radio label, .checkbox label {
   padding-left: 0;

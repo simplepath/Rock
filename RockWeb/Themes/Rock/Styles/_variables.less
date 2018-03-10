@@ -10,7 +10,7 @@
 @navbarside-background-color: #3a3935; // This is the background color for the right-hand menu. #color
 
 @modal-header-background: #3a3935; // The header color for modal dialogs. #color
-@modal-footer-background: #b4b4b4; // The header color for modal dialogs. #color
+@modal-footer-background: #f1f1f1; // The header color for modal dialogs. #color
 @modal-backdrop-background: #000; // The backdrop color that overlays the page when a modal is displayed. #color
 
 // Text *show in editor*
@@ -37,10 +37,10 @@
 @modal-backdrop-bg: @modal-backdrop-background; // The backdrop color that overlays the page when a modal is displayed. #color
 
 @modal-header-text-color: #fff;
-@modal-body-bg: @body-bg;
+@modal-body-bg: #fff;
 @modal-body-text-color: @text-color;
 @modal-dropshadow-color: rgba(0,0,0,0.6);
-@modal-backdrop-opacity: .4;
+@modal-backdrop-opacity: .3;
 @modal-footer-text-color: #fff;
 
 
@@ -142,7 +142,7 @@
 @nav-sub-text-rollover-bg: @nav-bg;                             // The background color for text on roll-over for the seconday navigation. #color
 
 //// Page Title
-@pagetitle-bg: @theme-4;                // The background color of the page title section. #color
+@pagetitle-bg: @pagetitle-background;                // The background color of the page title section. #color
 @pagetitle-text-color: @theme-4-text;   // The text color of the page title section. #color
 
 //// Breadcrumbs
@@ -278,8 +278,8 @@
 @persondetails-bio-action-color: #fff;
 @persondetails-bio-action-bg: @brand-color;
 @persondetails-bio-action-border: @brand-color;
-@persondetails-bio-photo-border: @brand-light-color;
-@persondetails-bio-photo-following: @brand-color;
+@persondetails-bio-photo-border: lighten(@text-color, 40%);
+@persondetails-bio-photo-following: @text-color;
 
 //// Badge Bar
 @persondetails-badge-bg: lighten(@body-background, 2%);
@@ -311,8 +311,8 @@
 @tooltip-bg: @theme-8;
 
 // Pills
-@nav-pills-active-link-hover-bg:         @theme-7;
-@nav-pills-active-link-hover-color:      @theme-7-text;
+@nav-pills-active-link-hover-bg:         @brand-color;
+@nav-pills-active-link-hover-color:      #fff;
 @nav-pills-link-color: @text-color;  // The color of the none active pill link.
 //--
 @nav-pills-container-bg:                @body-bg; // the background color for the well-pillwrap class used on the security dialog, communication mediums and template details.
@@ -330,11 +330,11 @@
 @listasblocks-active-color: #fff;
 
 // Tags { Styles for the tag control used on the person profile. }
-@tag-bg: #c2b8a7;
+@tag-bg: #bababa;
 @tag-text-color: #231f20;
 @tag-border-radius: @border-radius-base;
-@tag-dot-color: #dbd5cb;
-@tag-bg-alt: #d0c6b4;
+@tag-dot-color: #fff;
+@tag-bg-alt: lighten(@tag-bg, 15%);
 
 // Autocomplete Styles
 @autocomplete-bg: @body-bg;
