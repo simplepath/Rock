@@ -1482,7 +1482,7 @@ namespace Rock.Model
         /// The history changes.
         /// </value>
         [NotMapped]
-        private List<string> HistoryChanges { get; set; }
+        private History.HistoryChangeList HistoryChanges { get; set; }
 
         #endregion
 
@@ -1769,13 +1769,13 @@ namespace Rock.Model
                 Rock.Transactions.RockQueue.TransactionQueue.Enqueue( transaction );
             }
 
-            HistoryChanges = new List<string>();
+            HistoryChanges = new History.HistoryChangeList();
 
             switch ( entry.State )
             {
                 case System.Data.Entity.EntityState.Added:
                     {
-                        HistoryChanges.Add( "Person Created" );
+                        HistoryChanges.AddChange( History.HistoryVerb.Add, History.HistoryChangeType.Record, "Person", this.FullName, null );
 
                         History.EvaluateChange( HistoryChanges, "Record Type", (int?)null, RecordTypeValue, RecordTypeValueId );
                         History.EvaluateChange( HistoryChanges, "Record Status", (int?)null, RecordStatusValue, RecordStatusValueId );
@@ -1806,7 +1806,7 @@ namespace Rock.Model
 
                         if ( PhotoId.HasValue )
                         {
-                            HistoryChanges.Add( "Added a photo." );
+                            HistoryChanges.AddChange( History.HistoryVerb.Add, History.HistoryChangeType.Property, "Photo", null, null );
                         }
 
                         break;
@@ -1848,17 +1848,17 @@ namespace Rock.Model
                             {
                                 if ( PhotoId.Value != originalPhotoId.Value )
                                 {
-                                    HistoryChanges.Add( "Modified the photo." );
+                                    HistoryChanges.AddChange( History.HistoryVerb.Modify, History.HistoryChangeType.Property, "Photo", null, null );
                                 }
                             }
                             else
                             {
-                                HistoryChanges.Add( "Deleted the photo." );
+                                HistoryChanges.AddChange( History.HistoryVerb.Delete, History.HistoryChangeType.Property, "Photo", null, null );
                             }
                         }
                         else if (PhotoId.HasValue )
                         {
-                            HistoryChanges.Add( "Added a photo." );
+                            HistoryChanges.AddChange( History.HistoryVerb.Add, History.HistoryChangeType.Property, "Photo", null, null );
                         }
 
                         break;
@@ -1866,7 +1866,7 @@ namespace Rock.Model
 
                 case System.Data.Entity.EntityState.Deleted:
                     {
-                        HistoryChanges.Add( "Deleted" );
+                        HistoryChanges.AddChange( History.HistoryVerb.Delete, History.HistoryChangeType.Record, null, null, null );
 
                         // If PersonRecord is getting deleted, don't do any of the remaining presavechanges
                         return;

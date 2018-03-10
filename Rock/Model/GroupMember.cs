@@ -346,7 +346,7 @@ namespace Rock.Model
                     HistoryChanges.Add( new HistoryItem()
                     {
                         PersonId = newPersonId.Value,
-                        Changes = new List<string>(),
+                        HistoryChangeList = new History.HistoryChangeList(),
                         Caption = group.Name,
                         GroupId = group.Id
                     } );
@@ -357,10 +357,10 @@ namespace Rock.Model
                     HistoryChanges.Add( new HistoryItem()
                     {
                         PersonId = oldPersonId.Value,
-                        Changes = new List<string>(),
+                        HistoryChangeList = new History.HistoryChangeList(),
                         Caption = oldGroupName,
                         GroupId = oldGroupId
-                    } );
+                    } ); 
                 }
 
                 if ( newPersonId.HasValue && newGroupId.HasValue && 
@@ -368,11 +368,11 @@ namespace Rock.Model
                 {
                     // New Person in group
                     var historyItem = HistoryChanges.First( h => h.PersonId == newPersonId.Value && h.GroupId == newGroupId.Value );
-                    historyItem.Changes.Add( $"Added to '{group.Name}' Group" );
-                    History.EvaluateChange( historyItem.Changes, $"{historyItem.Caption} Role", (int?)null, GroupRole, GroupRoleId, rockContext );
-                    History.EvaluateChange( historyItem.Changes, $"{historyItem.Caption} Note", string.Empty, Note );
-                    History.EvaluateChange( historyItem.Changes, $"{historyItem.Caption} Status", null, GroupMemberStatus );
-                    History.EvaluateChange( historyItem.Changes, $"{historyItem.Caption} Guest Count", (int?)null, GuestCount );
+                    //historyItem.Changes.Add( $"Added to '{group.Name}' Group" );
+                    History.EvaluateChange( historyItem.HistoryChangeList, $"{historyItem.Caption} Role", (int?)null, GroupRole, GroupRoleId, rockContext );
+                    History.EvaluateChange( historyItem.HistoryChangeList, $"{historyItem.Caption} Note", string.Empty, Note );
+                    History.EvaluateChange( historyItem.HistoryChangeList, $"{historyItem.Caption} Status", null, GroupMemberStatus );
+                    History.EvaluateChange( historyItem.HistoryChangeList, $"{historyItem.Caption} Guest Count", (int?)null, GuestCount );
                 }
 
                 if ( newPersonId.HasValue && oldPersonId.HasValue && oldPersonId.Value == newPersonId.Value &&
@@ -380,10 +380,10 @@ namespace Rock.Model
                 {
                     // Updated same person in group
                     var historyItem = HistoryChanges.First( h => h.PersonId == newPersonId.Value && h.GroupId == newGroupId.Value );
-                    History.EvaluateChange( historyItem.Changes, $"{historyItem.Caption} Role", entry.OriginalValues["GroupRoleId"].ToStringSafe().AsIntegerOrNull(), GroupRole, GroupRoleId, rockContext );
-                    History.EvaluateChange( historyItem.Changes, $"{historyItem.Caption} Note", entry.OriginalValues["Note"].ToStringSafe(), Note );
-                    History.EvaluateChange( historyItem.Changes, $"{historyItem.Caption} Status", entry.OriginalValues["GroupMemberStatus"].ToStringSafe().ConvertToEnum<GroupMemberStatus>(), GroupMemberStatus );
-                    History.EvaluateChange( historyItem.Changes, $"{historyItem.Caption} Guest Count", entry.OriginalValues["GuestCount"].ToStringSafe().AsIntegerOrNull(), GuestCount );
+                    History.EvaluateChange( historyItem.HistoryChangeList, $"{historyItem.Caption} Role", entry.OriginalValues["GroupRoleId"].ToStringSafe().AsIntegerOrNull(), GroupRole, GroupRoleId, rockContext );
+                    History.EvaluateChange( historyItem.HistoryChangeList, $"{historyItem.Caption} Note", entry.OriginalValues["Note"].ToStringSafe(), Note );
+                    History.EvaluateChange( historyItem.HistoryChangeList, $"{historyItem.Caption} Status", entry.OriginalValues["GroupMemberStatus"].ToStringSafe().ConvertToEnum<GroupMemberStatus>(), GroupMemberStatus );
+                    History.EvaluateChange( historyItem.HistoryChangeList, $"{historyItem.Caption} Guest Count", entry.OriginalValues["GuestCount"].ToStringSafe().AsIntegerOrNull(), GuestCount );
                 }
 
                 if ( oldPersonId.HasValue && oldGroupId.HasValue && 
@@ -391,7 +391,7 @@ namespace Rock.Model
                 {
                     // Removed a person in group
                     var historyItem = HistoryChanges.First( h => h.PersonId == oldPersonId.Value && h.GroupId == oldGroupId.Value );
-                    historyItem.Changes.Add( $"Removed from '{oldGroupName}' Group" );
+                    historyItem.HistoryChangeList.AddChange( History.HistoryVerb.Delete, History.HistoryChangeType.Record, "Group", null, oldGroupName );
                 }
 
                 // process universal search indexing if required
@@ -419,11 +419,11 @@ namespace Rock.Model
         {
             if ( HistoryChanges != null )
             {
-                foreach ( var historyItem in HistoryChanges.Where( h => h.Changes.Any() ) )
+                foreach ( var historyItem in HistoryChanges.Where( h => h.HistoryChangeList.Any() ) )
                 {
                     int personId = historyItem.PersonId > 0 ? historyItem.PersonId : PersonId;
                     HistoryService.SaveChanges( (RockContext)dbContext, typeof( Person ), Rock.SystemGuid.Category.HISTORY_PERSON_GROUP_MEMBERSHIP.AsGuid(),
-                        personId, historyItem.Changes, historyItem.Caption, typeof( Group ), historyItem.GroupId, true, this.ModifiedByPersonAliasId );
+                        personId, historyItem.HistoryChangeList, historyItem.Caption, typeof( Group ), historyItem.GroupId, true, this.ModifiedByPersonAliasId );
                 }
             }
 
@@ -884,7 +884,7 @@ namespace Rock.Model
         /// <value>
         /// The changes.
         /// </value>
-        public List<string> Changes { get; set; }
+        public History.HistoryChangeList HistoryChangeList { get; set; }
 
         /// <summary>
         /// Gets or sets the caption.

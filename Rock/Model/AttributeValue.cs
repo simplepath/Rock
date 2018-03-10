@@ -299,7 +299,7 @@ namespace Rock.Model
         /// The history changes.
         /// </value>
         [NotMapped]
-        private List<string> HistoryChanges { get; set; }
+        private History.HistoryChangeList HistoryChanges { get; set; }
 
         /// <summary>
         /// Gets or sets the type of the history entity.
@@ -418,7 +418,7 @@ namespace Rock.Model
                         oldValue = oldValue.IsNotNullOrWhitespace() ? attributeCache.FieldType.Field.FormatValue( null, oldValue, attributeCache.QualifierValues, true ) : string.Empty;
                         newValue = newValue.IsNotNullOrWhitespace() ? attributeCache.FieldType.Field.FormatValue( null, newValue, attributeCache.QualifierValues, true ) : string.Empty;
 
-                        HistoryChanges = new List<string>();
+                        HistoryChanges = new History.HistoryChangeList();
                         History.EvaluateChange( HistoryChanges, attributeCache.Name, oldValue, newValue );
                     }
                 }

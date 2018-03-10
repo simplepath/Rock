@@ -20,7 +20,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity.ModelConfiguration;
 using System.Runtime.Serialization;
-
+using System.Text;
 using Rock.Data;
 using Rock.Web.Cache;
 
@@ -80,6 +80,7 @@ namespace Rock.Model
 
         /// <summary>
         /// Gets or sets the verb which is a structured (for querying) field to describe what the action is (ADD, DELETE, UPDATE, VIEW, WATCHED,  etc).
+        /// See History.VerbAction constants for common verbs
         /// </summary>
         /// <value>
         /// A <see cref="System.String"/> representing the verb of the History.
@@ -105,6 +106,7 @@ namespace Rock.Model
         /// The summary.
         /// </value>
         [DataMember]
+        [Obsolete("Use GetSummary instead")]
         public string Summary { get; set; }
 
         /// <summary>
@@ -134,18 +136,75 @@ namespace Rock.Model
         /// </value>
         [DataMember]
         public string RelatedData { get; set; }
-        
+
+        /// <summary>
+        /// Gets or sets the ChangeType which is a structured (for querying) field to describe what type of data was changed (Record, Property, Attribute, Location, Schedule, etc)
+        /// See History.ChangeTypeName for command change types
+        /// </summary>
+        /// <value>
+        /// The type of the change.
+        /// </value>
+        [MaxLength( 20 )]
+        [DataMember]
+        public string ChangeType { get; set; }
+
+        /// <summary>
+        /// Gets or sets the name of the value depending on ChangeType: ChangeTypeName.Property => Property Friendly Name, ChangeType.Attribute => Attribute Name, ChangeType.Record => the ToString of the record
+        /// </summary>
+        /// <value>
+        /// The name of the value.
+        /// </value>
+        [MaxLength( 250 )]
+        [DataMember]
+        public string ValueName { get; set; }
+
+        /// <summary>
+        /// Gets or sets the new value.
+        /// </summary>
+        /// <value>
+        /// The new value.
+        /// </value>
+        [DataMember]
+        public string NewValue { get; set; }
+
+        /// <summary>
+        /// Gets or sets the old value.
+        /// </summary>
+        /// <value>
+        /// The old value.
+        /// </value>
+        [DataMember]
+        public string OldValue { get; set; }
+
+        /// <summary>
+        /// Gets or sets whether the NewValue and/or OldValue is null because the value is sensitive data that shouldn't be logged
+        /// </summary>
+        /// <value>
+        /// IsSensitive.
+        /// </value>
+        [DataMember]
+        public bool? IsSensitive { get; set; }
+
+        /// <summary>
+        /// Optional: Gets or sets name of the tool or process that changed the value
+        /// </summary>
+        /// <value>
+        /// The source of change.
+        /// </value>
+        [DataMember]
+        public string SourceOfChange { get; set; }
+
         #endregion
 
         #region Virtual Properties
 
-            /// <summary>
-            /// Gets or sets the entity type this history is associated with
-            /// </summary>
-            /// <value>
-            /// The <see cref="Rock.Model.EntityType"/> of this history.
-            /// </value>
-            [DataMember]
+        /// <summary>
+        /// Gets or sets the entity type this history is associated with
+        /// </summary>
+        /// <value>
+        /// The <see cref="Rock.Model.EntityType"/> of this history.
+        /// </value>
+        [DataMember]
         public virtual EntityType EntityType { get; set; }
 
         /// <summary>
@@ -192,12 +251,197 @@ namespace Rock.Model
         /// </returns>
         public override string ToString()
         {
-            return this.Summary;
+            return this.GetSummary();
+        }
+
+        /// <summary>
+        /// Gets the summary.
+        /// </summary>
+        /// <returns></returns>
+        public string GetSummary()
+        {
+            HistoryVerb? historyVerb = this.Verb.ConvertToEnumOrNull<HistoryVerb>();
+            if ( !string.IsNullOrEmpty( this.ChangeType ) )
+            {
+                if ( historyVerb.HasValue )
+                {
+                    switch ( historyVerb.Value )
+                    {
+                        case HistoryVerb.Add:
+                            {
+                                if ( this.IsSensitive == true )
+                                {
+                                    return $"Added <span class='field-name'>{this.ValueName}</span> value (Sensitive attribute values are not logged in history).";
+                                }
+                                else
+                                {
+                                    return $"Added <span class='field-name'>{this.ValueName}</span> value of <span class='field-value'>{this.NewValue}</span>.";
+                                }
+                            }
+                        case HistoryVerb.Modify:
+                            {
+                                if ( this.IsSensitive == true )
+                                {
+                                    return $"Modified <span class='field-name'>{this.ValueName}</span> value (Sensitive attribute values are not logged in history).";
+                                }
+                                else
+                                {
+                                    return $"Modified <span class='field-name'>{this.ValueName}</span> value from <span class='field-value'>{this.OldValue}</span> to <span class='field-value'>{this.NewValue}</span>.";
+
+                                }
+                            }
+                        case HistoryVerb.Delete:
+                            {
+                                if ( this.IsSensitive == true )
+                                {
+                                    return $"Deleted <span class='field-name'>{this.ValueName}</span> value (Sensitive attribute values are not logged in history).";
+                                }
+                                else
+                                {
+                                    return $"Deleted <span class='field-name'>{this.ValueName}</span> value of <span class='field-value'>{this.OldValue}</span>.";
+                                }
+                            }
+                        case HistoryVerb.Refund:
+                            {
+                                return $"Processed refund for {this.ValueName}";
+                            }
+                        case HistoryVerb.Registered:
+                            {
+                                return $"Registered {this.ValueName} for";
+                            }
+                    }
+                }
+
+                // some unexpected verb was used to make a custom summary 
+                var stringBuilder = new StringBuilder();
+
+                // Start with whatever custom verb was used. For example 'WATCHED'
+                stringBuilder.Append( this.Verb.FixCase() );
+
+                // include the value name (For example 'First Name') that was affected
+                if ( !string.IsNullOrEmpty( this.ValueName ) )
+                {
+                    stringBuilder.Append( $" <span class='field-name'>{this.ValueName}</span>." );
+                }
+
+                if ( this.IsSensitive != true )
+                {
+                    if ( !string.IsNullOrEmpty( this.OldValue ) )
+                    {
+                        stringBuilder.Append( $" old value of <span class='field-name'>{this.OldValue}</span>, " );
+                    }
+
+                    if ( !string.IsNullOrEmpty( this.NewValue ) )
+                    {
+                        stringBuilder.Append( $" new value of <span class='field-name'>{this.NewValue}</span>, " );
+                    }
+                }
+
+                var customSummary = stringBuilder.ToString();
+                return customSummary;
+
+            }
+            else
+            {
+#pragma warning disable 612, 618
+                return this.Summary;
+#pragma warning restore 612, 618
+            }
+        }
+
+        #endregion
+
+        #region Constants
+
+        /// <summary>
+        /// Common Verbs are used in the HistoryChange helpers. These get turned in the UpperCase strings when saving to History.Verb
+        /// Custom Verbs can still be used by History.Verb manually
+        /// </summary>
+        public enum HistoryVerb
+        {
+            /// <summary>
+            /// The add
+            /// </summary>
+            Add,
+
+            Modify,
+
+            Delete,
+
+            Registered,
+
+            Refund
+        }
+
+        /// <summary>
+        /// Common Change Types. This get saved to History.ChangeType as a string so that custom change types can be sued
+        /// </summary>
+        public enum HistoryChangeType
+        {
+            // The Change affected an entire record (for example, it was DELETED or ADDED), or is a child record of the item we are logging history for
+            Record,
+
+            // The Change affected a property on the record
+            Property,
+
+            // The Change affected an attribute value on the record
+            Attribute
         }
 
         #endregion
 
         #region Static Methods
+
+        /// <summary>
+        /// Evaluates the change.
+        /// </summary>
+        /// <param name="historyChangeList">The history change list.</param>
+        /// <param name="propertyName">Name of the property.</param>
+        /// <param name="oldValue">The old value.</param>
+        /// <param name="newValue">The new value.</param>
+        /// <param name="isSensitive">if set to <c>true</c> [is sensitive].</param>
+        public static void EvaluateChange( HistoryChangeList historyChangeList, string propertyName, string oldValue, string newValue, bool isSensitive = false )
+        {
+            if ( !string.IsNullOrWhiteSpace( oldValue ) )
+            {
+                if ( !string.IsNullOrWhiteSpace( newValue ) )
+                {
+                    if ( oldValue.Trim() != newValue.Trim() )
+                    {
+                        if ( isSensitive )
+                        {
+                            historyChangeList.AddChange( HistoryVerb.Modify, HistoryChangeType.Property, propertyName, null, null , true );
+                        }
+                        else
+                        {
+                            historyChangeList.AddChange( HistoryVerb.Modify, HistoryChangeType.Property, propertyName, oldValue, newValue );
+                        }
+                    }
+                }
+                else
+                {
+                    if ( isSensitive )
+                    {
+                        historyChangeList.AddChange( HistoryVerb.Delete, HistoryChangeType.Record, propertyName, null, null, true );
+                    }
+                    else
+                    {
+                        historyChangeList.AddChange( HistoryVerb.Delete, HistoryChangeType.Record, propertyName, null, oldValue );
+                    }
+                }
+            }
+            else if ( !string.IsNullOrWhiteSpace( newValue ) )
+            {
+                if ( isSensitive )
+                {
+                    historyChangeList.AddChange( HistoryVerb.Add, HistoryChangeType.Record, propertyName, null, null, true );
+            }
+                else
+                {
+                    historyChangeList.AddChange( HistoryVerb.Add, HistoryChangeType.Record, propertyName, newValue, null );
+                }
+            }
+        }
 
         /// <summary>
         /// Evaluates the change, and adds a summary string of what if anything changed
@@ -207,6 +451,7 @@ namespace Rock.Model
         /// <param name="oldValue">The old value.</param>
         /// <param name="newValue">The new value.</param>
         /// <param name="isSensitive">Indicator of whether the values are sensitive in nature and should not be logged.</param>
+        [Obsolete]
         public static void EvaluateChange( List<string> historyMessages, string propertyName, string oldValue, string newValue, bool isSensitive = false )
         {
             if ( !string.IsNullOrWhiteSpace( oldValue ) )
@@ -259,9 +504,26 @@ namespace Rock.Model
         /// <param name="oldValue">The old value.</param>
         /// <param name="newValue">The new value.</param>
         /// <param name="isSensitive">Indicator of whether the values are sensitive in nature and should not be logged.</param>
+        [Obsolete]
         public static void EvaluateChange( List<string> historyMessages, string propertyName, int? oldValue, int? newValue, bool isSensitive = false)
         {
             EvaluateChange( historyMessages, propertyName,
+                oldValue.HasValue ? oldValue.Value.ToString() : string.Empty,
+                newValue.HasValue ? newValue.Value.ToString() : string.Empty,
+                isSensitive );
+        }
+
+        /// <summary>
+        /// Evaluates the change.
+        /// </summary>
+        /// <param name="historyChangeList">The history change list.</param>
+        /// <param name="propertyName">Name of the property.</param>
+        /// <param name="oldValue">The old value.</param>
+        /// <param name="newValue">The new value.</param>
+        /// <param name="isSensitive">if set to <c>true</c> [is sensitive].</param>
+        public static void EvaluateChange( HistoryChangeList historyChangeList, string propertyName, int? oldValue, int? newValue, bool isSensitive = false )
+        {
+            EvaluateChange( historyChangeList, propertyName,
                 oldValue.HasValue ? oldValue.Value.ToString() : string.Empty,
                 newValue.HasValue ? newValue.Value.ToString() : string.Empty,
                 isSensitive );
@@ -275,11 +537,28 @@ namespace Rock.Model
         /// <param name="oldValue">The old value.</param>
         /// <param name="newValue">The new value.</param>
         /// <param name="isSensitive">Indicator of whether the values are sensitive in nature and should not be logged.</param>
+        [Obsolete]
         public static void EvaluateChange( List<string> historyMessages, string propertyName, decimal? oldValue, decimal? newValue, bool isSensitive = false )
         {
             EvaluateChange( historyMessages, propertyName,
                 oldValue.HasValue ? oldValue.Value.ToString("N2") : string.Empty,
                 newValue.HasValue ? newValue.Value.ToString("N2") : string.Empty,
+                isSensitive );
+        }
+
+        /// <summary>
+        /// Evaluates the change.
+        /// </summary>
+        /// <param name="historyChangeList">The history change list.</param>
+        /// <param name="propertyName">Name of the property.</param>
+        /// <param name="oldValue">The old value.</param>
+        /// <param name="newValue">The new value.</param>
+        /// <param name="isSensitive">if set to <c>true</c> [is sensitive].</param>
+        public static void EvaluateChange( HistoryChangeList historyChangeList, string propertyName, decimal? oldValue, decimal? newValue, bool isSensitive = false )
+        {
+            EvaluateChange( historyChangeList, propertyName,
+                oldValue.HasValue ? oldValue.Value.ToString( "N2" ) : string.Empty,
+                newValue.HasValue ? newValue.Value.ToString( "N2" ) : string.Empty,
                 isSensitive );
         }
 
@@ -292,6 +571,7 @@ namespace Rock.Model
         /// <param name="newValue">The new value.</param>
         /// <param name="includeTime">if set to <c>true</c> [include time].</param>
         /// <param name="isSensitive">Indicator of whether the values are sensitive in nature and should not be logged.</param>
+        [Obsolete]
         public static void EvaluateChange( List<string> historyMessages, string propertyName, DateTime? oldValue, DateTime? newValue, bool includeTime = false, bool isSensitive = false )
         {
             string oldStringValue = string.Empty;
@@ -312,11 +592,38 @@ namespace Rock.Model
         /// <summary>
         /// Evaluates the change.
         /// </summary>
+        /// <param name="historyChangeList">The history change list.</param>
+        /// <param name="propertyName">Name of the property.</param>
+        /// <param name="oldValue">The old value.</param>
+        /// <param name="newValue">The new value.</param>
+        /// <param name="includeTime">if set to <c>true</c> [include time].</param>
+        /// <param name="isSensitive">if set to <c>true</c> [is sensitive].</param>
+        public static void EvaluateChange( HistoryChangeList historyChangeList, string propertyName, DateTime? oldValue, DateTime? newValue, bool includeTime = false, bool isSensitive = false )
+        {
+            string oldStringValue = string.Empty;
+            if ( oldValue.HasValue )
+            {
+                oldStringValue = includeTime ? oldValue.Value.ToString() : oldValue.Value.ToShortDateString();
+            }
+
+            string newStringValue = string.Empty;
+            if ( newValue.HasValue )
+            {
+                newStringValue = includeTime ? newValue.Value.ToString() : newValue.Value.ToShortDateString();
+            }
+
+            EvaluateChange( historyChangeList, propertyName, oldStringValue, newStringValue, isSensitive );
+        }
+
+        /// <summary>
+        /// Evaluates the change.
+        /// </summary>
         /// <param name="historyMessages">The history messages.</param>
         /// <param name="propertyName">Name of the property.</param>
         /// <param name="oldValue">if set to <c>true</c> [old value].</param>
         /// <param name="newValue">if set to <c>true</c> [new value].</param>
         /// <param name="isSensitive">Indicator of whether the values are sensitive in nature and should not be logged.</param>
+        [Obsolete]
         public static void EvaluateChange( List<string> historyMessages, string propertyName, bool? oldValue, bool? newValue, bool isSensitive = false )
         {
             EvaluateChange( historyMessages, propertyName,
@@ -328,16 +635,48 @@ namespace Rock.Model
         /// <summary>
         /// Evaluates the change.
         /// </summary>
+        /// <param name="historyChangeList">The history change list.</param>
+        /// <param name="propertyName">Name of the property.</param>
+        /// <param name="oldValue">The old value.</param>
+        /// <param name="newValue">The new value.</param>
+        /// <param name="isSensitive">if set to <c>true</c> [is sensitive].</param>
+        public static void EvaluateChange( HistoryChangeList historyChangeList, string propertyName, bool? oldValue, bool? newValue, bool isSensitive = false )
+        {
+            EvaluateChange( historyChangeList, propertyName,
+                oldValue.HasValue ? oldValue.Value.ToString() : string.Empty,
+                newValue.HasValue ? newValue.Value.ToString() : string.Empty,
+                isSensitive );
+        }
+
+        /// <summary>
+        /// Evaluates the change.
+        /// </summary>
         /// <param name="historyMessages">The history messages.</param>
         /// <param name="propertyName">Name of the property.</param>
         /// <param name="oldValue">The old value.</param>
         /// <param name="newValue">The new value.</param>
         /// <param name="isSensitive">Indicator of whether the values are sensitive in nature and should not be logged.</param>
+        [Obsolete]
         public static void EvaluateChange( List<string> historyMessages, string propertyName, Enum oldValue, Enum newValue, bool isSensitive = false )
         {
             string oldStringValue = oldValue != null ? oldValue.ConvertToString() : string.Empty;
             string newStringValue = newValue != null ? newValue.ConvertToString() : string.Empty;
             EvaluateChange( historyMessages, propertyName, oldStringValue, newStringValue, isSensitive );
+        }
+
+        /// <summary>
+        /// Evaluates the change.
+        /// </summary>
+        /// <param name="historyChangeList">The history change list.</param>
+        /// <param name="propertyName">Name of the property.</param>
+        /// <param name="oldValue">The old value.</param>
+        /// <param name="newValue">The new value.</param>
+        /// <param name="isSensitive">if set to <c>true</c> [is sensitive].</param>
+        public static void EvaluateChange( HistoryChangeList historyChangeList, string propertyName, Enum oldValue, Enum newValue, bool isSensitive = false )
+        {
+            string oldStringValue = oldValue != null ? oldValue.ConvertToString() : string.Empty;
+            string newStringValue = newValue != null ? newValue.ConvertToString() : string.Empty;
+            EvaluateChange( historyChangeList, propertyName, oldStringValue, newStringValue, isSensitive );
         }
 
         /// <summary>
@@ -348,9 +687,23 @@ namespace Rock.Model
         /// <param name="oldDefinedValueId">The old defined value identifier.</param>
         /// <param name="newDefinedValue">The new defined value.</param>
         /// <param name="newDefinedValueId">The new defined value identifier.</param>
+        [Obsolete]
         public static void EvaluateChange( List<string> historyMessages, string propertyName, int? oldDefinedValueId, DefinedValue newDefinedValue, int? newDefinedValueId )
         {
             EvaluateChange( historyMessages, propertyName, oldDefinedValueId, newDefinedValue, newDefinedValueId, string.Empty, false );
+        }
+
+        /// <summary>
+        /// Evaluates the defined value change.
+        /// </summary>
+        /// <param name="historyChangeList">The history change list.</param>
+        /// <param name="propertyName">Name of the property.</param>
+        /// <param name="oldDefinedValueId">The old defined value identifier.</param>
+        /// <param name="newDefinedValue">The new defined value.</param>
+        /// <param name="newDefinedValueId">The new defined value identifier.</param>
+        public static void EvaluateChange( HistoryChangeList historyChangeList, string propertyName, int? oldDefinedValueId, DefinedValue newDefinedValue, int? newDefinedValueId )
+        {
+            EvaluateChange( historyChangeList, propertyName, oldDefinedValueId, newDefinedValue, newDefinedValueId, string.Empty, false );
         }
 
         /// <summary>
@@ -363,6 +716,7 @@ namespace Rock.Model
         /// <param name="newDefinedValueId">The new defined value identifier.</param>
         /// <param name="blankValue">The blank value.</param>
         /// <param name="isSensitive">if set to <c>true</c> [is sensitive].</param>
+        [Obsolete]
         public static void EvaluateChange( List<string> historyMessages, string propertyName, int? oldDefinedValueId, DefinedValue newDefinedValue, int? newDefinedValueId, string blankValue, bool isSensitive )
         {
             if ( !oldDefinedValueId.Equals( newDefinedValueId ) )
@@ -374,6 +728,26 @@ namespace Rock.Model
         }
 
         /// <summary>
+        /// Evaluates the change.
+        /// </summary>
+        /// <param name="historyChangeList">The history change list.</param>
+        /// <param name="propertyName">Name of the property.</param>
+        /// <param name="oldDefinedValueId">The old defined value identifier.</param>
+        /// <param name="newDefinedValue">The new defined value.</param>
+        /// <param name="newDefinedValueId">The new defined value identifier.</param>
+        /// <param name="blankValue">The blank value.</param>
+        /// <param name="isSensitive">if set to <c>true</c> [is sensitive].</param>
+        public static void EvaluateChange( HistoryChangeList historyChangeList, string propertyName, int? oldDefinedValueId, DefinedValue newDefinedValue, int? newDefinedValueId, string blankValue, bool isSensitive )
+        {
+            if ( !oldDefinedValueId.Equals( newDefinedValueId ) )
+            {
+                string oldStringValue = GetDefinedValueValue( null, oldDefinedValueId, blankValue );
+                string newStringValue = GetDefinedValueValue( newDefinedValue, newDefinedValueId, blankValue );
+                EvaluateChange( historyChangeList, propertyName, oldStringValue, newStringValue, isSensitive );
+            }
+        }
+
+        /// <summary>
         /// Evaluates a group type value change.
         /// </summary>
         /// <param name="historyMessages">The history messages.</param>
@@ -381,9 +755,23 @@ namespace Rock.Model
         /// <param name="oldGroupTypeId">The old defined value identifier.</param>
         /// <param name="newGroupType">The new defined value.</param>
         /// <param name="newGroupTypeId">The new defined value identifier.</param>
+        [Obsolete]
         public static void EvaluateChange( List<string> historyMessages, string propertyName, int? oldGroupTypeId, GroupType newGroupType, int? newGroupTypeId )
         {
             EvaluateChange( historyMessages, propertyName, oldGroupTypeId, newGroupType, newGroupTypeId, string.Empty, false );
+        }
+
+        /// <summary>
+        /// Evaluates a group type value change.
+        /// </summary>
+        /// <param name="historyChangeList">The history change list.</param>
+        /// <param name="propertyName">Name of the property.</param>
+        /// <param name="oldGroupTypeId">The old group type identifier.</param>
+        /// <param name="newGroupType">New type of the group.</param>
+        /// <param name="newGroupTypeId">The new group type identifier.</param>
+        public static void EvaluateChange( HistoryChangeList historyChangeList, string propertyName, int? oldGroupTypeId, GroupType newGroupType, int? newGroupTypeId )
+        {
+            EvaluateChange( historyChangeList, propertyName, oldGroupTypeId, newGroupType, newGroupTypeId, string.Empty, false );
         }
 
         /// <summary>
@@ -396,6 +784,7 @@ namespace Rock.Model
         /// <param name="newGroupTypeId">The new defined value identifier.</param>
         /// <param name="blankValue">The blank value.</param>
         /// <param name="isSensitive">if set to <c>true</c> [is sensitive].</param>
+        [Obsolete]
         public static void EvaluateChange( List<string> historyMessages, string propertyName, int? oldGroupTypeId, GroupType newGroupType, int? newGroupTypeId, string blankValue, bool isSensitive )
         {
             if ( !oldGroupTypeId.Equals( newGroupTypeId ) )
@@ -407,6 +796,26 @@ namespace Rock.Model
         }
 
         /// <summary>
+        /// Evaluates the change.
+        /// </summary>
+        /// <param name="historyChangeList">The history change list.</param>
+        /// <param name="propertyName">Name of the property.</param>
+        /// <param name="oldGroupTypeId">The old group type identifier.</param>
+        /// <param name="newGroupType">New type of the group.</param>
+        /// <param name="newGroupTypeId">The new group type identifier.</param>
+        /// <param name="blankValue">The blank value.</param>
+        /// <param name="isSensitive">if set to <c>true</c> [is sensitive].</param>
+        public static void EvaluateChange( HistoryChangeList historyChangeList, string propertyName, int? oldGroupTypeId, GroupType newGroupType, int? newGroupTypeId, string blankValue, bool isSensitive )
+        {
+            if ( !oldGroupTypeId.Equals( newGroupTypeId ) )
+            {
+                string oldStringValue = GetGroupTypeValue( null, oldGroupTypeId, blankValue );
+                string newStringValue = GetGroupTypeValue( newGroupType, newGroupTypeId, blankValue );
+                EvaluateChange( historyChangeList, propertyName, oldStringValue, newStringValue, isSensitive );
+            }
+        }
+
+        /// <summary>
         /// Evaluates a campus change.
         /// </summary>
         /// <param name="historyMessages">The history messages.</param>
@@ -414,9 +823,23 @@ namespace Rock.Model
         /// <param name="oldCampusId">The old defined value identifier.</param>
         /// <param name="newCampus">The new defined value.</param>
         /// <param name="newCampusId">The new defined value identifier.</param>
+        [Obsolete]
         public static void EvaluateChange( List<string> historyMessages, string propertyName, int? oldCampusId, Campus newCampus, int? newCampusId )
         {
             EvaluateChange( historyMessages, propertyName, oldCampusId, newCampus, newCampusId, string.Empty, false );
+        }
+
+        /// <summary>
+        /// Evaluates a campus change.
+        /// </summary>
+        /// <param name="historyChangeList">The history change list.</param>
+        /// <param name="propertyName">Name of the property.</param>
+        /// <param name="oldCampusId">The old campus identifier.</param>
+        /// <param name="newCampus">The new campus.</param>
+        /// <param name="newCampusId">The new campus identifier.</param>
+        public static void EvaluateChange( HistoryChangeList historyChangeList, string propertyName, int? oldCampusId, Campus newCampus, int? newCampusId )
+        {
+            EvaluateChange( historyChangeList, propertyName, oldCampusId, newCampus, newCampusId, string.Empty, false );
         }
 
         /// <summary>
@@ -429,6 +852,7 @@ namespace Rock.Model
         /// <param name="newCampusId">The new defined value identifier.</param>
         /// <param name="blankValue">The blank value.</param>
         /// <param name="isSensitive">if set to <c>true</c> [is sensitive].</param>
+        [Obsolete]
         public static void EvaluateChange( List<string> historyMessages, string propertyName, int? oldCampusId, Campus newCampus, int? newCampusId, string blankValue, bool isSensitive )
         {
             if ( !oldCampusId.Equals( newCampusId ) )
@@ -436,6 +860,26 @@ namespace Rock.Model
                 string oldStringValue = GetCampusValue( null, oldCampusId, blankValue );
                 string newStringValue = GetCampusValue( newCampus, newCampusId, blankValue );
                 EvaluateChange( historyMessages, propertyName, oldStringValue, newStringValue, isSensitive );
+            }
+        }
+
+        /// <summary>
+        /// Evaluates the change.
+        /// </summary>
+        /// <param name="historyChangeList">The history change list.</param>
+        /// <param name="propertyName">Name of the property.</param>
+        /// <param name="oldCampusId">The old campus identifier.</param>
+        /// <param name="newCampus">The new campus.</param>
+        /// <param name="newCampusId">The new campus identifier.</param>
+        /// <param name="blankValue">The blank value.</param>
+        /// <param name="isSensitive">if set to <c>true</c> [is sensitive].</param>
+        public static void EvaluateChange( HistoryChangeList historyChangeList, string propertyName, int? oldCampusId, Campus newCampus, int? newCampusId, string blankValue, bool isSensitive )
+        {
+            if ( !oldCampusId.Equals( newCampusId ) )
+            {
+                string oldStringValue = GetCampusValue( null, oldCampusId, blankValue );
+                string newStringValue = GetCampusValue( newCampus, newCampusId, blankValue );
+                EvaluateChange( historyChangeList, propertyName, oldStringValue, newStringValue, isSensitive );
             }
         }
 
@@ -448,9 +892,24 @@ namespace Rock.Model
         /// <param name="newPersonAlias">The new person alias.</param>
         /// <param name="newPersonAliasId">The new person alias identifier.</param>
         /// <param name="rockContext">The rock context.</param>
+        [Obsolete]
         public static void EvaluateChange( List<string> historyMessages, string propertyName, int? oldPersonAliasId, PersonAlias newPersonAlias, int? newPersonAliasId, RockContext rockContext )
         {
             EvaluateChange( historyMessages, propertyName, oldPersonAliasId, newPersonAlias, newPersonAliasId, rockContext, string.Empty, false );
+        }
+
+        /// <summary>
+        /// Evaluates the person alias change.
+        /// </summary>
+        /// <param name="historyChangeList">The history change list.</param>
+        /// <param name="propertyName">Name of the property.</param>
+        /// <param name="oldPersonAliasId">The old person alias identifier.</param>
+        /// <param name="newPersonAlias">The new person alias.</param>
+        /// <param name="newPersonAliasId">The new person alias identifier.</param>
+        /// <param name="rockContext">The rock context.</param>
+        public static void EvaluateChange( HistoryChangeList historyChangeList, string propertyName, int? oldPersonAliasId, PersonAlias newPersonAlias, int? newPersonAliasId, RockContext rockContext )
+        {
+            EvaluateChange( historyChangeList, propertyName, oldPersonAliasId, newPersonAlias, newPersonAliasId, rockContext, string.Empty, false );
         }
 
         /// <summary>
@@ -464,6 +923,7 @@ namespace Rock.Model
         /// <param name="rockContext">The rock context.</param>
         /// <param name="blankValue">The blank value.</param>
         /// <param name="isSensitive">if set to <c>true</c> [is sensitive].</param>
+        [Obsolete]
         public static void EvaluateChange( List<string> historyMessages, string propertyName, int? oldPersonAliasId, PersonAlias newPersonAlias, int? newPersonAliasId, RockContext rockContext, string blankValue, bool isSensitive )
         {
             if ( !oldPersonAliasId.Equals( newPersonAliasId ) )
@@ -471,6 +931,27 @@ namespace Rock.Model
                 string oldStringValue = GetValue<PersonAlias>( null, oldPersonAliasId, rockContext, blankValue );
                 string newStringValue = GetValue<PersonAlias>( newPersonAlias, newPersonAliasId, rockContext, blankValue );
                 EvaluateChange( historyMessages, propertyName, oldStringValue, newStringValue, isSensitive );
+            }
+        }
+
+        /// <summary>
+        /// Evaluates the change.
+        /// </summary>
+        /// <param name="historyChangeList">The history change list.</param>
+        /// <param name="propertyName">Name of the property.</param>
+        /// <param name="oldPersonAliasId">The old person alias identifier.</param>
+        /// <param name="newPersonAlias">The new person alias.</param>
+        /// <param name="newPersonAliasId">The new person alias identifier.</param>
+        /// <param name="rockContext">The rock context.</param>
+        /// <param name="blankValue">The blank value.</param>
+        /// <param name="isSensitive">if set to <c>true</c> [is sensitive].</param>
+        public static void EvaluateChange( HistoryChangeList historyChangeList, string propertyName, int? oldPersonAliasId, PersonAlias newPersonAlias, int? newPersonAliasId, RockContext rockContext, string blankValue, bool isSensitive )
+        {
+            if ( !oldPersonAliasId.Equals( newPersonAliasId ) )
+            {
+                string oldStringValue = GetValue<PersonAlias>( null, oldPersonAliasId, rockContext, blankValue );
+                string newStringValue = GetValue<PersonAlias>( newPersonAlias, newPersonAliasId, rockContext, blankValue );
+                EvaluateChange( historyChangeList, propertyName, oldStringValue, newStringValue, isSensitive );
             }
         }
 
@@ -483,6 +964,7 @@ namespace Rock.Model
         /// <param name="newGroup">The new person alias.</param>
         /// <param name="newGroupId">The new person alias identifier.</param>
         /// <param name="rockContext">The rock context.</param>
+        [Obsolete]
         public static void EvaluateChange( List<string> historyMessages, string propertyName, int? oldGroupId, Group newGroup, int? newGroupId, RockContext rockContext )
         {
             EvaluateChange( historyMessages, propertyName, oldGroupId, newGroup, newGroupId, rockContext, string.Empty, false );
@@ -499,6 +981,7 @@ namespace Rock.Model
         /// <param name="rockContext">The rock context.</param>
         /// <param name="blankValue">The blank value.</param>
         /// <param name="isSensitive">if set to <c>true</c> [is sensitive].</param>
+        [Obsolete]
         public static void EvaluateChange( List<string> historyMessages, string propertyName, int? oldGroupId, Group newGroup, int? newGroupId, RockContext rockContext, string blankValue, bool isSensitive )
         {
             if ( !oldGroupId.Equals( newGroupId ) )
@@ -518,9 +1001,24 @@ namespace Rock.Model
         /// <param name="newGroupTypeRole">The new person alias.</param>
         /// <param name="newGroupTypeRoleId">The new person alias identifier.</param>
         /// <param name="rockContext">The rock context.</param>
+        [Obsolete]
         public static void EvaluateChange( List<string> historyMessages, string propertyName, int? oldGroupTypeRoleId, GroupTypeRole newGroupTypeRole, int? newGroupTypeRoleId, RockContext rockContext )
         {
             EvaluateChange( historyMessages, propertyName, oldGroupTypeRoleId, newGroupTypeRole, newGroupTypeRoleId, rockContext, string.Empty, false );
+        }
+
+        /// <summary>
+        /// Evaluates the change.
+        /// </summary>
+        /// <param name="historyChangeList">The history change list.</param>
+        /// <param name="propertyName">Name of the property.</param>
+        /// <param name="oldGroupTypeRoleId">The old group type role identifier.</param>
+        /// <param name="newGroupTypeRole">The new group type role.</param>
+        /// <param name="newGroupTypeRoleId">The new group type role identifier.</param>
+        /// <param name="rockContext">The rock context.</param>
+        public static void EvaluateChange( HistoryChangeList historyChangeList, string propertyName, int? oldGroupTypeRoleId, GroupTypeRole newGroupTypeRole, int? newGroupTypeRoleId, RockContext rockContext )
+        {
+            EvaluateChange( historyChangeList, propertyName, oldGroupTypeRoleId, newGroupTypeRole, newGroupTypeRoleId, rockContext, string.Empty, false );
         }
 
         /// <summary>
@@ -534,6 +1032,7 @@ namespace Rock.Model
         /// <param name="rockContext">The rock context.</param>
         /// <param name="blankValue">The blank value.</param>
         /// <param name="isSensitive">if set to <c>true</c> [is sensitive].</param>
+        [Obsolete]
         public static void EvaluateChange( List<string> historyMessages, string propertyName, int? oldGroupTypeRoleId, GroupTypeRole newGroupTypeRole, int? newGroupTypeRoleId, RockContext rockContext, string blankValue, bool isSensitive )
         {
             if ( !oldGroupTypeRoleId.Equals( newGroupTypeRoleId ) )
@@ -541,6 +1040,27 @@ namespace Rock.Model
                 string oldStringValue = GetValue<GroupTypeRole>( null, oldGroupTypeRoleId, rockContext, blankValue );
                 string newStringValue = GetValue<GroupTypeRole>( newGroupTypeRole, newGroupTypeRoleId, rockContext, blankValue );
                 EvaluateChange( historyMessages, propertyName, oldStringValue, newStringValue, isSensitive );
+            }
+        }
+
+        /// <summary>
+        /// Evaluates the change.
+        /// </summary>
+        /// <param name="historyChangeList">The history change list.</param>
+        /// <param name="propertyName">Name of the property.</param>
+        /// <param name="oldGroupTypeRoleId">The old group type role identifier.</param>
+        /// <param name="newGroupTypeRole">The new group type role.</param>
+        /// <param name="newGroupTypeRoleId">The new group type role identifier.</param>
+        /// <param name="rockContext">The rock context.</param>
+        /// <param name="blankValue">The blank value.</param>
+        /// <param name="isSensitive">if set to <c>true</c> [is sensitive].</param>
+        public static void EvaluateChange( HistoryChangeList historyChangeList, string propertyName, int? oldGroupTypeRoleId, GroupTypeRole newGroupTypeRole, int? newGroupTypeRoleId, RockContext rockContext, string blankValue, bool isSensitive )
+        {
+            if ( !oldGroupTypeRoleId.Equals( newGroupTypeRoleId ) )
+            {
+                string oldStringValue = GetValue<GroupTypeRole>( null, oldGroupTypeRoleId, rockContext, blankValue );
+                string newStringValue = GetValue<GroupTypeRole>( newGroupTypeRole, newGroupTypeRoleId, rockContext, blankValue );
+                EvaluateChange( historyChangeList, propertyName, oldStringValue, newStringValue, isSensitive );
             }
         }
 
@@ -553,9 +1073,24 @@ namespace Rock.Model
         /// <param name="newLocation">The new person alias.</param>
         /// <param name="newLocationId">The new person alias identifier.</param>
         /// <param name="rockContext">The rock context.</param>
+        [Obsolete]
         public static void EvaluateChange( List<string> historyMessages, string propertyName, int? oldLocationId, Location newLocation, int? newLocationId, RockContext rockContext )
         {
             EvaluateChange( historyMessages, propertyName, oldLocationId, newLocation, newLocationId, rockContext, string.Empty, false );
+        }
+
+        /// <summary>
+        /// Evaluates the change.
+        /// </summary>
+        /// <param name="historyChangeList">The history change list.</param>
+        /// <param name="propertyName">Name of the property.</param>
+        /// <param name="oldLocationId">The old location identifier.</param>
+        /// <param name="newLocation">The new location.</param>
+        /// <param name="newLocationId">The new location identifier.</param>
+        /// <param name="rockContext">The rock context.</param>
+        public static void EvaluateChange( HistoryChangeList historyChangeList, string propertyName, int? oldLocationId, Location newLocation, int? newLocationId, RockContext rockContext )
+        {
+            EvaluateChange( historyChangeList, propertyName, oldLocationId, newLocation, newLocationId, rockContext, string.Empty, false );
         }
 
         /// <summary>
@@ -569,6 +1104,7 @@ namespace Rock.Model
         /// <param name="rockContext">The rock context.</param>
         /// <param name="blankValue">The blank value.</param>
         /// <param name="isSensitive">if set to <c>true</c> [is sensitive].</param>
+        [Obsolete]
         public static void EvaluateChange( List<string> historyMessages, string propertyName, int? oldLocationId, Location newLocation, int? newLocationId, RockContext rockContext, string blankValue, bool isSensitive )
         {
             if ( !oldLocationId.Equals( newLocationId ) )
@@ -576,6 +1112,27 @@ namespace Rock.Model
                 string oldStringValue = GetValue<Location>( null, oldLocationId, rockContext, blankValue );
                 string newStringValue = GetValue<Location>( newLocation, newLocationId, rockContext, blankValue );
                 EvaluateChange( historyMessages, propertyName, oldStringValue, newStringValue, isSensitive );
+            }
+        }
+
+        /// <summary>
+        /// Evaluates the change.
+        /// </summary>
+        /// <param name="historyChangeList">The history change list.</param>
+        /// <param name="propertyName">Name of the property.</param>
+        /// <param name="oldLocationId">The old location identifier.</param>
+        /// <param name="newLocation">The new location.</param>
+        /// <param name="newLocationId">The new location identifier.</param>
+        /// <param name="rockContext">The rock context.</param>
+        /// <param name="blankValue">The blank value.</param>
+        /// <param name="isSensitive">if set to <c>true</c> [is sensitive].</param>
+        public static void EvaluateChange( HistoryChangeList historyChangeList, string propertyName, int? oldLocationId, Location newLocation, int? newLocationId, RockContext rockContext, string blankValue, bool isSensitive )
+        {
+            if ( !oldLocationId.Equals( newLocationId ) )
+            {
+                string oldStringValue = GetValue<Location>( null, oldLocationId, rockContext, blankValue );
+                string newStringValue = GetValue<Location>( newLocation, newLocationId, rockContext, blankValue );
+                EvaluateChange( historyChangeList, propertyName, oldStringValue, newStringValue, isSensitive );
             }
         }
 
@@ -909,6 +1466,181 @@ namespace Rock.Model
 
         #endregion
 
+        #region History Classes
+
+        /// <summary>
+        /// Helper class that can be used to keep add and track of History Changes and can be passed around to the various History methods
+        /// </summary>
+        public class HistoryChangeList : List<HistoryChange>
+        {
+            /// <summary>
+            /// Adds the summary.
+            /// </summary>
+            /// <param name="summary">The summary.</param>
+            [Obsolete]
+            public void AddSummary( string summary)
+            {
+                this.Add( new HistoryChange( summary ) );
+            }
+
+            /// <summary>
+            /// Adds a HistoryChange record to the list.
+            /// Returns the HistoryChange object so caller can set additional property values if needed
+            /// </summary>
+            /// <param name="historyVerb">The history verb.</param>
+            /// <param name="historyChangeType">Whether this is a property change, attribute change, or something else</param>
+            /// <param name="valueName">Depending on  HistoryChangeType.Property: Property Friendly Name, Attribute => Attribute.Name, etc </param>
+            /// <param name="newValue">The new value.</param>
+            /// <param name="oldValue">The old value.</param>
+            /// <returns></returns>
+            public HistoryChange AddChange( HistoryVerb historyVerb, HistoryChangeType historyChangeType, string valueName, string newValue, string oldValue )
+            {
+                var historyChange = new HistoryChange( historyVerb, historyChangeType, valueName, newValue, oldValue );
+                this.Add( historyChange );
+                return historyChange;
+            }
+
+            /// <summary>
+            /// Adds a HistoryChange record to the list with an option of specifying of the value is sensitive.
+            /// Returns the HistoryChange object so caller can set additional property values if needed
+            /// </summary>
+            /// <param name="historyVerb">The history verb.</param>
+            /// <param name="historyChangeType">Whether this is a property change, attribute change, or something else</param>
+            /// <param name="valueName">Depending on  HistoryChangeType.Property: Property Friendly Name, Attribute => Attribute.Name, etc </param>
+            /// <param name="newValue">The new value.</param>
+            /// <param name="oldValue">The old value.</param>
+            /// <param name="isSensitive">if set to <c>true</c> [is sensitive].</param>
+            /// <returns></returns>
+            public HistoryChange AddChange( HistoryVerb historyVerb, HistoryChangeType historyChangeType, string valueName, string newValue, string oldValue, bool isSensitive )
+            {
+                var historyChange = new HistoryChange( historyVerb, historyChangeType, valueName, newValue, oldValue ) { IsSensitive = isSensitive };
+                this.Add( historyChange );
+                return historyChange;
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public class HistoryChange
+        {
+            /// <summary>
+            /// Initializes a new instance of the <see cref="HistoryChange"/> class.
+            /// </summary>
+            /// <param name="summary">The summary.</param>
+            [Obsolete]
+            public HistoryChange( string summary)
+            {
+                this.Summary = summary;
+            }
+
+            /// <summary>
+            /// Initializes a new instance of the <see cref="HistoryChange"/> class.
+            /// </summary>
+            /// <param name="historyVerb">The history verb.</param>
+            /// <param name="historyChangeType">Whether this is a property change, attribute change, or something else</param>
+            /// <param name="valueName">Depending on  HistoryChangeType.Property: Property Friendly Name, Attribute => Attribute.Name, etc </param>
+            /// <param name="newValue">The new value.</param>
+            /// <param name="oldValue">The old value.</param>
+            public HistoryChange( HistoryVerb historyVerb, HistoryChangeType historyChangeType, string valueName, string newValue, string oldValue )
+            {
+                this.Verb = historyVerb.ConvertToString( false ).ToUpper();
+                this.ChangeType = historyChangeType.ConvertToString( false );
+                this.ValueName = valueName;
+                this.NewValue = newValue;
+                this.OldValue = oldValue;
+            }
+
+            /// <summary>
+            /// Gets or sets the verb.
+            /// </summary>
+            /// <value>
+            /// The verb.
+            /// </value>
+            public string Verb { get; set; }
+
+            /// <summary>
+            /// Gets or sets the type of the change.
+            /// </summary>
+            /// <value>
+            /// The type of the change.
+            /// </value>
+            public string ChangeType { get; set; }
+
+            /// <summary>
+            /// Gets or sets the name of the value.
+            /// </summary>
+            /// <value>
+            /// The name of the value.
+            /// </value>
+            public string ValueName { get; set; }
+
+            /// <summary>
+            /// Gets or sets the new value.
+            /// </summary>
+            /// <value>
+            /// The new value.
+            /// </value>
+            public object NewValue { get; set; }
+
+            /// <summary>
+            /// Gets or sets the old value.
+            /// </summary>
+            /// <value>
+            /// The old value.
+            /// </value>
+            public object OldValue { get; set; }
+
+            /// <summary>
+            /// Gets or sets a value indicating whether this instance is sensitive.
+            /// </summary>
+            /// <value>
+            ///   <c>true</c> if this instance is sensitive; otherwise, <c>false</c>.
+            /// </value>
+            public bool IsSensitive { get; set; }
+
+            /// <summary>
+            /// Optional: Gets or sets name of the tool or process that changed the value
+            /// </summary>
+            /// <value>
+            /// The source of change.
+            /// </value>
+            public string SourceOfChange { get; set; }
+
+            /// <summary>
+            /// Sets name of the tool or process that changed the value
+            /// </summary>
+            /// <param name="sourceOfChange">The source of change.</param>
+            /// <returns></returns>
+            public HistoryChange SetSourceOfChange( string sourceOfChange )
+            {
+                this.SourceOfChange = sourceOfChange;
+                return this;
+            }
+
+            /// <summary>
+            /// Sets History Record as Sensitive and ensures that OldValue and NewValue are not included
+            /// </summary>
+            /// <returns></returns>
+            public HistoryChange SetSensitive()
+            {
+                this.IsSensitive = true;
+                this.OldValue = null;
+                this.NewValue = null;
+                return this;
+            }
+
+            /// <summary>
+            /// Gets or sets the summary.
+            /// </summary>
+            /// <value>
+            /// The summary.
+            /// </value>
+            [Obsolete]
+            public string Summary { get; set; }
+        }
+
+        #endregion
     }
 
     #region Entity Configuration

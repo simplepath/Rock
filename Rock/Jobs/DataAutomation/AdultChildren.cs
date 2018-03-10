@@ -175,7 +175,7 @@ ORDER BY [Text]", true, false, "", "", 1 )]
                         }
 
                         // Setup a variable for tracking person changes
-                        var personChanges = new List<string>();
+                        var personChanges = new History.HistoryChangeList();
 
                         // Get all the parent and sibling ids (for adding relationships later)
                         var parentIds = groupMembers
@@ -222,7 +222,7 @@ ORDER BY [Text]", true, false, "", "", 1 )]
                                 }
 
                                 // Save role change to history
-                                var memberChanges = new List<string>();
+                                var memberChanges = new History.HistoryChangeList();
                                 History.EvaluateChange( memberChanges, "Role", string.Empty, adultRole.Name );
                                 HistoryService.SaveChanges( rockContext, typeof( Person ), familyChangesGuid, personId, memberChanges, newFamily.Name, typeof( Group ), newFamily.Id, false );
                             }
@@ -245,7 +245,7 @@ ORDER BY [Text]", true, false, "", "", 1 )]
                         // If user configured the job to copy home address and this person's family does not have any home addresses, copy them from the primary family
                         if ( copyAddress && !newFamily.GroupLocations.Any( l => l.GroupLocationTypeValue != null && l.GroupLocationTypeValue.Guid == homeAddressGuid ) )
                         {
-                            var familyChanges = new List<string>();
+                            var familyChanges = new History.HistoryChangeList();
 
                             foreach ( var groupLocation in primaryFamily.GroupLocations.Where( l => l.GroupLocationTypeValue != null && l.GroupLocationTypeValue.Guid == homeAddressGuid ) )
                             {
@@ -314,7 +314,7 @@ ORDER BY [Text]", true, false, "", "", 1 )]
                         // So now we should delete any of the remaining family member records where they are still a child.
                         foreach ( var groupMember in groupMembers.Where( m => m.GroupRoleId == childRole.Id ) )
                         {
-                            var memberDelete = new List<string>();
+                            var memberDelete = new History.HistoryChangeList();
                             History.EvaluateChange( memberDelete, "Family", groupMember.Group.Name, string.Empty );
                             HistoryService.SaveChanges( rockContext, typeof( Person ), familyChangesGuid, personId, memberDelete, groupMember.Group.Name, typeof( Group ), groupMember.Group.Id, false );
 
@@ -322,7 +322,7 @@ ORDER BY [Text]", true, false, "", "", 1 )]
                         }
 
                         // Add a history record indicating that we processed this person
-                        personChanges.Add( "Person was automatically updated to an adult by Data Automation job." );
+                        personChanges.AddChange( History.HistoryVerb.Modify, History.HistoryChangeType.Property, "Adult Status", "Adult", null ).SetSourceOfChange( "Data Automation Job" );
                         HistoryService.SaveChanges( rockContext, typeof( Person ), personChangesGuid, personId, personChanges, false );
 
                         // Save all the changes

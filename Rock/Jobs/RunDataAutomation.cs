@@ -211,9 +211,9 @@ namespace Rock.Jobs
                                 var familyGroup = new GroupService( rockContext ).Get( family.Id );
                                 familyGroup.CampusId = updateCampusId;
 
-                                var changes = new List<string>();
+                                var changes = new History.HistoryChangeList();
                                 string oldCampusName = currentCampusId.HasValue ? CampusCache.Read( currentCampusId.Value ).Name : string.Empty;
-                                changes.Add( $"Modifed Campus from <span class='field-value'>{oldCampusName}</span> to <span class'field-value'>{CampusCache.Read( updateCampusId.Value ).Name}</span> due to data automation job." );
+                                changes.AddChange( History.HistoryVerb.Modify, History.HistoryChangeType.Property, "Campus", oldCampusName, CampusCache.Read( updateCampusId.Value ).Name ).SourceOfChange = "Data Automation Job";
                                 HistoryService.AddChanges( rockContext, typeof( Person ), Rock.SystemGuid.Category.HISTORY_PERSON_FAMILY_CHANGES.AsGuid(),
                                    personIds.FirstOrDefault(), changes,family.Name,typeof(Group),family.Id );
 
@@ -393,8 +393,8 @@ namespace Rock.Jobs
                         inactivePerson.RecordStatusValueId = activeStatusId;
                         inactivePerson.RecordStatusReasonValueId = null;
 
-                        var changes = new List<string>();
-                        changes.Add( $"Modifed Record Status from <span class='field-value'>{DefinedValueCache.GetName( person.RecordStatusValueId )}</span> to <span class'field-value'>{DefinedValueCache.GetName( activeStatusId )}</span> due to data automation job." );
+                        var changes = new History.HistoryChangeList();
+                        changes.AddChange( History.HistoryVerb.Modify, History.HistoryChangeType.Property, "Record Status", DefinedValueCache.GetName( person.RecordStatusValueId ), DefinedValueCache.GetName( activeStatusId ) ).SourceOfChange = "Data Automation Job";
                         HistoryService.AddChanges( rockContext, typeof( Person ), Rock.SystemGuid.Category.HISTORY_PERSON.AsGuid(),
                            person.Id, changes );
                         rockContext.SaveChanges();
@@ -527,8 +527,8 @@ namespace Rock.Jobs
                         inactivePerson.RecordStatusValueId = inActiveStatusId;
                         inactivePerson.RecordStatusReasonValueId = null;
 
-                        var changes = new List<string>();
-                        changes.Add( $"Modifed Record Status from <span class='field-value'>{DefinedValueCache.GetName( person.RecordStatusValueId )}</span> to <span class'field-value'>{DefinedValueCache.GetName( inActiveStatusId )}</span> due to data automation job." );
+                        var changes = new History.HistoryChangeList();
+                        changes.AddChange( History.HistoryVerb.Modify, History.HistoryChangeType.Property, "Record Status", DefinedValueCache.GetName( person.RecordStatusValueId ), DefinedValueCache.GetName( inActiveStatusId ) ).SourceOfChange = "Data Automation Job";
                         HistoryService.AddChanges( rockContext, typeof( Person ), Rock.SystemGuid.Category.HISTORY_PERSON.AsGuid(),
                            person.Id, changes );
                         rockContext.SaveChanges();

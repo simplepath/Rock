@@ -1654,23 +1654,38 @@ namespace Rock.Model
         /// <param name="reason">The reason.</param>
         /// <param name="reasonNote">The reason note.</param>
         /// <returns></returns>
+        /// 
+        [Obsolete]
         public List<string> InactivatePerson( Person person, DefinedValueCache reason, string reasonNote )
         {
-            var changes = new List<string>();
+            History.HistoryChangeList historyChangeList;
+            InactivatePerson( person, reason, reasonNote, out historyChangeList );
+
+            return historyChangeList.Select( a => a.Summary ).ToList();
+        }
+
+        /// <summary>
+        /// Inactivates a person.
+        /// </summary>
+        /// <param name="person">The person.</param>
+        /// <param name="reason">The reason.</param>
+        /// <param name="reasonNote">The reason note.</param>
+        /// <param name="historyChangeList">The history change list.</param>
+        public void InactivatePerson( Person person, DefinedValueCache reason, string reasonNote, out History.HistoryChangeList historyChangeList )
+        {
+            historyChangeList = new History.HistoryChangeList();
 
             var inactiveStatus = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_INACTIVE.AsGuid() );
             if ( inactiveStatus != null && reason != null )
             {
-                History.EvaluateChange( changes, "Record Status", person.RecordStatusValue?.Value, inactiveStatus.Value );
-                History.EvaluateChange( changes, "Record Status Reason", person.RecordStatusReasonValue?.Value, reason.Value );
-                History.EvaluateChange( changes, "Inactive Reason Note", person.InactiveReasonNote, reasonNote );
+                History.EvaluateChange( historyChangeList, "Record Status", person.RecordStatusValue?.Value, inactiveStatus.Value );
+                History.EvaluateChange( historyChangeList, "Record Status Reason", person.RecordStatusReasonValue?.Value, reason.Value );
+                History.EvaluateChange( historyChangeList, "Inactive Reason Note", person.InactiveReasonNote, reasonNote );
 
                 person.RecordStatusValueId = inactiveStatus.Id;
                 person.RecordStatusReasonValueId = reason.Id;
                 person.InactiveReasonNote = reasonNote;
             }
-
-            return changes;
         }
 
         #endregion
@@ -1829,8 +1844,8 @@ namespace Rock.Model
         {
             var familyGroupType = GroupTypeCache.GetFamilyGroupType();
 
-            var demographicChanges = new List<string>();
-            var memberChanges = new List<string>();
+            var demographicChanges = new History.HistoryChangeList();
+            var memberChanges = new History.HistoryChangeList();
             var groupService = new GroupService( rockContext );
 
             var group = groupService.Get( groupId );
@@ -1863,7 +1878,7 @@ namespace Rock.Model
                 person.LastName = person.LastName.FixCase();
 
                 // new person that hasn't be saved to database yet
-                demographicChanges.Add( "Created" );
+                demographicChanges.AddChange( History.HistoryVerb.Add, History.HistoryChangeType.Record, null, null, null );
                 History.EvaluateChange( demographicChanges, "Title", string.Empty, DefinedValueCache.GetName( person.TitleValueId ) );
                 History.EvaluateChange( demographicChanges, "First Name", string.Empty, person.FirstName );
                 History.EvaluateChange( demographicChanges, "Last Name", string.Empty, person.LastName );
@@ -1981,7 +1996,7 @@ namespace Rock.Model
                 {
                     var person = fm.Person;
 
-                    var demographicChanges = new List<string>();
+                    var demographicChanges = new History.HistoryChangeList();
                     History.EvaluateChange( demographicChanges, "Giving Group", person.GivingGroup.Name, group.Name );
                     HistoryService.SaveChanges(
                         rockContext,
@@ -1996,7 +2011,7 @@ namespace Rock.Model
 
                 if ( group.GroupType.Guid.Equals( Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY.AsGuid() ) )
                 {
-                    var oldMemberChanges = new List<string>();
+                    var oldMemberChanges = new History.HistoryChangeList();
                     History.EvaluateChange( oldMemberChanges, "Role", fm.GroupRole.Name, string.Empty );
                     History.EvaluateChange( oldMemberChanges, "Family", fm.Group.Name, string.Empty );
                     HistoryService.SaveChanges(

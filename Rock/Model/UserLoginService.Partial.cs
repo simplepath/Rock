@@ -346,7 +346,7 @@ namespace Rock.Model
                     var historyCategory = CategoryCache.Read( Rock.SystemGuid.Category.HISTORY_PERSON_ACTIVITY.AsGuid(), rockContext );
                     if ( historyCategory != null )
                     {
-                        var changes = new List<string>();
+                        var changes = new History.HistoryChangeList();
                         History.EvaluateChange( changes, "User Login", string.Empty, username );
                         HistoryService.SaveChanges( rockContext, typeof( Person ), historyCategory.Guid, person.Id, changes );
                     }

@@ -488,7 +488,17 @@ namespace Rock.Model
         /// The history changes.
         /// </value>
         [NotMapped]
-        private List<string> HistoryChanges { get; set; }
+        [Obsolete( "Use HistoryChangeList instead" )]
+        public virtual List<string> HistoryChanges { get; set; }
+
+        /// <summary>
+        /// Gets or sets the history change list.
+        /// </summary>
+        /// <value>
+        /// The history change list.
+        /// </value>
+        [NotMapped]
+        public virtual History.HistoryChangeList HistoryChangeList { get; set; }
 
         #endregion
 
@@ -652,45 +662,45 @@ namespace Rock.Model
         {
             var rockContext = (RockContext)dbContext;
 
-            HistoryChanges = new List<string>();
+            HistoryChangeList = new History.HistoryChangeList();
 
             switch ( entry.State )
             {
                 case System.Data.Entity.EntityState.Added:
                     {
-                        HistoryChanges.Add( "Group Created" );
+                        HistoryChangeList.AddChange( History.HistoryVerb.Add, History.HistoryChangeType.Record, "Group", Name, null );
 
-                        History.EvaluateChange( HistoryChanges, "Name", string.Empty, Name );
-                        History.EvaluateChange( HistoryChanges, "Description", string.Empty, Description );
-                        History.EvaluateChange( HistoryChanges, "Group Type", (int?)null, GroupType, GroupTypeId );
-                        History.EvaluateChange( HistoryChanges, "Campus", (int?)null, Campus, CampusId );
-                        History.EvaluateChange( HistoryChanges, "Security Role", (bool?)null, IsSecurityRole );
-                        History.EvaluateChange( HistoryChanges, "Active", (bool?)null, IsActive );
-                        History.EvaluateChange( HistoryChanges, "Allow Guests", (bool?)null, AllowGuests );
-                        History.EvaluateChange( HistoryChanges, "Public", (bool?)null, IsPublic );
-                        History.EvaluateChange( HistoryChanges, "Group Capacity", (int?)null, GroupCapacity );
+                        History.EvaluateChange( HistoryChangeList, "Name", string.Empty, Name );
+                        History.EvaluateChange( HistoryChangeList, "Description", string.Empty, Description );
+                        History.EvaluateChange( HistoryChangeList, "Group Type", (int?)null, GroupType, GroupTypeId );
+                        History.EvaluateChange( HistoryChangeList, "Campus", (int?)null, Campus, CampusId );
+                        History.EvaluateChange( HistoryChangeList, "Security Role", (bool?)null, IsSecurityRole );
+                        History.EvaluateChange( HistoryChangeList, "Active", (bool?)null, IsActive );
+                        History.EvaluateChange( HistoryChangeList, "Allow Guests", (bool?)null, AllowGuests );
+                        History.EvaluateChange( HistoryChangeList, "Public", (bool?)null, IsPublic );
+                        History.EvaluateChange( HistoryChangeList, "Group Capacity", (int?)null, GroupCapacity );
 
                         break;
                     }
 
                 case System.Data.Entity.EntityState.Modified:
                     {
-                        History.EvaluateChange( HistoryChanges, "Name", entry.OriginalValues["Name"].ToStringSafe(), Name );
-                        History.EvaluateChange( HistoryChanges, "Description", entry.OriginalValues["Description"].ToStringSafe(), Description );
-                        History.EvaluateChange( HistoryChanges, "Group Type", entry.OriginalValues["GroupTypeId"].ToStringSafe().AsIntegerOrNull(), GroupType, GroupTypeId );
-                        History.EvaluateChange( HistoryChanges, "Campus", entry.OriginalValues["CampusId"].ToStringSafe().AsIntegerOrNull(), Campus, CampusId );
-                        History.EvaluateChange( HistoryChanges, "Security Role", entry.OriginalValues["IsSecurityRole"].ToStringSafe().AsBoolean(), IsSecurityRole );
-                        History.EvaluateChange( HistoryChanges, "Active", entry.OriginalValues["IsActive"].ToStringSafe().AsBoolean(), IsActive );
-                        History.EvaluateChange( HistoryChanges, "Allow Guests", entry.OriginalValues["AllowGuests"].ToStringSafe().AsBooleanOrNull(), AllowGuests );
-                        History.EvaluateChange( HistoryChanges, "Public", entry.OriginalValues["IsPublic"].ToStringSafe().AsBoolean(), IsPublic );
-                        History.EvaluateChange( HistoryChanges, "Group Capacity", entry.OriginalValues["GroupCapacity"].ToStringSafe().AsIntegerOrNull(), GroupCapacity );
+                        History.EvaluateChange( HistoryChangeList, "Name", entry.OriginalValues["Name"].ToStringSafe(), Name );
+                        History.EvaluateChange( HistoryChangeList, "Description", entry.OriginalValues["Description"].ToStringSafe(), Description );
+                        History.EvaluateChange( HistoryChangeList, "Group Type", entry.OriginalValues["GroupTypeId"].ToStringSafe().AsIntegerOrNull(), GroupType, GroupTypeId );
+                        History.EvaluateChange( HistoryChangeList, "Campus", entry.OriginalValues["CampusId"].ToStringSafe().AsIntegerOrNull(), Campus, CampusId );
+                        History.EvaluateChange( HistoryChangeList, "Security Role", entry.OriginalValues["IsSecurityRole"].ToStringSafe().AsBoolean(), IsSecurityRole );
+                        History.EvaluateChange( HistoryChangeList, "Active", entry.OriginalValues["IsActive"].ToStringSafe().AsBoolean(), IsActive );
+                        History.EvaluateChange( HistoryChangeList, "Allow Guests", entry.OriginalValues["AllowGuests"].ToStringSafe().AsBooleanOrNull(), AllowGuests );
+                        History.EvaluateChange( HistoryChangeList, "Public", entry.OriginalValues["IsPublic"].ToStringSafe().AsBoolean(), IsPublic );
+                        History.EvaluateChange( HistoryChangeList, "Group Capacity", entry.OriginalValues["GroupCapacity"].ToStringSafe().AsIntegerOrNull(), GroupCapacity );
 
                         break;
                     }
 
                 case System.Data.Entity.EntityState.Deleted:
                     {
-                        HistoryChanges.Add( "Deleted" );
+                        HistoryChangeList.AddChange( History.HistoryVerb.Delete, History.HistoryChangeType.Record, null, null, null );
 
                         // manually delete any grouprequirements of this group since it can't be cascade deleted
                         var groupRequirementService = new GroupRequirementService( rockContext );
@@ -723,9 +733,9 @@ namespace Rock.Model
         /// <param name="dbContext">The database context.</param>
         public override void PostSaveChanges( Data.DbContext dbContext )
         {
-            if ( HistoryChanges != null && HistoryChanges.Any() )
+            if ( HistoryChangeList != null && HistoryChangeList.Any() )
             {
-                HistoryService.SaveChanges( (RockContext)dbContext, typeof( Group ), Rock.SystemGuid.Category.HISTORY_GROUP_CHANGES.AsGuid(), this.Id, HistoryChanges, true, this.ModifiedByPersonAliasId );
+                HistoryService.SaveChanges( (RockContext)dbContext, typeof( Group ), Rock.SystemGuid.Category.HISTORY_GROUP_CHANGES.AsGuid(), this.Id, HistoryChangeList, true, this.ModifiedByPersonAliasId );
             }
 
             base.PostSaveChanges( dbContext );

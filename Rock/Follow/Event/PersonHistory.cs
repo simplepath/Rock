@@ -123,7 +123,7 @@ namespace Rock.Follow.Event
                     //
                     // Walk each history item found that matches our filter.
                     //
-                    Dictionary<string, List<HistoryChange>> changes = new Dictionary<string, List<HistoryChange>>();
+                    Dictionary<string, List<PersonHistoryChange>> changes = new Dictionary<string, List<PersonHistoryChange>>();
                     foreach ( var history in qry.ToList() )
                     {
                         Match modified = Regex.Match( history.Summary, ModifiedRegex );
@@ -135,7 +135,7 @@ namespace Rock.Follow.Event
                         //
                         foreach ( var attribute in attributes )
                         {
-                            HistoryChange change = new HistoryChange();
+                            PersonHistoryChange change = new PersonHistoryChange();
                             string title = null;
 
                             //
@@ -170,7 +170,7 @@ namespace Rock.Follow.Event
                                 //
                                 if ( !changes.ContainsKey( attribute ) )
                                 {
-                                    changes.Add( attribute, new List<HistoryChange>() );
+                                    changes.Add( attribute, new List<PersonHistoryChange>() );
                                 }
 
                                 change.PersonId = history.CreatedByPersonId;
@@ -197,7 +197,7 @@ namespace Rock.Follow.Event
                     //
                     foreach ( var items in changes.Values )
                     {
-                        foreach ( HistoryChange change in items )
+                        foreach ( PersonHistoryChange change in items )
                         {
                             //
                             // Check for a match on the person who made the change.
@@ -233,7 +233,7 @@ namespace Rock.Follow.Event
         /// Change C changes the value back to what it was before change A happened, therefore
         /// it becomes a non-op).
         /// </summary>
-        class HistoryChange
+        class PersonHistoryChange
         {
             public string Old = string.Empty;
 
