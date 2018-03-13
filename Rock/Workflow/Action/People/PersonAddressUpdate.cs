@@ -230,7 +230,7 @@ namespace Rock.Workflow.Action
                 if ( locationUpdated  )
                 {
                     var groupChanges = new History.HistoryChangeList();
-                    groupChanges.AddChange( History.HistoryVerb.Modify, History.HistoryChangeType.Record, "Location", null, null ).SourceOfChange = $"{action.ActionTypeCache.ActivityType.WorkflowType.Name} workflow";
+                    groupChanges.AddChange( History.HistoryVerb.Modify, History.HistoryChangeType.Record, "Location" ).SourceOfChange = $"{action.ActionTypeCache.ActivityType.WorkflowType.Name} workflow";
 
                     foreach ( var fm in family.Members )
                     {

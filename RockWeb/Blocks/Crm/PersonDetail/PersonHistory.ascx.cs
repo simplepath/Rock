@@ -280,7 +280,11 @@ namespace RockWeb.Blocks.Crm.PersonDetail
                         // Make sure current person is allowed to view the category for the history item.
                         if ( !categoriesAllowed.ContainsKey( history.CategoryId ) )
                         {
-                            categoriesAllowed.Add( history.CategoryId, history.Category.IsAuthorized( Authorization.VIEW, CurrentPerson ) );
+                            var categoryCache = CategoryCache.Read( history.CategoryId );
+                            if ( categoryCache != null )
+                            {
+                                categoriesAllowed.Add( history.CategoryId, categoryCache.IsAuthorized( Authorization.VIEW, CurrentPerson ) );
+                            }
                         }
 
                         if ( categoriesAllowed[history.CategoryId] )
@@ -406,10 +410,5 @@ namespace RockWeb.Blocks.Crm.PersonDetail
         }
 
         #endregion
-
-        protected void gHistory_RowDataBound( object sender, GridViewRowEventArgs e )
-        {
-
-        }
     }
 }

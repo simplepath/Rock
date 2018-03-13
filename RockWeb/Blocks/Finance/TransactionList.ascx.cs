@@ -737,7 +737,7 @@ namespace RockWeb.Blocks.Finance
                         string.Format( "Transaction: {0}", transaction.Id );
 
                     var changes = new History.HistoryChangeList();
-                    changes.AddChange( History.HistoryVerb.Delete, History.HistoryChangeType.Record, "Transaction", null, null );
+                    changes.AddChange( History.HistoryVerb.Delete, History.HistoryChangeType.Record, "Transaction" );
 
                     HistoryService.SaveChanges(
                         rockContext,
@@ -964,13 +964,13 @@ namespace RockWeb.Blocks.Finance
                                 if ( acctAction == "MOVE" )
                                 {
                                     var moveChanges = new History.HistoryChangeList();
-                                    moveChanges.AddChange( History.HistoryVerb.Delete, History.HistoryChangeType.Record, "Acct/Routing information", null, null );
+                                    moveChanges.AddChange( History.HistoryVerb.Delete, History.HistoryChangeType.Record, "Acct/Routing information" );
                                     HistoryService.SaveChanges( rockContext, typeof( Person ), Rock.SystemGuid.Category.HISTORY_PERSON.AsGuid(), _person.Id,
                                         moveChanges, true, CurrentPersonAliasId );
                                 }
 
                                 var accountChanges = new History.HistoryChangeList();
-                                accountChanges.AddChange(History.HistoryVerb.Add, History.HistoryChangeType.Record, "Acct/Routing information", null, null );
+                                accountChanges.AddChange(History.HistoryVerb.Add, History.HistoryChangeType.Record, "Acct/Routing information" );
 
 
                                 HistoryService.SaveChanges( rockContext, typeof( Person ), Rock.SystemGuid.Category.HISTORY_PERSON.AsGuid(), personId.Value,

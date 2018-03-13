@@ -425,7 +425,7 @@ Registration By: {0} Total Cost/Fees:{1}
                                 }
 
                                 var changes = new History.HistoryChangeList();
-                                changes.AddChange( History.HistoryVerb.Registered, History.HistoryChangeType.Record, null, null, null );
+                                changes.AddChange( History.HistoryVerb.Registered, History.HistoryChangeType.Record, null );
                                 HistoryService.SaveChanges(
                                     rockContext,
                                     typeof( Person ),
@@ -466,7 +466,7 @@ Registration By: {0} Total Cost/Fees:{1}
                             noteService.Add( note );
 
                             var changes = new History.HistoryChangeList();
-                            changes.AddChange( History.HistoryVerb.Registered, History.HistoryChangeType.Record, namesText, null, null );
+                            changes.AddChange( History.HistoryVerb.Registered, History.HistoryChangeType.Record, namesText );
 
                             HistoryService.SaveChanges(
                                 rockContext,

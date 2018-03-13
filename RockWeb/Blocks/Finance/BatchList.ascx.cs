@@ -362,12 +362,15 @@ namespace RockWeb.Blocks.Finance
                         {
                             transactionService.Delete( txn );
                         }
+
+                        var changes = new History.HistoryChangeList();
+                        changes.AddChange( History.HistoryVerb.Delete, History.HistoryChangeType.Record, "Batch" );
                         HistoryService.SaveChanges(
                             rockContext,
                             typeof( FinancialBatch ),
                             Rock.SystemGuid.Category.HISTORY_FINANCIAL_BATCH.AsGuid(),
                             batch.Id,
-                            new List<string> { "Deleted the batch" } );
+                            changes );
 
                         batchService.Delete( batch );
 
@@ -471,7 +474,7 @@ namespace RockWeb.Blocks.Finance
 
                     foreach ( var batch in batchesToUpdate )
                     {
-                        var changes = new List<string>();
+                        var changes = new History.HistoryChangeList();
                         History.EvaluateChange( changes, "Status", batch.Status, newStatus );
 
                         string errorMessage;

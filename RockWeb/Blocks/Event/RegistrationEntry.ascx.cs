@@ -1813,7 +1813,7 @@ namespace RockWeb.Blocks.Event
                 newRegistration = true;
                 registration = new Registration();
                 registrationService.Add( registration );
-                registrationChanges.AddChange( History.HistoryVerb.Add, History.HistoryChangeType.Record, "Registration", null, null );
+                registrationChanges.AddChange( History.HistoryVerb.Add, History.HistoryChangeType.Record, "Registration" );
             }
             else
             {
@@ -2285,7 +2285,7 @@ namespace RockWeb.Blocks.Event
                             var oldFeeValue = string.Format( "'{0}' Fee (Quantity:{1:N0}, Cost:{2:C2}, Option:{3}",
                                     dbFee.RegistrationTemplateFee.Name, dbFee.Quantity, dbFee.Cost, dbFee.Option );
 
-                            registrantChanges.AddChange( History.HistoryVerb.Delete, History.HistoryChangeType.Record, "Fee", null, oldFeeValue );
+                            registrantChanges.AddChange( History.HistoryVerb.Delete, History.HistoryChangeType.Record, "Fee").SetOldValue( oldFeeValue );
 
                             registrant.Fees.Remove( dbFee );
                             registrantFeeService.Delete( dbFee );
@@ -2325,7 +2325,7 @@ namespace RockWeb.Blocks.Event
 
                             if ( dbFee.Id <= 0 )
                             {
-                                registrantChanges.AddChange(History.HistoryVerb.Add, History.HistoryChangeType.Record, "Fee", null, feeName );
+                                registrantChanges.AddChange(History.HistoryVerb.Add, History.HistoryChangeType.Record, "Fee" ).SetNewValue( feeName );
                             }
 
                             History.EvaluateChange( registrantChanges, feeName + " Quantity", dbFee.Quantity, uiFeeOption.Quantity );
@@ -2841,7 +2841,7 @@ namespace RockWeb.Blocks.Event
 
                     if ( batch.Id == 0 )
                     {
-                        batchChanges.AddChange( History.HistoryVerb.Add, History.HistoryChangeType.Record, "Batch", null, null );
+                        batchChanges.AddChange( History.HistoryVerb.Add, History.HistoryChangeType.Record, "Batch" );
                         History.EvaluateChange( batchChanges, "Batch Name", string.Empty, batch.Name );
                         History.EvaluateChange( batchChanges, "Status", null, batch.Status );
                         History.EvaluateChange( batchChanges, "Start Date/Time", null, batch.BatchStartDateTime );
@@ -2871,7 +2871,7 @@ namespace RockWeb.Blocks.Event
                 }
 
                 var registrationChanges = new History.HistoryChangeList();
-                registrationChanges.AddChange( History.HistoryVerb.Add, History.HistoryChangeType.Record, "Payment", string.Format( "{0} payment", transaction.TotalAmount.FormatAsCurrency()), null );
+                registrationChanges.AddChange( History.HistoryVerb.Add, History.HistoryChangeType.Record, "Payment").SetNewValue( string.Format( "{0} payment", transaction.TotalAmount.FormatAsCurrency() ) );
                 Task.Run( () =>
                     HistoryService.SaveChanges(
                         new RockContext(),

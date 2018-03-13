@@ -118,51 +118,11 @@ namespace Rock.Model
                     history.EntityTypeId = entityType.Id;
                     history.CategoryId = category.Id;
                     history.EntityId = entityId;
+                    history.Caption = caption.Truncate( 200 );
+                    history.RelatedEntityTypeId = relatedEntityTypeId;
+                    history.RelatedEntityId = historyChange.RelatedEntityId;
 
-                    if ( !string.IsNullOrEmpty( historyChange.Caption ) )
-                    {
-                        // if this individual change has a Caption, use that instead of the main one for the list
-                        history.Caption = historyChange.Caption.Truncate( 200 );
-                    }
-                    else
-                    {
-                        history.Caption = caption.Truncate( 200 );
-                    }
-                    
-                    // for backwards compability, still store summary (and we can ignore the Obsolete warning here)
-#pragma warning disable 612, 618
-                    history.Summary = historyChange.Summary;
-#pragma warning restore 612, 618
-                    
-                    history.Verb = historyChange.Verb;
-                    history.ChangeType = historyChange.ChangeType;
-                    history.ValueName = historyChange.ValueName.Truncate( 250 );
-                    history.SourceOfChange = historyChange.SourceOfChange;
-                    history.IsSensitive = historyChange.IsSensitive;
-                    history.OldValue = historyChange.OldValue;
-                    history.NewValue = historyChange.NewValue;
-
-                    if ( historyChange.RelatedEntityTypeId.HasValue )
-                    {
-                        // if this individual change has a RelatedEntityTypeId, use that instead of the main one for the list
-                        history.RelatedEntityTypeId = historyChange.RelatedEntityTypeId;
-                    }
-                    else
-                    {
-                        history.RelatedEntityTypeId = relatedEntityTypeId;
-                    }
-
-                    if ( historyChange.RelatedEntityId.HasValue )
-                    {
-                        // if this individual change has a RelatedEntityId, use that instead of the main one for the list
-                        history.RelatedEntityId = historyChange.RelatedEntityId;
-                    }
-                    else
-                    {
-                        history.RelatedEntityId = relatedEntityId;
-                    }
-                    
-                    history.RelatedData = historyChange.RelatedData;
+                    historyChange.CopyToHistory( history );
 
                     if ( modifiedByPersonAliasId.HasValue )
                     {
@@ -272,11 +232,11 @@ namespace Rock.Model
         public static void DeleteChanges( RockContext rockContext, Type modelType, int entityId )
         {
             var entityType = EntityTypeCache.Read( modelType );
-            if ( entityType != null  )
+            if ( entityType != null )
             {
                 var historyService = new HistoryService( rockContext );
-                foreach( var history in historyService.Queryable()
-                    .Where( h => 
+                foreach ( var history in historyService.Queryable()
+                    .Where( h =>
                         h.EntityTypeId == entityType.Id &&
                         h.EntityId == entityId ) )
                 {
@@ -285,9 +245,6 @@ namespace Rock.Model
 
                 rockContext.SaveChanges();
             }
-
         }
     }
 }
-
-

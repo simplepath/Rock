@@ -668,7 +668,7 @@ namespace Rock.Model
             {
                 case System.Data.Entity.EntityState.Added:
                     {
-                        HistoryChangeList.AddChange( History.HistoryVerb.Add, History.HistoryChangeType.Record, "Group", Name, null );
+                        HistoryChangeList.AddChange( History.HistoryVerb.Add, History.HistoryChangeType.Record, "Group").SetNewValue( Name );
 
                         History.EvaluateChange( HistoryChangeList, "Name", string.Empty, Name );
                         History.EvaluateChange( HistoryChangeList, "Description", string.Empty, Description );
@@ -700,7 +700,7 @@ namespace Rock.Model
 
                 case System.Data.Entity.EntityState.Deleted:
                     {
-                        HistoryChangeList.AddChange( History.HistoryVerb.Delete, History.HistoryChangeType.Record, null, null, null );
+                        HistoryChangeList.AddChange( History.HistoryVerb.Delete, History.HistoryChangeType.Record, null );
 
                         // manually delete any grouprequirements of this group since it can't be cascade deleted
                         var groupRequirementService = new GroupRequirementService( rockContext );

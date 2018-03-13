@@ -240,7 +240,7 @@ namespace RockWeb.Blocks.Event
                     }
 
                     var changes = new History.HistoryChangeList();
-                    changes.AddChange( History.HistoryVerb.Delete, History.HistoryChangeType.Record, "Registration", null, null );
+                    changes.AddChange( History.HistoryVerb.Delete, History.HistoryChangeType.Record, "Registration" );
 
                     rockContext.WrapTransaction( () =>
                     {
@@ -302,7 +302,7 @@ namespace RockWeb.Blocks.Event
                     registration = new Registration { RegistrationInstanceId = RegistrationInstanceId ?? 0 };
                     registrationService.Add( registration );
                     newRegistration = true;
-                    changes.AddChange( History.HistoryVerb.Add, History.HistoryChangeType.Record, "Registration", null, null );
+                    changes.AddChange( History.HistoryVerb.Add, History.HistoryChangeType.Record, "Registration" );
                 }
 
                 if ( registration != null && RegistrationInstanceId > 0 )
@@ -724,7 +724,7 @@ namespace RockWeb.Blocks.Event
                 Rock.Transactions.RockQueue.TransactionQueue.Enqueue( confirmation );
 
                 var changes = new History.HistoryChangeList();
-                changes.AddChange( History.HistoryVerb.Sent, History.HistoryChangeType.Record, "Confirmation", null, null ).AddRelatedData( "Resent", null, null );
+                changes.AddChange( History.HistoryVerb.Sent, History.HistoryChangeType.Record, "Confirmation").SetRelatedData( "Resent", null, null );
                 using ( var rockContext = new RockContext() )
                 {
                     HistoryService.SaveChanges(
@@ -1039,11 +1039,11 @@ namespace RockWeb.Blocks.Event
 
                                     rockContext.SaveChanges();
 
-                                    registrantChanges.AddChange( History.HistoryVerb.Add, History.HistoryChangeType.Record, string.Format( "Registrant to {0} group", group.Name ), null, null );
+                                    registrantChanges.AddChange( History.HistoryVerb.Add, History.HistoryChangeType.Record, string.Format( "Registrant to {0} group", group.Name ) );
                                 }
                                 else
                                 {
-                                    registrantChanges.AddChange( History.HistoryVerb.Modify, History.HistoryChangeType.Record, string.Format( "Registrant to existing person in {0} group", group.Name ), null, null );
+                                    registrantChanges.AddChange( History.HistoryVerb.Modify, History.HistoryChangeType.Record, string.Format( "Registrant to existing person in {0} group", group.Name ) );
                                 }
 
                                 registrant.GroupMemberId = groupMember.Id;
@@ -1181,7 +1181,7 @@ namespace RockWeb.Blocks.Event
                         }
 
                         var changes = new History.HistoryChangeList();
-                        changes.AddChange( History.HistoryVerb.Delete, History.HistoryChangeType.Record, "Registrant", null, registrant.PersonAlias.Person.FullName );
+                        changes.AddChange( History.HistoryVerb.Delete, History.HistoryChangeType.Record, "Registrant" ).SetOldValue( registrant.PersonAlias.Person.FullName );
 
                         rockContext.WrapTransaction( () =>
                         {
@@ -1826,7 +1826,7 @@ namespace RockWeb.Blocks.Event
                 }
                 transaction.FinancialPaymentDetail.SetFromPaymentInfo( paymentInfo, gateway, rockContext );
 
-                registrationChanges.AddChange(History.HistoryVerb.Process, History.HistoryChangeType.Record, string.Format( "Payment of {0}.", amount.FormatAsCurrency() ), null, null );
+                registrationChanges.AddChange(History.HistoryVerb.Process, History.HistoryChangeType.Record, string.Format( "Payment of {0}.", amount.FormatAsCurrency() ) );
             }
 
             return transaction;
@@ -1907,7 +1907,7 @@ namespace RockWeb.Blocks.Event
             SaveTransaction( rockContext, registration, transaction, personAliasId, amount );
 
             var registrationChanges = new History.HistoryChangeList();
-            registrationChanges.AddChange( History.HistoryVerb.Process, History.HistoryChangeType.Record, string.Format( "payment of {0}.", amount.FormatAsCurrency() ), null, null );
+            registrationChanges.AddChange( History.HistoryVerb.Process, History.HistoryChangeType.Record, string.Format( "payment of {0}.", amount.FormatAsCurrency() ) );
             HistoryService.SaveChanges(
                 rockContext,
                 typeof( Registration ),
@@ -1928,7 +1928,7 @@ namespace RockWeb.Blocks.Event
             transaction.FinancialPaymentDetail.CreditCardTypeValueId = ddlCreditCardType.SelectedValueAsInt();
             transaction.TransactionCode = tbTransactionCode.Text;
 
-            registrationChanges.AddChange( History.HistoryVerb.Add, History.HistoryChangeType.Record, string.Format( "Manual payment of {0}.", amount.FormatAsCurrency() ), null, null );
+            registrationChanges.AddChange( History.HistoryVerb.Add, History.HistoryChangeType.Record, string.Format( "Manual payment of {0}.", amount.FormatAsCurrency() ) );
 
             return transaction;
         }
@@ -1991,7 +1991,7 @@ namespace RockWeb.Blocks.Event
 
                 if ( batch.Id == 0 )
                 {
-                    batchChanges.AddChange( History.HistoryVerb.Add, History.HistoryChangeType.Record, "Batch", null, null );
+                    batchChanges.AddChange( History.HistoryVerb.Add, History.HistoryChangeType.Record, "Batch" );
                     History.EvaluateChange( batchChanges, "Batch Name", string.Empty, batch.Name );
                     History.EvaluateChange( batchChanges, "Status", null, batch.Status );
                     History.EvaluateChange( batchChanges, "Start Date/Time", null, batch.BatchStartDateTime );

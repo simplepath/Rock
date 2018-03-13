@@ -420,7 +420,7 @@ namespace Rock.Jobs
                 {
                     if ( groupLocation.GroupLocationTypeValueId != previousValueId.Value )
                     {
-                        changes.AddChange( History.HistoryVerb.Modify, History.HistoryChangeType.Property, $"Location Type for {groupLocation.Location} ", "Previous", null).SourceOfChange = "NCOA Request";
+                        changes.AddChange( History.HistoryVerb.Modify, History.HistoryChangeType.Property, $"Location Type for {groupLocation.Location} ").SetNewValue( "Previous" ).SourceOfChange = "NCOA Request";
 
                         groupLocation.GroupLocationTypeValueId = previousValueId.Value;
                     }
@@ -451,7 +451,7 @@ namespace Rock.Jobs
                 groupLocation.IsMailingLocation = true;
                 groupLocationService.Add( groupLocation );
 
-                changes.AddChange( History.HistoryVerb.Add, History.HistoryChangeType.Property, "Location", groupLocation.Location.ToString(), null ).SourceOfChange = "NCOA Request";
+                changes.AddChange( History.HistoryVerb.Add, History.HistoryChangeType.Property, "Location" ).SetNewValue( groupLocation.Location.ToString() ).SourceOfChange = "NCOA Request";
 
                 return true;
             }

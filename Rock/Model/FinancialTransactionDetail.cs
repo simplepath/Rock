@@ -188,7 +188,7 @@ namespace Rock.Model
                 case System.Data.Entity.EntityState.Added:
                     {
                         string acct = History.GetValue<FinancialAccount>( this.Account, this.AccountId, rockContext );
-                        HistoryChangeList.AddChange( History.HistoryVerb.Add, History.HistoryChangeType.Record, acct, Amount.FormatAsCurrency(), null );
+                        HistoryChangeList.AddChange( History.HistoryVerb.Add, History.HistoryChangeType.Record, acct).SetNewValue( Amount.FormatAsCurrency() );
                         break;
                     }
 
@@ -210,7 +210,7 @@ namespace Rock.Model
                 case System.Data.Entity.EntityState.Deleted:
                     {
                         string acct = History.GetValue<FinancialAccount>( this.Account, this.AccountId, rockContext );
-                        HistoryChangeList.AddChange( History.HistoryVerb.Delete, History.HistoryChangeType.Record, acct, Amount.FormatAsCurrency(), null );
+                        HistoryChangeList.AddChange( History.HistoryVerb.Delete, History.HistoryChangeType.Record, acct).SetOldValue( Amount.FormatAsCurrency() );
                         break;
                     }
             }
@@ -232,7 +232,7 @@ namespace Rock.Model
                 if ( txn != null && txn.BatchId != null )
                 {
                     var batchHistory = new History.HistoryChangeList();
-                    batchHistory.AddChange(History.HistoryVerb.Modify, History.HistoryChangeType.Record, $"Transaction ID:{txn.Id}", null, null );
+                    batchHistory.AddChange( History.HistoryVerb.Modify, History.HistoryChangeType.Record, $"Transaction ID:{txn.Id}" );
                     HistoryService.SaveChanges( (RockContext)dbContext, typeof( FinancialBatch ), Rock.SystemGuid.Category.HISTORY_FINANCIAL_TRANSACTION.AsGuid(), txn.BatchId.Value, batchHistory, string.Empty, typeof( FinancialTransaction ), this.TransactionId, true, this.ModifiedByPersonAliasId );
                 }
             }

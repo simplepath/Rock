@@ -392,7 +392,7 @@ namespace Rock.Model
                 {
                     // Removed a person in group
                     var historyItem = HistoryChanges.First( h => h.PersonId == oldPersonId.Value && h.GroupId == oldGroupId.Value );
-                    historyItem.HistoryChangeList.AddChange( History.HistoryVerb.Delete, History.HistoryChangeType.Record, "Group", null, oldGroupName );
+                    historyItem.HistoryChangeList.AddChange( History.HistoryVerb.Delete, History.HistoryChangeType.Record, "Group").SetOldValue( oldGroupName );
                 }
 
                 // process universal search indexing if required

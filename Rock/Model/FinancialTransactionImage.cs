@@ -132,7 +132,7 @@ namespace Rock.Model
                             binaryFile.IsTemporary = false;
                         }
 
-                        HistoryChangeList.AddChange( History.HistoryVerb.Add, History.HistoryChangeType.Record, "Image", null, null );
+                        HistoryChangeList.AddChange( History.HistoryVerb.Add, History.HistoryChangeType.Record, "Image" );
                         break;
                     }
 
@@ -144,7 +144,7 @@ namespace Rock.Model
                             binaryFile.IsTemporary = false;
                         }
 
-                        HistoryChangeList.AddChange( History.HistoryVerb.Modify, History.HistoryChangeType.Record, "Image", null, null );
+                        HistoryChangeList.AddChange( History.HistoryVerb.Modify, History.HistoryChangeType.Record, "Image" );
                         break;
                     }
                 case System.Data.Entity.EntityState.Deleted:
@@ -156,7 +156,7 @@ namespace Rock.Model
                             binaryFile.IsTemporary = true;
                         }
 
-                        HistoryChangeList.AddChange( History.HistoryVerb.Delete, History.HistoryChangeType.Record, "Image", null, null );
+                        HistoryChangeList.AddChange( History.HistoryVerb.Delete, History.HistoryChangeType.Record, "Image" );
                         break;
                     }
             }
@@ -179,7 +179,7 @@ namespace Rock.Model
                 {
                     var batchHistory = new History.HistoryChangeList();
 
-                    batchHistory.AddChange( History.HistoryVerb.Modify, History.HistoryChangeType.Record, "Transaction", null, null );
+                    batchHistory.AddChange( History.HistoryVerb.Modify, History.HistoryChangeType.Record, "Transaction" );
                     HistoryService.SaveChanges( (RockContext)dbContext, typeof( FinancialBatch ), Rock.SystemGuid.Category.HISTORY_FINANCIAL_TRANSACTION.AsGuid(), txn.BatchId.Value, batchHistory, string.Empty, typeof( FinancialTransaction ), this.TransactionId, true, this.ModifiedByPersonAliasId );
                 }
             }

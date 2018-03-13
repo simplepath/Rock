@@ -219,7 +219,7 @@ namespace Rock.Model
                         d.EntityId.HasValue ) )
                 {
                     var registrationChanges = new History.HistoryChangeList();
-                    registrationChanges.AddChange( History.HistoryVerb.Process, History.HistoryChangeType.Record, $"{transactionDetail.Amount.FormatAsCurrency()} Refund", null, null );
+                    registrationChanges.AddChange( History.HistoryVerb.Process, History.HistoryChangeType.Record, $"{transactionDetail.Amount.FormatAsCurrency()} Refund" );
                     HistoryService.SaveChanges(
                         rockContext,
                         typeof( Registration ),

@@ -19,7 +19,7 @@
                         <Rock:RockTextBox ID="tbSummary" runat="server" Label="Summary Contains" />
                         <Rock:DateRangePicker ID="drpDates" runat="server" Label="Date Range" />
                     </Rock:GridFilter>
-                    <Rock:Grid ID="gHistory" runat="server" AllowSorting="true" RowItemText="Change" OnRowDataBound="gHistory_RowDataBound">
+                    <Rock:Grid ID="gHistory" runat="server" AllowSorting="true" RowItemText="Change">
                         <Columns>
                             <Rock:RockBoundField DataField="Category" SortExpression="Category" HeaderText="Category" />
                             <asp:HyperLinkField DataTextField="PersonName" DataNavigateUrlFields="CreatedByPersonId" SortExpression="PersonName" DataNavigateUrlFormatString="~/Person/{0}" HeaderText="Who" />

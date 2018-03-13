@@ -448,9 +448,13 @@ namespace Rock.Model
                         }
 
                         var historyChangeList = new History.HistoryChangeList();
-                        var historyChange = historyChangeList.AddChange( History.HistoryVerb.Login, History.HistoryChangeType.Record, userName, null, null );
-                        
-                        historyChange.AddRelatedData( relatedDataBuilder.ToString(), null, null );
+                        var historyChange = historyChangeList.AddChange( History.HistoryVerb.Login, History.HistoryChangeType.Record, userName );
+
+                        if ( relatedDataBuilder.Length > 0 )
+                        {
+                            historyChange.SetRelatedData( relatedDataBuilder.ToString(), null, null );
+                        }
+
                         HistoryService.SaveChanges( rockContext, typeof( Rock.Model.Person ), Rock.SystemGuid.Category.HISTORY_PERSON_ACTIVITY.AsGuid(), personId.Value, historyChangeList, true );
                     }
                 }
