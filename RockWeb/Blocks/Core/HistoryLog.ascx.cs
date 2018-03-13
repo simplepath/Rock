@@ -260,16 +260,10 @@ namespace RockWeb.Blocks.Core
                         qry = qry.Where( a => a.CategoryId == categoryId.Value );
                     }
 
-                    string summary = gfSettings.GetUserPreference( "Summary Contains" );
-                    if ( !string.IsNullOrWhiteSpace( summary ) )
+                    int? personId = gfSettings.GetUserPreference( "Who" ).AsIntegerOrNull();
+                    if ( personId.HasValue )
                     {
-                        qry = qry.Where( h => h.Summary.Contains( summary ) );
-                    }
-
-                    int personId = int.MinValue;
-                    if ( int.TryParse( gfSettings.GetUserPreference( "Who" ), out personId ) )
-                    {
-                        qry = qry.Where( h => h.CreatedByPersonAlias.PersonId == personId );
+                        qry = qry.Where( h => h.CreatedByPersonAlias.PersonId == personId.Value );
                     }
 
                     var drp = new DateRangePicker();
@@ -296,9 +290,10 @@ namespace RockWeb.Blocks.Core
 
                     // Combine history records that were saved at the same time
                     var histories = new List<History>();
+                    var historyCombinedSummary = new Dictionary<int, string>();
                     foreach ( var history in qry )
                     {
-                        var existingHistory = histories
+                        int? existingHistoryId = histories
                             .Where( h =>
                                 h.CreatedByPersonAliasId == history.CreatedByPersonAliasId &&
                                 h.CreatedDateTime == history.CreatedDateTime &&
@@ -306,15 +301,22 @@ namespace RockWeb.Blocks.Core
                                 h.EntityId == history.EntityId &&
                                 h.CategoryId == history.CategoryId &&
                                 h.RelatedEntityTypeId == history.RelatedEntityTypeId &&
-                                h.RelatedEntityId == history.RelatedEntityId ).FirstOrDefault();
-                        if ( existingHistory != null )
+                                h.RelatedEntityId == history.RelatedEntityId ).Select(a => ( int? ) a.Id).FirstOrDefault();
+                        if ( existingHistoryId.HasValue && historyCombinedSummary.ContainsKey(existingHistoryId.Value) )
                         {
-                            existingHistory.Summary += "<br/>" + history.Summary;
+                            historyCombinedSummary[existingHistoryId.Value] += "<br/>" + history.GetSummary();
                         }
                         else
                         {
+                            historyCombinedSummary.Add( history.Id, history.GetSummary() );
                             histories.Add( history );
                         }
+                    }
+
+                    string summary = gfSettings.GetUserPreference( "Summary Contains" );
+                    if ( !string.IsNullOrWhiteSpace( summary ) )
+                    {
+                        histories = histories.Where( h => historyCombinedSummary.Any( a => a.Value.Contains( summary ) && a.Key == h.Id ) ).ToList();
                     }
 
                     gHistory.DataSource = histories.Select( h => new
@@ -325,7 +327,7 @@ namespace RockWeb.Blocks.Core
                         EntityTypeId = h.EntityTypeId,
                         EntityId = h.EntityId,
                         Caption = h.Caption ?? string.Empty,
-                        Summary = h.Summary,
+                        Summary = historyCombinedSummary.GetValueOrNull(h.Id),
                         RelatedEntityTypeId = h.RelatedEntityTypeId ?? 0,
                         RelatedEntityId = h.RelatedEntityId ?? 0,
                         CreatedByPersonId = h.CreatedByPersonAlias != null ? h.CreatedByPersonAlias.PersonId : 0,

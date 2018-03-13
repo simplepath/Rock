@@ -322,7 +322,7 @@ ORDER BY [Text]", true, false, "", "", 1 )]
                         }
 
                         // Add a history record indicating that we processed this person
-                        personChanges.AddChange( History.HistoryVerb.Modify, History.HistoryChangeType.Property, "Adult Status", "Adult", null ).SetSourceOfChange( "Data Automation Job" );
+                        personChanges.AddChange( History.HistoryVerb.Modify, History.HistoryChangeType.Property, "Adult Status").SetNewValue("Adult").SetSourceOfChange( "Data Automation Job" );
                         HistoryService.SaveChanges( rockContext, typeof( Person ), personChangesGuid, personId, personChanges, false );
 
                         // Save all the changes

@@ -132,7 +132,7 @@ namespace Rock.Model
         /// The history changes.
         /// </value>
         [NotMapped]
-        [Obsolete("Use HistoryChangeList instead")]
+        [Obsolete( "Use HistoryChangeList instead" )]
         public virtual List<string> HistoryChanges { get; set; }
 
         /// <summary>
@@ -166,7 +166,7 @@ namespace Rock.Model
         /// <param name="entry"></param>
         public override void PreSaveChanges( Rock.Data.DbContext dbContext, System.Data.Entity.Infrastructure.DbEntityEntry entry )
         {
-            var rockContext = (RockContext)dbContext;
+            var rockContext = ( RockContext ) dbContext;
             HistoryChangeList = new History.HistoryChangeList();
 
             switch ( entry.State )
@@ -174,7 +174,7 @@ namespace Rock.Model
                 case System.Data.Entity.EntityState.Added:
                     {
                         string acct = History.GetValue<FinancialAccount>( this.Account, this.AccountId, rockContext );
-                        HistoryChangeList.AddChange( History.HistoryVerb.Add, History.HistoryChangeType.Record, acct, Amount.FormatAsCurrency(), null );
+                        HistoryChangeList.AddChange( History.HistoryVerb.Add, History.HistoryChangeType.Record, acct ).SetNewValue( Amount.FormatAsCurrency() );
                         break;
                     }
 
@@ -196,7 +196,7 @@ namespace Rock.Model
                 case System.Data.Entity.EntityState.Deleted:
                     {
                         string acct = History.GetValue<FinancialAccount>( this.Account, this.AccountId, rockContext );
-                        HistoryChangeList.AddChange( History.HistoryVerb.Delete, History.HistoryChangeType.Record, acct, null, Amount.FormatAsCurrency() );
+                        HistoryChangeList.AddChange( History.HistoryVerb.Delete, History.HistoryChangeType.Record, acct, null ).SetOldValue( Amount.FormatAsCurrency() );
                         break;
                     }
             }
@@ -212,7 +212,7 @@ namespace Rock.Model
         {
             if ( HistoryChangeList.Any() )
             {
-                HistoryService.SaveChanges( (RockContext)dbContext, typeof( FinancialScheduledTransaction ), Rock.SystemGuid.Category.HISTORY_FINANCIAL_TRANSACTION.AsGuid(), this.ScheduledTransactionId, HistoryChangeList, true, this.ModifiedByPersonAliasId );
+                HistoryService.SaveChanges( ( RockContext ) dbContext, typeof( FinancialScheduledTransaction ), Rock.SystemGuid.Category.HISTORY_FINANCIAL_TRANSACTION.AsGuid(), this.ScheduledTransactionId, HistoryChangeList, true, this.ModifiedByPersonAliasId );
             }
 
             base.PostSaveChanges( dbContext );

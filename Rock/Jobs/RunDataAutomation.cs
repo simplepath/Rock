@@ -97,12 +97,15 @@ namespace Rock.Jobs
                     var personEntityTypeId = EntityTypeCache.Read( typeof( Rock.Model.Person ) ).Id;
                     using ( RockContext rockContext = new RockContext() )
                     {
+                        var modifyVerb = History.HistoryVerb.Modify.ConvertToString( false ).ToUpper();
                         var startPeriod = RockDateTime.Now.AddDays( -_campusSettings.IgnoreIfManualUpdatePeriod );
                         var familiesWithManualUpdate = new HistoryService( rockContext )
                             .Queryable().AsNoTracking()
-                            .Where( m => m.EntityTypeId == personEntityTypeId &&
-                                m.Summary.Contains( "Modified <span class='field name'>Campus</span>" ) &&
-                                m.CreatedDateTime >= startPeriod && m.RelatedEntityId.HasValue )
+                            .Where( m => m.EntityTypeId == personEntityTypeId 
+                                && m.Verb == modifyVerb 
+                                && m.ValueName == "Campus"
+                                && m.CreatedDateTime >= startPeriod 
+                                && m.RelatedEntityId.HasValue )
                             .Select( a => a.RelatedEntityId.Value )
                             .ToList();
 

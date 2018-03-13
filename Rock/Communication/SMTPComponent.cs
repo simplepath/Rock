@@ -356,9 +356,8 @@ namespace Rock.Communication.Transport
 
                     using ( var smtpClient = GetSmtpClient() )
                     {
-                        var personEntityTypeId = EntityTypeCache.Read( "Rock.Model.Person" ).Id;
                         var communicationEntityTypeId = EntityTypeCache.Read( "Rock.Model.Communication" ).Id;
-                        var communicationCategoryId = CategoryCache.Read( Rock.SystemGuid.Category.HISTORY_PERSON_COMMUNICATIONS.AsGuid(), communicationRockContext ).Id;
+                        var communicationCategoryGuid = Rock.SystemGuid.Category.HISTORY_PERSON_COMMUNICATIONS.AsGuid();
 
                         bool recipientFound = true;
                         while ( recipientFound )
@@ -489,18 +488,35 @@ namespace Rock.Communication.Transport
 
                                         try
                                         {
-                                            var historyService = new HistoryService( recipientRockContext );
+                                            var historyChangeList = new History.HistoryChangeList();
+                                            historyChangeList.AddChange(
+                                                History.HistoryVerb.Sent,
+                                                History.HistoryChangeType.Record,
+                                                $"Communication from {message.From.DisplayName}",
+                                                communication.ToString(),
+                                                null )
+                                                .AddRelatedData( null, communicationEntityTypeId, communication.Id )
+                                                .AddCaption( message.Subject );
+
+                                            HistoryService.SaveChanges( recipientRockContext, typeof( Rock.Model.Person ), communicationCategoryGuid, recipient.PersonAlias.PersonId, historyChangeList, false, communication.SenderPersonAliasId );
+                                            /*
+
                                             historyService.Add( new History
                                             {
                                                 CreatedByPersonAliasId = communication.SenderPersonAliasId,
                                                 EntityTypeId = personEntityTypeId,
                                                 CategoryId = communicationCategoryId,
                                                 EntityId = recipient.PersonAlias.PersonId,
-                                                Summary = string.Format( "Sent communication from <span class='field-value'>{0}</span>.", message.From.DisplayName ),
+                                                Verb = History.HistoryVerb.Sent.ConvertToString(false).ToUpper(),
+                                                ChangeType = History.HistoryChangeType.Record.ToString(),
+                                                ValueName = ,
+                                                NewValue = communication.ToString(),
+                                                // ToDo: TEST -- Summary = string.Format( "Sent communication from <span class='field-value'>{0}</span>.", message.From.DisplayName ),
                                                 Caption = message.Subject,
                                                 RelatedEntityTypeId = communicationEntityTypeId,
                                                 RelatedEntityId = communication.Id
                                             } );
+                                            */
                                         }
                                         catch ( Exception ex )
                                         {

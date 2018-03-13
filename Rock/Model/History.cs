@@ -80,7 +80,7 @@ namespace Rock.Model
 
         /// <summary>
         /// Gets or sets the verb which is a structured (for querying) field to describe what the action is (ADD, DELETE, UPDATE, VIEW, WATCHED,  etc).
-        /// See History.VerbAction constants for common verbs
+        /// <see cref="History.HistoryVerb"/> constants for common verbs
         /// </summary>
         /// <value>
         /// A <see cref="System.String"/> representing the verb of the History.
@@ -106,7 +106,7 @@ namespace Rock.Model
         /// The summary.
         /// </value>
         [DataMember]
-        [Obsolete("Use GetSummary instead")]
+        [Obsolete( "Use GetSummary instead" )]
         public string Summary { get; set; }
 
         /// <summary>
@@ -139,7 +139,7 @@ namespace Rock.Model
 
         /// <summary>
         /// Gets or sets the ChangeType which is a structured (for querying) field to describe what type of data was changed (Record, Property, Attribute, Location, Schedule, etc)
-        /// See History.ChangeTypeName for command change types
+        /// <see cref="History.HistoryChangeType"/> constants for common change types
         /// </summary>
         /// <value>
         /// The type of the change.
@@ -178,6 +178,7 @@ namespace Rock.Model
 
         /// <summary>
         /// Gets or sets whether the NewValue and/or OldValue is null because the value is sensitive data that shouldn't be logged
+        /// If "IsSensitive" doesn't apply to this, it can be left null
         /// </summary>
         /// <value>
         /// IsSensitive.
@@ -275,7 +276,14 @@ namespace Rock.Model
                                 }
                                 else
                                 {
-                                    return $"Added <span class='field-name'>{this.ValueName}</span> value of <span class='field-value'>{this.NewValue}</span>.";
+                                    StringBuilder addSummary = new StringBuilder( $"Added <span class='field-name'>{this.ValueName}</span>" );
+                                    if ( !string.IsNullOrEmpty( this.NewValue ) )
+                                    {
+                                        addSummary.Append( $" value of <span class='field-value'>{this.NewValue}</span>" );
+                                    }
+
+                                    addSummary.Append( "." );
+                                    return addSummary.ToString();
                                 }
                             }
                         case HistoryVerb.Modify:
@@ -286,8 +294,19 @@ namespace Rock.Model
                                 }
                                 else
                                 {
-                                    return $"Modified <span class='field-name'>{this.ValueName}</span> value from <span class='field-value'>{this.OldValue}</span> to <span class='field-value'>{this.NewValue}</span>.";
+                                    StringBuilder modifySummary = new StringBuilder( $"Modified <span class='field-name'>{this.ValueName}</span>" );
+                                    if ( !string.IsNullOrEmpty( this.OldValue ) )
+                                    {
+                                        modifySummary.Append( $" value from <span class='field-value'>{this.OldValue}</span>" );
+                                    }
 
+                                    if ( !string.IsNullOrEmpty( this.NewValue ) )
+                                    {
+                                        modifySummary.Append( $" to <span class='field-value'>{this.NewValue}</span>" );
+                                    }
+
+                                    modifySummary.Append( "." );
+                                    return modifySummary.ToString();
                                 }
                             }
                         case HistoryVerb.Delete:
@@ -298,10 +317,19 @@ namespace Rock.Model
                                 }
                                 else
                                 {
-                                    return $"Deleted <span class='field-name'>{this.ValueName}</span> value of <span class='field-value'>{this.OldValue}</span>.";
+                                    StringBuilder deleteSummary = new StringBuilder( $"Deleted <span class='field-name'>{this.ValueName}</span>" );
+
+                                    if ( !string.IsNullOrEmpty( this.OldValue ) )
+                                    {
+                                        deleteSummary.Append( $"value of <span class='field-value'>{this.OldValue}</span>" );
+                                    }
+
+                                    deleteSummary.Append( "." );
+
+                                    return deleteSummary.ToString();
                                 }
                             }
-                        case HistoryVerb.Refund:
+                        case HistoryVerb.Process:
                             {
                                 return $"Processed refund for {this.ValueName}";
                             }
@@ -309,13 +337,32 @@ namespace Rock.Model
                             {
                                 return $"Registered {this.ValueName} for";
                             }
+                        case HistoryVerb.Login:
+                            {
+                                StringBuilder loginSummaryBuilder = new StringBuilder();
+                                loginSummaryBuilder.Append( $"User logged in with <span class='field-name'>{this.ValueName}</span> username" );
+
+                                // if Related Data has data, it could be additional info about the HostAddress the person logged in from and the url of the page when they logged in
+                                if ( !string.IsNullOrEmpty( this.RelatedData ) )
+                                {
+                                    loginSummaryBuilder.Append( $" {this.RelatedData}" );
+                                }
+
+                                var loginSummary = loginSummaryBuilder.ToString();
+                                return loginSummary;
+                            }
+                        case HistoryVerb.Merge:
+                            {
+                                return $"Merged <span class='field-value'>{this.ValueName}</span> with this record.";
+                            }
+
                     }
                 }
 
                 // some unexpected verb was used to make a custom summary 
                 var stringBuilder = new StringBuilder();
 
-                // Start with whatever custom verb was used. For example 'WATCHED'
+                // Start with whatever custom verb was used. For example 'WATCHED' => 'Watched'
                 stringBuilder.Append( this.Verb.FixCase() );
 
                 // include the value name (For example 'First Name') that was affected
@@ -360,17 +407,44 @@ namespace Rock.Model
         public enum HistoryVerb
         {
             /// <summary>
-            /// The add
+            /// New record (or child record) was added
             /// </summary>
             Add,
 
+            /// <summary>
+            /// field (or attribute) values were modified
+            /// </summary>
             Modify,
 
+            /// <summary>
+            /// The record (or child record) was deleted
+            /// </summary>
             Delete,
 
+            /// <summary>
+            /// Something was Registed. For example a Person was registered for an event.
+            /// </summary>
             Registered,
 
-            Refund
+            /// <summary>
+            /// Something was Processed. For example, a transaction payment or refund for a person or event was processed
+            /// </summary>
+            Process,
+
+            /// <summary>
+            /// Something was Sent. For example, a communication was sent from a person.
+            /// </summary>
+            Sent,
+
+            /// <summary>
+            /// The record (probably person) was logged in
+            /// </summary>
+            Login,
+
+            /// <summary>
+            /// The record (probably person) was merged
+            /// </summary>
+            Merge,
         }
 
         /// <summary>
@@ -410,11 +484,11 @@ namespace Rock.Model
                     {
                         if ( isSensitive )
                         {
-                            historyChangeList.AddChange( HistoryVerb.Modify, HistoryChangeType.Property, propertyName, null, null , true );
+                            historyChangeList.AddChange( HistoryVerb.Modify, HistoryChangeType.Property, propertyName ).SetSensitive();
                         }
                         else
                         {
-                            historyChangeList.AddChange( HistoryVerb.Modify, HistoryChangeType.Property, propertyName, oldValue, newValue );
+                            historyChangeList.AddChange( HistoryVerb.Modify, HistoryChangeType.Property, propertyName).SetNewValue(newValue).SetOldValue( oldValue );
                         }
                     }
                 }
@@ -422,11 +496,11 @@ namespace Rock.Model
                 {
                     if ( isSensitive )
                     {
-                        historyChangeList.AddChange( HistoryVerb.Delete, HistoryChangeType.Record, propertyName, null, null, true );
+                        historyChangeList.AddChange( HistoryVerb.Delete, HistoryChangeType.Record, propertyName ).SetSensitive();
                     }
                     else
                     {
-                        historyChangeList.AddChange( HistoryVerb.Delete, HistoryChangeType.Record, propertyName, null, oldValue );
+                        historyChangeList.AddChange( HistoryVerb.Delete, HistoryChangeType.Record, propertyName ).SetOldValue( oldValue );
                     }
                 }
             }
@@ -434,11 +508,11 @@ namespace Rock.Model
             {
                 if ( isSensitive )
                 {
-                    historyChangeList.AddChange( HistoryVerb.Add, HistoryChangeType.Record, propertyName, null, null, true );
-            }
+                    historyChangeList.AddChange( HistoryVerb.Add, HistoryChangeType.Record, propertyName ).SetSensitive();
+                }
                 else
                 {
-                    historyChangeList.AddChange( HistoryVerb.Add, HistoryChangeType.Record, propertyName, newValue, null );
+                    historyChangeList.AddChange( HistoryVerb.Add, HistoryChangeType.Record, propertyName ).SetNewValue( newValue );
                 }
             }
         }
@@ -490,7 +564,7 @@ namespace Rock.Model
                     historyMessages.Add( string.Format( "Added <span class='field-name'>{0}</span> value (Sensitive attribute values are not logged in history).", propertyName ) );
                 }
                 else
-                { 
+                {
                     historyMessages.Add( string.Format( "Added <span class='field-name'>{0}</span> value of <span class='field-value'>{1}</span>.", propertyName, newValue ) );
                 }
             }
@@ -505,7 +579,7 @@ namespace Rock.Model
         /// <param name="newValue">The new value.</param>
         /// <param name="isSensitive">Indicator of whether the values are sensitive in nature and should not be logged.</param>
         [Obsolete]
-        public static void EvaluateChange( List<string> historyMessages, string propertyName, int? oldValue, int? newValue, bool isSensitive = false)
+        public static void EvaluateChange( List<string> historyMessages, string propertyName, int? oldValue, int? newValue, bool isSensitive = false )
         {
             EvaluateChange( historyMessages, propertyName,
                 oldValue.HasValue ? oldValue.Value.ToString() : string.Empty,
@@ -541,8 +615,8 @@ namespace Rock.Model
         public static void EvaluateChange( List<string> historyMessages, string propertyName, decimal? oldValue, decimal? newValue, bool isSensitive = false )
         {
             EvaluateChange( historyMessages, propertyName,
-                oldValue.HasValue ? oldValue.Value.ToString("N2") : string.Empty,
-                newValue.HasValue ? newValue.Value.ToString("N2") : string.Empty,
+                oldValue.HasValue ? oldValue.Value.ToString( "N2" ) : string.Empty,
+                newValue.HasValue ? newValue.Value.ToString( "N2" ) : string.Empty,
                 isSensitive );
         }
 
@@ -628,7 +702,7 @@ namespace Rock.Model
         {
             EvaluateChange( historyMessages, propertyName,
                 oldValue.HasValue ? oldValue.Value.ToString() : string.Empty,
-                newValue.HasValue ? newValue.Value.ToString() : string.Empty, 
+                newValue.HasValue ? newValue.Value.ToString() : string.Empty,
                 isSensitive );
         }
 
@@ -1268,7 +1342,7 @@ namespace Rock.Model
             else if ( personAliasId.HasValue )
             {
                 person = new PersonAliasService( rockContext ).GetPerson( personAliasId.Value );
-             }
+            }
 
             return person != null ? string.Format( "{0} [{1}]", person.FullName, person.Id ) : blankValue;
         }
@@ -1375,8 +1449,8 @@ namespace Rock.Model
             }
 
             if ( locationId.HasValue )
-            { 
-                var loc =new LocationService( rockContext ).Get( locationId.Value );
+            {
+                var loc = new LocationService( rockContext ).Get( locationId.Value );
                 if ( loc != null )
                 {
                     return loc.ToString();
@@ -1474,46 +1548,37 @@ namespace Rock.Model
         public class HistoryChangeList : List<HistoryChange>
         {
             /// <summary>
-            /// Adds the summary.
-            /// </summary>
-            /// <param name="summary">The summary.</param>
-            [Obsolete]
-            public void AddSummary( string summary)
-            {
-                this.Add( new HistoryChange( summary ) );
-            }
-
-            /// <summary>
             /// Adds a HistoryChange record to the list.
             /// Returns the HistoryChange object so caller can set additional property values if needed
             /// </summary>
             /// <param name="historyVerb">The history verb.</param>
             /// <param name="historyChangeType">Whether this is a property change, attribute change, or something else</param>
-            /// <param name="valueName">Depending on  HistoryChangeType.Property: Property Friendly Name, Attribute => Attribute.Name, etc </param>
-            /// <param name="newValue">The new value.</param>
+            /// <param name="valueName">Depending on  HistoryChangeType.Property: Property Friendly Name, Attribute =&gt; Attribute.Name, etc</param>
             /// <param name="oldValue">The old value.</param>
+            /// <param name="newValue">The new value.</param>
             /// <returns></returns>
-            public HistoryChange AddChange( HistoryVerb historyVerb, HistoryChangeType historyChangeType, string valueName, string newValue, string oldValue )
+            [Obsolete("TODO: Make sure oldValue and newValue are set correctly")]
+            public HistoryChange AddChange( HistoryVerb historyVerb, HistoryChangeType historyChangeType, string valueName, string oldValue, string newValue )
             {
                 var historyChange = new HistoryChange( historyVerb, historyChangeType, valueName, newValue, oldValue );
                 this.Add( historyChange );
                 return historyChange;
             }
 
-            /// <summary>
-            /// Adds a HistoryChange record to the list with an option of specifying of the value is sensitive.
-            /// Returns the HistoryChange object so caller can set additional property values if needed
-            /// </summary>
-            /// <param name="historyVerb">The history verb.</param>
-            /// <param name="historyChangeType">Whether this is a property change, attribute change, or something else</param>
-            /// <param name="valueName">Depending on  HistoryChangeType.Property: Property Friendly Name, Attribute => Attribute.Name, etc </param>
-            /// <param name="newValue">The new value.</param>
-            /// <param name="oldValue">The old value.</param>
-            /// <param name="isSensitive">if set to <c>true</c> [is sensitive].</param>
-            /// <returns></returns>
-            public HistoryChange AddChange( HistoryVerb historyVerb, HistoryChangeType historyChangeType, string valueName, string newValue, string oldValue, bool isSensitive )
+            public HistoryChange AddChange( HistoryVerb historyVerb, HistoryChangeType historyChangeType, string valueName )
             {
-                var historyChange = new HistoryChange( historyVerb, historyChangeType, valueName, newValue, oldValue ) { IsSensitive = isSensitive };
+                return AddChange( historyVerb, historyChangeType, valueName, null, null );
+            }
+
+            /// <summary>
+            /// Adds a custom history change that doesn't use any of the common HistoryVerbs
+            /// </summary>
+            /// <param name="customVerb">The custom verb.</param>
+            /// <param name="customChangeType">Type of the custom change.</param>
+            /// <param name="valueName">Name of the value.</param>
+            public HistoryChange AddCustom( string customVerb, string customChangeType, string valueName )
+            {
+                var historyChange = new HistoryChange { Verb = customVerb, ChangeType = customChangeType, ValueName = valueName };
                 this.Add( historyChange );
                 return historyChange;
             }
@@ -1529,9 +1594,28 @@ namespace Rock.Model
             /// </summary>
             /// <param name="summary">The summary.</param>
             [Obsolete]
-            public HistoryChange( string summary)
+            public HistoryChange( string summary )
             {
                 this.Summary = summary;
+            }
+
+            /// <summary>
+            /// Initializes a new instance of the <see cref="HistoryChange"/> class.
+            /// </summary>
+            public HistoryChange()
+            {
+                //
+            }
+
+            /// <summary>
+            /// Initializes a new instance of the <see cref="HistoryChange"/> class.
+            /// </summary>
+            /// <param name="historyVerb">The history verb.</param>
+            /// <param name="historyChangeType">Type of the history change.</param>
+            /// <param name="valueName">Name of the value.</param>
+            public HistoryChange( HistoryVerb historyVerb, HistoryChangeType historyChangeType, string valueName )
+                : this( historyVerb, historyChangeType, valueName, null, null )
+            {
             }
 
             /// <summary>
@@ -1542,7 +1626,7 @@ namespace Rock.Model
             /// <param name="valueName">Depending on  HistoryChangeType.Property: Property Friendly Name, Attribute => Attribute.Name, etc </param>
             /// <param name="newValue">The new value.</param>
             /// <param name="oldValue">The old value.</param>
-            public HistoryChange( HistoryVerb historyVerb, HistoryChangeType historyChangeType, string valueName, string newValue, string oldValue )
+            public HistoryChange( HistoryVerb historyVerb, HistoryChangeType historyChangeType, string valueName, string oldValue, string newValue )
             {
                 this.Verb = historyVerb.ConvertToString( false ).ToUpper();
                 this.ChangeType = historyChangeType.ConvertToString( false );
@@ -1581,7 +1665,7 @@ namespace Rock.Model
             /// <value>
             /// The new value.
             /// </value>
-            public object NewValue { get; set; }
+            public string NewValue { get; set; }
 
             /// <summary>
             /// Gets or sets the old value.
@@ -1589,7 +1673,7 @@ namespace Rock.Model
             /// <value>
             /// The old value.
             /// </value>
-            public object OldValue { get; set; }
+            public string OldValue { get; set; }
 
             /// <summary>
             /// Gets or sets a value indicating whether this instance is sensitive.
@@ -1606,6 +1690,47 @@ namespace Rock.Model
             /// The source of change.
             /// </value>
             public string SourceOfChange { get; set; }
+
+            /// <summary>
+            /// Gets or sets the related entity type identifier.
+            /// </summary>
+            /// <value>
+            /// The related entity type identifier.
+            /// </value>
+            public int? RelatedEntityTypeId { get; set; }
+
+            /// <summary>
+            /// Gets or sets the related entity identifier.
+            /// </summary>
+            /// <value>
+            /// The related entity identifier.
+            /// </value>
+            public int? RelatedEntityId { get; set; }
+
+            /// <summary>
+            /// Gets or sets the related data.
+            /// </summary>
+            /// <value>
+            /// The related data.
+            /// </value>
+            public string RelatedData { get; set; }
+
+            /// <summary>
+            /// Gets the caption.
+            /// </summary>
+            /// <value>
+            /// The caption.
+            /// </value>
+            public string Caption { get; set; }
+
+            /// <summary>
+            /// Gets or sets the summary.
+            /// </summary>
+            /// <value>
+            /// The summary.
+            /// </value>
+            [Obsolete]
+            public string Summary { get; set; }
 
             /// <summary>
             /// Sets name of the tool or process that changed the value
@@ -1631,13 +1756,52 @@ namespace Rock.Model
             }
 
             /// <summary>
-            /// Gets or sets the summary.
+            /// Sets the related data.
             /// </summary>
-            /// <value>
-            /// The summary.
-            /// </value>
-            [Obsolete]
-            public string Summary { get; set; }
+            /// <param name="relatedData">The related data.</param>
+            /// <param name="relatedEntityTypeId">The related entity type identifier.</param>
+            /// <param name="relatedEntityId">The related entity identifier.</param>
+            /// <returns></returns>
+            public HistoryChange SetRelatedData( string relatedData, int? relatedEntityTypeId, int? relatedEntityId )
+            {
+                this.RelatedData = relatedData;
+                this.RelatedEntityTypeId = relatedEntityTypeId;
+                this.RelatedEntityId = relatedEntityId;
+                return this;
+            }
+
+            /// <summary>
+            /// Sets the caption.
+            /// </summary>
+            /// <param name="caption">The caption.</param>
+            /// <returns></returns>
+            public HistoryChange SetCaption( string caption )
+            {
+                this.Caption = caption;
+                return this;
+            }
+
+            /// <summary>
+            /// Sets the new value.
+            /// </summary>
+            /// <param name="newValue">The new value.</param>
+            /// <returns></returns>
+            public HistoryChange SetNewValue( string newValue )
+            {
+                this.NewValue = newValue;
+                return this;
+            }
+
+            /// <summary>
+            /// Sets the old/previous value.
+            /// </summary>
+            /// <param name="oldValue">The old value.</param>
+            /// <returns></returns>
+            public HistoryChange SetOldValue( string oldValue )
+            {
+                this.OldValue = oldValue;
+                return this;
+            }
         }
 
         #endregion

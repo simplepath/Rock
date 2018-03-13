@@ -517,7 +517,7 @@ namespace Rock.Model
             {
                 case System.Data.Entity.EntityState.Added:
                     {
-                        HistoryChangeList.AddChange( History.HistoryVerb.Add, History.HistoryChangeType.Record, "Transaction", null, null );
+                        HistoryChangeList.AddChange( History.HistoryVerb.Add, History.HistoryChangeType.Record, "Transaction" );
 
                         string person = History.GetValue<PersonAlias>( AuthorizedPersonAlias, AuthorizedPersonAliasId, rockContext );
 
@@ -539,7 +539,7 @@ namespace Rock.Model
                         if ( batchId.HasValue )
                         {
                             var batchChanges = new History.HistoryChangeList();
-                            batchChanges.AddChange( History.HistoryVerb.Add, History.HistoryChangeType.Record, "Transaction", $"{this.TotalAmount.FormatAsCurrency()} for {person}", null );
+                            batchChanges.AddChange( History.HistoryVerb.Add, History.HistoryChangeType.Record, "Transaction" ).SetNewValue( $"{this.TotalAmount.FormatAsCurrency()} for {person}" );
                             BatchHistoryChangeList.Add( batchId.Value, batchChanges );
                         }
 
@@ -584,11 +584,11 @@ namespace Rock.Model
 
                             if ( origBatchId.HasValue )
                             {
-                                batchChanges.AddChange( History.HistoryVerb.Delete, History.HistoryChangeType.Record, "Transaction", $"{this.TotalAmount.FormatAsCurrency()} for {person}", null );
+                                batchChanges.AddChange( History.HistoryVerb.Delete, History.HistoryChangeType.Record, "Transaction" ).SetOldValue( $"{this.TotalAmount.FormatAsCurrency()} for {person}" );
                             }
                             if ( batchId.HasValue )
                             {
-                                batchChanges.AddChange( History.HistoryVerb.Add, History.HistoryChangeType.Record, "Transaction", $"{this.TotalAmount.FormatAsCurrency()} for {person}", null );
+                                batchChanges.AddChange( History.HistoryVerb.Add, History.HistoryChangeType.Record, "Transaction" ).SetNewValue( $"{this.TotalAmount.FormatAsCurrency()} for {person}" );
                             }
 
                             BatchHistoryChangeList.Add( batchId.Value, batchChanges );
@@ -598,7 +598,7 @@ namespace Rock.Model
                             if ( batchId.HasValue )
                             {
                                 var batchChanges = new History.HistoryChangeList();
-                                batchChanges.AddChange( History.HistoryVerb.Modify, History.HistoryChangeType.Record, $"Transaction Id:{Id}", null, null );
+                                batchChanges.AddChange( History.HistoryVerb.Modify, History.HistoryChangeType.Record, $"Transaction Id:{Id}" );
                                 BatchHistoryChangeList.Add( batchId.Value, batchChanges );
                             }
                         }
@@ -607,7 +607,7 @@ namespace Rock.Model
 
                 case System.Data.Entity.EntityState.Deleted:
                     {
-                        HistoryChangeList.AddChange( History.HistoryVerb.Delete, History.HistoryChangeType.Record, "Transaction", null, null );
+                        HistoryChangeList.AddChange( History.HistoryVerb.Delete, History.HistoryChangeType.Record, "Transaction" );
 
                         int? batchId = Batch != null ? Batch.Id : BatchId;
                         if ( batchId.HasValue )
@@ -615,7 +615,7 @@ namespace Rock.Model
                             string batch = History.GetValue<FinancialBatch>( Batch, BatchId, rockContext );
                             string person = History.GetValue<PersonAlias>( AuthorizedPersonAlias, AuthorizedPersonAliasId, rockContext );
                             var batchChanges = new History.HistoryChangeList();
-                            batchChanges.AddChange( History.HistoryVerb.Delete, History.HistoryChangeType.Record, "Transaction", $"{this.TotalAmount.FormatAsCurrency()} for {person}", null );
+                            batchChanges.AddChange( History.HistoryVerb.Delete, History.HistoryChangeType.Record, "Transaction" ).SetOldValue( $"{this.TotalAmount.FormatAsCurrency()} for {person}" );
 
                             BatchHistoryChangeList.Add( batchId.Value, batchChanges );
                         }

@@ -49,10 +49,6 @@ namespace Rock.Follow.Event
     [PersonField( "Person", "Filter by the person who changed the value. This is always an AND condition with the two value changes. If the Negate Changed By option is also set then this becomes and AND NOT condition.", false, category: "Changed By", order: 1 )]
     public class PersonHistory : EventComponent
     {
-        static readonly string AddedRegex = "Added.*<span class=['\"]field-name['\"]>(.*)<\\/span>.*<span class=['\"]field-value['\"]>(.*)<\\/span>";
-        static readonly string ModifiedRegex = "Modified.*<span class=['\"]field-name['\"]>(.*)<\\/span>.*<span class=['\"]field-value['\"]>(.*)<\\/span>.*<span class=['\"]field-value['\"]>(.*)<\\/span>";
-        static readonly string DeletedRegex = "Deleted.*<span class=['\"]field-name['\"]>(.*)<\\/span>.*<span class=['\"]field-value['\"]>(.*)<\\/span>";
-
         /// <summary>
         /// Gets the followed entity type identifier.
         /// </summary>
@@ -126,9 +122,11 @@ namespace Rock.Follow.Event
                     Dictionary<string, List<PersonHistoryChange>> changes = new Dictionary<string, List<PersonHistoryChange>>();
                     foreach ( var history in qry.ToList() )
                     {
-                        Match modified = Regex.Match( history.Summary, ModifiedRegex );
-                        Match added = Regex.Match( history.Summary, AddedRegex );
-                        Match deleted = Regex.Match( history.Summary, DeletedRegex );
+                        //
+                        // Check what kind of change this was.
+                        //
+                        History.HistoryVerb? historyVerb = history.Verb.ConvertToEnumOrNull<History.HistoryVerb>();
+                        string title = history.ValueName;
 
                         //
                         // Walk each attribute entered by the user to match against.
@@ -136,29 +134,9 @@ namespace Rock.Follow.Event
                         foreach ( var attribute in attributes )
                         {
                             PersonHistoryChange change = new PersonHistoryChange();
-                            string title = null;
-
-                            //
-                            // Check what kind of change this was.
-                            //
-                            if ( modified.Success )
-                            {
-                                title = modified.Groups[1].Value;
-                                change.Old = modified.Groups[2].Value;
-                                change.New = modified.Groups[3].Value;
-                            }
-                            else if ( added.Success )
-                            {
-                                title = added.Groups[1].Value;
-                                change.Old = string.Empty;
-                                change.New = added.Groups[2].Value;
-                            }
-                            else if ( deleted.Success )
-                            {
-                                title = deleted.Groups[1].Value;
-                                change.Old = deleted.Groups[2].Value;
-                                change.New = string.Empty;
-                            }
+                            
+                            change.Old = history.OldValue;
+                            change.New = history.NewValue;
 
                             //
                             // Check if this is one of the attributes we are following.

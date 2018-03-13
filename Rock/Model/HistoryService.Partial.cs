@@ -16,6 +16,7 @@
 //
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
@@ -53,7 +54,7 @@ namespace Rock.Model
         /// <param name="entityId">The entity identifier.</param>
         /// <param name="changes">The changes.</param>
         /// <param name="modifiedByPersonAliasId">The modified by person alias identifier.</param>
-        public static void AddChanges( RockContext rockContext, Type modelType, Guid categoryGuid, int entityId, List<History.HistoryChange> changes, int? modifiedByPersonAliasId = null )
+        public static void AddChanges( RockContext rockContext, Type modelType, Guid categoryGuid, int entityId, History.HistoryChangeList changes, int? modifiedByPersonAliasId = null )
         {
             AddChanges( rockContext, modelType, categoryGuid, entityId, changes, null, null, null, modifiedByPersonAliasId );
         }
@@ -73,7 +74,9 @@ namespace Rock.Model
         [Obsolete]
         public static void AddChanges( RockContext rockContext, Type modelType, Guid categoryGuid, int entityId, List<string> changes, string caption, Type relatedModelType, int? relatedEntityId, int? modifiedByPersonAliasId = null )
         {
-            var historyChanges = changes.Select( a => new History.HistoryChange( a ) ).ToList();
+            var historyChanges = new History.HistoryChangeList();
+            historyChanges.AddRange( changes.Select( a => new History.HistoryChange( a ) ).ToList() );
+
             AddChanges( rockContext, modelType, categoryGuid, entityId, historyChanges, caption, relatedModelType, relatedEntityId, modifiedByPersonAliasId );
         }
 
@@ -89,7 +92,7 @@ namespace Rock.Model
         /// <param name="relatedModelType">Type of the related model.</param>
         /// <param name="relatedEntityId">The related entity identifier.</param>
         /// <param name="modifiedByPersonAliasId">The modified by person alias identifier.</param>
-        public static void AddChanges( RockContext rockContext, Type modelType, Guid categoryGuid, int entityId, List<History.HistoryChange> changes, string caption, Type relatedModelType, int? relatedEntityId, int? modifiedByPersonAliasId = null )
+        public static void AddChanges( RockContext rockContext, Type modelType, Guid categoryGuid, int entityId, History.HistoryChangeList changes, string caption, Type relatedModelType, int? relatedEntityId, int? modifiedByPersonAliasId = null )
         {
             var entityType = EntityTypeCache.Read( modelType );
             var category = CategoryCache.Read( categoryGuid );
@@ -115,20 +118,51 @@ namespace Rock.Model
                     history.EntityTypeId = entityType.Id;
                     history.CategoryId = category.Id;
                     history.EntityId = entityId;
-                    history.Caption = caption.Truncate(200);
+
+                    if ( !string.IsNullOrEmpty( historyChange.Caption ) )
+                    {
+                        // if this individual change has a Caption, use that instead of the main one for the list
+                        history.Caption = historyChange.Caption.Truncate( 200 );
+                    }
+                    else
+                    {
+                        history.Caption = caption.Truncate( 200 );
+                    }
                     
                     // for backwards compability, still store summary (and we can ignore the Obsolete warning here)
 #pragma warning disable 612, 618
                     history.Summary = historyChange.Summary;
 #pragma warning restore 612, 618
-
-                    history.RelatedEntityTypeId = relatedEntityTypeId;
-                    history.RelatedEntityId = relatedEntityId;
+                    
                     history.Verb = historyChange.Verb;
                     history.ChangeType = historyChange.ChangeType;
                     history.ValueName = historyChange.ValueName.Truncate( 250 );
                     history.SourceOfChange = historyChange.SourceOfChange;
                     history.IsSensitive = historyChange.IsSensitive;
+                    history.OldValue = historyChange.OldValue;
+                    history.NewValue = historyChange.NewValue;
+
+                    if ( historyChange.RelatedEntityTypeId.HasValue )
+                    {
+                        // if this individual change has a RelatedEntityTypeId, use that instead of the main one for the list
+                        history.RelatedEntityTypeId = historyChange.RelatedEntityTypeId;
+                    }
+                    else
+                    {
+                        history.RelatedEntityTypeId = relatedEntityTypeId;
+                    }
+
+                    if ( historyChange.RelatedEntityId.HasValue )
+                    {
+                        // if this individual change has a RelatedEntityId, use that instead of the main one for the list
+                        history.RelatedEntityId = historyChange.RelatedEntityId;
+                    }
+                    else
+                    {
+                        history.RelatedEntityId = relatedEntityId;
+                    }
+                    
+                    history.RelatedData = historyChange.RelatedData;
 
                     if ( modifiedByPersonAliasId.HasValue )
                     {
@@ -169,7 +203,7 @@ namespace Rock.Model
         /// <param name="changes">The changes.</param>
         /// <param name="commitSave">if set to <c>true</c> [commit save].</param>
         /// <param name="modifiedByPersonAliasId">The modified by person alias identifier.</param>
-        public static void SaveChanges( RockContext rockContext, Type modelType, Guid categoryGuid, int entityId, List<History.HistoryChange> changes, bool commitSave = true, int? modifiedByPersonAliasId = null )
+        public static void SaveChanges( RockContext rockContext, Type modelType, Guid categoryGuid, int entityId, History.HistoryChangeList changes, bool commitSave = true, int? modifiedByPersonAliasId = null )
         {
             SaveChanges( rockContext, modelType, categoryGuid, entityId, changes, null, null, null, commitSave, modifiedByPersonAliasId );
         }
@@ -200,7 +234,7 @@ namespace Rock.Model
             }
         }
 
-           /// <summary>
+        /// <summary>
         /// Saves the changes.
         /// </summary>
         /// <param name="rockContext">The rock context.</param>
@@ -213,15 +247,19 @@ namespace Rock.Model
         /// <param name="relatedEntityId">The related entity identifier.</param>
         /// <param name="commitSave">if set to <c>true</c> [commit save].</param>
         /// <param name="modifiedByPersonAliasId">The modified by person alias identifier.</param>
-        public static void SaveChanges( RockContext rockContext, Type modelType, Guid categoryGuid, int entityId, List<History.HistoryChange> changes, string caption, Type relatedModelType, int? relatedEntityId, bool commitSave = true, int? modifiedByPersonAliasId = null )
+        public static void SaveChanges( RockContext rockContext, Type modelType, Guid categoryGuid, int entityId, History.HistoryChangeList changes, string caption, Type relatedModelType, int? relatedEntityId, bool commitSave = true, int? modifiedByPersonAliasId = null )
         {
             if ( changes.Any() )
             {
+                Stopwatch sw = Stopwatch.StartNew();
                 AddChanges( rockContext, modelType, categoryGuid, entityId, changes, caption, relatedModelType, relatedEntityId, modifiedByPersonAliasId );
                 if ( commitSave )
                 {
                     rockContext.SaveChanges();
                 }
+
+                sw.Stop();
+                Debug.WriteLine( $"[{sw.Elapsed.TotalMilliseconds} ms], Save {changes.Count} HistoryChanges" );
             }
         }
 

@@ -368,7 +368,8 @@ namespace Rock.Model
                 {
                     // New Person in group
                     var historyItem = HistoryChanges.First( h => h.PersonId == newPersonId.Value && h.GroupId == newGroupId.Value );
-                    //historyItem.Changes.Add( $"Added to '{group.Name}' Group" );
+
+                    historyItem.HistoryChangeList.AddCustom( "Added to", History.HistoryChangeType.Record.ConvertToString(), $"'{group.Name}' Group" );
                     History.EvaluateChange( historyItem.HistoryChangeList, $"{historyItem.Caption} Role", (int?)null, GroupRole, GroupRoleId, rockContext );
                     History.EvaluateChange( historyItem.HistoryChangeList, $"{historyItem.Caption} Note", string.Empty, Note );
                     History.EvaluateChange( historyItem.HistoryChangeList, $"{historyItem.Caption} Status", null, GroupMemberStatus );

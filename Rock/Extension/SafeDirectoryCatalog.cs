@@ -49,6 +49,8 @@ public class SafeDirectoryCatalog : ComposablePartCatalog
 
         foreach ( var file in files )
         {
+            
+            System.Diagnostics.Stopwatch sw = System.Diagnostics.Stopwatch.StartNew();
             try
             {
                 Assembly loadedAssembly = loadedAssembliesDictionary.Where( a => a.Key.Equals( file, StringComparison.OrdinalIgnoreCase ) ).Select( a => a.Value ).FirstOrDefault();
@@ -80,6 +82,12 @@ public class SafeDirectoryCatalog : ComposablePartCatalog
             {
                 // TODO: Add error logging
                 string msg = e.Message;
+            }
+
+            sw.Stop();
+            if ( sw.ElapsedMilliseconds > 1.0 )
+            {
+                System.Diagnostics.Debug.WriteLine( $"[{sw.Elapsed.TotalMilliseconds} ms] {file}" );
             }
         }
     }

@@ -418,20 +418,21 @@ namespace Rock.Model
 
                     if ( personId.HasValue )
                     {
-                        var summary = new System.Text.StringBuilder();
+                        var relatedDataBuilder = new System.Text.StringBuilder();
+                        int? relatedEntityTypeId = null;
+                        int? relatedEntityId = null;
+
                         if ( impersonated )
                         {
-                            summary.Append( "Impersonated user logged in" );
-
                             var impersonatedByUser = HttpContext.Current?.Session["ImpersonatedByUser"] as UserLogin;
+
+                            relatedEntityTypeId = EntityTypeCache.GetId<Rock.Model.Person>();
+                            relatedEntityId = impersonatedByUser?.PersonId;
+                            
                             if ( impersonatedByUser != null )
                             {
-                                summary.Append( $" ( impersonated by { impersonatedByUser.Person.FullName } ) " );
+                                relatedDataBuilder.Append( $" impersonated by { impersonatedByUser.Person.FullName }" );
                             }
-                        }
-                        else
-                        {
-                            summary.AppendFormat( "User logged in with <span class='field-name'>{0}</span> username", userName );
                         }
                         
                         if ( HttpContext.Current != null && HttpContext.Current.Request != null )
@@ -442,27 +443,16 @@ namespace Rock.Model
                             Regex returnurlRegEx = new Regex( @"returnurl=([^&]*)" );
                             cleanUrl = returnurlRegEx.Replace( cleanUrl, "returnurl=XXXXXXXXXXXXXXXXXXXXXXXXXXXX" );
 
-                            summary.AppendFormat( ", to <span class='field-value'>{0}</span>, from <span class='field-value'>{1}</span>",
+                            relatedDataBuilder.AppendFormat( ", to <span class='field-value'>{0}</span>, from <span class='field-value'>{1}</span>",
                                 cleanUrl, HttpContext.Current.Request.UserHostAddress );
                         }
 
-                        summary.Append( "." );
-
-                        var historyService = new HistoryService( rockContext );
-                        var personEntityTypeId = EntityTypeCache.Read( "Rock.Model.Person" ).Id;
-                        var activityCategoryId = CategoryCache.Read( Rock.SystemGuid.Category.HISTORY_PERSON_ACTIVITY.AsGuid(), rockContext ).Id;
-
-                        historyService.Add( new History
-                        {
-                            EntityTypeId = personEntityTypeId,
-                            CategoryId = activityCategoryId,
-                            EntityId = personId.Value,
-                            Summary = summary.ToString(),
-                            Verb = "LOGIN"
-                        } );
+                        var historyChangeList = new History.HistoryChangeList();
+                        var historyChange = historyChangeList.AddChange( History.HistoryVerb.Login, History.HistoryChangeType.Record, userName, null, null );
+                        
+                        historyChange.AddRelatedData( relatedDataBuilder.ToString(), null, null );
+                        HistoryService.SaveChanges( rockContext, typeof( Rock.Model.Person ), Rock.SystemGuid.Category.HISTORY_PERSON_ACTIVITY.AsGuid(), personId.Value, historyChangeList, true );
                     }
-
-                    rockContext.SaveChanges();
                 }
             }
         }

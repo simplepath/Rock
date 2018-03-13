@@ -191,7 +191,7 @@ namespace RockWeb.Blocks.Crm.PersonDetail
             BindGrid();
         }
 
-        #endregion
+        #endregion 
 
         #region Methods
 
@@ -242,12 +242,6 @@ namespace RockWeb.Blocks.Crm.PersonDetail
                         qry = qry.Where( a => a.CategoryId == categoryId.Value );
                     }
 
-                    string summary = gfSettings.GetUserPreference( "Summary Contains" );
-                    if ( !string.IsNullOrWhiteSpace( summary ) )
-                    {
-                        qry = qry.Where( h => h.Summary.Contains( summary ) );
-                    }
-
                     int personId = int.MinValue;
                     if ( int.TryParse( gfSettings.GetUserPreference( "Who" ), out personId ) )
                     {
@@ -280,6 +274,7 @@ namespace RockWeb.Blocks.Crm.PersonDetail
 
                     // Combine history records that were saved at the same time
                     var histories = new List<History>();
+                    var historyCombinedSummary = new Dictionary<int, string>();
                     foreach ( var history in qry )
                     {
                         // Make sure current person is allowed to view the category for the history item.
@@ -290,7 +285,7 @@ namespace RockWeb.Blocks.Crm.PersonDetail
 
                         if ( categoriesAllowed[history.CategoryId] )
                         {
-                            var existingHistory = histories
+                            int? existingHistoryId = histories
                                 .Where( h =>
                                     h.CreatedByPersonAliasId == history.CreatedByPersonAliasId &&
                                     h.CreatedDateTime == history.CreatedDateTime &&
@@ -298,16 +293,24 @@ namespace RockWeb.Blocks.Crm.PersonDetail
                                     h.EntityId == history.EntityId &&
                                     h.CategoryId == history.CategoryId &&
                                     h.RelatedEntityTypeId == history.RelatedEntityTypeId &&
-                                    h.RelatedEntityId == history.RelatedEntityId ).FirstOrDefault();
-                            if ( existingHistory != null )
+                                    h.RelatedEntityId == history.RelatedEntityId ).Select(a => (int?)a.Id).FirstOrDefault();
+
+                            if ( existingHistoryId.HasValue && historyCombinedSummary.ContainsKey( existingHistoryId.Value ) )
                             {
-                                existingHistory.Summary += "<br/>" + history.Summary;
+                                historyCombinedSummary[existingHistoryId.Value] += "<br/>" + history.GetSummary();
                             }
                             else
                             {
+                                historyCombinedSummary.Add( history.Id, history.GetSummary() );
                                 histories.Add( history );
                             }
                         }
+                    }
+
+                    string summary = gfSettings.GetUserPreference( "Summary Contains" );
+                    if ( !string.IsNullOrWhiteSpace( summary ) )
+                    {
+                        histories = histories.Where( h => historyCombinedSummary.Any( a => a.Value.Contains( summary ) && a.Key == h.Id ) ).ToList();
                     }
 
                     // For related items, make sure user is authorized to view the history
@@ -341,7 +344,7 @@ namespace RockWeb.Blocks.Crm.PersonDetail
                         EntityTypeId = h.EntityTypeId,
                         EntityId = h.EntityId,
                         Caption = h.Caption ?? string.Empty,
-                        Summary = h.Summary,
+                        Summary = historyCombinedSummary.GetValueOrNull( h.Id ),
                         RelatedEntityTypeId = h.RelatedEntityTypeId ?? 0,
                         RelatedEntityId = h.RelatedEntityId ?? 0,
                         CreatedByPersonId = h.CreatedByPersonAlias != null ? h.CreatedByPersonAlias.PersonId : 0,
@@ -403,5 +406,10 @@ namespace RockWeb.Blocks.Crm.PersonDetail
         }
 
         #endregion
+
+        protected void gHistory_RowDataBound( object sender, GridViewRowEventArgs e )
+        {
+
+        }
     }
 }
