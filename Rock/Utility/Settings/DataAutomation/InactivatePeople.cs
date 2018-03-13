@@ -29,10 +29,17 @@ namespace Rock.Utility.Settings.DataAutomation
         /// </summary>
         public InactivatePeople()
         {
+            IsNoLastContributionEnabled = true;
             NoLastContributionPeriod = 500;
+
+            IsNoAttendanceInServiceGroupEnabled = true;
             NoAttendanceInServiceGroupPeriod = 500;
+
             NoAttendanceInGroupTypeDays = 500;
+
+            IsNoPrayerRequestEnabled = true;
             NoPrayerRequestPeriod = 500;
+
             NoPersonAttributesDays = 500;
         }
 
@@ -154,7 +161,7 @@ namespace Rock.Utility.Settings.DataAutomation
         /// <value>
         /// The not in dataview.
         /// </value>
-        public string NotInDataview { get; set; }
+        public int? NotInDataview { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether this instance is no interactions enabled.

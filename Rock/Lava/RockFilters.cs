@@ -3716,6 +3716,85 @@ namespace Rock.Lava
             return input.ToString().AsDateTime();
         }
 
+
+        /// <summary>
+        /// Creates the short link.
+        /// </summary>
+        /// <param name="input">The input.</param>
+        /// <param name="token">The token.</param>
+        /// <param name="siteId">The site identifier.</param>
+        /// <param name="overwrite">if set to <c>true</c> [overwrite].</param>
+        /// <param name="randomLength">The random length.</param>
+        /// <returns></returns>
+        public static string CreateShortLink( object input, string token = "", int? siteId = null, bool overwrite = false, int randomLength = 7 )
+        {
+            // Notes: This filter attemtps to return a valid shortlink at all costs
+            //        this means that if the configuration passed to it is invalid
+            //        it will try to correct it with reasonable defaults. For instance
+            //        if you pass in an invalid siteId, the first active site will be used.
+
+            var rockContext = new RockContext();
+            var shortLinkService = new PageShortLinkService( rockContext );
+
+            // Ensure that the provided site exists
+            if ( siteId.HasValue )
+            {
+                SiteCache site = SiteCache.Read( siteId.Value );
+                if ( site == null )
+                {
+                    siteId = null;
+                }
+            }
+
+            // If an invalid site was given use the first site enabled for shortlinks
+            if ( !siteId.HasValue )
+            {
+                siteId = new SiteService( rockContext ).Queryable()
+                    .OrderBy( s => s.EnabledForShortening )
+                    .Take( 1 )
+                    .Select( s => s.Id ).FirstOrDefault();
+            }
+
+            // still no site, guess we're dead in the water
+            if ( !siteId.HasValue )
+            {
+                return string.Empty;
+            }
+
+            // Get the token
+            if ( token.IsNullOrWhiteSpace() )
+            {
+                // No token, no problem we'll just make one ourselves
+                token = shortLinkService.GetUniqueToken( siteId.Value, randomLength );
+            }
+            else
+            {
+                token = token.RemoveSpaces().UrlEncode();
+            }
+
+            // Check if the token exists by getting it
+            var shortLink = shortLinkService.GetByToken( token, siteId.Value );
+            if ( shortLink != null && overwrite == false )
+            {
+                // We can't use the provided shortlink because it's ready used, so get a random token
+                // Garbage in Random out
+                shortLink = null;
+                token = shortLinkService.GetUniqueToken( siteId.Value, 7 );
+            }
+
+            if (shortLink == null )
+            {
+                shortLink = new PageShortLink();
+                shortLinkService.Add( shortLink );
+            }
+
+            shortLink.Token = token;
+            shortLink.SiteId = siteId.Value;
+            shortLink.Url = input.ToString();
+            rockContext.SaveChanges();
+
+            return shortLink.ShortLinkUrl;
+        }
         #endregion
 
         #region Array Filters
