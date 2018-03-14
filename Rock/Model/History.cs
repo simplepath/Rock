@@ -452,7 +452,7 @@ namespace Rock.Model
         }
 
         /// <summary>
-        /// Common Change Types. This get saved to History.ChangeType as a string so that custom change types can be sued
+        /// Common Change Types. This get saved to History.ChangeType as a string so that custom change types can be used
         /// </summary>
         public enum HistoryChangeType
         {
@@ -1892,3 +1892,4 @@ namespace Rock.Model
     #endregion
 
 }
+ 
