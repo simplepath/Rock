@@ -492,9 +492,8 @@ namespace Rock.Communication.Transport
                                             historyChangeList.AddChange(
                                                 History.HistoryVerb.Sent,
                                                 History.HistoryChangeType.Record,
-                                                $"Communication from {message.From.DisplayName}" )
-                                                .SetNewValue( communication.ToString() )
-                                                .SetRelatedData( null, communicationEntityTypeId, communication.Id )
+                                                $"Communication" )
+                                                .SetRelatedData( message.From.DisplayName, communicationEntityTypeId, communication.Id )
                                                 .SetCaption( message.Subject );
 
                                             HistoryService.SaveChanges( recipientRockContext, typeof( Rock.Model.Person ), communicationCategoryGuid, recipient.PersonAlias.PersonId, historyChangeList, false, communication.SenderPersonAliasId );

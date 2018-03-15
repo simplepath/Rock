@@ -870,7 +870,7 @@ namespace RockWeb.Blocks.Finance
                     financialTransactionDetailService.Delete( detail );
                 }
 
-                changes.AddCustom( "UNMATCHED", History.HistoryChangeType.Record.ConvertToString(),  "Transaction" );
+                changes.AddChange( History.HistoryVerb.Unmatched, History.HistoryChangeType.Record,  "Transaction" );
 
                 HistoryService.SaveChanges(
                     rockContext,
@@ -974,7 +974,7 @@ namespace RockWeb.Blocks.Finance
                 financialTransaction.FinancialPaymentDetail.LoadAttributes(rockContext);
                 Helper.GetEditValues(phPaymentAttributeEdits, financialTransaction.FinancialPaymentDetail);
 
-                changes.AddCustom( "MATCHED", History.HistoryChangeType.Record.ConvertToString(), "Transaction" );
+                changes.AddChange( History.HistoryVerb.Matched, History.HistoryChangeType.Record, "Transaction" );
 
                 HistoryService.SaveChanges(
                     rockContext,

@@ -106,7 +106,7 @@ namespace Rock.Model
         /// The summary.
         /// </value>
         [DataMember]
-        [Obsolete( "Use GetSummary instead" )]
+        [Obsolete( "Use SummaryHtml instead to get the Summary, or use HistoryChangeList related functions to log history " )]
         public string Summary { get; set; }
 
         /// <summary>
@@ -252,148 +252,184 @@ namespace Rock.Model
         /// </returns>
         public override string ToString()
         {
-            return this.GetSummary();
+            return this.SummaryHtml;
         }
 
         /// <summary>
-        /// Gets the summary.
+        /// Calculates and returns a formatted summary
         /// </summary>
         /// <returns></returns>
-        public string GetSummary()
+        [NotMapped]
+        [LavaInclude]
+        public string SummaryHtml
         {
-            HistoryVerb? historyVerb = this.Verb.ConvertToEnumOrNull<HistoryVerb>();
-            if ( !string.IsNullOrEmpty( this.ChangeType ) )
+            get
             {
-                if ( historyVerb.HasValue )
+                HistoryVerb? historyVerb = this.Verb.ConvertToEnumOrNull<HistoryVerb>();
+                if ( !string.IsNullOrEmpty( this.ChangeType ) )
                 {
-                    switch ( historyVerb.Value )
+                    if ( historyVerb.HasValue )
                     {
-                        case HistoryVerb.Add:
-                            {
-                                if ( this.IsSensitive == true )
+                        switch ( historyVerb.Value )
+                        {
+                            case HistoryVerb.Add:
                                 {
-                                    return $"Added <span class='field-name'>{this.ValueName}</span> value (Sensitive attribute values are not logged in history).";
-                                }
-                                else
-                                {
-                                    StringBuilder addSummary = new StringBuilder( $"Added <span class='field-name'>{this.ValueName}</span>" );
-                                    if ( !string.IsNullOrEmpty( this.NewValue ) )
+                                    if ( this.IsSensitive == true )
                                     {
-                                        addSummary.Append( $" value of <span class='field-value'>{this.NewValue}</span>" );
+                                        return $"Added <span class='field-name'>{this.ValueName}</span> value (Sensitive attribute values are not logged in history).";
+                                    }
+                                    else
+                                    {
+                                        StringBuilder addSummary = new StringBuilder( $"Added <span class='field-name'>{this.ValueName}</span>" );
+                                        if ( !string.IsNullOrEmpty( this.NewValue ) )
+                                        {
+                                            addSummary.Append( $" value of <span class='field-value'>{this.NewValue}</span>" );
+                                        }
+
+                                        addSummary.Append( "." );
+                                        return addSummary.ToString();
+                                    }
+                                }
+
+                            case HistoryVerb.Modify:
+                                {
+                                    if ( this.IsSensitive == true )
+                                    {
+                                        return $"Modified <span class='field-name'>{this.ValueName}</span> value (Sensitive attribute values are not logged in history).";
+                                    }
+                                    else
+                                    {
+                                        StringBuilder modifySummary = new StringBuilder( $"Modified <span class='field-name'>{this.ValueName}</span>" );
+                                        if ( !string.IsNullOrEmpty( this.OldValue ) )
+                                        {
+                                            modifySummary.Append( $" value from <span class='field-value'>{this.OldValue}</span>" );
+                                        }
+
+                                        if ( !string.IsNullOrEmpty( this.NewValue ) )
+                                        {
+                                            modifySummary.Append( $" to <span class='field-value'>{this.NewValue}</span>" );
+                                        }
+
+                                        modifySummary.Append( "." );
+                                        return modifySummary.ToString();
+                                    }
+                                }
+
+                            case HistoryVerb.Delete:
+                                {
+                                    if ( this.IsSensitive == true )
+                                    {
+                                        return $"Deleted <span class='field-name'>{this.ValueName}</span> value (Sensitive attribute values are not logged in history).";
+                                    }
+                                    else
+                                    {
+                                        StringBuilder deleteSummary = new StringBuilder( $"Deleted <span class='field-name'>{this.ValueName}</span>" );
+
+                                        if ( !string.IsNullOrEmpty( this.OldValue ) )
+                                        {
+                                            deleteSummary.Append( $" value of <span class='field-value'>{this.OldValue}</span>" );
+                                        }
+
+                                        deleteSummary.Append( "." );
+
+                                        return deleteSummary.ToString();
+                                    }
+                                }
+
+                            case HistoryVerb.Process:
+                                {
+                                    return $"Processed refund for {this.ValueName}";
+                                }
+                            case HistoryVerb.Matched:
+                            case HistoryVerb.Unmatched:
+                                {
+                                    return $"{historyVerb.Value.ConvertToString( false )} {this.ValueName}";
+                                }
+
+                            case HistoryVerb.Registered:
+                                {
+                                    return $"Registered {this.ValueName} for";
+                                }
+
+                            case HistoryVerb.Login:
+                                {
+                                    StringBuilder loginSummaryBuilder = new StringBuilder();
+                                    loginSummaryBuilder.Append( $"User logged in with <span class='field-name'>{this.ValueName}</span> username" );
+
+                                    // if Related Data has data, it could be additional info about the HostAddress the person logged in from and the url of the page when they logged in
+                                    if ( !string.IsNullOrEmpty( this.RelatedData ) )
+                                    {
+                                        loginSummaryBuilder.Append( $", {this.RelatedData}" );
                                     }
 
-                                    addSummary.Append( "." );
-                                    return addSummary.ToString();
+                                    var loginSummary = loginSummaryBuilder.ToString();
+                                    return loginSummary;
                                 }
-                            }
 
-                        case HistoryVerb.Modify:
-                            {
-                                if ( this.IsSensitive == true )
+                            case HistoryVerb.Merge:
                                 {
-                                    return $"Modified <span class='field-name'>{this.ValueName}</span> value (Sensitive attribute values are not logged in history).";
+                                    return $"Merged <span class='field-value'>{this.ValueName}</span> with this record.";
                                 }
-                                else
+
+                            case HistoryVerb.AddedToGroup:
                                 {
-                                    StringBuilder modifySummary = new StringBuilder( $"Modified <span class='field-name'>{this.ValueName}</span>" );
-                                    if ( !string.IsNullOrEmpty( this.OldValue ) )
+                                    return $"Added to {this.ValueName}.";
+                                }
+
+                            case HistoryVerb.RemovedFromGroup:
+                                {
+                                    return $"Removed from {this.ValueName}.";
+                                }
+
+                            case HistoryVerb.Sent:
+                                {
+                                    var sentSummaryBuilder = new StringBuilder( $"Sent {this.ValueName}" );
+
+                                    // if RelatedData is not NULL is is most likely message.FromName. NOTE: if it is string.Empty, still append the field-value span so that it renders like pre-v8
+                                    if ( this.RelatedData != null )
                                     {
-                                        modifySummary.Append( $" value from <span class='field-value'>{this.OldValue}</span>" );
+                                        sentSummaryBuilder.Append( $" <span class='field-value'>{this.RelatedData}</span>." );
                                     }
 
-                                    if ( !string.IsNullOrEmpty( this.NewValue ) )
-                                    {
-                                        modifySummary.Append( $" to <span class='field-value'>{this.NewValue}</span>" );
-                                    }
-
-                                    modifySummary.Append( "." );
-                                    return modifySummary.ToString();
+                                    var sentSummary = sentSummaryBuilder.ToString();
+                                    return sentSummary;
                                 }
-                            }
+                        }
+                    }
 
-                        case HistoryVerb.Delete:
-                            {
-                                if ( this.IsSensitive == true )
-                                {
-                                    return $"Deleted <span class='field-name'>{this.ValueName}</span> value (Sensitive attribute values are not logged in history).";
-                                }
-                                else
-                                {
-                                    StringBuilder deleteSummary = new StringBuilder( $"Deleted <span class='field-name'>{this.ValueName}</span>" );
+                    // some unexpected verb was used to make a custom summary 
+                    var stringBuilder = new StringBuilder();
 
-                                    if ( !string.IsNullOrEmpty( this.OldValue ) )
-                                    {
-                                        deleteSummary.Append( $"value of <span class='field-value'>{this.OldValue}</span>" );
-                                    }
+                    // Start with whatever custom verb was used. For example 'WATCHED' => 'Watched'
+                    stringBuilder.Append( this.Verb.FixCase() );
 
-                                    deleteSummary.Append( "." );
+                    // include the value name (For example 'First Name') that was affected
+                    if ( !string.IsNullOrEmpty( this.ValueName ) )
+                    {
+                        stringBuilder.Append( $" <span class='field-name'>{this.ValueName}</span>." );
+                    }
 
-                                    return deleteSummary.ToString();
-                                }
-                            }
+                    if ( this.IsSensitive != true )
+                    {
+                        if ( !string.IsNullOrEmpty( this.OldValue ) )
+                        {
+                            stringBuilder.Append( $" old value of <span class='field-name'>{this.OldValue}</span>, " );
+                        }
 
-                        case HistoryVerb.Process:
-                            {
-                                return $"Processed refund for {this.ValueName}";
-                            }
+                        if ( !string.IsNullOrEmpty( this.NewValue ) )
+                        {
+                            stringBuilder.Append( $" new value of <span class='field-name'>{this.NewValue}</span>, " );
+                        }
+                    }
 
-                        case HistoryVerb.Registered:
-                            {
-                                return $"Registered {this.ValueName} for";
-                            }
-
-                        case HistoryVerb.Login:
-                            {
-                                StringBuilder loginSummaryBuilder = new StringBuilder();
-                                loginSummaryBuilder.Append( $"User logged in with <span class='field-name'>{this.ValueName}</span> username" );
-
-                                // if Related Data has data, it could be additional info about the HostAddress the person logged in from and the url of the page when they logged in
-                                if ( !string.IsNullOrEmpty( this.RelatedData ) )
-                                {
-                                    loginSummaryBuilder.Append( $" {this.RelatedData}" );
-                                }
-
-                                var loginSummary = loginSummaryBuilder.ToString();
-                                return loginSummary;
-                            }
-
-                        case HistoryVerb.Merge:
-                            {
-                                return $"Merged <span class='field-value'>{this.ValueName}</span> with this record.";
-                            }
+                    var customSummary = stringBuilder.ToString();
+                    if ( !string.IsNullOrEmpty( customSummary ) )
+                    {
+                        return customSummary;
                     }
                 }
 
-                // some unexpected verb was used to make a custom summary 
-                var stringBuilder = new StringBuilder();
-
-                // Start with whatever custom verb was used. For example 'WATCHED' => 'Watched'
-                stringBuilder.Append( this.Verb.FixCase() );
-
-                // include the value name (For example 'First Name') that was affected
-                if ( !string.IsNullOrEmpty( this.ValueName ) )
-                {
-                    stringBuilder.Append( $" <span class='field-name'>{this.ValueName}</span>." );
-                }
-
-                if ( this.IsSensitive != true )
-                {
-                    if ( !string.IsNullOrEmpty( this.OldValue ) )
-                    {
-                        stringBuilder.Append( $" old value of <span class='field-name'>{this.OldValue}</span>, " );
-                    }
-
-                    if ( !string.IsNullOrEmpty( this.NewValue ) )
-                    {
-                        stringBuilder.Append( $" new value of <span class='field-name'>{this.NewValue}</span>, " );
-                    }
-                }
-
-                var customSummary = stringBuilder.ToString();
-                return customSummary;
-            }
-            else
-            {
+                // fallback to Summary if summary couldn't be built from Verb, ChangeType, etc
 #pragma warning disable 612, 618
                 return this.Summary;
 #pragma warning restore 612, 618
@@ -436,6 +472,16 @@ namespace Rock.Model
             Process,
 
             /// <summary>
+            /// Something was matched. For example, a transaction was matched to a person
+            /// </summary>
+            Matched,
+
+            /// <summary>
+            /// Something was un-matched. For example, a transaction was un-matched from a person
+            /// </summary>
+            Unmatched,
+
+            /// <summary>
             /// Something was Sent. For example, a communication was sent from a person.
             /// </summary>
             Sent,
@@ -449,6 +495,16 @@ namespace Rock.Model
             /// The record (probably person) was merged
             /// </summary>
             Merge,
+
+            /// <summary>
+            /// a person/groupmember was added to a group
+            /// </summary>
+            AddedToGroup,
+
+            /// <summary>
+            /// a person/groupmember was removed from a group
+            /// </summary>
+            RemovedFromGroup
         }
 
         /// <summary>
@@ -1892,4 +1948,3 @@ namespace Rock.Model
     #endregion
 
 }
- 

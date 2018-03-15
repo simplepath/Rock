@@ -125,6 +125,10 @@
     <Compile Include="Migrations\201803122114192_GroupHistory2.Designer.cs">
       <DependentUpon>201803122114192_GroupHistory2.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201803142320264_GroupHistory3.cs" />
+    <Compile Include="Migrations\201803142320264_GroupHistory3.Designer.cs">
+      <DependentUpon>201803142320264_GroupHistory3.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Version 7.0\Version 1.7.1\201801121251097_InteractionBlocks.cs" />
     <Compile Include="Migrations\Version 7.0\Version 1.7.1\201801121251097_InteractionBlocks.Designer.cs">
       <DependentUpon>201801121251097_InteractionBlocks.cs</DependentUpon>
@@ -2747,6 +2751,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201803122114192_GroupHistory2.resx">
       <DependentUpon>201803122114192_GroupHistory2.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201803142320264_GroupHistory3.resx">
+      <DependentUpon>201803142320264_GroupHistory3.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\Version 7.0\Version 1.7.1\201801121251097_InteractionBlocks.resx">
       <DependentUpon>201801121251097_InteractionBlocks.cs</DependentUpon>

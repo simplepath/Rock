@@ -304,11 +304,11 @@ namespace RockWeb.Blocks.Core
                                 h.RelatedEntityId == history.RelatedEntityId ).Select(a => ( int? ) a.Id).FirstOrDefault();
                         if ( existingHistoryId.HasValue && historyCombinedSummary.ContainsKey(existingHistoryId.Value) )
                         {
-                            historyCombinedSummary[existingHistoryId.Value] += "<br/>" + history.GetSummary();
+                            historyCombinedSummary[existingHistoryId.Value] += "<br/>" + history.SummaryHtml;
                         }
                         else
                         {
-                            historyCombinedSummary.Add( history.Id, history.GetSummary() );
+                            historyCombinedSummary.Add( history.Id, history.SummaryHtml );
                             histories.Add( history );
                         }
                     }
