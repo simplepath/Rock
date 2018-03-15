@@ -441,7 +441,7 @@ Move Adult Children: {moveAdultChildrenResult}
                                 m.CreatedDateTime >= startPeriod &&
                                 m.EntityTypeId == personEntityTypeId &&
                                 m.RelatedEntityId.HasValue &&
-                                m.Summary.Contains( "<span class='field-name'>Campus</span>" ) )
+                                m.ValueName == "Campus" )
                             .Select( a => a.RelatedEntityId.Value )
                             .ToList()
                             .Distinct();
@@ -842,7 +842,7 @@ Move Adult Children: {moveAdultChildrenResult}
                                     }
 
                                     // Save role change to history
-                                    var memberChanges = new List<string>();
+                                    var memberChanges = new History.HistoryChangeList();
                                     History.EvaluateChange( memberChanges, "Role", string.Empty, adultRole.Name );
                                     HistoryService.SaveChanges( rockContext, typeof( Person ), familyChangesGuid, personId, memberChanges, newFamily.Name, typeof( Group ), newFamily.Id, false );
                                 }
@@ -865,7 +865,7 @@ Move Adult Children: {moveAdultChildrenResult}
                             // If user configured the job to copy home address and this person's family does not have any home addresses, copy them from the primary family
                             if ( settings.UseSameHomeAddress && !newFamily.GroupLocations.Any( l => l.GroupLocationTypeValue != null && l.GroupLocationTypeValue.Guid == homeAddressGuid ) )
                             {
-                                var familyChanges = new List<string>();
+                                var familyChanges = new History.HistoryChangeList();
 
                                 foreach ( var groupLocation in primaryFamily.GroupLocations.Where( l => l.GroupLocationTypeValue != null && l.GroupLocationTypeValue.Guid == homeAddressGuid ) )
                                 {
