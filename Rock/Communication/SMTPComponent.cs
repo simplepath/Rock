@@ -477,6 +477,7 @@ namespace Rock.Communication.Transport
 
                                         smtpClient.Send( message );
                                         recipient.Status = CommunicationRecipientStatus.Delivered;
+                                        recipient.SendDateTime = RockDateTime.Now;
 
                                         string statusNote = StatusNote;
                                         if ( !string.IsNullOrWhiteSpace( statusNote ) )
