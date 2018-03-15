@@ -266,6 +266,24 @@ namespace Rock.Web.Cache
         public bool IsAnalyticHistory { get; set; }
 
         /// <summary>
+        /// Gets a value indicating whether this attribute is active.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [enable history]; otherwise, <c>false</c>.
+        /// </value>
+        [DataMember]
+        public bool EnableHistory { get; private set; }
+
+        /// <summary>
+        /// Gets a value indicating whether changes to this attribute's attribute values should be logged in AttributeValueHistorical
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if this instance is active; otherwise, <c>false</c>.
+        /// </value>
+        [DataMember]
+        public bool IsActive { get; private set; }
+
+        /// <summary>
         /// Gets the type of the field.
         /// </summary>
         /// <value>
@@ -375,6 +393,8 @@ namespace Rock.Web.Cache
             this.IsIndexEnabled = attribute.IsIndexEnabled;
             this.IsAnalytic = attribute.IsAnalytic;
             this.IsAnalyticHistory = attribute.IsAnalyticHistory;
+            this.IsActive = attribute.IsActive;
+            this.EnableHistory = attribute.EnableHistory;
 
             this.QualifierValues = new Dictionary<string, ConfigurationValue>();
             foreach ( var qualifier in qualifiers )

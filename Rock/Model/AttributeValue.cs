@@ -370,7 +370,7 @@ namespace Rock.Model
 
                     if ( newBinaryFileGuid.HasValue )
                     {
-                        BinaryFileService binaryFileService = new BinaryFileService( (RockContext)dbContext );
+                        BinaryFileService binaryFileService = new BinaryFileService( ( RockContext ) dbContext );
                         var binaryFile = binaryFileService.Get( newBinaryFileGuid.Value );
                         if ( binaryFile != null && binaryFile.IsTemporary )
                         {
@@ -379,10 +379,14 @@ namespace Rock.Model
                     }
                 }
 
-                // Check to see if this attribute is for a person or group, and if so, save history
-                if ( attributeCache.EntityTypeId.HasValue &&
-                    ( attributeCache.EntityTypeId.Value == EntityTypeCache.Read( typeof( Person ) ).Id ||
-                    attributeCache.EntityTypeId.Value == EntityTypeCache.Read( typeof( Group ) ).Id ) )
+                // Check to see if this attribute is for a person or group, and if so, save to history table
+                bool saveToHistoryTable = attributeCache.EntityTypeId.HasValue &&
+                        ( attributeCache.EntityTypeId.Value == EntityTypeCache.Read( typeof( Person ) ).Id
+                          || attributeCache.EntityTypeId.Value == EntityTypeCache.Read( typeof( Group ) ).Id );
+
+                bool saveToAttributeValueHistory = attributeCache.EnableHistory;
+
+                if ( saveToHistoryTable || saveToAttributeValueHistory )
                 {
                     string oldValue = string.Empty;
                     string newValue = string.Empty;
@@ -415,11 +419,21 @@ namespace Rock.Model
 
                     if ( oldValue != newValue )
                     {
-                        oldValue = oldValue.IsNotNullOrWhitespace() ? attributeCache.FieldType.Field.FormatValue( null, oldValue, attributeCache.QualifierValues, true ) : string.Empty;
-                        newValue = newValue.IsNotNullOrWhitespace() ? attributeCache.FieldType.Field.FormatValue( null, newValue, attributeCache.QualifierValues, true ) : string.Empty;
+                        var formattedOldValue = oldValue.IsNotNullOrWhitespace() ? attributeCache.FieldType.Field.FormatValue( null, oldValue, attributeCache.QualifierValues, true ) : string.Empty;
+                        var formattedNewValue = newValue.IsNotNullOrWhitespace() ? attributeCache.FieldType.Field.FormatValue( null, newValue, attributeCache.QualifierValues, true ) : string.Empty;
 
-                        HistoryChanges = new History.HistoryChangeList();
-                        History.EvaluateChange( HistoryChanges, attributeCache.Name, oldValue, newValue );
+                        if ( saveToHistoryTable )
+                        {
+                            HistoryChanges = new History.HistoryChangeList();
+                            History.EvaluateChange( HistoryChanges, attributeCache.Name, formattedOldValue, formattedNewValue );
+                        }
+
+                        if ( saveToAttributeValueHistory )
+                        {
+                            // TODO
+                            //var attributeValueHistoricalService = new AttributeValueHistoricalService( dbContext as RockContext );
+                            //var attributeValueHistorical = new 
+                        }
                     }
                 }
             }
@@ -427,7 +441,7 @@ namespace Rock.Model
             base.PreSaveChanges( dbContext, entry );
         }
 
-    
+
 
         /// <summary>
         /// Posts the save changes.
@@ -440,11 +454,11 @@ namespace Rock.Model
             {
                 if ( HistoryEntityTypeId.Value == EntityTypeCache.Read( typeof( Person ) ).Id )
                 {
-                    HistoryService.SaveChanges( (RockContext)dbContext, typeof( Person ), Rock.SystemGuid.Category.HISTORY_PERSON_DEMOGRAPHIC_CHANGES.AsGuid(), historyEntityId.Value, HistoryChanges, string.Empty, typeof( Attribute ), AttributeId, true, this.ModifiedByPersonAliasId );
+                    HistoryService.SaveChanges( ( RockContext ) dbContext, typeof( Person ), Rock.SystemGuid.Category.HISTORY_PERSON_DEMOGRAPHIC_CHANGES.AsGuid(), historyEntityId.Value, HistoryChanges, string.Empty, typeof( Attribute ), AttributeId, true, this.ModifiedByPersonAliasId );
                 }
                 else
                 {
-                    HistoryService.SaveChanges( (RockContext)dbContext, typeof( Group ), Rock.SystemGuid.Category.HISTORY_GROUP_CHANGES.AsGuid(), historyEntityId.Value, HistoryChanges, string.Empty, typeof( Attribute ), AttributeId, true, this.ModifiedByPersonAliasId );
+                    HistoryService.SaveChanges( ( RockContext ) dbContext, typeof( Group ), Rock.SystemGuid.Category.HISTORY_GROUP_CHANGES.AsGuid(), historyEntityId.Value, HistoryChanges, string.Empty, typeof( Attribute ), AttributeId, true, this.ModifiedByPersonAliasId );
                 }
             }
 
