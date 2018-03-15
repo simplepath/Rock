@@ -45,8 +45,16 @@ main {
   display: block;
 }
 
-h1, h2, h3, h4 {
-  font-weight: @font-weight-light;
+h3, h4,
+legend {
+  font-weight: normal;
+}
+
+b,
+strong,
+dl:not(.dl-horizontal) dt,
+dt {
+  font-weight: @font-weight-semibold;
 }
 
 a:hover {
@@ -68,8 +76,6 @@ textarea:focus,
   border: 1px solid rgba(238, 118, 36, .6);
   box-shadow: 0 0 5px rgba(238, 118, 36, .6);
 }
-
-
 
 // text selection color
 ::selection {
@@ -98,7 +104,7 @@ textarea:focus,
 
 .label {
   border-radius: 0; // labels always have curves
-  font-weight: 300; // make the font light
+  font-weight: 400; // make the font light
 }
 
 .table-bordered > thead > tr > td, .table-bordered > thead > tr > th {
@@ -113,13 +119,30 @@ textarea:focus,
   -webkit-box-shadow: none;
   box-shadow: none;
 }
+
+.control-label {
+  font-weight: @font-weight-semibold;
+}
+
+
 /*#endregion */
 
 /*#region
 // 3. Rock Overrides         */
 // -------------------------
-.list-as-blocks h3 {
-  font-size: 1em;
+
+.list-as-blocks {
+  ul{
+    margin-top: 0;
+  }
+  
+  .panel-body{
+    padding: 15px 15px 0;
+  }
+}
+
+.rating-input i  {
+  color: @brand-primary;
 }
 
 .wizard {
@@ -128,6 +151,17 @@ textarea:focus,
   margin-bottom: 24px;
 }
 
+.help-message {
+  padding: 12px;
+}
+
+.grid-actions .form-control {
+  font-size: .8em;
+  height: 37px;
+  border: 0;
+  box-shadow: none;
+  background-color: @grid-column-header-bg;
+}
 
 .panel-block {
 
@@ -462,7 +496,7 @@ td.grid-actions {
 
   #header-collapse { // the collapse for the bookmarks search and login status
     color: @navbarside-color;
-    background-color: @brand-light-color;
+    background-color: lighten(@brand-color, 30%);
     width: 100%;
     font-size: 1em;
     text-align: center;
@@ -530,6 +564,9 @@ td.grid-actions {
     display: inline-block;
     width: 100%;
     cursor: default;
+    position: fixed;
+    width: 100px;
+    z-index: @zindex-navbar-fixed;
 
     & > li {
       margin-top: 0;
@@ -597,6 +634,9 @@ td.grid-actions {
           font-size: 1.5em;
           font-weight: @font-weight-light;
           color: @navbarside-color;
+          margin: -9px -20px 0;
+          padding: 9px 20px;
+          background-color: lighten(@navbarside-sub-bg, 15%);
         }
 
         li.header {
@@ -760,8 +800,11 @@ body.navbar-side-close {
   }
 }
 
-/*#endregion */
+.personprofilebar-bio .name .firstname {
+  font-size: 1em;
+}
 
+/*#endregion */
 /*#region
 // 6. Components          */
 // -------------------------

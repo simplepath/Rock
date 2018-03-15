@@ -67,27 +67,11 @@
 
             <div class="header-content collapse navbar-collapse" role="navigation">
                 <div class="clearfix">
-                <ul class="nav navbar-nav navbar-static-top bookmarks">
-                    <li><a href="">Reports</a></li>
-                    <li><a href="">Event Registrations</a></li>
-                    <li class="dropdown">
-                        <a href="" data-toggle="dropdown" role="button" class="dropdown-toggle">
-                            Attendance Analytics
-                            <i class="fa fa-chevron-down"></i>
-                        </a>
-                        
-                        <ul class="dropdown-menu" role="menu">
-                            <li><a href="">Missed Last 4 Weeks</a></li>
-                            <li><a href="">Missed Last 6 Weeks</a></li>
-                            <li><a href="">First Visit</a></li>
-                            <li><a href="">Second Visit</a></li>
-                        </ul>
-                    </li>
-                </ul>
+                    <!-- bookmark markup goes here -->
 
-                <div class="navbar-zone-login"><Rock:Zone Name="Login" runat="server" /></div>
-                <div class="navbar-zone-header"><Rock:Zone Name="Header" runat="server" /></div>
-            </div>
+                    <div class="navbar-zone-login"><Rock:Zone Name="Login" runat="server" /></div>
+                    <div class="navbar-zone-header"><Rock:Zone Name="Header" runat="server" /></div>
+                </div>
             </div>
             
             <div id="header-collapse" class="collapsed" data-toggle="collapse" data-target=".header-content">

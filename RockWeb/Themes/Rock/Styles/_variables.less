@@ -1,6 +1,5 @@
 // Theme Colors *show in editor*
 @brand-color: #ee7725; // This is the primary brand color that will be used for the header, primary buttons and other accents. #color
-@brand-light-color: #fbd3b7; // The light version of the brand color. #color
 
 @body-background: #f0f0f0; // The page background color. #color
 @text-color: #545454; // The default text color. #color
@@ -162,7 +161,7 @@
 // Global Styles 
 
 @well-bg: @body-bg;                     // The backgroud color for wells. Wells are used to group like content. #color
-@photo-border: @theme-3;                // Standard border color for photos. #color
+@photo-border: @input-border;                // Standard border color for photos. #color
 @hr-border: lighten(@text-color, 40%);  // The color horizontal rule lines. #color
 //--
 @legend-color:                   @gray-dark; // Text color for html legend element. The legend element is not used much in the core blocks (provided here for theme developers.) #color
@@ -232,8 +231,8 @@
 @grid-column-header-font-weight: @font-weight-semibold; // The font weight of the grid header.
 @grid-column-header-border-color: @grid-border-color;    // The border color of the grid header.
 //--
-@grid-column-header-bold-bg: @nav-bg;                   // Background color for bold table headers like the merge person page.
-@grid-column-header-bold-color: @nav-color;             // The text color for bold table headers like the merge person page.
+@grid-column-header-bold-bg: darken(@panel-heading-bg, 30%);                   // Background color for bold table headers like the merge person page.
+@grid-column-header-bold-color: #fff;             // The text color for bold table headers like the merge person page.
 
 //// Row Striping
 @grid-row-even-bg: @panel-bg;         // The even rows background color.
@@ -242,7 +241,7 @@
 @grid-row-odd-color: @text-color;   // The odd rows text color.
 
 //// Hover
-@grid-hover-bg: lighten(@brand-light-color, 20%);            // Row background color when hovered over.
+@grid-hover-bg: desaturate( lighten(@brand-color, 42%), 30%);            // Row background color when hovered over.
 @grid-hover-color: @text-color;     // Row text color when hovered over.
 
 //// Section Headers
