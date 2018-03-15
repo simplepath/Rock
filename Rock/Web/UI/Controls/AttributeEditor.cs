@@ -1542,6 +1542,8 @@ namespace Rock.Web.UI.Controls
                 attribute.IsIndexEnabled = this.IsIndexingEnabled;
                 attribute.IsAnalytic = this.IsAnalytic;
                 attribute.IsAnalyticHistory = this.IsAnalyticHistory;
+                attribute.IsActive = this.IsActive;
+                attribute.EnableHistory = this.EnableHistory;
 
                 attribute.Categories.Clear();
                 new CategoryService( new RockContext() ).Queryable().Where( c => this.CategoryIds.Contains( c.Id ) ).ToList().ForEach( c =>

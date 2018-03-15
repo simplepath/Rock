@@ -60,16 +60,7 @@ namespace Rock.Migrations
                 .Index(t => t.CreatedByPersonAliasId)
                 .Index(t => t.ModifiedByPersonAliasId)
                 .Index(t => t.Guid, unique: true);
-
-            // Enforce that there isn't more than one CurrentRow per AttributeValue in AttributeValueHistorical
-            Sql( @"
-CREATE UNIQUE NONCLUSTERED  INDEX [IX_AttributeValueIdCurrentRow] ON [dbo].[AttributeValueHistorical]
-(
-	[AttributeValueId] ASC,
-	[CurrentRowIndicator]
-) where CurrentRowIndicator = 1 
-" );
-
+            
             CreateTable(
                 "dbo.GroupLocationHistoricalSchedule",
                 c => new
@@ -121,9 +112,7 @@ CREATE UNIQUE NONCLUSTERED  INDEX [IX_AttributeValueIdCurrentRow] ON [dbo].[Attr
                 .Index(t => t.CreatedByPersonAliasId)
                 .Index(t => t.ModifiedByPersonAliasId)
                 .Index(t => t.Guid, unique: true);
-
             
-
             CreateTable(
                 "dbo.GroupMemberHistorical",
                 c => new
@@ -163,16 +152,7 @@ CREATE UNIQUE NONCLUSTERED  INDEX [IX_AttributeValueIdCurrentRow] ON [dbo].[Attr
                 .Index(t => t.CreatedByPersonAliasId)
                 .Index(t => t.ModifiedByPersonAliasId)
                 .Index(t => t.Guid, unique: true);
-
-            // Enforce that there isn't more than one CurrentRow per GroupMemberId in GroupMemberHistorical
-            Sql( @"
-CREATE UNIQUE NONCLUSTERED  INDEX [IX_GroupMemberIdCurrentRow] ON [dbo].[GroupMemberHistorical]
-(
-	[GroupMemberId] ASC,
-	[CurrentRowIndicator]
-) where CurrentRowIndicator = 1 
-" );
-
+            
             CreateTable(
                 "dbo.GroupHistorical",
                 c => new
@@ -222,6 +202,49 @@ CREATE UNIQUE NONCLUSTERED  INDEX [IX_GroupMemberIdCurrentRow] ON [dbo].[GroupMe
                 .Index(t => t.CreatedByPersonAliasId)
                 .Index(t => t.ModifiedByPersonAliasId)
                 .Index(t => t.Guid, unique: true);
+            
+            AddColumn("dbo.Group", "InactiveDateTime", c => c.DateTime());
+            AddColumn("dbo.Group", "IsArchived", c => c.Boolean(nullable: false));
+            AddColumn("dbo.Group", "ArchivedDateTime", c => c.DateTime());
+            AddColumn("dbo.Group", "ArchivedByPersonAliasId", c => c.Int());
+            AddColumn("dbo.GroupType", "EnableGroupHistory", c => c.Boolean(nullable: false));
+            AddColumn("dbo.Attribute", "IsActive", c => c.Boolean(nullable: false));
+            AddColumn("dbo.Attribute", "EnableHistory", c => c.Boolean(nullable: false));
+            AddColumn("dbo.GroupMember", "InactiveDateTime", c => c.DateTime());
+            AddColumn("dbo.GroupMember", "IsArchived", c => c.Boolean(nullable: false));
+            AddColumn("dbo.GroupMember", "ArchivedDateTime", c => c.DateTime());
+            AddColumn("dbo.GroupMember", "ArchivedByPersonAliasId", c => c.Int());
+            AddColumn("dbo.History", "ChangeType", c => c.String(maxLength: 20));
+            AddColumn("dbo.History", "ValueName", c => c.String(maxLength: 250));
+            AddColumn("dbo.History", "NewValue", c => c.String());
+            AddColumn("dbo.History", "OldValue", c => c.String());
+            AddColumn("dbo.History", "IsSensitive", c => c.Boolean());
+            AddColumn("dbo.History", "SourceOfChange", c => c.String());
+            CreateIndex("dbo.Group", "ArchivedByPersonAliasId");
+            CreateIndex("dbo.GroupMember", "ArchivedByPersonAliasId");
+            AddForeignKey("dbo.Group", "ArchivedByPersonAliasId", "dbo.PersonAlias", "Id");
+            AddForeignKey("dbo.GroupMember", "ArchivedByPersonAliasId", "dbo.PersonAlias", "Id");
+
+
+            Sql( "UPDATE [Attribute] set [IsActive] = 1" );
+
+            // Enforce that there isn't more than one CurrentRow per AttributeValue in AttributeValueHistorical
+            Sql( @"
+CREATE UNIQUE NONCLUSTERED  INDEX [IX_AttributeValueIdCurrentRow] ON [dbo].[AttributeValueHistorical]
+(
+	[AttributeValueId] ASC,
+	[CurrentRowIndicator]
+) where CurrentRowIndicator = 1 
+" );
+
+            // Enforce that there isn't more than one CurrentRow per GroupMemberId in GroupMemberHistorical
+            Sql( @"
+CREATE UNIQUE NONCLUSTERED  INDEX [IX_GroupMemberIdCurrentRow] ON [dbo].[GroupMemberHistorical]
+(
+	[GroupMemberId] ASC,
+	[CurrentRowIndicator]
+) where CurrentRowIndicator = 1 
+" );
 
             // Enforce that there isn't more than one CurrentRow per GroupMemberId in GroupHistorical
             Sql( @"
@@ -232,21 +255,10 @@ CREATE UNIQUE NONCLUSTERED  INDEX [IX_GrouprIdCurrentRow] ON [dbo].[GroupHistori
 ) where CurrentRowIndicator = 1 
 " );
 
-            AddColumn("dbo.Group", "InactiveDateTime", c => c.DateTime());
-            AddColumn("dbo.Group", "IsArchived", c => c.Boolean(nullable: false));
-            AddColumn("dbo.Group", "ArchivedDateTime", c => c.DateTime());
-            AddColumn("dbo.Group", "ArchivedByPersonAliasId", c => c.Int());
-            AddColumn("dbo.GroupType", "EnableGroupHistory", c => c.Boolean(nullable: false));
-            AddColumn("dbo.GroupMember", "InactiveDateTime", c => c.DateTime());
-            AddColumn("dbo.GroupMember", "IsArchived", c => c.Boolean(nullable: false));
-            AddColumn("dbo.GroupMember", "ArchivedDateTime", c => c.DateTime());
-            AddColumn("dbo.GroupMember", "ArchivedByPersonAliasId", c => c.Int());
-            CreateIndex("dbo.Group", "ArchivedByPersonAliasId");
-            CreateIndex("dbo.GroupMember", "ArchivedByPersonAliasId");
-            AddForeignKey("dbo.Group", "ArchivedByPersonAliasId", "dbo.PersonAlias", "Id");
-            AddForeignKey("dbo.GroupMember", "ArchivedByPersonAliasId", "dbo.PersonAlias", "Id");
+
+            // TODO: Add MigrateHistorySummaryData job
         }
-        
+
         /// <summary>
         /// Operations to be performed during the downgrade process.
         /// </summary>
@@ -305,10 +317,18 @@ CREATE UNIQUE NONCLUSTERED  INDEX [IX_GrouprIdCurrentRow] ON [dbo].[GroupHistori
             DropIndex("dbo.AttributeValueHistorical", new[] { "AttributeValueId" });
             DropIndex("dbo.GroupMember", new[] { "ArchivedByPersonAliasId" });
             DropIndex("dbo.Group", new[] { "ArchivedByPersonAliasId" });
+            DropColumn("dbo.History", "SourceOfChange");
+            DropColumn("dbo.History", "IsSensitive");
+            DropColumn("dbo.History", "OldValue");
+            DropColumn("dbo.History", "NewValue");
+            DropColumn("dbo.History", "ValueName");
+            DropColumn("dbo.History", "ChangeType");
             DropColumn("dbo.GroupMember", "ArchivedByPersonAliasId");
             DropColumn("dbo.GroupMember", "ArchivedDateTime");
             DropColumn("dbo.GroupMember", "IsArchived");
             DropColumn("dbo.GroupMember", "InactiveDateTime");
+            DropColumn("dbo.Attribute", "EnableHistory");
+            DropColumn("dbo.Attribute", "IsActive");
             DropColumn("dbo.GroupType", "EnableGroupHistory");
             DropColumn("dbo.Group", "ArchivedByPersonAliasId");
             DropColumn("dbo.Group", "ArchivedDateTime");
