@@ -25,14 +25,14 @@ using Rock.Model;
 using Rock.Web.Cache;
 using Rock.Web.UI.Controls;
 
-namespace Rock.Reporting.DataFilter.PrayerRequest
+namespace Rock.Reporting.DataFilter.BenevolenceRequest
 {
     /// <summary>
     /// 
     /// </summary>
-    [Description("Filter prayer requests that are associated with a specific campus.")]
+    [Description("Filter benevolence requests that are associated with a specific campus.")]
     [Export(typeof(DataFilterComponent))]
-    [ExportMetadata("ComponentName", "Prayer Request Campus Filter")]
+    [ExportMetadata("ComponentName", "Benevolence Request Campus Filter")]
     public class CampusFilter : DataFilterComponent, IUpdateSelectionFromPageParameters
     {
         #region Properties
@@ -45,7 +45,7 @@ namespace Rock.Reporting.DataFilter.PrayerRequest
         /// </value>
         public override string AppliesToEntityType
         {
-            get { return typeof(Rock.Model.PrayerRequest).FullName; }
+            get { return typeof(Rock.Model.BenevolenceRequest).FullName; }
         }
 
         /// <summary>
@@ -93,7 +93,7 @@ namespace Rock.Reporting.DataFilter.PrayerRequest
         /// <value>
         /// The title.
         /// </value>
-        public override string GetTitle( Type entityType )
+        public override string GetTitle(Type entityType)
         {
             return "Campus";
         }
@@ -272,10 +272,10 @@ function() {{
                     return null;
                 }
 
-                var qry = new PrayerRequestService((RockContext)serviceInstance.Context).Queryable()
+                var qry = new BenevolenceRequestService((RockContext)serviceInstance.Context).Queryable()
                     .Where(p => (p.CampusId ?? 0) == campus.Id);
 
-                Expression extractedFilterExpression = FilterExpressionExtractor.Extract<Rock.Model.PrayerRequest>(qry, parameterExpression, "p");
+                Expression extractedFilterExpression = FilterExpressionExtractor.Extract<Rock.Model.BenevolenceRequest>(qry, parameterExpression, "p");
 
                 return extractedFilterExpression;
             }
@@ -286,3 +286,4 @@ function() {{
         #endregion
     }
 }
+              
