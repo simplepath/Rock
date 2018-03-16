@@ -293,13 +293,22 @@ namespace Rock.Model
 
 
         /// <summary>
-        /// Gets or sets the history changes.
+        /// Gets or sets the history changes to be saved in PostSaveChanges
         /// </summary>
         /// <value>
         /// The history changes.
         /// </value>
         [NotMapped]
         private History.HistoryChangeList HistoryChanges { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether a new AttributeValueHistory with CurrentRowIndicator needs to be saved in PostSaveChanges
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [post save attribute value history]; otherwise, <c>false</c>.
+        /// </value>
+        [NotMapped]
+        private bool PostSaveAttributeValueHistoryCurrent { get; set; } = false;
 
         /// <summary>
         /// Gets or sets the type of the history entity.
@@ -384,9 +393,7 @@ namespace Rock.Model
                         ( attributeCache.EntityTypeId.Value == EntityTypeCache.Read( typeof( Person ) ).Id
                           || attributeCache.EntityTypeId.Value == EntityTypeCache.Read( typeof( Group ) ).Id );
 
-                bool saveToAttributeValueHistory = attributeCache.EnableHistory;
-
-                if ( saveToHistoryTable || saveToAttributeValueHistory )
+                if ( saveToHistoryTable || attributeCache.EnableHistory )
                 {
                     string oldValue = string.Empty;
                     string newValue = string.Empty;
@@ -417,6 +424,8 @@ namespace Rock.Model
                             }
                     }
 
+                    this.PostSaveAttributeValueHistoryCurrent = false;
+
                     if ( oldValue != newValue )
                     {
                         var formattedOldValue = oldValue.IsNotNullOrWhitespace() ? attributeCache.FieldType.Field.FormatValue( null, oldValue, attributeCache.QualifierValues, true ) : string.Empty;
@@ -428,11 +437,38 @@ namespace Rock.Model
                             History.EvaluateChange( HistoryChanges, attributeCache.Name, formattedOldValue, formattedNewValue );
                         }
 
-                        if ( saveToAttributeValueHistory )
+                        if ( attributeCache.EnableHistory )
                         {
-                            // TODO
-                            //var attributeValueHistoricalService = new AttributeValueHistoricalService( dbContext as RockContext );
-                            //var attributeValueHistorical = new 
+                            // value changed and attribute.EnableHistory = true, so flag PostSaveAttributeValueHistoryCurrent
+                            this.PostSaveAttributeValueHistoryCurrent = true;
+
+                            var attributeValueHistoricalService = new AttributeValueHistoricalService( dbContext as RockContext );
+
+                            if ( this.Id > 0 )
+                            {
+                                // this is an existing AttributeValue, so fetch the AttributeValue that is currently marked as CurrentRow for this attribute value (if it exists)
+                                bool hasAttributeValueHistoricalCurrentRow = attributeValueHistoricalService.Queryable().Where( a => a.AttributeValueId == this.Id && a.CurrentRowIndicator == true ).Any();
+
+                                if ( !hasAttributeValueHistoricalCurrentRow )
+                                {
+                                    // this is an existing AttributeValue but there isn't a CurrentRow AttributeValueHistorical for this AttributeValue yet, so create it off of the OriginalValues
+                                    AttributeValueHistorical attributeValueHistoricalPreviousCurrentRow = new AttributeValueHistorical
+                                    {
+                                        AttributeValueId = this.Id,
+                                        Value = oldValue,
+                                        ValueFormatted = formattedOldValue,
+                                        ValueAsNumeric = entry.OriginalValues["ValueAsNumeric"] as decimal?,
+                                        ValueAsDateTime = entry.OriginalValues["ValueAsDateTime"] as DateTime?,
+                                        ValueAsBoolean = entry.OriginalValues["ValueAsBoolean"] as bool?,
+                                        ValueAsPersonId = entry.OriginalValues["ValueAsPersonId"] as int?,
+                                        EffectiveDateTime = entry.OriginalValues["ModifiedDateTime"] as DateTime? ?? RockDateTime.Now,
+                                        CurrentRowIndicator = true,
+                                        ExpireDateTime = new DateTime( 9999, 1, 1 )
+                                    };
+
+                                    attributeValueHistoricalService.Add( attributeValueHistoricalPreviousCurrentRow );
+                                }
+                            }
                         }
                     }
                 }
@@ -441,8 +477,6 @@ namespace Rock.Model
             base.PreSaveChanges( dbContext, entry );
         }
 
-
-
         /// <summary>
         /// Posts the save changes.
         /// </summary>
@@ -450,16 +484,35 @@ namespace Rock.Model
         public override void PostSaveChanges( Data.DbContext dbContext )
         {
             int? historyEntityId = ( HistoryEntityId.HasValue && HistoryEntityId.Value > 0 ) ? HistoryEntityId.Value : this.EntityId;
+            var rockContext = dbContext as RockContext;
             if ( HistoryChanges != null && HistoryChanges.Any() && HistoryEntityTypeId.HasValue && historyEntityId.HasValue )
             {
                 if ( HistoryEntityTypeId.Value == EntityTypeCache.Read( typeof( Person ) ).Id )
                 {
-                    HistoryService.SaveChanges( ( RockContext ) dbContext, typeof( Person ), Rock.SystemGuid.Category.HISTORY_PERSON_DEMOGRAPHIC_CHANGES.AsGuid(), historyEntityId.Value, HistoryChanges, string.Empty, typeof( Attribute ), AttributeId, true, this.ModifiedByPersonAliasId );
+                    HistoryService.SaveChanges( rockContext, typeof( Person ), Rock.SystemGuid.Category.HISTORY_PERSON_DEMOGRAPHIC_CHANGES.AsGuid(), historyEntityId.Value, HistoryChanges, string.Empty, typeof( Attribute ), AttributeId, true, this.ModifiedByPersonAliasId );
                 }
                 else
                 {
-                    HistoryService.SaveChanges( ( RockContext ) dbContext, typeof( Group ), Rock.SystemGuid.Category.HISTORY_GROUP_CHANGES.AsGuid(), historyEntityId.Value, HistoryChanges, string.Empty, typeof( Attribute ), AttributeId, true, this.ModifiedByPersonAliasId );
+                    HistoryService.SaveChanges( rockContext, typeof( Group ), Rock.SystemGuid.Category.HISTORY_GROUP_CHANGES.AsGuid(), historyEntityId.Value, HistoryChanges, string.Empty, typeof( Attribute ), AttributeId, true, this.ModifiedByPersonAliasId );
                 }
+            }
+
+            if ( this.PostSaveAttributeValueHistoryCurrent )
+            {
+                var attributeValueHistoricalService = new AttributeValueHistoricalService( rockContext );
+                var attributeValueHistoricalPreviousCurrentRow = attributeValueHistoricalService.Queryable().Where( a => a.AttributeValueId == this.Id && a.CurrentRowIndicator == true ).FirstOrDefault();
+                var saveChangesDateTime = RockDateTime.Now;
+
+                if ( attributeValueHistoricalPreviousCurrentRow != null )
+                {
+                    attributeValueHistoricalPreviousCurrentRow.CurrentRowIndicator = false;
+                    attributeValueHistoricalPreviousCurrentRow.ExpireDateTime = saveChangesDateTime;
+                }
+
+                var attributeValueHistoricalCurrent = AttributeValueHistorical.CreateCurrentRowFromAttributeValue( this, saveChangesDateTime );
+
+                attributeValueHistoricalService.Add( attributeValueHistoricalCurrent );
+                rockContext.SaveChanges();
             }
 
             base.PostSaveChanges( dbContext );

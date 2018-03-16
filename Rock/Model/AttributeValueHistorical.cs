@@ -21,6 +21,7 @@ using System.Data.Entity.ModelConfiguration;
 using System.Runtime.Serialization;
 
 using Rock.Data;
+using Rock.Web.Cache;
 
 namespace Rock.Model
 {
@@ -52,6 +53,15 @@ namespace Rock.Model
         /// </value>
         [DataMember]
         public string Value { get; set; }
+
+        /// <summary>
+        /// Gets or sets the formatted value of the AttributeValue at this point in history
+        /// </summary>
+        /// <value>
+        /// The value formatted.
+        /// </value>
+        [DataMember]
+        public string ValueFormatted { get; set; }
 
         /// <summary>
         /// Gets or sets the value as numeric at this point in history
@@ -137,6 +147,38 @@ namespace Rock.Model
         /// </value>
         [DataMember]
         public virtual AttributeValue AttributeValue { get; set; }
+
+        #endregion
+
+        #region public methods
+
+        /// <summary>
+        /// Creates an AttributeValueHistory with CurrentRowIndicator = true off of the specified attributeValue
+        /// </summary>
+        /// <param name="attributeValue">The attribute value.</param>
+        /// <param name="effectiveDateTime">The effective date time.</param>
+        /// <returns></returns>
+        public static AttributeValueHistorical CreateCurrentRowFromAttributeValue( AttributeValue attributeValue, DateTime effectiveDateTime )
+        {
+
+            var attributeCache = AttributeCache.Read( attributeValue.AttributeId );
+            string formattedValue = attributeCache.FieldType.Field.FormatValue( null, attributeValue.Value, attributeCache.QualifierValues, true );
+            var attributeValueHistoricalCurrent = new AttributeValueHistorical
+            {
+                AttributeValueId = attributeValue.Id,
+                Value = attributeValue.Value,
+                ValueFormatted = formattedValue,
+                ValueAsNumeric = attributeValue.ValueAsNumeric,
+                ValueAsDateTime = attributeValue.ValueAsDateTime,
+                ValueAsBoolean = attributeValue.ValueAsBoolean,
+                ValueAsPersonId = attributeValue.ValueAsPersonId,
+                CurrentRowIndicator = true,
+                EffectiveDateTime = effectiveDateTime,
+                ExpireDateTime = new DateTime( 9999, 1, 1 )
+            };
+
+            return attributeValueHistoricalCurrent;
+        }
 
         #endregion
     }

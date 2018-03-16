@@ -810,8 +810,13 @@
     <Compile Include="Model\CodeGenerated\AnalyticsSourceCampusService.cs" />
     <Compile Include="Model\CodeGenerated\AnalyticsSourceFamilyHistoricalService.cs" />
     <Compile Include="Model\AttributeMatrixTemplateService.partial.cs" />
+    <Compile Include="Model\CodeGenerated\AttributeValueHistoricalService.cs" />
     <Compile Include="Model\CodeGenerated\CommunicationAttachmentService.cs" />
     <Compile Include="Model\CodeGenerated\CommunicationTemplateAttachmentService.cs" />
+    <Compile Include="Model\CodeGenerated\GroupHistoricalService.cs" />
+    <Compile Include="Model\CodeGenerated\GroupLocationHistoricalScheduleService.cs" />
+    <Compile Include="Model\CodeGenerated\GroupLocationHistoricalService.cs" />
+    <Compile Include="Model\CodeGenerated\GroupMemberHistoricalService.cs" />
     <Compile Include="Model\CodeGenerated\GroupSyncService.cs" />
     <Compile Include="Model\CodeGenerated\LavaShortcodeService.cs" />
     <Compile Include="Model\CodeGenerated\MetaFirstNameGenderLookupService.cs" />
