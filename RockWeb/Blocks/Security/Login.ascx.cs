@@ -195,11 +195,6 @@ Sorry, your account has been locked.  Please contact our office at {{ 'Global' |
                 pnlRemoteAuthLogins.CssClass = "col-sm-12 margin-b-lg";
                 pnlInternalAuthLogin.CssClass = "col-sm-12";
             }
-            else
-            {
-                // add a css class the panel to help with styling when there are other providers active
-                pnlLogin.CssClass += " external-auth-providers";
-            }
         }
 
         /// <summary>

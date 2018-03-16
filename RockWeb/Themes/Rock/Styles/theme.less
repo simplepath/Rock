@@ -17,13 +17,11 @@
 
 /*
   Rock Theme Styles
-
   1. HTML Overrides
   2. Bootstrap Overides
   3. Rock Overrides
   4. Theme Styling
   5. Components
-
 */
 
 
@@ -132,16 +130,16 @@ textarea:focus,
 // -------------------------
 
 .list-as-blocks {
-  ul{
+  ul {
     margin-top: 0;
   }
-  
-  .panel-body{
+
+  .panel-body {
     padding: 15px 15px 0;
   }
 }
 
-.rating-input i  {
+.rating-input i {
   color: @brand-primary;
 }
 
@@ -190,7 +188,7 @@ textarea:focus,
 td.grid-actions {
   font-size: 1em;
   padding: 0 !important;
-  
+
   a.btn {
     opacity: .7;
 
@@ -370,7 +368,7 @@ td.grid-actions {
     border: 0;
     width: 340px;
     font-size: 0.875em;
-    
+
     i {
       margin-top: 14px;
       margin-left: 6px;
@@ -391,7 +389,8 @@ td.grid-actions {
       }
 
       .dropdown-menu {
-        font-size: 1em;;
+        font-size: 1em;
+        ;
       }
     }
 
@@ -830,9 +829,10 @@ body.navbar-side-close {
 .radio-inline input[type=radio]:checked + span.label-text:before,
 .checkbox-inline input[type=checkbox]:checked + span.label-text:before,
 .radio-inline input[type=radio]:checked + span.label-text:before {
-  content: "\f00c";
+  content: @fa-var-check;
   color: @brand-color;
   border-color: @brand-color;
+  font-weight: @fa-theme-weight;
 }
 
 .radio-inline input[type=radio] + span.label-text:before,
@@ -844,7 +844,8 @@ body.navbar-side-close {
 
 .radio-inline input[type=radio]:checked + span.label-text:before,
 .radio-inline input[type=radio]:checked + span.label-text:before {
-  content: "\f111"; // this probably should be changed to font awesome solid when merged
+  content: @fa-var-circle;
+  font-weight: 900;
   font-size: 11px;
 }
 

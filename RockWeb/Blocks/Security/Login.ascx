@@ -2,7 +2,7 @@
 <asp:UpdatePanel ID="upnlContent" runat="server">
     <ContentTemplate>
 
-        <asp:Panel ID="pnlLogin" runat="server" DefaultButton="btnLogin">
+        <asp:Panel ID="pnlLogin" runat="server" DefaultButton="btnLogin" CssClass="login-block">
 
             <fieldset>
                 <legend>Login</legend>
