@@ -27,27 +27,24 @@ using System.Collections.Generic;
 namespace Rock.Client
 {
     /// <summary>
-    /// Base client model for History that only includes the non-virtual fields. Use this for PUT/POSTs
+    /// Base client model for AttributeValueHistorical that only includes the non-virtual fields. Use this for PUT/POSTs
     /// </summary>
-    public partial class HistoryEntity
+    public partial class AttributeValueHistoricalEntity
     {
         /// <summary />
         public int Id { get; set; }
 
         /// <summary />
-        public string Caption { get; set; }
+        public int AttributeValueId { get; set; }
 
         /// <summary />
-        public int CategoryId { get; set; }
+        public bool CurrentRowIndicator { get; set; }
 
         /// <summary />
-        public string ChangeType { get; set; }
+        public DateTime EffectiveDateTime { get; set; }
 
         /// <summary />
-        public int EntityId { get; set; }
-
-        /// <summary />
-        public int EntityTypeId { get; set; }
+        public DateTime ExpireDateTime { get; set; }
 
         /// <summary />
         public Guid? ForeignGuid { get; set; }
@@ -55,40 +52,25 @@ namespace Rock.Client
         /// <summary />
         public string ForeignKey { get; set; }
 
-        /// <summary />
-        public bool? IsSensitive { get; set; }
-
-        /// <summary />
-        public bool IsSystem { get; set; }
-
         /// <summary>
         /// If the ModifiedByPersonAliasId is being set manually and should not be overwritten with current user when saved, set this value to true
         /// </summary>
         public bool ModifiedAuditValuesAlreadyUpdated { get; set; }
 
         /// <summary />
-        public string NewValue { get; set; }
+        public string Value { get; set; }
 
         /// <summary />
-        public string OldValue { get; set; }
+        public bool? ValueAsBoolean { get; set; }
 
         /// <summary />
-        public string RelatedData { get; set; }
+        public DateTime? ValueAsDateTime { get; set; }
 
         /// <summary />
-        public int? RelatedEntityId { get; set; }
+        public decimal? ValueAsNumeric { get; set; }
 
         /// <summary />
-        public int? RelatedEntityTypeId { get; set; }
-
-        /// <summary />
-        public string SourceOfChange { get; set; }
-
-        /// <summary />
-        public string ValueName { get; set; }
-
-        /// <summary />
-        public string Verb { get; set; }
+        public int? ValueAsPersonId { get; set; }
 
         /// <summary>
         /// Leave this as NULL to let Rock set this
@@ -117,30 +99,24 @@ namespace Rock.Client
         public int? ForeignId { get; set; }
 
         /// <summary>
-        /// Copies the base properties from a source History object
+        /// Copies the base properties from a source AttributeValueHistorical object
         /// </summary>
         /// <param name="source">The source.</param>
-        public void CopyPropertiesFrom( History source )
+        public void CopyPropertiesFrom( AttributeValueHistorical source )
         {
             this.Id = source.Id;
-            this.Caption = source.Caption;
-            this.CategoryId = source.CategoryId;
-            this.ChangeType = source.ChangeType;
-            this.EntityId = source.EntityId;
-            this.EntityTypeId = source.EntityTypeId;
+            this.AttributeValueId = source.AttributeValueId;
+            this.CurrentRowIndicator = source.CurrentRowIndicator;
+            this.EffectiveDateTime = source.EffectiveDateTime;
+            this.ExpireDateTime = source.ExpireDateTime;
             this.ForeignGuid = source.ForeignGuid;
             this.ForeignKey = source.ForeignKey;
-            this.IsSensitive = source.IsSensitive;
-            this.IsSystem = source.IsSystem;
             this.ModifiedAuditValuesAlreadyUpdated = source.ModifiedAuditValuesAlreadyUpdated;
-            this.NewValue = source.NewValue;
-            this.OldValue = source.OldValue;
-            this.RelatedData = source.RelatedData;
-            this.RelatedEntityId = source.RelatedEntityId;
-            this.RelatedEntityTypeId = source.RelatedEntityTypeId;
-            this.SourceOfChange = source.SourceOfChange;
-            this.ValueName = source.ValueName;
-            this.Verb = source.Verb;
+            this.Value = source.Value;
+            this.ValueAsBoolean = source.ValueAsBoolean;
+            this.ValueAsDateTime = source.ValueAsDateTime;
+            this.ValueAsNumeric = source.ValueAsNumeric;
+            this.ValueAsPersonId = source.ValueAsPersonId;
             this.CreatedDateTime = source.CreatedDateTime;
             this.ModifiedDateTime = source.ModifiedDateTime;
             this.CreatedByPersonAliasId = source.CreatedByPersonAliasId;
@@ -152,18 +128,12 @@ namespace Rock.Client
     }
 
     /// <summary>
-    /// Client model for History that includes all the fields that are available for GETs. Use this for GETs (use HistoryEntity for POST/PUTs)
+    /// Client model for AttributeValueHistorical that includes all the fields that are available for GETs. Use this for GETs (use AttributeValueHistoricalEntity for POST/PUTs)
     /// </summary>
-    public partial class History : HistoryEntity
+    public partial class AttributeValueHistorical : AttributeValueHistoricalEntity
     {
         /// <summary />
-        public Category Category { get; set; }
-
-        /// <summary />
-        public EntityType EntityType { get; set; }
-
-        /// <summary />
-        public EntityType RelatedEntityType { get; set; }
+        public AttributeValue AttributeValue { get; set; }
 
         /// <summary>
         /// NOTE: Attributes are only populated when ?loadAttributes is specified. Options for loadAttributes are true, false, 'simple', 'expanded' 

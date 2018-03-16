@@ -28,15 +28,15 @@ using Rock.Data;
 namespace Rock.Model
 {
     /// <summary>
-    /// GroupTypeRole Service class
+    /// GroupHistorical Service class
     /// </summary>
-    public partial class GroupTypeRoleService : Service<GroupTypeRole>
+    public partial class GroupHistoricalService : Service<GroupHistorical>
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="GroupTypeRoleService"/> class
+        /// Initializes a new instance of the <see cref="GroupHistoricalService"/> class
         /// </summary>
         /// <param name="context">The context.</param>
-        public GroupTypeRoleService(RockContext context) : base(context)
+        public GroupHistoricalService(RockContext context) : base(context)
         {
         }
 
@@ -48,39 +48,9 @@ namespace Rock.Model
         /// <returns>
         ///   <c>true</c> if this instance can delete the specified item; otherwise, <c>false</c>.
         /// </returns>
-        public bool CanDelete( GroupTypeRole item, out string errorMessage )
+        public bool CanDelete( GroupHistorical item, out string errorMessage )
         {
             errorMessage = string.Empty;
- 
-            if ( new Service<ConnectionOpportunityGroupConfig>( Context ).Queryable().Any( a => a.GroupMemberRoleId == item.Id ) )
-            {
-                errorMessage = string.Format( "This {0} is assigned to a {1}.", GroupTypeRole.FriendlyTypeName, ConnectionOpportunityGroupConfig.FriendlyTypeName );
-                return false;
-            }  
- 
-            if ( new Service<GroupMember>( Context ).Queryable().Any( a => a.GroupRoleId == item.Id ) )
-            {
-                errorMessage = string.Format( "This {0} is assigned to a {1}.", GroupTypeRole.FriendlyTypeName, GroupMember.FriendlyTypeName );
-                return false;
-            }  
- 
-            if ( new Service<GroupMemberHistorical>( Context ).Queryable().Any( a => a.GroupRoleId == item.Id ) )
-            {
-                errorMessage = string.Format( "This {0} is assigned to a {1}.", GroupTypeRole.FriendlyTypeName, GroupMemberHistorical.FriendlyTypeName );
-                return false;
-            }  
- 
-            if ( new Service<GroupSync>( Context ).Queryable().Any( a => a.GroupTypeRoleId == item.Id ) )
-            {
-                errorMessage = string.Format( "This {0} is assigned to a {1}.", GroupTypeRole.FriendlyTypeName, GroupSync.FriendlyTypeName );
-                return false;
-            }  
- 
-            if ( new Service<GroupType>( Context ).Queryable().Any( a => a.DefaultGroupRoleId == item.Id ) )
-            {
-                errorMessage = string.Format( "This {0} is assigned to a {1}.", GroupTypeRole.FriendlyTypeName, GroupType.FriendlyTypeName );
-                return false;
-            }  
             return true;
         }
     }
@@ -88,50 +58,55 @@ namespace Rock.Model
     /// <summary>
     /// Generated Extension Methods
     /// </summary>
-    public static partial class GroupTypeRoleExtensionMethods
+    public static partial class GroupHistoricalExtensionMethods
     {
         /// <summary>
-        /// Clones this GroupTypeRole object to a new GroupTypeRole object
+        /// Clones this GroupHistorical object to a new GroupHistorical object
         /// </summary>
         /// <param name="source">The source.</param>
         /// <param name="deepCopy">if set to <c>true</c> a deep copy is made. If false, only the basic entity properties are copied.</param>
         /// <returns></returns>
-        public static GroupTypeRole Clone( this GroupTypeRole source, bool deepCopy )
+        public static GroupHistorical Clone( this GroupHistorical source, bool deepCopy )
         {
             if (deepCopy)
             {
-                return source.Clone() as GroupTypeRole;
+                return source.Clone() as GroupHistorical;
             }
             else
             {
-                var target = new GroupTypeRole();
+                var target = new GroupHistorical();
                 target.CopyPropertiesFrom( source );
                 return target;
             }
         }
 
         /// <summary>
-        /// Copies the properties from another GroupTypeRole object to this GroupTypeRole object
+        /// Copies the properties from another GroupHistorical object to this GroupHistorical object
         /// </summary>
         /// <param name="target">The target.</param>
         /// <param name="source">The source.</param>
-        public static void CopyPropertiesFrom( this GroupTypeRole target, GroupTypeRole source )
+        public static void CopyPropertiesFrom( this GroupHistorical target, GroupHistorical source )
         {
             target.Id = source.Id;
-            target.CanEdit = source.CanEdit;
-            target.CanManageMembers = source.CanManageMembers;
-            target.CanView = source.CanView;
+            target.ArchivedByPersonAliasId = source.ArchivedByPersonAliasId;
+            target.ArchivedDateTime = source.ArchivedDateTime;
+            target.CampusId = source.CampusId;
+            target.CurrentRowIndicator = source.CurrentRowIndicator;
             target.Description = source.Description;
+            target.EffectiveDateTime = source.EffectiveDateTime;
+            target.ExpireDateTime = source.ExpireDateTime;
             target.ForeignGuid = source.ForeignGuid;
             target.ForeignKey = source.ForeignKey;
+            target.GroupId = source.GroupId;
+            target.GroupName = source.GroupName;
             target.GroupTypeId = source.GroupTypeId;
-            target.IsLeader = source.IsLeader;
-            target.IsSystem = source.IsSystem;
-            target.MaxCount = source.MaxCount;
-            target.MinCount = source.MinCount;
-            target.Name = source.Name;
-            target.Order = source.Order;
-            target.ReceiveRequirementsNotifications = source.ReceiveRequirementsNotifications;
+            target.GroupTypeName = source.GroupTypeName;
+            target.InactiveDateTime = source.InactiveDateTime;
+            target.IsArchived = source.IsArchived;
+            target.IsInactive = source.IsInactive;
+            target.ParentGroupId = source.ParentGroupId;
+            target.ScheduleId = source.ScheduleId;
+            target.ScheduleName = source.ScheduleName;
             target.CreatedDateTime = source.CreatedDateTime;
             target.ModifiedDateTime = source.ModifiedDateTime;
             target.CreatedByPersonAliasId = source.CreatedByPersonAliasId;

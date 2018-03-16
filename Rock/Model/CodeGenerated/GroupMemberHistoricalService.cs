@@ -28,15 +28,15 @@ using Rock.Data;
 namespace Rock.Model
 {
     /// <summary>
-    /// GroupMember Service class
+    /// GroupMemberHistorical Service class
     /// </summary>
-    public partial class GroupMemberService : Service<GroupMember>
+    public partial class GroupMemberHistoricalService : Service<GroupMemberHistorical>
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="GroupMemberService"/> class
+        /// Initializes a new instance of the <see cref="GroupMemberHistoricalService"/> class
         /// </summary>
         /// <param name="context">The context.</param>
-        public GroupMemberService(RockContext context) : base(context)
+        public GroupMemberHistoricalService(RockContext context) : base(context)
         {
         }
 
@@ -48,17 +48,9 @@ namespace Rock.Model
         /// <returns>
         ///   <c>true</c> if this instance can delete the specified item; otherwise, <c>false</c>.
         /// </returns>
-        public bool CanDelete( GroupMember item, out string errorMessage )
+        public bool CanDelete( GroupMemberHistorical item, out string errorMessage )
         {
             errorMessage = string.Empty;
- 
-            if ( new Service<GroupMemberHistorical>( Context ).Queryable().Any( a => a.GroupMemberId == item.Id ) )
-            {
-                errorMessage = string.Format( "This {0} is assigned to a {1}.", GroupMember.FriendlyTypeName, GroupMemberHistorical.FriendlyTypeName );
-                return false;
-            }  
-            
-            // ignoring RegistrationRegistrant,GroupMemberId 
             return true;
         }
     }
@@ -66,52 +58,51 @@ namespace Rock.Model
     /// <summary>
     /// Generated Extension Methods
     /// </summary>
-    public static partial class GroupMemberExtensionMethods
+    public static partial class GroupMemberHistoricalExtensionMethods
     {
         /// <summary>
-        /// Clones this GroupMember object to a new GroupMember object
+        /// Clones this GroupMemberHistorical object to a new GroupMemberHistorical object
         /// </summary>
         /// <param name="source">The source.</param>
         /// <param name="deepCopy">if set to <c>true</c> a deep copy is made. If false, only the basic entity properties are copied.</param>
         /// <returns></returns>
-        public static GroupMember Clone( this GroupMember source, bool deepCopy )
+        public static GroupMemberHistorical Clone( this GroupMemberHistorical source, bool deepCopy )
         {
             if (deepCopy)
             {
-                return source.Clone() as GroupMember;
+                return source.Clone() as GroupMemberHistorical;
             }
             else
             {
-                var target = new GroupMember();
+                var target = new GroupMemberHistorical();
                 target.CopyPropertiesFrom( source );
                 return target;
             }
         }
 
         /// <summary>
-        /// Copies the properties from another GroupMember object to this GroupMember object
+        /// Copies the properties from another GroupMemberHistorical object to this GroupMemberHistorical object
         /// </summary>
         /// <param name="target">The target.</param>
         /// <param name="source">The source.</param>
-        public static void CopyPropertiesFrom( this GroupMember target, GroupMember source )
+        public static void CopyPropertiesFrom( this GroupMemberHistorical target, GroupMemberHistorical source )
         {
             target.Id = source.Id;
             target.ArchivedByPersonAliasId = source.ArchivedByPersonAliasId;
             target.ArchivedDateTime = source.ArchivedDateTime;
-            target.DateTimeAdded = source.DateTimeAdded;
+            target.CurrentRowIndicator = source.CurrentRowIndicator;
+            target.EffectiveDateTime = source.EffectiveDateTime;
+            target.ExpireDateTime = source.ExpireDateTime;
             target.ForeignGuid = source.ForeignGuid;
             target.ForeignKey = source.ForeignKey;
-            target.GroupId = source.GroupId;
+            target.GroupMemberId = source.GroupMemberId;
             target.GroupMemberStatus = source.GroupMemberStatus;
-            target.GroupOrder = source.GroupOrder;
             target.GroupRoleId = source.GroupRoleId;
-            target.GuestCount = source.GuestCount;
+            target.GroupRoleName = source.GroupRoleName;
             target.InactiveDateTime = source.InactiveDateTime;
             target.IsArchived = source.IsArchived;
-            target.IsNotified = source.IsNotified;
-            target.IsSystem = source.IsSystem;
-            target.Note = source.Note;
-            target.PersonId = source.PersonId;
+            target.IsInactive = source.IsInactive;
+            target.IsLeader = source.IsLeader;
             target.CreatedDateTime = source.CreatedDateTime;
             target.ModifiedDateTime = source.ModifiedDateTime;
             target.CreatedByPersonAliasId = source.CreatedByPersonAliasId;

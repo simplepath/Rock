@@ -28,15 +28,15 @@ using Rock.Data;
 namespace Rock.Model
 {
     /// <summary>
-    /// GroupMember Service class
+    /// GroupLocationHistorical Service class
     /// </summary>
-    public partial class GroupMemberService : Service<GroupMember>
+    public partial class GroupLocationHistoricalService : Service<GroupLocationHistorical>
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="GroupMemberService"/> class
+        /// Initializes a new instance of the <see cref="GroupLocationHistoricalService"/> class
         /// </summary>
         /// <param name="context">The context.</param>
-        public GroupMemberService(RockContext context) : base(context)
+        public GroupLocationHistoricalService(RockContext context) : base(context)
         {
         }
 
@@ -48,17 +48,15 @@ namespace Rock.Model
         /// <returns>
         ///   <c>true</c> if this instance can delete the specified item; otherwise, <c>false</c>.
         /// </returns>
-        public bool CanDelete( GroupMember item, out string errorMessage )
+        public bool CanDelete( GroupLocationHistorical item, out string errorMessage )
         {
             errorMessage = string.Empty;
  
-            if ( new Service<GroupMemberHistorical>( Context ).Queryable().Any( a => a.GroupMemberId == item.Id ) )
+            if ( new Service<GroupLocationHistoricalSchedule>( Context ).Queryable().Any( a => a.GroupLocationHistoricalId == item.Id ) )
             {
-                errorMessage = string.Format( "This {0} is assigned to a {1}.", GroupMember.FriendlyTypeName, GroupMemberHistorical.FriendlyTypeName );
+                errorMessage = string.Format( "This {0} is assigned to a {1}.", GroupLocationHistorical.FriendlyTypeName, GroupLocationHistoricalSchedule.FriendlyTypeName );
                 return false;
             }  
-            
-            // ignoring RegistrationRegistrant,GroupMemberId 
             return true;
         }
     }
@@ -66,52 +64,45 @@ namespace Rock.Model
     /// <summary>
     /// Generated Extension Methods
     /// </summary>
-    public static partial class GroupMemberExtensionMethods
+    public static partial class GroupLocationHistoricalExtensionMethods
     {
         /// <summary>
-        /// Clones this GroupMember object to a new GroupMember object
+        /// Clones this GroupLocationHistorical object to a new GroupLocationHistorical object
         /// </summary>
         /// <param name="source">The source.</param>
         /// <param name="deepCopy">if set to <c>true</c> a deep copy is made. If false, only the basic entity properties are copied.</param>
         /// <returns></returns>
-        public static GroupMember Clone( this GroupMember source, bool deepCopy )
+        public static GroupLocationHistorical Clone( this GroupLocationHistorical source, bool deepCopy )
         {
             if (deepCopy)
             {
-                return source.Clone() as GroupMember;
+                return source.Clone() as GroupLocationHistorical;
             }
             else
             {
-                var target = new GroupMember();
+                var target = new GroupLocationHistorical();
                 target.CopyPropertiesFrom( source );
                 return target;
             }
         }
 
         /// <summary>
-        /// Copies the properties from another GroupMember object to this GroupMember object
+        /// Copies the properties from another GroupLocationHistorical object to this GroupLocationHistorical object
         /// </summary>
         /// <param name="target">The target.</param>
         /// <param name="source">The source.</param>
-        public static void CopyPropertiesFrom( this GroupMember target, GroupMember source )
+        public static void CopyPropertiesFrom( this GroupLocationHistorical target, GroupLocationHistorical source )
         {
             target.Id = source.Id;
-            target.ArchivedByPersonAliasId = source.ArchivedByPersonAliasId;
-            target.ArchivedDateTime = source.ArchivedDateTime;
-            target.DateTimeAdded = source.DateTimeAdded;
+            target.CurrentRowIndicator = source.CurrentRowIndicator;
+            target.EffectiveDateTime = source.EffectiveDateTime;
+            target.ExpireDateTime = source.ExpireDateTime;
             target.ForeignGuid = source.ForeignGuid;
             target.ForeignKey = source.ForeignKey;
             target.GroupId = source.GroupId;
-            target.GroupMemberStatus = source.GroupMemberStatus;
-            target.GroupOrder = source.GroupOrder;
-            target.GroupRoleId = source.GroupRoleId;
-            target.GuestCount = source.GuestCount;
-            target.InactiveDateTime = source.InactiveDateTime;
-            target.IsArchived = source.IsArchived;
-            target.IsNotified = source.IsNotified;
-            target.IsSystem = source.IsSystem;
-            target.Note = source.Note;
-            target.PersonId = source.PersonId;
+            target.GroupLocationTypeName = source.GroupLocationTypeName;
+            target.LocationId = source.LocationId;
+            target.LocationName = source.LocationName;
             target.CreatedDateTime = source.CreatedDateTime;
             target.ModifiedDateTime = source.ModifiedDateTime;
             target.CreatedByPersonAliasId = source.CreatedByPersonAliasId;

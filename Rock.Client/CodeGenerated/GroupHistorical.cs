@@ -27,27 +27,33 @@ using System.Collections.Generic;
 namespace Rock.Client
 {
     /// <summary>
-    /// Base client model for History that only includes the non-virtual fields. Use this for PUT/POSTs
+    /// Base client model for GroupHistorical that only includes the non-virtual fields. Use this for PUT/POSTs
     /// </summary>
-    public partial class HistoryEntity
+    public partial class GroupHistoricalEntity
     {
         /// <summary />
         public int Id { get; set; }
 
         /// <summary />
-        public string Caption { get; set; }
+        public int? ArchivedByPersonAliasId { get; set; }
 
         /// <summary />
-        public int CategoryId { get; set; }
+        public DateTime? ArchivedDateTime { get; set; }
 
         /// <summary />
-        public string ChangeType { get; set; }
+        public int? CampusId { get; set; }
 
         /// <summary />
-        public int EntityId { get; set; }
+        public bool CurrentRowIndicator { get; set; }
 
         /// <summary />
-        public int EntityTypeId { get; set; }
+        public string Description { get; set; }
+
+        /// <summary />
+        public DateTime EffectiveDateTime { get; set; }
+
+        /// <summary />
+        public DateTime ExpireDateTime { get; set; }
 
         /// <summary />
         public Guid? ForeignGuid { get; set; }
@@ -56,10 +62,25 @@ namespace Rock.Client
         public string ForeignKey { get; set; }
 
         /// <summary />
-        public bool? IsSensitive { get; set; }
+        public int GroupId { get; set; }
 
         /// <summary />
-        public bool IsSystem { get; set; }
+        public string GroupName { get; set; }
+
+        /// <summary />
+        public int GroupTypeId { get; set; }
+
+        /// <summary />
+        public string GroupTypeName { get; set; }
+
+        /// <summary />
+        public DateTime? InactiveDateTime { get; set; }
+
+        /// <summary />
+        public bool IsArchived { get; set; }
+
+        /// <summary />
+        public bool IsInactive { get; set; }
 
         /// <summary>
         /// If the ModifiedByPersonAliasId is being set manually and should not be overwritten with current user when saved, set this value to true
@@ -67,28 +88,13 @@ namespace Rock.Client
         public bool ModifiedAuditValuesAlreadyUpdated { get; set; }
 
         /// <summary />
-        public string NewValue { get; set; }
+        public int? ParentGroupId { get; set; }
 
         /// <summary />
-        public string OldValue { get; set; }
+        public int? ScheduleId { get; set; }
 
         /// <summary />
-        public string RelatedData { get; set; }
-
-        /// <summary />
-        public int? RelatedEntityId { get; set; }
-
-        /// <summary />
-        public int? RelatedEntityTypeId { get; set; }
-
-        /// <summary />
-        public string SourceOfChange { get; set; }
-
-        /// <summary />
-        public string ValueName { get; set; }
-
-        /// <summary />
-        public string Verb { get; set; }
+        public string ScheduleName { get; set; }
 
         /// <summary>
         /// Leave this as NULL to let Rock set this
@@ -117,30 +123,32 @@ namespace Rock.Client
         public int? ForeignId { get; set; }
 
         /// <summary>
-        /// Copies the base properties from a source History object
+        /// Copies the base properties from a source GroupHistorical object
         /// </summary>
         /// <param name="source">The source.</param>
-        public void CopyPropertiesFrom( History source )
+        public void CopyPropertiesFrom( GroupHistorical source )
         {
             this.Id = source.Id;
-            this.Caption = source.Caption;
-            this.CategoryId = source.CategoryId;
-            this.ChangeType = source.ChangeType;
-            this.EntityId = source.EntityId;
-            this.EntityTypeId = source.EntityTypeId;
+            this.ArchivedByPersonAliasId = source.ArchivedByPersonAliasId;
+            this.ArchivedDateTime = source.ArchivedDateTime;
+            this.CampusId = source.CampusId;
+            this.CurrentRowIndicator = source.CurrentRowIndicator;
+            this.Description = source.Description;
+            this.EffectiveDateTime = source.EffectiveDateTime;
+            this.ExpireDateTime = source.ExpireDateTime;
             this.ForeignGuid = source.ForeignGuid;
             this.ForeignKey = source.ForeignKey;
-            this.IsSensitive = source.IsSensitive;
-            this.IsSystem = source.IsSystem;
+            this.GroupId = source.GroupId;
+            this.GroupName = source.GroupName;
+            this.GroupTypeId = source.GroupTypeId;
+            this.GroupTypeName = source.GroupTypeName;
+            this.InactiveDateTime = source.InactiveDateTime;
+            this.IsArchived = source.IsArchived;
+            this.IsInactive = source.IsInactive;
             this.ModifiedAuditValuesAlreadyUpdated = source.ModifiedAuditValuesAlreadyUpdated;
-            this.NewValue = source.NewValue;
-            this.OldValue = source.OldValue;
-            this.RelatedData = source.RelatedData;
-            this.RelatedEntityId = source.RelatedEntityId;
-            this.RelatedEntityTypeId = source.RelatedEntityTypeId;
-            this.SourceOfChange = source.SourceOfChange;
-            this.ValueName = source.ValueName;
-            this.Verb = source.Verb;
+            this.ParentGroupId = source.ParentGroupId;
+            this.ScheduleId = source.ScheduleId;
+            this.ScheduleName = source.ScheduleName;
             this.CreatedDateTime = source.CreatedDateTime;
             this.ModifiedDateTime = source.ModifiedDateTime;
             this.CreatedByPersonAliasId = source.CreatedByPersonAliasId;
@@ -152,18 +160,27 @@ namespace Rock.Client
     }
 
     /// <summary>
-    /// Client model for History that includes all the fields that are available for GETs. Use this for GETs (use HistoryEntity for POST/PUTs)
+    /// Client model for GroupHistorical that includes all the fields that are available for GETs. Use this for GETs (use GroupHistoricalEntity for POST/PUTs)
     /// </summary>
-    public partial class History : HistoryEntity
+    public partial class GroupHistorical : GroupHistoricalEntity
     {
         /// <summary />
-        public Category Category { get; set; }
+        public PersonAlias ArchivedByPersonAlias { get; set; }
 
         /// <summary />
-        public EntityType EntityType { get; set; }
+        public Campus Campus { get; set; }
 
         /// <summary />
-        public EntityType RelatedEntityType { get; set; }
+        public Group Group { get; set; }
+
+        /// <summary />
+        public GroupType GroupType { get; set; }
+
+        /// <summary />
+        public Group ParentGroup { get; set; }
+
+        /// <summary />
+        public Schedule Schedule { get; set; }
 
         /// <summary>
         /// NOTE: Attributes are only populated when ?loadAttributes is specified. Options for loadAttributes are true, false, 'simple', 'expanded' 
