@@ -725,6 +725,12 @@ namespace Rock.Web.UI.Controls
                 }
             }
 
+            // disable showing buttons in the header of light grids
+            if ( DisplayType == GridDisplayType.Light )
+            {
+                ShowActionsInHeader = false;
+            }
+
             base.OnLoad( e );
         }
 

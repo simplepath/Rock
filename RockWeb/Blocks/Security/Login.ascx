@@ -9,7 +9,7 @@
 
                 <div class="row">
                     <Rock:NotificationBox ID="nbAdminRedirectPrompt" runat="server" NotificationBoxType="Danger" Visible="false" />
-                    <asp:Panel ID="pnlRemoteAuthLogins" runat="server" CssClass="col-md-6 margin-b-lg">
+                    <asp:Panel ID="pnlRemoteAuthLogins" runat="server" CssClass="col-md-6 margin-b-lg remote-logins">
                         <p>
                             <asp:Literal ID="lRemoteAuthLoginsHeadingText" runat="server" Text="Login with social account" /></p>
                         <asp:PlaceHolder ID="phExternalLogins" runat="server"></asp:PlaceHolder>

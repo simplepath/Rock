@@ -105,8 +105,26 @@ textarea:focus,
   font-weight: 400; // make the font light
 }
 
-.table-bordered > thead > tr > td, .table-bordered > thead > tr > th {
-  border-width: 1px; // default is 2px which looks large
+
+
+.table-bordered > tbody > tr > td {
+  border-width: @table-column-border-width;
+}
+
+.table > tbody > tr > td,
+.table > tbody > tr > th,
+.table > tfoot > tr > td,
+.table > tfoot > tr > th,
+.table > thead > tr > td,
+.table > thead > tr > th {
+  border-width: @table-column-border-width;
+  border-top-width: 1px;
+}
+
+.table-bordered > thead > tr > td,
+.table-bordered > thead > tr > th,
+.table.table-light > thead > tr > th {
+  border-color: @grid-border-color;
 }
 
 .breadcrumb > .active { // make the active item in the breadcrumbs not look like a link
@@ -726,7 +744,7 @@ body.navbar-side-close {
     }
 
     .breadcrumb {
-      padding: 8px 0 0;
+      padding: 4px 0 0;
       background-color: transparent;
       margin: 0;
       font-size: 0.875em;
@@ -787,20 +805,48 @@ body.navbar-side-close {
   }
 }
 
-/*#endregion */
+// workflow page
+.workflow-activity {
+  & > .panel-heading {
+    background-color: @btn-action-bg;
+    border-color: @btn-action-bg;
+    color: #fff;
 
-/*#region
-// 5. Specific Page Styling        */
-// -------------------------
-.personprofile {
-  .title .firstname,
-  .title .lastname {
-    font-weight: 700;
+    a.btn-link {
+      color: #fff;
+    }
+  }
+
+  .btn-action.add-action {
+    background-color: @gray-lighter;
+    border-color: darken(@gray-lighter, 10%);
+    color: @panel-heading-text-color;
   }
 }
 
-.personprofilebar-bio .name .firstname {
-  font-size: 1em;
+.attribute-panel{
+  .panel-body {
+    padding: 0;
+  }
+}
+/*#endregion */
+/*#region
+// 5. Specific Page Styling        */
+// -------------------------
+.personprofilebar-bio {
+  .name .nickname,
+  .name .lastname {
+    font-weight: 700;
+  }
+
+  .name .firstname {
+    font-size: 0.488em;
+    font-weight: @font-weight-light;
+  }
+
+  .previous-names {
+    font-weight: @font-weight-light;
+  }
 }
 
 /*#endregion */
@@ -859,7 +905,7 @@ body.navbar-side-close {
   display: inline-block;
   border: 2px solid @input-border;
   margin-right: 5px;
-  font-size: 18px;
+  font-size: 14px;
   font-family: FontAwesome;
   font-weight: 400;
   line-height: 19px;
