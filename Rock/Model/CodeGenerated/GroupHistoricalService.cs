@@ -102,8 +102,8 @@ namespace Rock.Model
             target.GroupTypeId = source.GroupTypeId;
             target.GroupTypeName = source.GroupTypeName;
             target.InactiveDateTime = source.InactiveDateTime;
+            target.IsActive = source.IsActive;
             target.IsArchived = source.IsArchived;
-            target.IsInactive = source.IsInactive;
             target.ParentGroupId = source.ParentGroupId;
             target.ScheduleId = source.ScheduleId;
             target.ScheduleName = source.ScheduleName;

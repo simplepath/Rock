@@ -101,7 +101,6 @@ namespace Rock.Model
             target.GroupRoleName = source.GroupRoleName;
             target.InactiveDateTime = source.InactiveDateTime;
             target.IsArchived = source.IsArchived;
-            target.IsInactive = source.IsInactive;
             target.IsLeader = source.IsLeader;
             target.CreatedDateTime = source.CreatedDateTime;
             target.ModifiedDateTime = source.ModifiedDateTime;

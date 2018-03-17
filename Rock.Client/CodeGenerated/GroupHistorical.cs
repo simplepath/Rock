@@ -77,10 +77,10 @@ namespace Rock.Client
         public DateTime? InactiveDateTime { get; set; }
 
         /// <summary />
-        public bool IsArchived { get; set; }
+        public bool IsActive { get; set; }
 
         /// <summary />
-        public bool IsInactive { get; set; }
+        public bool IsArchived { get; set; }
 
         /// <summary>
         /// If the ModifiedByPersonAliasId is being set manually and should not be overwritten with current user when saved, set this value to true
@@ -89,6 +89,9 @@ namespace Rock.Client
 
         /// <summary />
         public int? ParentGroupId { get; set; }
+
+        /// <summary />
+        public string ScheduleICalendarContent { get; set; }
 
         /// <summary />
         public int? ScheduleId { get; set; }
@@ -143,10 +146,11 @@ namespace Rock.Client
             this.GroupTypeId = source.GroupTypeId;
             this.GroupTypeName = source.GroupTypeName;
             this.InactiveDateTime = source.InactiveDateTime;
+            this.IsActive = source.IsActive;
             this.IsArchived = source.IsArchived;
-            this.IsInactive = source.IsInactive;
             this.ModifiedAuditValuesAlreadyUpdated = source.ModifiedAuditValuesAlreadyUpdated;
             this.ParentGroupId = source.ParentGroupId;
+            this.ScheduleICalendarContent = source.ScheduleICalendarContent;
             this.ScheduleId = source.ScheduleId;
             this.ScheduleName = source.ScheduleName;
             this.CreatedDateTime = source.CreatedDateTime;

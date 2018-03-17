@@ -150,17 +150,16 @@ namespace Rock.Model
 
         #endregion
 
-        #region public methods
+        #region Public Methods
 
         /// <summary>
-        /// Creates an AttributeValueHistory with CurrentRowIndicator = true off of the specified attributeValue
+        /// Creates an AttributeValueHistory with CurrentRowIndicator = true for the specified attributeValue
         /// </summary>
         /// <param name="attributeValue">The attribute value.</param>
         /// <param name="effectiveDateTime">The effective date time.</param>
         /// <returns></returns>
         public static AttributeValueHistorical CreateCurrentRowFromAttributeValue( AttributeValue attributeValue, DateTime effectiveDateTime )
         {
-
             var attributeCache = AttributeCache.Read( attributeValue.AttributeId );
             string formattedValue = attributeCache.FieldType.Field.FormatValue( null, attributeValue.Value, attributeCache.QualifierValues, true );
             var attributeValueHistoricalCurrent = new AttributeValueHistorical
@@ -174,7 +173,7 @@ namespace Rock.Model
                 ValueAsPersonId = attributeValue.ValueAsPersonId,
                 CurrentRowIndicator = true,
                 EffectiveDateTime = effectiveDateTime,
-                ExpireDateTime = new DateTime( 9999, 1, 1 )
+                ExpireDateTime = HistoricalTracking.MaxExpireDateTime
             };
 
             return attributeValueHistoricalCurrent;

@@ -110,7 +110,7 @@ namespace Rock.Model
         public int? ScheduleId { get; set; }
 
         /// <summary>
-        /// If this group's group type supports a schedule for a group, this is the schedule text for that group at this point in history
+        /// If this group's group type supports a schedule for a group, this is the schedule text (Schedule.ToString()) for that group at this point in history
         /// NOTE: If this Group has Schedules at it's Locations, those will be in GroupLocationHistorical.GroupLocationHistoricalSchedules
         /// </summary>
         /// <value>
@@ -118,6 +118,15 @@ namespace Rock.Model
         /// </value>
         [DataMember]
         public string ScheduleName { get; set; }
+
+        /// <summary>
+        /// Gets or sets the Schedule's ModifiedDateTime. This is used internally to detect if the group's schedule has changed
+        /// </summary>
+        /// <value>
+        /// The schedule's iCalendarContent
+        /// </value>
+        [DataMember]
+        public DateTime? ScheduleModifiedDateTime { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether this group was archived at this point in history
@@ -147,13 +156,13 @@ namespace Rock.Model
         public int? ArchivedByPersonAliasId { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether this group was inactive at this point in history
+        /// Gets or sets a value indicating whether this group had IsActive==True at this point in history
         /// </summary>
         /// <value>
         ///   <c>true</c> if this instance is inactive; otherwise, <c>false</c>.
         /// </value>
         [DataMember]
-        public bool IsInactive { get; set; }
+        public bool IsActive { get; set; }
 
         /// <summary>
         /// Gets or sets the InActiveDateTime value of the group at this point in history
@@ -258,6 +267,51 @@ namespace Rock.Model
         /// </value>
         [DataMember]
         public virtual PersonAlias ArchivedByPersonAlias { get; set; }
+
+        #endregion
+
+        #region Public Methods
+
+        /// <summary>
+        /// Creates a GroupHistorical with CurrentRowIndicator = true for the specified group
+        /// </summary>
+        /// <param name="group">The group.</param>
+        /// <param name="effectiveDateTime">The effective date time.</param>
+        /// <returns></returns>
+        public static GroupHistorical CreateCurrentRowFromGroup( Group group, DateTime effectiveDateTime )
+        {
+            var groupHistoricalCurrent = new GroupHistorical
+            {
+                GroupId = group.Id,
+                GroupName = group.Name,
+                GroupTypeId = group.GroupTypeId,
+                GroupTypeName = group.GroupType.Name,
+                CampusId = group.CampusId,
+                ParentGroupId = group.ParentGroupId,
+                ScheduleId = group.ScheduleId,
+                ScheduleName = group.Schedule?.ToString(),
+                ScheduleModifiedDateTime = group.Schedule?.ModifiedDateTime,
+                Description = group.Description,
+                IsArchived = group.IsArchived,
+                ArchivedDateTime = group.ArchivedDateTime,
+                ArchivedByPersonAliasId = group.ArchivedByPersonAliasId,
+                IsActive = group.IsActive,
+                InactiveDateTime = group.InactiveDateTime,
+
+                // Set the Modified/Created fields for GroupHistorical to be the current values from Group table
+                ModifiedDateTime = group.ModifiedDateTime,
+                ModifiedByPersonAliasId = group.ModifiedByPersonAliasId,
+                CreatedByPersonAliasId = group.CreatedByPersonAliasId,
+                CreatedDateTime = group.CreatedDateTime,
+
+                // Set HistoricalTracking fields
+                CurrentRowIndicator = true,
+                EffectiveDateTime = effectiveDateTime,
+                ExpireDateTime = HistoricalTracking.MaxExpireDateTime
+            };
+
+            return groupHistoricalCurrent;
+        }
 
         #endregion
     }

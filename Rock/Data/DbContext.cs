@@ -406,6 +406,8 @@ namespace Rock.Data
         {
             // ensure CreatedDateTime and ModifiedDateTime is set
             var currentDateTime = RockDateTime.Now;
+            var currentPersonAliasId = this.GetCurrentPersonAlias()?.Id;
+
             foreach ( var record in records )
             {
                 var model = record as IModel;
@@ -413,7 +415,7 @@ namespace Rock.Data
                 {
                     model.CreatedDateTime = model.CreatedDateTime ?? currentDateTime;
                     model.ModifiedDateTime = model.ModifiedDateTime ?? currentDateTime;
-                    var currentPersonAliasId = this.GetCurrentPersonAlias()?.Id;
+                    
                     if ( currentPersonAliasId.HasValue )
                     {
                         model.CreatedByPersonAliasId = model.CreatedByPersonAliasId ?? currentPersonAliasId;
@@ -436,7 +438,7 @@ namespace Rock.Data
         /// <typeparam name="T"></typeparam>
         /// <param name="queryable">The queryable for the records to update</param>
         /// <param name="updateFactory">Linq expression to specify the updated property values</param>
-        /// <returns></returns>
+        /// <returns>the number of records updated</returns>
         public virtual int BulkUpdate<T>( IQueryable<T> queryable, Expression<Func<T, T>> updateFactory ) where T : class
         {
             var currentDateTime = RockDateTime.Now;

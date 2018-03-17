@@ -463,7 +463,7 @@ namespace Rock.Model
                                         ValueAsPersonId = entry.OriginalValues["ValueAsPersonId"] as int?,
                                         EffectiveDateTime = entry.OriginalValues["ModifiedDateTime"] as DateTime? ?? RockDateTime.Now,
                                         CurrentRowIndicator = true,
-                                        ExpireDateTime = new DateTime( 9999, 1, 1 )
+                                        ExpireDateTime = HistoricalTracking.MaxExpireDateTime
                                     };
 
                                     attributeValueHistoricalService.Add( attributeValueHistoricalPreviousCurrentRow );

@@ -99,6 +99,7 @@ namespace Rock.Model
             target.ValueAsDateTime = source.ValueAsDateTime;
             target.ValueAsNumeric = source.ValueAsNumeric;
             target.ValueAsPersonId = source.ValueAsPersonId;
+            target.ValueFormatted = source.ValueFormatted;
             target.CreatedDateTime = source.CreatedDateTime;
             target.ModifiedDateTime = source.ModifiedDateTime;
             target.CreatedByPersonAliasId = source.CreatedByPersonAliasId;

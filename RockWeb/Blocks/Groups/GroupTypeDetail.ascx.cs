@@ -520,6 +520,7 @@ namespace RockWeb.Blocks.Groups
             groupType.AllowGroupSync = cbAllowGroupSync.Checked;
             groupType.EnableSpecificGroupRequirements = cbEnableSpecificGroupReq.Checked;
             groupType.AllowSpecificGroupMemberWorkflows = cbAllowSpecificGrpMemWorkFlows.Checked;
+            groupType.EnableGroupHistory = cbEnableGroupHistory.Checked;
             groupType.ChildGroupTypes = new List<GroupType>();
             groupType.ChildGroupTypes.Clear();
             foreach ( var item in ChildGroupTypesList )
@@ -847,6 +848,7 @@ namespace RockWeb.Blocks.Groups
             cbAllowGroupSync.Checked = groupType.AllowGroupSync;
             cbEnableSpecificGroupReq.Checked = groupType.EnableSpecificGroupRequirements;
             cbAllowSpecificGrpMemWorkFlows.Checked = groupType.AllowSpecificGroupMemberWorkflows;
+            cbEnableGroupHistory.Checked = groupType.EnableGroupHistory;
 
             GroupTypeRolesState = new List<GroupTypeRole>();
             foreach ( var role in groupType.Roles )

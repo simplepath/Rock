@@ -49,13 +49,22 @@ namespace Rock.Model
         public int ScheduleId { get; set; }
 
         /// <summary>
-        /// Gets or sets the schedule name of this group's location schedule at this point in history  (Group.GroupLocation.Schedules[n].ToString())
+        /// Gets or sets the schedule name of this group's location's schedule at this point in history  (Group.GroupLocation.Schedules[n].ToString())
         /// </summary>
         /// <value>
         /// The location name.
         /// </value>
         [DataMember]
         public string ScheduleName { get; set; }
+
+        /// <summary>
+        /// Gets or sets the Schedule.iCalenderContext or Schedule.WeeklyDayOfWeek|Schedule.WeeklyTimeOfDay config  of the schedule for this group's location's schedule at this point in history  (Group.GroupLocation.Schedules[n].iCalendarContent). This is mainly used to detect if the group's schedule has changed
+        /// </summary>
+        /// <value>
+        /// The schedule's iCalendarContent
+        /// </value>
+        [DataMember]
+        public string ScheduleData { get; set; }
 
         #endregion
 

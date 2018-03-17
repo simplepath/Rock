@@ -666,6 +666,8 @@ namespace RockWeb.Blocks.Groups
                     group.Schedule.WeeklyDayOfWeek = dowWeekly.SelectedDayOfWeek;
                     group.Schedule.WeeklyTimeOfDay = timeWeekly.SelectedTime;
                 }
+
+                group.Schedule.Name = group.Schedule.ToString();
             }
             else
             {
@@ -675,8 +677,9 @@ namespace RockWeb.Blocks.Groups
                     var schedule = scheduleService.Get( oldScheduleId.Value );
                     if ( schedule != null && string.IsNullOrEmpty( schedule.Name ) )
                     {
-                        // Make sure this is the only group trying to use this schedule.
-                        if ( !groupService.Queryable().Where( g => g.ScheduleId == schedule.Id && g.Id != group.Id ).Any() )
+                        // Make sure this is the only thing using this schedule.
+                        string errorMessage;
+                        if ( scheduleService.CanDelete(schedule, out errorMessage ) )
                         {
                             scheduleService.Delete( schedule );
                         }

@@ -57,4 +57,15 @@ namespace Rock.Data
         /// </value>
         bool CurrentRowIndicator { get; set; }
     }
+
+    /// <summary>
+    /// Constants related to IHistoralTracking
+    /// </summary>
+    public static class HistoricalTracking
+    {
+        /// <summary>
+        /// The ExpireDateTime ('9999-01-01') that should be used when CurrentRowIndicator = true
+        /// </summary>
+        public readonly static DateTime MaxExpireDateTime = new DateTime( 9999, 1, 1 );
+    }
 }

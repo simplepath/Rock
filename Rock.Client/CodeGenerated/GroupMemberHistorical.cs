@@ -74,9 +74,6 @@ namespace Rock.Client
         public bool IsArchived { get; set; }
 
         /// <summary />
-        public bool IsInactive { get; set; }
-
-        /// <summary />
         public bool IsLeader { get; set; }
 
         /// <summary>
@@ -130,7 +127,6 @@ namespace Rock.Client
             this.GroupRoleName = source.GroupRoleName;
             this.InactiveDateTime = source.InactiveDateTime;
             this.IsArchived = source.IsArchived;
-            this.IsInactive = source.IsInactive;
             this.IsLeader = source.IsLeader;
             this.ModifiedAuditValuesAlreadyUpdated = source.ModifiedAuditValuesAlreadyUpdated;
             this.CreatedDateTime = source.CreatedDateTime;

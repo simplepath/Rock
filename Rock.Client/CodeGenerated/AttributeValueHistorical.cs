@@ -72,6 +72,9 @@ namespace Rock.Client
         /// <summary />
         public int? ValueAsPersonId { get; set; }
 
+        /// <summary />
+        public string ValueFormatted { get; set; }
+
         /// <summary>
         /// Leave this as NULL to let Rock set this
         /// </summary>
@@ -117,6 +120,7 @@ namespace Rock.Client
             this.ValueAsDateTime = source.ValueAsDateTime;
             this.ValueAsNumeric = source.ValueAsNumeric;
             this.ValueAsPersonId = source.ValueAsPersonId;
+            this.ValueFormatted = source.ValueFormatted;
             this.CreatedDateTime = source.CreatedDateTime;
             this.ModifiedDateTime = source.ModifiedDateTime;
             this.CreatedByPersonAliasId = source.CreatedByPersonAliasId;

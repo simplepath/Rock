@@ -108,16 +108,7 @@ namespace Rock.Model
         public int? ArchivedByPersonAliasId { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether this group member was inactive at this point in history
-        /// </summary>
-        /// <value>
-        ///   <c>true</c> if this instance is inactive; otherwise, <c>false</c>.
-        /// </value>
-        [DataMember]
-        public bool IsInactive { get; set; }
-
-        /// <summary>
-        /// Gets or sets the InActiveDateTime value of the group member at this point in history
+        /// Gets or sets the InActiveDateTime value of the group member at this point in history (the time when the group member status was changed to GroupMemberStatus.InActive)
         /// </summary>
         /// <value>
         /// The in active date time.
