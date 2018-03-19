@@ -93,6 +93,27 @@ textarea:focus,
 // 2. Bootstrap Overrides    */
 // -------------------------
 
+.btn {
+  padding: 6px 12px 7px;
+}
+
+.input-group-addon,
+.form-control {
+  height: 38px;
+}
+.has-error .form-control,
+.has-error .input-group-addon {
+  border-color: @alert-danger-bg;
+}
+
+.has-error .control-label {
+  color: @alert-danger-bg;
+}
+
+.form-group label {
+  font-weight: @font-weight-semibold;
+}
+
 .nav .open > a,
 .nav .open > a:focus,
 .nav .open > a:hover {
@@ -312,7 +333,7 @@ td.grid-actions {
     &:after {
       content: "";
       background-image: url(../../../Assets/Images/rock-logo-circle-white.svg);
-      background-size: 45px;
+      background-size: calc(@navbarside-width * .45);
       background-position: center center;
       background-repeat: no-repeat;
       opacity: 0.7;
@@ -531,7 +552,7 @@ td.grid-actions {
   position: relative;
 
   @media (min-width: @screen-sm-min) {
-    margin-left: 100px;
+    margin-left: @navbarside-width;
   }
 }
 
@@ -582,7 +603,7 @@ td.grid-actions {
     width: 100%;
     cursor: default;
     position: fixed;
-    width: 100px;
+    width: @navbarside-width;
     z-index: @zindex-navbar-fixed;
 
     & > li {
@@ -602,7 +623,7 @@ td.grid-actions {
       > i {
         display: block;
         padding: 24px 0;
-        font-size: 2em;
+        font-size: calc(@navbarside-width * .32);
 
         &:hover {
           color: @navbarside-color;
@@ -854,8 +875,15 @@ body.navbar-side-close {
 // 6. Components          */
 // -------------------------
 // radio buttons & checkboxes - fancy styling
-.radio label, .checkbox label {
+.radio label, 
+.checkbox label {
   padding-left: 0;
+}
+
+.radio-inline label,
+.checkbox label {
+  font-weight: normal;
+  cursor: pointer;
 }
 
 .checkbox-inline:first-child, .radio-inline:first-child {
@@ -872,8 +900,8 @@ body.navbar-side-close {
 }
 
 .checkbox input[type=checkbox]:checked + span.label-text:before,
-.radio-inline input[type=radio]:checked + span.label-text:before,
 .checkbox-inline input[type=checkbox]:checked + span.label-text:before,
+.radio input[type=radio]:checked + span.label-text:before,
 .radio-inline input[type=radio]:checked + span.label-text:before {
   content: @fa-var-check;
   color: @brand-color;
@@ -888,11 +916,11 @@ body.navbar-side-close {
   font-size: 14px;
 }
 
-.radio-inline input[type=radio]:checked + span.label-text:before,
+.radio input[type=radio]:checked + span.label-text:before,
 .radio-inline input[type=radio]:checked + span.label-text:before {
   content: @fa-var-circle;
   font-weight: 900;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .checkbox input[type=checkbox] + span.label-text:before,
