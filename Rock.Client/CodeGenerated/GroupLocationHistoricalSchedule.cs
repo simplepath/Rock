@@ -44,10 +44,10 @@ namespace Rock.Client
         public int GroupLocationHistoricalId { get; set; }
 
         /// <summary />
-        public string ScheduleICalendarContent { get; set; }
+        public int ScheduleId { get; set; }
 
         /// <summary />
-        public int ScheduleId { get; set; }
+        public DateTime? ScheduleModifiedDateTime { get; set; }
 
         /// <summary />
         public string ScheduleName { get; set; }
@@ -68,8 +68,8 @@ namespace Rock.Client
             this.ForeignGuid = source.ForeignGuid;
             this.ForeignKey = source.ForeignKey;
             this.GroupLocationHistoricalId = source.GroupLocationHistoricalId;
-            this.ScheduleICalendarContent = source.ScheduleICalendarContent;
             this.ScheduleId = source.ScheduleId;
+            this.ScheduleModifiedDateTime = source.ScheduleModifiedDateTime;
             this.ScheduleName = source.ScheduleName;
             this.Guid = source.Guid;
             this.ForeignId = source.ForeignId;

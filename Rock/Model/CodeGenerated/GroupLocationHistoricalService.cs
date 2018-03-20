@@ -102,6 +102,7 @@ namespace Rock.Model
             target.GroupId = source.GroupId;
             target.GroupLocationTypeName = source.GroupLocationTypeName;
             target.LocationId = source.LocationId;
+            target.LocationModifiedDateTime = source.LocationModifiedDateTime;
             target.LocationName = source.LocationName;
             target.CreatedDateTime = source.CreatedDateTime;
             target.ModifiedDateTime = source.ModifiedDateTime;

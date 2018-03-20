@@ -133,25 +133,13 @@
     <Compile Include="Migrations\201803131953247_AddDataAutomation.Designer.cs">
       <DependentUpon>201803131953247_AddDataAutomation.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201803152142114_GroupHistory.cs" />
-    <Compile Include="Migrations\201803152142114_GroupHistory.Designer.cs">
-      <DependentUpon>201803152142114_GroupHistory.cs</DependentUpon>
+    <Compile Include="Migrations\201803200058115_GroupHistory.cs" />
+    <Compile Include="Migrations\201803200058115_GroupHistory.Designer.cs">
+      <DependentUpon>201803200058115_GroupHistory.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201803160051196_GroupHistory2.cs" />
-    <Compile Include="Migrations\201803160051196_GroupHistory2.Designer.cs">
-      <DependentUpon>201803160051196_GroupHistory2.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\201803161756363_GroupHistory3.cs" />
-    <Compile Include="Migrations\201803161756363_GroupHistory3.Designer.cs">
-      <DependentUpon>201803161756363_GroupHistory3.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\201803162158191_GroupHistory4.cs" />
-    <Compile Include="Migrations\201803162158191_GroupHistory4.Designer.cs">
-      <DependentUpon>201803162158191_GroupHistory4.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\201803162349061_GroupHistory5.cs" />
-    <Compile Include="Migrations\201803162349061_GroupHistory5.Designer.cs">
-      <DependentUpon>201803162349061_GroupHistory5.cs</DependentUpon>
+    <Compile Include="Migrations\201803200141151_GroupHistory2.cs" />
+    <Compile Include="Migrations\201803200141151_GroupHistory2.Designer.cs">
+      <DependentUpon>201803200141151_GroupHistory2.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Version 7.0\Version 1.7.1\201801121251097_InteractionBlocks.cs" />
     <Compile Include="Migrations\Version 7.0\Version 1.7.1\201801121251097_InteractionBlocks.Designer.cs">
@@ -2782,20 +2770,11 @@
     <EmbeddedResource Include="Migrations\201803131953247_AddDataAutomation.resx">
       <DependentUpon>201803131953247_AddDataAutomation.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201803152142114_GroupHistory.resx">
-      <DependentUpon>201803152142114_GroupHistory.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201803200058115_GroupHistory.resx">
+      <DependentUpon>201803200058115_GroupHistory.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201803160051196_GroupHistory2.resx">
-      <DependentUpon>201803160051196_GroupHistory2.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201803161756363_GroupHistory3.resx">
-      <DependentUpon>201803161756363_GroupHistory3.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201803162158191_GroupHistory4.resx">
-      <DependentUpon>201803162158191_GroupHistory4.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201803162349061_GroupHistory5.resx">
-      <DependentUpon>201803162349061_GroupHistory5.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201803200141151_GroupHistory2.resx">
+      <DependentUpon>201803200141151_GroupHistory2.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\Version 7.0\Version 1.7.1\201801121251097_InteractionBlocks.resx">
       <DependentUpon>201801121251097_InteractionBlocks.cs</DependentUpon>

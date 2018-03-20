@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 //
+using System;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity.ModelConfiguration;
 using System.Runtime.Serialization;
@@ -58,13 +59,13 @@ namespace Rock.Model
         public string ScheduleName { get; set; }
 
         /// <summary>
-        /// Gets or sets the Schedule.iCalenderContext or Schedule.WeeklyDayOfWeek|Schedule.WeeklyTimeOfDay config  of the schedule for this group's location's schedule at this point in history  (Group.GroupLocation.Schedules[n].iCalendarContent). This is mainly used to detect if the group's schedule has changed
+        /// Gets or sets the Schedule's ModifiedDateTime. This is used internally to detect if the group's schedule has changed
         /// </summary>
         /// <value>
         /// The schedule's iCalendarContent
         /// </value>
         [DataMember]
-        public string ScheduleData { get; set; }
+        public DateTime? ScheduleModifiedDateTime { get; set; }
 
         #endregion
 

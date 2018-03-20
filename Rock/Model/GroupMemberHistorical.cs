@@ -44,6 +44,15 @@ namespace Rock.Model
         public int GroupMemberId { get; set; }
 
         /// <summary>
+        /// Gets or sets GroupId for this group member record at this point in history
+        /// </summary>
+        /// <value>
+        /// The group identifier.
+        /// </value>
+        [DataMember]
+        public int GroupId { get; set; }
+
+        /// <summary>
         /// Gets or sets the group role id for this group member at this point in history
         /// </summary>
         /// <value>
@@ -166,6 +175,15 @@ namespace Rock.Model
         public virtual GroupMember GroupMember { get; set; }
 
         /// <summary>
+        /// Gets or sets the group for this group member record at this point in history
+        /// </summary>
+        /// <value>
+        /// The group.
+        /// </value>
+        [DataMember]
+        public virtual Group Group { get; set; }
+
+        /// <summary>
         /// Gets or sets the PersonAlias that archived (soft deleted) this group member at this point in history
         /// </summary>
         /// <value>
@@ -184,6 +202,46 @@ namespace Rock.Model
         public virtual GroupTypeRole GroupRole { get; set; }
 
         #endregion
+
+        #region Public Methods
+
+        /// <summary>
+        /// Creates a GroupMemberHistorical with CurrentRowIndicator = true for the specified groupmember
+        /// </summary>
+        /// <param name="group">The group.</param>
+        /// <param name="effectiveDateTime">The effective date time.</param>
+        /// <returns></returns>
+        public static GroupMemberHistorical CreateCurrentRowFromGroupMember( GroupMember groupMember, DateTime effectiveDateTime )
+        {
+            var groupMemberHistoricalCurrent = new GroupMemberHistorical
+            {
+                GroupMemberId = groupMember.Id,
+                GroupId = groupMember.GroupId,
+                GroupRoleId = groupMember.GroupRoleId,
+                GroupRoleName = groupMember.GroupRole.Name,
+                IsLeader = groupMember.GroupRole.IsLeader,
+                GroupMemberStatus = groupMember.GroupMemberStatus,
+                IsArchived = groupMember.IsArchived,
+                ArchivedDateTime = groupMember.ArchivedDateTime,
+                ArchivedByPersonAliasId = groupMember.ArchivedByPersonAliasId,
+                InactiveDateTime = groupMember.InactiveDateTime,
+
+                // Set the Modified/Created fields for GroupMemberHistorical to be the current values from GroupMember table
+                ModifiedDateTime = groupMember.ModifiedDateTime,
+                ModifiedByPersonAliasId = groupMember.ModifiedByPersonAliasId,
+                CreatedByPersonAliasId = groupMember.CreatedByPersonAliasId,
+                CreatedDateTime = groupMember.CreatedDateTime,
+
+                // Set HistoricalTracking fields
+                CurrentRowIndicator = true,
+                EffectiveDateTime = effectiveDateTime,
+                ExpireDateTime = HistoricalTracking.MaxExpireDateTime
+            };
+
+            return groupMemberHistoricalCurrent;
+        }
+
+        #endregion
     }
 
     #region Entity Configuration
@@ -199,6 +257,7 @@ namespace Rock.Model
         public GroupMemberHistoricalConfiguration()
         {
             this.HasRequired( p => p.GroupMember ).WithMany().HasForeignKey( p => p.GroupMemberId ).WillCascadeOnDelete( false );
+            this.HasRequired( p => p.Group ).WithMany().HasForeignKey( p => p.GroupId ).WillCascadeOnDelete( false );
             this.HasRequired( p => p.GroupRole ).WithMany().HasForeignKey( p => p.GroupRoleId ).WillCascadeOnDelete( false );
             this.HasOptional( p => p.ArchivedByPersonAlias ).WithMany().HasForeignKey( p => p.ArchivedByPersonAliasId ).WillCascadeOnDelete( false );
         }

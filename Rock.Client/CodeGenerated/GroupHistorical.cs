@@ -91,10 +91,10 @@ namespace Rock.Client
         public int? ParentGroupId { get; set; }
 
         /// <summary />
-        public string ScheduleICalendarContent { get; set; }
+        public int? ScheduleId { get; set; }
 
         /// <summary />
-        public int? ScheduleId { get; set; }
+        public DateTime? ScheduleModifiedDateTime { get; set; }
 
         /// <summary />
         public string ScheduleName { get; set; }
@@ -150,8 +150,8 @@ namespace Rock.Client
             this.IsArchived = source.IsArchived;
             this.ModifiedAuditValuesAlreadyUpdated = source.ModifiedAuditValuesAlreadyUpdated;
             this.ParentGroupId = source.ParentGroupId;
-            this.ScheduleICalendarContent = source.ScheduleICalendarContent;
             this.ScheduleId = source.ScheduleId;
+            this.ScheduleModifiedDateTime = source.ScheduleModifiedDateTime;
             this.ScheduleName = source.ScheduleName;
             this.CreatedDateTime = source.CreatedDateTime;
             this.ModifiedDateTime = source.ModifiedDateTime;

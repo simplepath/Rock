@@ -36,6 +36,7 @@ namespace Rock.Migrations
                         Id = c.Int(nullable: false, identity: true),
                         AttributeValueId = c.Int(nullable: false),
                         Value = c.String(),
+                        ValueFormatted = c.String(),
                         ValueAsNumeric = c.Decimal(precision: 18, scale: 2),
                         ValueAsDateTime = c.DateTime(),
                         ValueAsBoolean = c.Boolean(),
@@ -62,23 +63,54 @@ namespace Rock.Migrations
                 .Index(t => t.Guid, unique: true);
             
             CreateTable(
-                "dbo.GroupLocationHistoricalSchedule",
+                "dbo.GroupHistorical",
                 c => new
                     {
                         Id = c.Int(nullable: false, identity: true),
-                        GroupLocationHistoricalId = c.Int(nullable: false),
-                        ScheduleId = c.Int(nullable: false),
+                        GroupId = c.Int(nullable: false),
+                        GroupName = c.String(maxLength: 100),
+                        GroupTypeId = c.Int(nullable: false),
+                        GroupTypeName = c.String(maxLength: 100),
+                        CampusId = c.Int(),
+                        ParentGroupId = c.Int(),
+                        Description = c.String(),
+                        ScheduleId = c.Int(),
                         ScheduleName = c.String(),
+                        ScheduleModifiedDateTime = c.DateTime(),
+                        IsArchived = c.Boolean(nullable: false),
+                        ArchivedDateTime = c.DateTime(),
+                        ArchivedByPersonAliasId = c.Int(),
+                        IsActive = c.Boolean(nullable: false),
+                        InactiveDateTime = c.DateTime(),
+                        EffectiveDateTime = c.DateTime(nullable: false),
+                        ExpireDateTime = c.DateTime(nullable: false),
+                        CurrentRowIndicator = c.Boolean(nullable: false),
+                        CreatedDateTime = c.DateTime(),
+                        ModifiedDateTime = c.DateTime(),
+                        CreatedByPersonAliasId = c.Int(),
+                        ModifiedByPersonAliasId = c.Int(),
                         Guid = c.Guid(nullable: false),
                         ForeignId = c.Int(),
                         ForeignGuid = c.Guid(),
                         ForeignKey = c.String(maxLength: 100),
                     })
                 .PrimaryKey(t => t.Id)
-                .ForeignKey("dbo.GroupLocationHistorical", t => t.GroupLocationHistoricalId)
+                .ForeignKey("dbo.PersonAlias", t => t.ArchivedByPersonAliasId)
+                .ForeignKey("dbo.Campus", t => t.CampusId)
+                .ForeignKey("dbo.PersonAlias", t => t.CreatedByPersonAliasId)
+                .ForeignKey("dbo.Group", t => t.GroupId)
+                .ForeignKey("dbo.GroupType", t => t.GroupTypeId)
+                .ForeignKey("dbo.PersonAlias", t => t.ModifiedByPersonAliasId)
+                .ForeignKey("dbo.Group", t => t.ParentGroupId)
                 .ForeignKey("dbo.Schedule", t => t.ScheduleId)
-                .Index(t => t.GroupLocationHistoricalId)
+                .Index(t => t.GroupId)
+                .Index(t => t.GroupTypeId)
+                .Index(t => t.CampusId)
+                .Index(t => t.ParentGroupId)
                 .Index(t => t.ScheduleId)
+                .Index(t => t.ArchivedByPersonAliasId)
+                .Index(t => t.CreatedByPersonAliasId)
+                .Index(t => t.ModifiedByPersonAliasId)
                 .Index(t => t.Guid, unique: true);
             
             CreateTable(
@@ -114,11 +146,33 @@ namespace Rock.Migrations
                 .Index(t => t.Guid, unique: true);
             
             CreateTable(
+                "dbo.GroupLocationHistoricalSchedule",
+                c => new
+                    {
+                        Id = c.Int(nullable: false, identity: true),
+                        GroupLocationHistoricalId = c.Int(nullable: false),
+                        ScheduleId = c.Int(nullable: false),
+                        ScheduleName = c.String(),
+                        ScheduleModifiedDateTime = c.DateTime(),
+                        Guid = c.Guid(nullable: false),
+                        ForeignId = c.Int(),
+                        ForeignGuid = c.Guid(),
+                        ForeignKey = c.String(maxLength: 100),
+                    })
+                .PrimaryKey(t => t.Id)
+                .ForeignKey("dbo.GroupLocationHistorical", t => t.GroupLocationHistoricalId)
+                .ForeignKey("dbo.Schedule", t => t.ScheduleId)
+                .Index(t => t.GroupLocationHistoricalId)
+                .Index(t => t.ScheduleId)
+                .Index(t => t.Guid, unique: true);
+            
+            CreateTable(
                 "dbo.GroupMemberHistorical",
                 c => new
                     {
                         Id = c.Int(nullable: false, identity: true),
                         GroupMemberId = c.Int(nullable: false),
+                        GroupId = c.Int(nullable: false),
                         GroupRoleId = c.Int(nullable: false),
                         GroupRoleName = c.String(maxLength: 100),
                         IsLeader = c.Boolean(nullable: false),
@@ -126,7 +180,6 @@ namespace Rock.Migrations
                         IsArchived = c.Boolean(nullable: false),
                         ArchivedDateTime = c.DateTime(),
                         ArchivedByPersonAliasId = c.Int(),
-                        IsInactive = c.Boolean(nullable: false),
                         InactiveDateTime = c.DateTime(),
                         EffectiveDateTime = c.DateTime(nullable: false),
                         ExpireDateTime = c.DateTime(nullable: false),
@@ -143,61 +196,13 @@ namespace Rock.Migrations
                 .PrimaryKey(t => t.Id)
                 .ForeignKey("dbo.PersonAlias", t => t.ArchivedByPersonAliasId)
                 .ForeignKey("dbo.PersonAlias", t => t.CreatedByPersonAliasId)
+                .ForeignKey("dbo.Group", t => t.GroupId)
                 .ForeignKey("dbo.GroupMember", t => t.GroupMemberId)
                 .ForeignKey("dbo.GroupTypeRole", t => t.GroupRoleId)
                 .ForeignKey("dbo.PersonAlias", t => t.ModifiedByPersonAliasId)
                 .Index(t => t.GroupMemberId)
-                .Index(t => t.GroupRoleId)
-                .Index(t => t.ArchivedByPersonAliasId)
-                .Index(t => t.CreatedByPersonAliasId)
-                .Index(t => t.ModifiedByPersonAliasId)
-                .Index(t => t.Guid, unique: true);
-            
-            CreateTable(
-                "dbo.GroupHistorical",
-                c => new
-                    {
-                        Id = c.Int(nullable: false, identity: true),
-                        GroupId = c.Int(nullable: false),
-                        GroupName = c.String(maxLength: 100),
-                        GroupTypeId = c.Int(nullable: false),
-                        GroupTypeName = c.String(maxLength: 100),
-                        CampusId = c.Int(),
-                        ParentGroupId = c.Int(),
-                        Description = c.String(),
-                        ScheduleId = c.Int(),
-                        ScheduleName = c.String(),
-                        IsArchived = c.Boolean(nullable: false),
-                        ArchivedDateTime = c.DateTime(),
-                        ArchivedByPersonAliasId = c.Int(),
-                        IsInactive = c.Boolean(nullable: false),
-                        InactiveDateTime = c.DateTime(),
-                        EffectiveDateTime = c.DateTime(nullable: false),
-                        ExpireDateTime = c.DateTime(nullable: false),
-                        CurrentRowIndicator = c.Boolean(nullable: false),
-                        CreatedDateTime = c.DateTime(),
-                        ModifiedDateTime = c.DateTime(),
-                        CreatedByPersonAliasId = c.Int(),
-                        ModifiedByPersonAliasId = c.Int(),
-                        Guid = c.Guid(nullable: false),
-                        ForeignId = c.Int(),
-                        ForeignGuid = c.Guid(),
-                        ForeignKey = c.String(maxLength: 100),
-                    })
-                .PrimaryKey(t => t.Id)
-                .ForeignKey("dbo.PersonAlias", t => t.ArchivedByPersonAliasId)
-                .ForeignKey("dbo.Campus", t => t.CampusId)
-                .ForeignKey("dbo.PersonAlias", t => t.CreatedByPersonAliasId)
-                .ForeignKey("dbo.Group", t => t.GroupId)
-                .ForeignKey("dbo.GroupType", t => t.GroupTypeId)
-                .ForeignKey("dbo.PersonAlias", t => t.ModifiedByPersonAliasId)
-                .ForeignKey("dbo.Group", t => t.ParentGroupId)
-                .ForeignKey("dbo.Schedule", t => t.ScheduleId)
                 .Index(t => t.GroupId)
-                .Index(t => t.GroupTypeId)
-                .Index(t => t.CampusId)
-                .Index(t => t.ParentGroupId)
-                .Index(t => t.ScheduleId)
+                .Index(t => t.GroupRoleId)
                 .Index(t => t.ArchivedByPersonAliasId)
                 .Index(t => t.CreatedByPersonAliasId)
                 .Index(t => t.ModifiedByPersonAliasId)
@@ -248,7 +253,7 @@ CREATE UNIQUE NONCLUSTERED  INDEX [IX_GroupMemberIdCurrentRow] ON [dbo].[GroupMe
 
             // Enforce that there isn't more than one CurrentRow per GroupMemberId in GroupHistorical
             Sql( @"
-CREATE UNIQUE NONCLUSTERED  INDEX [IX_GrouprIdCurrentRow] ON [dbo].[GroupHistorical]
+CREATE UNIQUE NONCLUSTERED  INDEX [IX_GroupIdCurrentRow] ON [dbo].[GroupHistorical]
 (
 	[GroupId] ASC,
 	[CurrentRowIndicator]
@@ -264,6 +269,18 @@ CREATE UNIQUE NONCLUSTERED  INDEX [IX_GrouprIdCurrentRow] ON [dbo].[GroupHistori
         /// </summary>
         public override void Down()
         {
+            DropForeignKey("dbo.GroupMemberHistorical", "ModifiedByPersonAliasId", "dbo.PersonAlias");
+            DropForeignKey("dbo.GroupMemberHistorical", "GroupRoleId", "dbo.GroupTypeRole");
+            DropForeignKey("dbo.GroupMemberHistorical", "GroupMemberId", "dbo.GroupMember");
+            DropForeignKey("dbo.GroupMemberHistorical", "GroupId", "dbo.Group");
+            DropForeignKey("dbo.GroupMemberHistorical", "CreatedByPersonAliasId", "dbo.PersonAlias");
+            DropForeignKey("dbo.GroupMemberHistorical", "ArchivedByPersonAliasId", "dbo.PersonAlias");
+            DropForeignKey("dbo.GroupLocationHistorical", "ModifiedByPersonAliasId", "dbo.PersonAlias");
+            DropForeignKey("dbo.GroupLocationHistorical", "LocationId", "dbo.Location");
+            DropForeignKey("dbo.GroupLocationHistoricalSchedule", "ScheduleId", "dbo.Schedule");
+            DropForeignKey("dbo.GroupLocationHistoricalSchedule", "GroupLocationHistoricalId", "dbo.GroupLocationHistorical");
+            DropForeignKey("dbo.GroupLocationHistorical", "GroupId", "dbo.Group");
+            DropForeignKey("dbo.GroupLocationHistorical", "CreatedByPersonAliasId", "dbo.PersonAlias");
             DropForeignKey("dbo.GroupHistorical", "ScheduleId", "dbo.Schedule");
             DropForeignKey("dbo.GroupHistorical", "ParentGroupId", "dbo.Group");
             DropForeignKey("dbo.GroupHistorical", "ModifiedByPersonAliasId", "dbo.PersonAlias");
@@ -272,22 +289,26 @@ CREATE UNIQUE NONCLUSTERED  INDEX [IX_GrouprIdCurrentRow] ON [dbo].[GroupHistori
             DropForeignKey("dbo.GroupHistorical", "CreatedByPersonAliasId", "dbo.PersonAlias");
             DropForeignKey("dbo.GroupHistorical", "CampusId", "dbo.Campus");
             DropForeignKey("dbo.GroupHistorical", "ArchivedByPersonAliasId", "dbo.PersonAlias");
-            DropForeignKey("dbo.GroupMemberHistorical", "ModifiedByPersonAliasId", "dbo.PersonAlias");
-            DropForeignKey("dbo.GroupMemberHistorical", "GroupRoleId", "dbo.GroupTypeRole");
-            DropForeignKey("dbo.GroupMemberHistorical", "GroupMemberId", "dbo.GroupMember");
-            DropForeignKey("dbo.GroupMemberHistorical", "CreatedByPersonAliasId", "dbo.PersonAlias");
-            DropForeignKey("dbo.GroupMemberHistorical", "ArchivedByPersonAliasId", "dbo.PersonAlias");
-            DropForeignKey("dbo.GroupLocationHistoricalSchedule", "ScheduleId", "dbo.Schedule");
-            DropForeignKey("dbo.GroupLocationHistoricalSchedule", "GroupLocationHistoricalId", "dbo.GroupLocationHistorical");
-            DropForeignKey("dbo.GroupLocationHistorical", "ModifiedByPersonAliasId", "dbo.PersonAlias");
-            DropForeignKey("dbo.GroupLocationHistorical", "LocationId", "dbo.Location");
-            DropForeignKey("dbo.GroupLocationHistorical", "GroupId", "dbo.Group");
-            DropForeignKey("dbo.GroupLocationHistorical", "CreatedByPersonAliasId", "dbo.PersonAlias");
             DropForeignKey("dbo.AttributeValueHistorical", "ModifiedByPersonAliasId", "dbo.PersonAlias");
             DropForeignKey("dbo.AttributeValueHistorical", "CreatedByPersonAliasId", "dbo.PersonAlias");
             DropForeignKey("dbo.AttributeValueHistorical", "AttributeValueId", "dbo.AttributeValue");
             DropForeignKey("dbo.GroupMember", "ArchivedByPersonAliasId", "dbo.PersonAlias");
             DropForeignKey("dbo.Group", "ArchivedByPersonAliasId", "dbo.PersonAlias");
+            DropIndex("dbo.GroupMemberHistorical", new[] { "Guid" });
+            DropIndex("dbo.GroupMemberHistorical", new[] { "ModifiedByPersonAliasId" });
+            DropIndex("dbo.GroupMemberHistorical", new[] { "CreatedByPersonAliasId" });
+            DropIndex("dbo.GroupMemberHistorical", new[] { "ArchivedByPersonAliasId" });
+            DropIndex("dbo.GroupMemberHistorical", new[] { "GroupRoleId" });
+            DropIndex("dbo.GroupMemberHistorical", new[] { "GroupId" });
+            DropIndex("dbo.GroupMemberHistorical", new[] { "GroupMemberId" });
+            DropIndex("dbo.GroupLocationHistoricalSchedule", new[] { "Guid" });
+            DropIndex("dbo.GroupLocationHistoricalSchedule", new[] { "ScheduleId" });
+            DropIndex("dbo.GroupLocationHistoricalSchedule", new[] { "GroupLocationHistoricalId" });
+            DropIndex("dbo.GroupLocationHistorical", new[] { "Guid" });
+            DropIndex("dbo.GroupLocationHistorical", new[] { "ModifiedByPersonAliasId" });
+            DropIndex("dbo.GroupLocationHistorical", new[] { "CreatedByPersonAliasId" });
+            DropIndex("dbo.GroupLocationHistorical", new[] { "LocationId" });
+            DropIndex("dbo.GroupLocationHistorical", new[] { "GroupId" });
             DropIndex("dbo.GroupHistorical", new[] { "Guid" });
             DropIndex("dbo.GroupHistorical", new[] { "ModifiedByPersonAliasId" });
             DropIndex("dbo.GroupHistorical", new[] { "CreatedByPersonAliasId" });
@@ -297,20 +318,6 @@ CREATE UNIQUE NONCLUSTERED  INDEX [IX_GrouprIdCurrentRow] ON [dbo].[GroupHistori
             DropIndex("dbo.GroupHistorical", new[] { "CampusId" });
             DropIndex("dbo.GroupHistorical", new[] { "GroupTypeId" });
             DropIndex("dbo.GroupHistorical", new[] { "GroupId" });
-            DropIndex("dbo.GroupMemberHistorical", new[] { "Guid" });
-            DropIndex("dbo.GroupMemberHistorical", new[] { "ModifiedByPersonAliasId" });
-            DropIndex("dbo.GroupMemberHistorical", new[] { "CreatedByPersonAliasId" });
-            DropIndex("dbo.GroupMemberHistorical", new[] { "ArchivedByPersonAliasId" });
-            DropIndex("dbo.GroupMemberHistorical", new[] { "GroupRoleId" });
-            DropIndex("dbo.GroupMemberHistorical", new[] { "GroupMemberId" });
-            DropIndex("dbo.GroupLocationHistorical", new[] { "Guid" });
-            DropIndex("dbo.GroupLocationHistorical", new[] { "ModifiedByPersonAliasId" });
-            DropIndex("dbo.GroupLocationHistorical", new[] { "CreatedByPersonAliasId" });
-            DropIndex("dbo.GroupLocationHistorical", new[] { "LocationId" });
-            DropIndex("dbo.GroupLocationHistorical", new[] { "GroupId" });
-            DropIndex("dbo.GroupLocationHistoricalSchedule", new[] { "Guid" });
-            DropIndex("dbo.GroupLocationHistoricalSchedule", new[] { "ScheduleId" });
-            DropIndex("dbo.GroupLocationHistoricalSchedule", new[] { "GroupLocationHistoricalId" });
             DropIndex("dbo.AttributeValueHistorical", new[] { "Guid" });
             DropIndex("dbo.AttributeValueHistorical", new[] { "ModifiedByPersonAliasId" });
             DropIndex("dbo.AttributeValueHistorical", new[] { "CreatedByPersonAliasId" });
@@ -334,10 +341,10 @@ CREATE UNIQUE NONCLUSTERED  INDEX [IX_GrouprIdCurrentRow] ON [dbo].[GroupHistori
             DropColumn("dbo.Group", "ArchivedDateTime");
             DropColumn("dbo.Group", "IsArchived");
             DropColumn("dbo.Group", "InactiveDateTime");
-            DropTable("dbo.GroupHistorical");
             DropTable("dbo.GroupMemberHistorical");
-            DropTable("dbo.GroupLocationHistorical");
             DropTable("dbo.GroupLocationHistoricalSchedule");
+            DropTable("dbo.GroupLocationHistorical");
+            DropTable("dbo.GroupHistorical");
             DropTable("dbo.AttributeValueHistorical");
         }
     }

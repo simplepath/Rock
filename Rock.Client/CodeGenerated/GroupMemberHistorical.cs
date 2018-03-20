@@ -56,6 +56,9 @@ namespace Rock.Client
         public string ForeignKey { get; set; }
 
         /// <summary />
+        public int GroupId { get; set; }
+
+        /// <summary />
         public int GroupMemberId { get; set; }
 
         /// <summary />
@@ -121,6 +124,7 @@ namespace Rock.Client
             this.ExpireDateTime = source.ExpireDateTime;
             this.ForeignGuid = source.ForeignGuid;
             this.ForeignKey = source.ForeignKey;
+            this.GroupId = source.GroupId;
             this.GroupMemberId = source.GroupMemberId;
             this.GroupMemberStatus = source.GroupMemberStatus;
             this.GroupRoleId = source.GroupRoleId;
@@ -146,6 +150,9 @@ namespace Rock.Client
     {
         /// <summary />
         public PersonAlias ArchivedByPersonAlias { get; set; }
+
+        /// <summary />
+        public Group Group { get; set; }
 
         /// <summary />
         public GroupMember GroupMember { get; set; }

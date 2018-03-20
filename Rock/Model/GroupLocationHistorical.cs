@@ -74,6 +74,15 @@ namespace Rock.Model
         [DataMember]
         public string LocationName { get; set; }
 
+        /// <summary>
+        /// Gets or sets the Location's ModifiedDateTime. This is used internally to detect if the group's location has changed
+        /// </summary>
+        /// <value>
+        /// The schedule's iCalendarContent
+        /// </value>
+        [DataMember]
+        public DateTime? LocationModifiedDateTime { get; set; }
+
         #endregion
 
         #region IHistoricalTracking

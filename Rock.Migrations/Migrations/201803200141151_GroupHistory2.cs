@@ -22,15 +22,14 @@ namespace Rock.Migrations
     /// <summary>
     ///
     /// </summary>
-    public partial class GroupHistory4 : Rock.Migrations.RockMigration
+    public partial class GroupHistory2 : Rock.Migrations.RockMigration
     {
         /// <summary>
         /// Operations to be performed during the upgrade process.
         /// </summary>
         public override void Up()
         {
-            AddColumn("dbo.GroupLocationHistoricalSchedule", "ScheduleICalendarContent", c => c.String());
-            AddColumn("dbo.GroupHistorical", "ScheduleICalendarContent", c => c.String());
+            AddColumn("dbo.GroupLocationHistorical", "LocationModifiedDateTime", c => c.DateTime());
         }
         
         /// <summary>
@@ -38,8 +37,7 @@ namespace Rock.Migrations
         /// </summary>
         public override void Down()
         {
-            DropColumn("dbo.GroupHistorical", "ScheduleICalendarContent");
-            DropColumn("dbo.GroupLocationHistoricalSchedule", "ScheduleICalendarContent");
+            DropColumn("dbo.GroupLocationHistorical", "LocationModifiedDateTime");
         }
     }
 }

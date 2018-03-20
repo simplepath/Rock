@@ -59,6 +59,9 @@ namespace Rock.Client
         public int LocationId { get; set; }
 
         /// <summary />
+        public DateTime? LocationModifiedDateTime { get; set; }
+
+        /// <summary />
         public string LocationName { get; set; }
 
         /// <summary>
@@ -107,6 +110,7 @@ namespace Rock.Client
             this.GroupId = source.GroupId;
             this.GroupLocationTypeName = source.GroupLocationTypeName;
             this.LocationId = source.LocationId;
+            this.LocationModifiedDateTime = source.LocationModifiedDateTime;
             this.LocationName = source.LocationName;
             this.ModifiedAuditValuesAlreadyUpdated = source.ModifiedAuditValuesAlreadyUpdated;
             this.CreatedDateTime = source.CreatedDateTime;

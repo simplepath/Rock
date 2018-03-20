@@ -92,6 +92,7 @@ namespace Rock.Model
             target.ForeignKey = source.ForeignKey;
             target.GroupLocationHistoricalId = source.GroupLocationHistoricalId;
             target.ScheduleId = source.ScheduleId;
+            target.ScheduleModifiedDateTime = source.ScheduleModifiedDateTime;
             target.ScheduleName = source.ScheduleName;
             target.Guid = source.Guid;
             target.ForeignId = source.ForeignId;

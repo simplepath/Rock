@@ -95,6 +95,7 @@ namespace Rock.Model
             target.ExpireDateTime = source.ExpireDateTime;
             target.ForeignGuid = source.ForeignGuid;
             target.ForeignKey = source.ForeignKey;
+            target.GroupId = source.GroupId;
             target.GroupMemberId = source.GroupMemberId;
             target.GroupMemberStatus = source.GroupMemberStatus;
             target.GroupRoleId = source.GroupRoleId;

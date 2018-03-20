@@ -106,6 +106,7 @@ namespace Rock.Model
             target.IsArchived = source.IsArchived;
             target.ParentGroupId = source.ParentGroupId;
             target.ScheduleId = source.ScheduleId;
+            target.ScheduleModifiedDateTime = source.ScheduleModifiedDateTime;
             target.ScheduleName = source.ScheduleName;
             target.CreatedDateTime = source.CreatedDateTime;
             target.ModifiedDateTime = source.ModifiedDateTime;
