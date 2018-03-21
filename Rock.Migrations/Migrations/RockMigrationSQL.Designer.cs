@@ -4338,5 +4338,46 @@ namespace Rock.Migrations.Migrations {
                 return ResourceManager.GetString("_201802260423490_Rollup_0225_spCheckin_AttendanceAnalyticsQuery_NonAttendees", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to -- Update AttributeValues
+        ///----------------------------------------------------------------------------------------------------------------
+        ///
+        ///-- Fix NameValue AttributeValue for Request Set Name for the External Inquiryworkflow
+        ///UPDATE [AttributeValue]
+        ///SET [Value] = &apos;{{ Workflow | Attribute:&apos;&apos;FirstName&apos;&apos; }} {{ Workflow | Attribute:&apos;&apos;LastName&apos;&apos; }} ( {{ Workflow | Attribute:&apos;&apos;Topic&apos;&apos; }} )&apos;
+        ///WHERE AttributeId in (select Id from Attribute where [Guid] = &apos;93852244-A667-4749-961A-D47F88675BE4&apos;)
+        ///	AND [Value] =  [rest of string was truncated]&quot;;.
+        /// </summary>
+        public static string _201803201440110_UpdateLegacyLava {
+            get {
+                return ResourceManager.GetString("_201803201440110_UpdateLegacyLava", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to BEGIN TRY
+        ///    ALTER TABLE Person
+        ///
+        ///    DROP COLUMN DaysUntilAnniversary
+        ///END TRY
+        ///
+        ///BEGIN CATCH
+        ///END CATCH
+        ///
+        ///ALTER TABLE Person ADD DaysUntilAnniversary AS (
+        ///    CASE 
+        ///        -- if there anniversary is Feb 29 and their next anniversary is this year and it isn&apos;t a leap year, set their anniversary to Feb 28 (this year)
+        ///        WHEN (
+        ///                DATEPART(MONTH, AnniversaryDate) = 2
+        ///                AND DATEPART(DAY, AnniversaryDate) = 29
+        ///                AND datepart(month, sysdatetime()) &lt; 3
+        ///    [rest of string was truncated]&quot;;.
+        /// </summary>
+        public static string _201803201617508_DaysUntilAnniversary {
+            get {
+                return ResourceManager.GetString("_201803201617508_DaysUntilAnniversary", resourceCulture);
+            }
+        }
     }
 }

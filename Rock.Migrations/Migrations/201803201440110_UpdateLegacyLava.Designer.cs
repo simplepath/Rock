@@ -7,13 +7,13 @@ namespace Rock.Migrations
     using System.Resources;
     
     [GeneratedCode("EntityFramework.Migrations", "6.1.3-40302")]
-    public sealed partial class GroupHistory : IMigrationMetadata
+    public sealed partial class UpdateLegacyLava : IMigrationMetadata
     {
-        private readonly ResourceManager Resources = new ResourceManager(typeof(GroupHistory));
+        private readonly ResourceManager Resources = new ResourceManager(typeof(UpdateLegacyLava));
         
         string IMigrationMetadata.Id
         {
-            get { return "201803210049466_GroupHistory"; }
+            get { return "201803201440110_UpdateLegacyLava"; }
         }
         
         string IMigrationMetadata.Source

@@ -768,6 +768,7 @@
     <Compile Include="Lava\LavaHelper.cs" />
     <Compile Include="Lava\LavaSupportLevel.cs" />
     <Compile Include="Lava\LegacyLavaSyntaxDetectedException.cs" />
+    <Compile Include="Lava\LegacyLavaUpdater.cs" />
     <Compile Include="Lava\RockFilters.cs" />
     <Compile Include="Lava\Shortcodes\DynamicShortcodeBlock.cs" />
     <Compile Include="Lava\Shortcodes\DynamicShortcodeInline.cs" />
@@ -2107,6 +2108,7 @@
     <Compile Include="Workflow\Action\WorkflowControl\SetStatus.cs" />
     <Compile Include="Workflow\Action\WorkflowControl\SetWorkflowName.cs" />
     <Compile Include="Workflow\Action\WorkflowControl\UserForm.cs" />
+    <Compile Include="Workflow\Action\WorkflowControl\WebRequest.cs" />
     <Compile Include="Workflow\Action\WorkflowControl\WriteToLog.cs" />
     <Compile Include="Workflow\TriggerCache.cs" />
   </ItemGroup>
