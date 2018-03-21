@@ -53,6 +53,9 @@ namespace Rock.Client
         public int GroupId { get; set; }
 
         /// <summary />
+        public int GroupLocationId { get; set; }
+
+        /// <summary />
         public string GroupLocationTypeName { get; set; }
 
         /// <summary />
@@ -108,6 +111,7 @@ namespace Rock.Client
             this.ForeignGuid = source.ForeignGuid;
             this.ForeignKey = source.ForeignKey;
             this.GroupId = source.GroupId;
+            this.GroupLocationId = source.GroupLocationId;
             this.GroupLocationTypeName = source.GroupLocationTypeName;
             this.LocationId = source.LocationId;
             this.LocationModifiedDateTime = source.LocationModifiedDateTime;
@@ -130,6 +134,9 @@ namespace Rock.Client
     {
         /// <summary />
         public Group Group { get; set; }
+
+        /// <summary />
+        public GroupLocation GroupLocation { get; set; }
 
         /// <summary />
         public ICollection<GroupLocationHistoricalSchedule> GroupLocationHistoricalSchedules { get; set; }

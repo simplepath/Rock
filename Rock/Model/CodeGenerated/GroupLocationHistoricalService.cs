@@ -100,6 +100,7 @@ namespace Rock.Model
             target.ForeignGuid = source.ForeignGuid;
             target.ForeignKey = source.ForeignKey;
             target.GroupId = source.GroupId;
+            target.GroupLocationId = source.GroupLocationId;
             target.GroupLocationTypeName = source.GroupLocationTypeName;
             target.LocationId = source.LocationId;
             target.LocationModifiedDateTime = source.LocationModifiedDateTime;

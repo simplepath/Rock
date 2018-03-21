@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data.Entity.SqlServer;
+﻿using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Quartz;
+
 using Rock.Data;
 using Rock.Model;
 
@@ -35,11 +33,10 @@ namespace Rock.Jobs
 
         #region fields
 
-        private int _groupsLoggedToHistory = 0;
-        private int _groupsSaveToHistoryCurrent = 0;
-
-        private int _groupMembersLoggedToHistory = 0;
-        private int _groupMembersSaveToHistoryCurrent = 0;
+        /// <summary>
+        /// The job status messages
+        /// </summary>
+        private List<string> _jobStatusMessages = null;
 
         #endregion
 
@@ -53,43 +50,17 @@ namespace Rock.Jobs
         {
             JobDataMap dataMap = context.JobDetail.JobDataMap;
 
+            _jobStatusMessages = new List<string>();
+
             UpdateGroupHistorical( context );
 
             UpdateGroupMemberHistorical( context );
 
-            List<string> jobStatusMessages = new List<string>();
+            UpdateGroupLocationHistorical( context );
 
-            if ( _groupsLoggedToHistory > 0 )
+            if ( _jobStatusMessages.Any() )
             {
-                jobStatusMessages.Add( $"Logged {_groupsLoggedToHistory} {"group history snapshot".PluralizeIf( _groupsLoggedToHistory != 0 )}" );
-            }
-
-            if ( _groupsSaveToHistoryCurrent > 0 )
-            {
-                int newGroupsAddedToHistory = _groupsSaveToHistoryCurrent - _groupsLoggedToHistory;
-                if ( newGroupsAddedToHistory > 0 )
-                {
-                    jobStatusMessages.Add( $"Added {newGroupsAddedToHistory} new {"group history snapshot".PluralizeIf( newGroupsAddedToHistory != 0 )}" );
-                }
-            }
-
-            if ( _groupMembersLoggedToHistory > 0 )
-            {
-                jobStatusMessages.Add( $"Logged {_groupMembersLoggedToHistory} {"group member history snapshot".PluralizeIf( _groupMembersLoggedToHistory != 0 )}" );
-            }
-
-            if ( _groupMembersSaveToHistoryCurrent > 0 )
-            {
-                int newGroupMembersAddedToHistory = _groupMembersSaveToHistoryCurrent - _groupMembersLoggedToHistory;
-                if ( newGroupMembersAddedToHistory > 0 )
-                {
-                    jobStatusMessages.Add( $"Added {newGroupMembersAddedToHistory} new {"group member history snapshot".PluralizeIf( newGroupMembersAddedToHistory != 0 )}" );
-                }
-            }
-
-            if ( jobStatusMessages.Any() )
-            {
-                context.UpdateLastStatusMessage( jobStatusMessages.AsDelimited( ", ", " and " ) );
+                context.UpdateLastStatusMessage( _jobStatusMessages.AsDelimited( ", ", " and " ) );
             }
             else
             {
@@ -107,8 +78,8 @@ namespace Rock.Jobs
             var groupHistoricalService = new GroupHistoricalService( rockContext );
             var groupService = new GroupService( rockContext );
 
-            var groupsWithHistoryEnabledQuery = groupService.Queryable().Where( a => a.GroupType.EnableGroupHistory == true );
-            var groupHistoricalsCurrentQuery = groupHistoricalService.Queryable().Where( a => a.CurrentRowIndicator == true );
+            var groupsWithHistoryEnabledQuery = groupService.Queryable().Where( a => a.GroupType.EnableGroupHistory == true ).AsNoTracking();
+            var groupHistoricalsCurrentQuery = groupHistoricalService.Queryable().Where( a => a.CurrentRowIndicator == true ).AsNoTracking();
 
             // Mark GroupHistorical Rows as History ( CurrentRowIndicator = false, etc ) if any of the tracked field values change
             var groupHistoricalNoLongerCurrent = groupHistoricalsCurrentQuery.Join(
@@ -132,13 +103,16 @@ namespace Rock.Jobs
                         || a.Group.ArchivedByPersonAliasId != a.GroupHistorical.ArchivedByPersonAliasId
                         || a.Group.IsActive != a.GroupHistorical.IsActive
                         || a.Group.InactiveDateTime != a.GroupHistorical.InactiveDateTime
-                    ).Select( a => a.GroupHistorical );
+                    ).Select( a => a.GroupHistorical ).AsNoTracking();
 
             var effectiveExpireDateTime = RockDateTime.Now;
 
+            int groupsLoggedToHistory = 0;
+            int groupsSaveToHistoryCurrent = 0;
+
             if ( groupHistoricalNoLongerCurrent.Any() )
             {
-                _groupsLoggedToHistory = rockContext.BulkUpdate( groupHistoricalNoLongerCurrent, gh => new GroupHistorical
+                groupsLoggedToHistory = rockContext.BulkUpdate( groupHistoricalNoLongerCurrent, gh => new GroupHistorical
                 {
                     CurrentRowIndicator = false,
                     ExpireDateTime = effectiveExpireDateTime
@@ -146,16 +120,33 @@ namespace Rock.Jobs
             }
 
             // Insert Groups (that have GroupType.EnableGroupHistory) that don't have a CurrentRowIndicator row yet ( or don't have a CurrentRowIndicator because it was stamped with CurrentRowIndicator=false )
-            var groupsToAddToHistoricalCurrentsQuery = groupsWithHistoryEnabledQuery.Where( g => !groupHistoricalsCurrentQuery.Any( gh => gh.GroupId == g.Id ) );
+            var groupsToAddToHistoricalCurrentsQuery = groupsWithHistoryEnabledQuery.Where( g => !groupHistoricalsCurrentQuery.Any( gh => gh.GroupId == g.Id ) ).AsNoTracking();
 
             if ( groupsToAddToHistoricalCurrentsQuery.Any() )
             {
-                List<GroupHistorical> groupHistoricalCurrentsToInsert = groupsToAddToHistoricalCurrentsQuery.ToList()
+                List<GroupHistorical> groupHistoricalCurrentsToInsert = groupsToAddToHistoricalCurrentsQuery
+                    .Include( a => a.GroupType )
+                    .Include( a => a.Schedule )
+                    .ToList()
                     .Select( g => GroupHistorical.CreateCurrentRowFromGroup( g, effectiveExpireDateTime ) ).ToList();
 
-                _groupsSaveToHistoryCurrent = groupHistoricalCurrentsToInsert.Count();
+                groupsSaveToHistoryCurrent = groupHistoricalCurrentsToInsert.Count();
 
                 rockContext.BulkInsert( groupHistoricalCurrentsToInsert );
+            }
+
+            if ( groupsLoggedToHistory > 0 )
+            {
+                _jobStatusMessages.Add( $"Logged {groupsLoggedToHistory} {"group history snapshot".PluralizeIf( groupsLoggedToHistory != 0 )}" );
+            }
+
+            if ( groupsSaveToHistoryCurrent > 0 )
+            {
+                int newGroupsAddedToHistory = groupsSaveToHistoryCurrent - groupsLoggedToHistory;
+                if ( newGroupsAddedToHistory > 0 )
+                {
+                    _jobStatusMessages.Add( $"Added {newGroupsAddedToHistory} new {"group history snapshot".PluralizeIf( newGroupsAddedToHistory != 0 )}" );
+                }
             }
         }
 
@@ -169,8 +160,8 @@ namespace Rock.Jobs
             var groupMemberHistoricalService = new GroupMemberHistoricalService( rockContext );
             var groupMemberService = new GroupMemberService( rockContext );
 
-            var groupMembersWithHistoryEnabledQuery = groupMemberService.Queryable().Where( a => a.Group.GroupType.EnableGroupHistory == true );
-            var groupMemberHistoricalsCurrentQuery = groupMemberHistoricalService.Queryable().Where( a => a.CurrentRowIndicator == true );
+            var groupMembersWithHistoryEnabledQuery = groupMemberService.Queryable().Where( a => a.Group.GroupType.EnableGroupHistory == true ).AsNoTracking();
+            var groupMemberHistoricalsCurrentQuery = groupMemberHistoricalService.Queryable().Where( a => a.CurrentRowIndicator == true ).AsNoTracking();
 
             // Mark GroupMemberHistorical Rows as History ( CurrentRowIndicator = false, etc ) if any of the tracked field values change
             var groupMemberHistoricalNoLongerCurrent = groupMemberHistoricalsCurrentQuery.Join(
@@ -191,13 +182,16 @@ namespace Rock.Jobs
                         || a.GroupMember.ArchivedDateTime != a.GroupMemberHistorical.ArchivedDateTime
                         || a.GroupMember.ArchivedByPersonAliasId != a.GroupMemberHistorical.ArchivedByPersonAliasId
                         || a.GroupMember.InactiveDateTime != a.GroupMemberHistorical.InactiveDateTime
-                    ).Select( a => a.GroupMemberHistorical );
+                    ).Select( a => a.GroupMemberHistorical ).AsNoTracking();
 
             var effectiveExpireDateTime = RockDateTime.Now;
 
+            int groupMembersLoggedToHistory = 0;
+            int groupMembersSaveToHistoryCurrent = 0;
+
             if ( groupMemberHistoricalNoLongerCurrent.Any() )
             {
-                _groupMembersLoggedToHistory = rockContext.BulkUpdate( groupMemberHistoricalNoLongerCurrent, gmh => new GroupMemberHistorical
+                groupMembersLoggedToHistory = rockContext.BulkUpdate( groupMemberHistoricalNoLongerCurrent, gmh => new GroupMemberHistorical
                 {
                     CurrentRowIndicator = false,
                     ExpireDateTime = effectiveExpireDateTime
@@ -209,12 +203,132 @@ namespace Rock.Jobs
 
             if ( groupMembersToAddToHistoricalCurrentsQuery.Any() )
             {
-                List<GroupMemberHistorical> groupMemberHistoricalCurrentsToInsert = groupMembersToAddToHistoricalCurrentsQuery.ToList()
+                List<GroupMemberHistorical> groupMemberHistoricalCurrentsToInsert = groupMembersToAddToHistoricalCurrentsQuery
+                    .Include( a => a.GroupRole )
+                    .ToList()
                     .Select( gm => GroupMemberHistorical.CreateCurrentRowFromGroupMember( gm, effectiveExpireDateTime ) ).ToList();
 
-                _groupMembersSaveToHistoryCurrent = groupMemberHistoricalCurrentsToInsert.Count();
+                groupMembersSaveToHistoryCurrent = groupMemberHistoricalCurrentsToInsert.Count();
 
                 rockContext.BulkInsert( groupMemberHistoricalCurrentsToInsert );
+            }
+
+            if ( groupMembersLoggedToHistory > 0 )
+            {
+                _jobStatusMessages.Add( $"Logged {groupMembersLoggedToHistory} {"group member history snapshot".PluralizeIf( groupMembersLoggedToHistory != 0 )}" );
+            }
+
+            if ( groupMembersSaveToHistoryCurrent > 0 )
+            {
+                int newGroupMembersAddedToHistory = groupMembersSaveToHistoryCurrent - groupMembersLoggedToHistory;
+                if ( newGroupMembersAddedToHistory > 0 )
+                {
+                    _jobStatusMessages.Add( $"Added {newGroupMembersAddedToHistory} new {"group member history snapshot".PluralizeIf( newGroupMembersAddedToHistory != 0 )}" );
+                }
+            }
+        }
+
+        /// <summary>
+        /// Updates GroupLocationHistorical for any group locations in groups that have data group history enabled
+        /// </summary>
+        /// <param name="context">The context.</param>
+        public void UpdateGroupLocationHistorical( IJobExecutionContext context )
+        {
+            var rockContext = new RockContext();
+            var groupLocationHistoricalService = new GroupLocationHistoricalService( rockContext );
+            var groupLocationService = new GroupLocationService( rockContext );
+
+            var groupLocationsWithHistoryEnabledQuery = groupLocationService.Queryable().Where( a => a.Group.GroupType.EnableGroupHistory == true ).AsNoTracking();
+            var groupLocationsHistoricalCurrentQuery = groupLocationHistoricalService.Queryable().Where( a => a.CurrentRowIndicator == true ).AsNoTracking();
+
+            // Mark GroupLocationHistorical Rows as History ( CurrentRowIndicator = false, etc ) if any of the tracked field values change
+            var groupLocationHistoricalNoLongerCurrentQuery = groupLocationsHistoricalCurrentQuery.Join(
+                    groupLocationsWithHistoryEnabledQuery,
+                    glh => glh.GroupLocationId,
+                    gl => gl.Id, ( glh, gl ) => new
+                    {
+                        GroupLocation = gl,
+                        GroupLocationHistorical = glh
+                    } )
+                    .Where( a =>
+                        a.GroupLocation.GroupId != a.GroupLocationHistorical.GroupId
+                        || ( a.GroupLocation.GroupLocationTypeValueId != a.GroupLocation.GroupLocationTypeValueId )
+                        || ( a.GroupLocation.GroupLocationTypeValueId.HasValue && a.GroupLocation.GroupLocationTypeValue.Value != a.GroupLocationHistorical.GroupLocationTypeName )
+                        || a.GroupLocation.LocationId != a.GroupLocationHistorical.LocationId
+                        || a.GroupLocation.Location.ModifiedDateTime != a.GroupLocationHistorical.LocationModifiedDateTime
+                        || ( a.GroupLocation.Schedules.Select( s => new { ScheduleId = s.Id, s.ModifiedDateTime } ).Except( a.GroupLocationHistorical.GroupLocationHistoricalSchedules.Select( hs => new { hs.ScheduleId, ModifiedDateTime = hs.ScheduleModifiedDateTime } ) ) ).Any()
+                    );
+
+            var effectiveExpireDateTime = RockDateTime.Now;
+            int groupLocationsLoggedToHistory = 0;
+            int groupLocationsSaveToHistoryCurrent = 0;
+
+            if ( groupLocationHistoricalNoLongerCurrentQuery.Any() )
+            {
+                var groupLocationHistoricalNoLongerCurrent = groupLocationHistoricalNoLongerCurrentQuery.Select( a => a.GroupLocationHistorical ).AsNoTracking();
+
+                groupLocationsLoggedToHistory = rockContext.BulkUpdate( groupLocationHistoricalNoLongerCurrent, glh => new GroupLocationHistorical
+                {
+                    CurrentRowIndicator = false,
+                    ExpireDateTime = effectiveExpireDateTime
+                } );
+            }
+
+            // Insert Group Locations (that have a group with GroupType.EnableGroupHistory) that don't have a CurrentRowIndicator row yet ( or don't have a CurrentRowIndicator because it was stamped with CurrentRowIndicator=false )
+            var groupLocationsToAddToHistoricalCurrentsQuery = groupLocationsWithHistoryEnabledQuery.Where( gl => !groupLocationsHistoricalCurrentQuery.Any( glh => glh.GroupLocationId == gl.Id ) );
+
+            if ( groupLocationsToAddToHistoricalCurrentsQuery.Any() )
+            {
+                List<GroupLocationHistorical> groupLocationHistoricalCurrentsToInsert = groupLocationsToAddToHistoricalCurrentsQuery
+                    .Include( a => a.GroupLocationTypeValue )
+                    .Include( a => a.Location ).ToList()
+                    .Select( gl => GroupLocationHistorical.CreateCurrentRowFromGroupLocation( gl, effectiveExpireDateTime ) ).ToList();
+
+                groupLocationsSaveToHistoryCurrent = groupLocationHistoricalCurrentsToInsert.Count();
+
+                // get the current max GroupLocatiionHistorical.Id to help narrow down which ones were inserted
+                int groupLocationHistoricalStartId = groupLocationHistoricalService.Queryable().Max( a => a.Id );
+
+                rockContext.BulkInsert( groupLocationHistoricalCurrentsToInsert );
+
+                // since we used BulkInsert, we'll need to go back and get the Ids and the associated GroupLocation's Schedules for the GroupLocationHistorical records that we just inserted
+                var insertedGroupLocationHistoricalIdsWithSchedules = groupLocationHistoricalService.Queryable()
+                    .Where( a => a.Id > groupLocationHistoricalStartId && a.GroupLocation.Schedules.Any() ).ToList()
+                    .Select( a => new { GroupLocationHistoricalId = a.Id, a.GroupLocation.Schedules } );
+
+                List<GroupLocationHistoricalSchedule> groupLocationHistoricalScheduleCurrentsToInsert = new List<GroupLocationHistoricalSchedule>();
+                foreach ( var insertedGroupLocationHistoricalIdWithSchedules in insertedGroupLocationHistoricalIdsWithSchedules )
+                {
+                    foreach ( Schedule schedule in insertedGroupLocationHistoricalIdWithSchedules.Schedules )
+                    {
+                        groupLocationHistoricalScheduleCurrentsToInsert.Add( new GroupLocationHistoricalSchedule
+                        {
+                            GroupLocationHistoricalId = insertedGroupLocationHistoricalIdWithSchedules.GroupLocationHistoricalId,
+                            ScheduleId = schedule.Id,
+                            ScheduleName = schedule.ToString(),
+                            ScheduleModifiedDateTime = schedule.ModifiedDateTime
+                        } );
+                    }
+                }
+
+                if ( groupLocationHistoricalScheduleCurrentsToInsert.Any() )
+                {
+                    rockContext.BulkInsert( groupLocationHistoricalScheduleCurrentsToInsert );
+                }
+            }
+
+            if ( groupLocationsLoggedToHistory > 0 )
+            {
+                _jobStatusMessages.Add( $"Logged {groupLocationsLoggedToHistory} {"group location history snapshot".PluralizeIf( groupLocationsLoggedToHistory != 0 )}" );
+            }
+
+            if ( groupLocationsSaveToHistoryCurrent > 0 )
+            {
+                int newGroupLocationsAddedToHistory = groupLocationsSaveToHistoryCurrent - groupLocationsLoggedToHistory;
+                if ( newGroupLocationsAddedToHistory > 0 )
+                {
+                    _jobStatusMessages.Add( $"Added {newGroupLocationsAddedToHistory} new {"group location history snapshot".PluralizeIf( newGroupLocationsAddedToHistory != 0 )}" );
+                }
             }
         }
 

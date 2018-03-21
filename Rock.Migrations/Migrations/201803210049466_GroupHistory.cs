@@ -118,10 +118,13 @@ namespace Rock.Migrations
                 c => new
                     {
                         Id = c.Int(nullable: false, identity: true),
+                        GroupLocationId = c.Int(nullable: false),
                         GroupId = c.Int(nullable: false),
+                        GroupLocationTypeValueId = c.Int(),
                         GroupLocationTypeName = c.String(maxLength: 250),
                         LocationId = c.Int(nullable: false),
                         LocationName = c.String(),
+                        LocationModifiedDateTime = c.DateTime(),
                         EffectiveDateTime = c.DateTime(nullable: false),
                         ExpireDateTime = c.DateTime(nullable: false),
                         CurrentRowIndicator = c.Boolean(nullable: false),
@@ -137,8 +140,10 @@ namespace Rock.Migrations
                 .PrimaryKey(t => t.Id)
                 .ForeignKey("dbo.PersonAlias", t => t.CreatedByPersonAliasId)
                 .ForeignKey("dbo.Group", t => t.GroupId)
+                .ForeignKey("dbo.GroupLocation", t => t.GroupLocationId)
                 .ForeignKey("dbo.Location", t => t.LocationId)
                 .ForeignKey("dbo.PersonAlias", t => t.ModifiedByPersonAliasId)
+                .Index(t => t.GroupLocationId)
                 .Index(t => t.GroupId)
                 .Index(t => t.LocationId)
                 .Index(t => t.CreatedByPersonAliasId)
@@ -160,7 +165,7 @@ namespace Rock.Migrations
                         ForeignKey = c.String(maxLength: 100),
                     })
                 .PrimaryKey(t => t.Id)
-                .ForeignKey("dbo.GroupLocationHistorical", t => t.GroupLocationHistoricalId)
+                .ForeignKey("dbo.GroupLocationHistorical", t => t.GroupLocationHistoricalId, cascadeDelete: true)
                 .ForeignKey("dbo.Schedule", t => t.ScheduleId)
                 .Index(t => t.GroupLocationHistoricalId)
                 .Index(t => t.ScheduleId)
@@ -260,6 +265,15 @@ CREATE UNIQUE NONCLUSTERED  INDEX [IX_GroupIdCurrentRow] ON [dbo].[GroupHistoric
 ) where CurrentRowIndicator = 1 
 " );
 
+            // Enforce that there isn't more than one CurrentRow per GroupLocationId in GroupLocationHistorical
+            Sql( @"
+CREATE UNIQUE NONCLUSTERED  INDEX [IX_LocationIdCurrentRow] ON [dbo].[GroupLocationHistorical]
+(
+	[GroupLocationId] ASC,
+	[CurrentRowIndicator]
+) where CurrentRowIndicator = 1 
+" );
+
 
             // TODO: Add MigrateHistorySummaryData job
         }
@@ -279,6 +293,7 @@ CREATE UNIQUE NONCLUSTERED  INDEX [IX_GroupIdCurrentRow] ON [dbo].[GroupHistoric
             DropForeignKey("dbo.GroupLocationHistorical", "LocationId", "dbo.Location");
             DropForeignKey("dbo.GroupLocationHistoricalSchedule", "ScheduleId", "dbo.Schedule");
             DropForeignKey("dbo.GroupLocationHistoricalSchedule", "GroupLocationHistoricalId", "dbo.GroupLocationHistorical");
+            DropForeignKey("dbo.GroupLocationHistorical", "GroupLocationId", "dbo.GroupLocation");
             DropForeignKey("dbo.GroupLocationHistorical", "GroupId", "dbo.Group");
             DropForeignKey("dbo.GroupLocationHistorical", "CreatedByPersonAliasId", "dbo.PersonAlias");
             DropForeignKey("dbo.GroupHistorical", "ScheduleId", "dbo.Schedule");
@@ -309,6 +324,7 @@ CREATE UNIQUE NONCLUSTERED  INDEX [IX_GroupIdCurrentRow] ON [dbo].[GroupHistoric
             DropIndex("dbo.GroupLocationHistorical", new[] { "CreatedByPersonAliasId" });
             DropIndex("dbo.GroupLocationHistorical", new[] { "LocationId" });
             DropIndex("dbo.GroupLocationHistorical", new[] { "GroupId" });
+            DropIndex("dbo.GroupLocationHistorical", new[] { "GroupLocationId" });
             DropIndex("dbo.GroupHistorical", new[] { "Guid" });
             DropIndex("dbo.GroupHistorical", new[] { "ModifiedByPersonAliasId" });
             DropIndex("dbo.GroupHistorical", new[] { "CreatedByPersonAliasId" });

@@ -19,16 +19,14 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity.ModelConfiguration;
-using System.Linq;
 using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
+
 using Rock.Data;
 
 namespace Rock.Model
 {
     /// <summary>
-    /// Represents a snapshot of the group's location info at a point in history
+    /// Represents a snapshot of group location info at a point in history
     /// </summary>
     [RockDomain( "Group" )]
     [Table( "GroupLocationHistorical" )]
@@ -38,6 +36,15 @@ namespace Rock.Model
         #region Entity Properties
 
         /// <summary>
+        /// Gets or sets the group location identifier that this is a Historical snapshot for
+        /// </summary>
+        /// <value>
+        /// The group location identifier.
+        /// </value>
+        [DataMember]
+        public int GroupLocationId { get; set; }
+
+        /// <summary>
         /// Gets or sets the group id for this group's location at this point in history
         /// </summary>
         /// <value>
@@ -45,6 +52,15 @@ namespace Rock.Model
         /// </value>
         [DataMember]
         public int GroupId { get; set; }
+
+        /// <summary>
+        /// Gets or sets the group location type value identifier for this group location at this point in history
+        /// </summary>
+        /// <value>
+        /// The group location type value identifier.
+        /// </value>
+        [DataMember]
+        public int? GroupLocationTypeValueId { get; set; }
 
         /// <summary>
         /// Gets or sets the the group's location type name at this point in history (Group.GroupLocation.GroupLocationTypeValue.Value)
@@ -124,6 +140,15 @@ namespace Rock.Model
         #region Virtual Properties
 
         /// <summary>
+        /// Gets or sets the group location that this is a historical snapshot for
+        /// </summary>
+        /// <value>
+        /// The group location.
+        /// </value>
+        [DataMember]
+        public virtual GroupLocation GroupLocation { get; set; }
+
+        /// <summary>
         /// Gets or sets the group for this group's location at this point in history
         /// </summary>
         /// <value>
@@ -141,10 +166,55 @@ namespace Rock.Model
         [DataMember]
         public virtual Location Location { get; set; }
 
+        /// <summary>
+        /// Gets or sets the group location historical schedules.
+        /// </summary>
+        /// <value>
+        /// The group location historical schedules.
+        /// </value>
         [DataMember]
         public virtual ICollection<GroupLocationHistoricalSchedule> GroupLocationHistoricalSchedules { get; set; }
 
         #endregion
+
+        #region Public Methods
+
+        /// <summary>
+        /// Creates the current row from group location.
+        /// </summary>
+        /// <param name="groupLocation">The group location.</param>
+        /// <param name="effectiveDateTime">The effective date time.</param>
+        /// <returns></returns>
+        public static GroupLocationHistorical CreateCurrentRowFromGroupLocation( GroupLocation groupLocation, DateTime effectiveDateTime )
+        {
+            var locationName = groupLocation.Location?.ToString();
+
+            var groupLocationHistoricalCurrent = new GroupLocationHistorical
+            {
+                GroupLocationId = groupLocation.Id,
+                GroupId = groupLocation.GroupId,
+                GroupLocationTypeValueId = groupLocation.GroupLocationTypeValueId,
+                GroupLocationTypeName = groupLocation.GroupLocationTypeValue?.Value,
+                LocationId = groupLocation.LocationId,
+                LocationName = locationName,
+                LocationModifiedDateTime = groupLocation.Location?.ModifiedDateTime,
+
+                // Set the Modified/Created fields for GroupLocationHistorical to be the current values from the GroupLocation table
+                ModifiedDateTime = groupLocation.ModifiedDateTime,
+                ModifiedByPersonAliasId = groupLocation.ModifiedByPersonAliasId,
+                CreatedByPersonAliasId = groupLocation.CreatedByPersonAliasId,
+                CreatedDateTime = groupLocation.CreatedDateTime,
+
+                // Set HistoricalTracking fields
+                CurrentRowIndicator = true,
+                EffectiveDateTime = effectiveDateTime,
+                ExpireDateTime = HistoricalTracking.MaxExpireDateTime
+            };
+
+            return groupLocationHistoricalCurrent;
+
+            #endregion
+        }
     }
 
     #region Entity Configuration
@@ -159,6 +229,7 @@ namespace Rock.Model
         /// </summary>
         public GroupLocationHistoricalConfiguration()
         {
+            this.HasRequired( p => p.GroupLocation ).WithMany().HasForeignKey( p => p.GroupLocationId ).WillCascadeOnDelete( false );
             this.HasRequired( p => p.Group ).WithMany().HasForeignKey( p => p.GroupId ).WillCascadeOnDelete( false );
             this.HasRequired( p => p.Location ).WithMany().HasForeignKey( p => p.LocationId ).WillCascadeOnDelete( false );
         }

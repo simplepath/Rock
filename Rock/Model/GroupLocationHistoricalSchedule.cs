@@ -104,7 +104,7 @@ namespace Rock.Model
         /// </summary>
         public GroupLocationHistoricalScheduleConfiguration()
         {
-            this.HasRequired( p => p.GroupLocationHistorical ).WithMany( t => t.GroupLocationHistoricalSchedules ).HasForeignKey( p => p.GroupLocationHistoricalId ).WillCascadeOnDelete( false );
+            this.HasRequired( p => p.GroupLocationHistorical ).WithMany( t => t.GroupLocationHistoricalSchedules ).HasForeignKey( p => p.GroupLocationHistoricalId ).WillCascadeOnDelete( true );
             this.HasRequired( p => p.Schedule ).WithMany().HasForeignKey( p => p.ScheduleId ).WillCascadeOnDelete( false );
         }
     }
