@@ -275,7 +275,61 @@ CREATE UNIQUE NONCLUSTERED  INDEX [IX_LocationIdCurrentRow] ON [dbo].[GroupLocat
 " );
 
 
-            // TODO: Add MigrateHistorySummaryData job
+            // add ServiceJob: Process Group History
+            // Code Generated using Rock\Dev Tools\Sql\CodeGen_ServiceJobWithAttributes_ForAJob.sql
+            Sql( @"IF NOT EXISTS( SELECT [Id] FROM [ServiceJob] WHERE [Class] = 'Rock.Jobs.ProcessGroupHistory' AND [Guid] = 'D81E577D-2D87-4CEB-9585-7BA8DBA0F556' )
+            BEGIN
+               INSERT INTO [ServiceJob] (
+                  [IsSystem]
+                  ,[IsActive]
+                  ,[Name]
+                  ,[Description]
+                  ,[Class]
+                  ,[CronExpression]
+                  ,[NotificationStatus]
+                  ,[Guid] )
+               VALUES ( 
+                  0
+                  ,1
+                  ,'Process Group History'
+                  ,'Creates Historical snapshots of Groups and Group Members for any group types that have history enabled.'
+                  ,'Rock.Jobs.ProcessGroupHistory'
+                  ,'0 30 3 1/1 * ? *'
+                  ,1
+                  ,'D81E577D-2D87-4CEB-9585-7BA8DBA0F556'
+                  );
+            END" );
+
+
+            // add ServiceJob: Migrate History Summary Data
+            // Code Generated using Rock\Dev Tools\Sql\CodeGen_ServiceJobWithAttributes_ForAJob.sql
+            Sql( @"IF NOT EXISTS( SELECT [Id] FROM [ServiceJob] WHERE [Class] = 'Rock.Jobs.MigrateHistorySummaryData' AND [Guid] = 'CF2221CC-1E0A-422B-B0F7-5D81AF1DDB14' )
+            BEGIN
+               INSERT INTO [ServiceJob] (
+                  [IsSystem]
+                  ,[IsActive]
+                  ,[Name]
+                  ,[Description]
+                  ,[Class]
+                  ,[CronExpression]
+                  ,[NotificationStatus]
+                  ,[Guid] )
+               VALUES ( 
+                  0
+                  ,1
+                  ,'Migrate History Summary Data'
+                  ,'Migrates History Summary Text into separate columns: Verb, ChangeType, OldValue, NewValue, etc. This will enable the new v8 History UIs to do cool things. When this job is done migrating all the data, it will delete itself.'
+                  ,'Rock.Jobs.MigrateHistorySummaryData'
+                  ,'0 0 3 1/1 * ? *'
+                  ,1
+                  ,'CF2221CC-1E0A-422B-B0F7-5D81AF1DDB14'
+                  );
+            END" );
+            RockMigrationHelper.UpdateEntityAttribute( "Rock.Model.ServiceJob", "A75DFC58-7A1B-4799-BF31-451B2BBE38FF", "Class", "Rock.Jobs.MigrateHistorySummaryData", "How Many Records", "The number of history records to process on each run of this job.", 0, @"500000", "FAC124D5-7C16-4AE9-9631-EF087349476F", "HowMany" );
+            RockMigrationHelper.UpdateEntityAttribute( "Rock.Model.ServiceJob", "A75DFC58-7A1B-4799-BF31-451B2BBE38FF", "Class", "Rock.Jobs.MigrateHistorySummaryData", "Command Timeout", "Maximum amount of time (in seconds) to wait for the SQL Query to complete. Leave blank to use the default for this job (3600). Note, it could take several minutes, so you might want to set it at 3600 (60 minutes) or higher", 1, @"3600", "1F28861F-99C2-4EAC-B7F7-4AE60018D97E", "CommandTimeout" );
+            RockMigrationHelper.AddAttributeValue( "FAC124D5-7C16-4AE9-9631-EF087349476F", 39, @"500000", "FAC124D5-7C16-4AE9-9631-EF087349476F" ); // Migrate History Summary Data: How Many Records
+            RockMigrationHelper.AddAttributeValue( "1F28861F-99C2-4EAC-B7F7-4AE60018D97E", 39, @"3600", "1F28861F-99C2-4EAC-B7F7-4AE60018D97E" ); // Migrate History Summary Data: Command Timeout
+
         }
 
         /// <summary>
@@ -283,7 +337,19 @@ CREATE UNIQUE NONCLUSTERED  INDEX [IX_LocationIdCurrentRow] ON [dbo].[GroupLocat
         /// </summary>
         public override void Down()
         {
-            DropForeignKey("dbo.GroupMemberHistorical", "ModifiedByPersonAliasId", "dbo.PersonAlias");
+            // Code Generated using Rock\Dev Tools\Sql\CodeGen_ServiceJobWithAttributes_ForAJob.sql
+            RockMigrationHelper.DeleteAttribute( "FAC124D5-7C16-4AE9-9631-EF087349476F" ); // Rock.Jobs.MigrateHistorySummaryData: How Many Records
+            RockMigrationHelper.DeleteAttribute( "1F28861F-99C2-4EAC-B7F7-4AE60018D97E" ); // Rock.Jobs.MigrateHistorySummaryData: Command Timeout
+
+            // remove ServiceJob: Migrate History Summary Data
+            Sql( @"IF EXISTS( SELECT [Id] FROM [ServiceJob] WHERE [Class] = 'Rock.Jobs.MigrateHistorySummaryData' AND [Guid] = 'CF2221CC-1E0A-422B-B0F7-5D81AF1DDB14' )
+            BEGIN
+               DELETE [ServiceJob]  WHERE [Guid] = 'CF2221CC-1E0A-422B-B0F7-5D81AF1DDB14';
+            END" );
+
+
+
+            DropForeignKey( "dbo.GroupMemberHistorical", "ModifiedByPersonAliasId", "dbo.PersonAlias");
             DropForeignKey("dbo.GroupMemberHistorical", "GroupRoleId", "dbo.GroupTypeRole");
             DropForeignKey("dbo.GroupMemberHistorical", "GroupMemberId", "dbo.GroupMember");
             DropForeignKey("dbo.GroupMemberHistorical", "GroupId", "dbo.Group");
