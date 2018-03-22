@@ -1054,6 +1054,7 @@ namespace Rock.Web.UI.Controls
                 _cbIsActive.ID = "_cbIsActive";
                 _cbIsActive.Label = "Active";
                 _cbIsActive.Text = "Yes";
+                _cbIsActive.Help = "Set to Inactive to exclude this attribute from Edit and Display UIs";
                 Controls.Add( _cbIsActive );
 
                 _tbDescription = new RockTextBox();

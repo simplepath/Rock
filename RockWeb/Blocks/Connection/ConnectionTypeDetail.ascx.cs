@@ -688,7 +688,7 @@ namespace RockWeb.Blocks.Connection
         {
             // Get the existing attributes for this entity type and qualifier value
             var attributeService = new AttributeService( rockContext );
-            var attributes = attributeService.Get( entityTypeId, qualifierColumn, qualifierValue );
+            var attributes = attributeService.Get( entityTypeId, qualifierColumn, qualifierValue, true );
 
             // Delete any of those attributes that were removed in the UI
             var selectedAttributeGuids = viewStateAttributes.Select( a => a.Guid );
@@ -1480,7 +1480,7 @@ namespace RockWeb.Blocks.Connection
         {
             var attributeService = new AttributeService( rockContext );
             AttributesState = attributeService
-                .GetByEntityTypeId( new ConnectionOpportunity().TypeId ).AsQueryable()
+                .GetByEntityTypeId( new ConnectionOpportunity().TypeId, true ).AsQueryable()
                 .Where( a =>
                     a.EntityTypeQualifierColumn.Equals( "ConnectionTypeId", StringComparison.OrdinalIgnoreCase ) &&
                     a.EntityTypeQualifierValue.Equals( connectionType.Id.ToString() ) )

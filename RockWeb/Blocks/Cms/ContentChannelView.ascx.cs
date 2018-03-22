@@ -960,7 +960,7 @@ $(document).ready(function() {
 
                     // add item attributes
                     AttributeService attributeService = new AttributeService( rockContext );
-                    var itemAttributes = attributeService.GetByEntityTypeId( new ContentChannelItem().TypeId ).AsQueryable()
+                    var itemAttributes = attributeService.GetByEntityTypeId( new ContentChannelItem().TypeId, false ).AsQueryable()
                                             .Where( a => (
                                                     a.EntityTypeQualifierColumn.Equals( "ContentChannelTypeId", StringComparison.OrdinalIgnoreCase ) &&
                                                     a.EntityTypeQualifierValue.Equals( channel.ContentChannelTypeId.ToString() )
@@ -970,7 +970,7 @@ $(document).ready(function() {
                                                 ) )
                                             .OrderByDescending( a => a.EntityTypeQualifierColumn )
                                             .ThenBy( a => a.Order )
-                                            .ToList();
+                                            .ToAttributeCacheList();
 
                     foreach ( var attribute in itemAttributes )
                     {

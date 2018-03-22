@@ -2139,7 +2139,7 @@ namespace Rock.Model
                 {
                     var attributeService = new Model.AttributeService( rockContext );
                     var attributes = attributeService
-                        .Get( personEntityTypeId, string.Empty, string.Empty )
+                        .Get( personEntityTypeId, string.Empty, string.Empty, true )
                         .Where( a => preferences.Keys.Contains( a.Key ) )
                         .ToList();
 
@@ -2181,7 +2181,7 @@ namespace Rock.Model
 
                         // Requery attributes ( so they all have ids )
                         attributes = attributeService
-                            .Get( personEntityTypeId, string.Empty, string.Empty )
+                            .Get( personEntityTypeId, string.Empty, string.Empty, true )
                             .Where( a => preferences.Keys.Contains( a.Key ) )
                             .ToList();
                     }

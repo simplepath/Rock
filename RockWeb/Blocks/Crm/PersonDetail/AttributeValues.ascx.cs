@@ -273,11 +273,10 @@ namespace RockWeb.Blocks.Crm.PersonDetail
         {
             AttributeList = new List<int>();
 
-            string categoryGuid = GetAttributeValue( "Category" );
-            Guid guid = Guid.Empty;
-            if ( Guid.TryParse( categoryGuid, out guid ) )
+            Guid? categoryGuid = GetAttributeValue( "Category" ).AsGuidOrNull();
+            if ( categoryGuid.HasValue )
             {
-                var category = CategoryCache.Read( guid );
+                var category = CategoryCache.Read( categoryGuid.Value );
                 if ( category != null )
                 {
                     if ( !string.IsNullOrWhiteSpace( category.IconCssClass ) )
@@ -292,8 +291,10 @@ namespace RockWeb.Blocks.Crm.PersonDetail
                     var orderOverride = new List<int>();
                     GetAttributeValue( "AttributeOrder" ).SplitDelimitedValues().ToList().ForEach( a => orderOverride.Add( a.AsInteger() ) );
 
-                    var orderedAttributeList = new AttributeService( new RockContext() ).GetByCategoryId( category.Id )
-                        .OrderBy( a => a.Order ).ThenBy( a => a.Name ).ToList();
+                    var orderedAttributeList = new AttributeService( new RockContext() ).GetByCategoryId( category.Id, false )
+                        .OrderBy( a => a.Order )
+                        .ThenBy( a => a.Name )
+                        .ToAttributeCacheList();
 
                     foreach ( int attributeId in orderOverride )
                     {

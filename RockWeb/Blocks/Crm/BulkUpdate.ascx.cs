@@ -606,7 +606,7 @@ namespace RockWeb.Blocks.Crm
 
                     if ( pw != null )
                     {
-                        var orderedAttributeList = new AttributeService( rockContext ).GetByCategoryId( category.Id )
+                        var orderedAttributeList = new AttributeService( rockContext ).GetByCategoryId( category.Id, false )
                             .OrderBy( a => a.Order ).ThenBy( a => a.Name );
                         foreach ( var attribute in orderedAttributeList )
                         {
@@ -1060,7 +1060,7 @@ namespace RockWeb.Blocks.Crm
 
                 if ( pw != null )
                 {
-                    var orderedAttributeList = new AttributeService( rockContext ).GetByCategoryId( category.Id )
+                    var orderedAttributeList = new AttributeService( rockContext ).GetByCategoryId( category.Id, false )
                         .OrderBy( a => a.Order ).ThenBy( a => a.Name );
                     foreach ( var attribute in orderedAttributeList )
                     {
@@ -1537,7 +1537,7 @@ namespace RockWeb.Blocks.Crm
                 }
                 pw.Title = category.Name;
 
-                var orderedAttributeList = new AttributeService( rockContext ).GetByCategoryId( category.Id )
+                var orderedAttributeList = new AttributeService( rockContext ).GetByCategoryId( category.Id, false )
                     .OrderBy( a => a.Order ).ThenBy( a => a.Name );
                 foreach ( var attribute in orderedAttributeList )
                 {
