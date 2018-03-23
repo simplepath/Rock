@@ -431,16 +431,15 @@ namespace Rock.Model
         }
 
         /// <summary>
-        /// Gets the parent authority2.
+        /// An optional additional parent authority.  (i.e for Groups, the GroupType is main parent
+        /// authority, but parent group is an additional parent authority )
         /// </summary>
-        /// <value>
-        /// The parent authority2.
-        /// </value>
         public override Security.ISecured ParentAuthorityPre
         {
             get
             {
-                return this.GroupType;
+                GroupTypeCache groupType = GroupTypeCache.Read( this.GroupTypeId );
+                return groupType;
             }
         }
 
