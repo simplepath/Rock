@@ -2441,22 +2441,17 @@ namespace Rock.Model
                 }
                 else
                 {
-                    // check family role
-                    Guid? familyRoleGuid = null;
+                    // check age classification
+                    AgeClassification? ageClassification = null;
                     if ( personId.HasValue )
                     {
-                        var familyGroupTypeId = GroupTypeCache.Read( Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY ).Id;
-                        familyRoleGuid = new GroupMemberService( new RockContext() ).Queryable()
-                                            .Where( m =>
-                                                m.Group.GroupTypeId == familyGroupTypeId
-                                                && m.PersonId == personId )
-                                            .OrderBy( m => m.GroupOrder ?? int.MaxValue ).ThenBy( m => m.GroupRole.Order )
-                                            .Select( m => m.GroupRole.Guid )
-                                            .FirstOrDefault();
+                        using ( var rockContext = new RockContext() )
+                        {
+                            ageClassification = new PersonService( rockContext ).Queryable( true ).Where( a => a.Id == personId ).Select( a => ( AgeClassification ? )a.AgeClassification ).FirstOrDefault();
+                        }
                     }
-
-                    var familyRoleChildGuid = Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_CHILD.AsGuid();
-                    if ( familyRoleGuid.HasValue && familyRoleGuid == familyRoleChildGuid )
+                    
+                    if ( ageClassification.HasValue && ageClassification == AgeClassification.Child )
                     {
                         // it's a child
                         if ( gender == Model.Gender.Female )
@@ -2468,7 +2463,8 @@ namespace Rock.Model
                             virtualPath = "~/Assets/Images/person-no-photo-child-male.svg?";
                         }
                     }
-                    else {
+                    else
+                    {
                         // it's an adult
                         if ( gender == Model.Gender.Female )
                         {
@@ -2801,22 +2797,17 @@ namespace Rock.Model
                 }
                 else
                 {
-                    // check family role
-                    Guid? familyRoleGuid = null;
+                    /// check age classification
+                    AgeClassification? ageClassification = null;
                     if ( personId.HasValue )
                     {
-                        var familyGroupTypeId = GroupTypeCache.Read( Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY ).Id;
-                        familyRoleGuid = new GroupMemberService( new RockContext() ).Queryable()
-                                            .Where( m =>
-                                                m.Group.GroupTypeId == familyGroupTypeId
-                                                && m.PersonId == personId )
-                                            .OrderBy( m => m.GroupOrder ?? int.MaxValue ).ThenBy( m => m.GroupRole.Order )
-                                            .Select( m => m.GroupRole.Guid )
-                                            .FirstOrDefault();
+                        using ( var rockContext = new RockContext() )
+                        {
+                            ageClassification = new PersonService( rockContext ).Queryable( true ).Where( a => a.Id == personId ).Select( a => ( AgeClassification? ) a.AgeClassification ).FirstOrDefault();
+                        }
                     }
 
-                    var familyRoleChildGuid = Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_CHILD.AsGuid();
-                    if ( familyRoleGuid.HasValue && familyRoleGuid == familyRoleChildGuid )
+                    if ( ageClassification.HasValue && ageClassification == AgeClassification.Child )
                     {
                         // it's a child
                         if ( gender == Model.Gender.Female )
