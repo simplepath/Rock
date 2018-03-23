@@ -410,7 +410,7 @@ namespace Rock.Model
             var currentDateTime = RockDateTime.Now;
             GroupMemberRequirementService groupMemberRequirementService = new GroupMemberRequirementService( rockContext );
             var groupMemberService = new GroupMemberService( rockContext );
-            var groupMemberQry = groupMemberService.Queryable( true ).Where( a => a.PersonId == personId && a.GroupId == groupId
+            var groupMemberQry = groupMemberService.Queryable( true, true ).Where( a => a.PersonId == personId && a.GroupId == groupId
                 && (
                     ( groupRequirement.GroupId.HasValue && groupRequirement.GroupId == a.GroupId )
                     ||

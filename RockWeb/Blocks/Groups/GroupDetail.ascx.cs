@@ -370,6 +370,66 @@ namespace RockWeb.Blocks.Groups
         }
 
         /// <summary>
+        /// Handles the Click event of the btnArchive control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing thmuch the samee event data.</param>
+        protected void btnArchive_Click( object sender, EventArgs e )
+        {
+            RockContext rockContext = new RockContext();
+
+            GroupService groupService = new GroupService( rockContext );
+            AuthService authService = new AuthService( rockContext );
+            Group group = groupService.Get( hfGroupId.Value.AsInteger() );
+
+            if ( group != null )
+            {
+                if ( !group.IsAuthorized( Authorization.EDIT, this.CurrentPerson ) )
+                {
+                    mdDeleteWarning.Show( "You are not authorized to archive this group.", ModalAlertType.Information );
+                    return;
+                }
+
+                group.IsArchived = true;
+                group.ArchivedByPersonAliasId = this.CurrentPersonAliasId;
+                group.ArchivedDateTime = RockDateTime.Now;
+                rockContext.SaveChanges();
+            }
+
+            ShowReadonlyDetails( group );
+        }
+
+        /// <summary>
+        /// Handles the Click event of the btnUnarchive control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
+        protected void btnUnarchive_Click( object sender, EventArgs e )
+        {
+            RockContext rockContext = new RockContext();
+
+            GroupService groupService = new GroupService( rockContext );
+            AuthService authService = new AuthService( rockContext );
+            Group group = groupService.Get( hfGroupId.Value.AsInteger() );
+
+            if ( group != null )
+            {
+                if ( !group.IsAuthorized( Authorization.EDIT, this.CurrentPerson ) )
+                {
+                    mdDeleteWarning.Show( "You are not authorized to un-archive this group.", ModalAlertType.Information );
+                    return;
+                }
+
+                group.IsArchived = false;
+                group.ArchivedByPersonAliasId = null;
+                group.ArchivedDateTime = null;
+                rockContext.SaveChanges();
+            }
+
+            ShowReadonlyDetails( group );
+        }
+
+        /// <summary>
         /// Handles the Click event of the btnDelete control.
         /// </summary>
         /// <param name="sender">The source of the event.</param>
@@ -778,7 +838,7 @@ namespace RockWeb.Blocks.Groups
                 string qualifierValue = group.Id.ToString();
 
                 // Get the existing attributes for this entity type and qualifier value
-                var attributes = attributeService.Get( entityTypeId, qualifierColumn, qualifierValue, true );
+                var attributes = attributeService.GetByEntityTypeQualifier( entityTypeId, qualifierColumn, qualifierValue, true );
 
                 // Delete any of those attributes that were removed in the UI
                 var selectedAttributeGuids = GroupMemberAttributesState.Select( a => a.Guid );
@@ -947,7 +1007,7 @@ namespace RockWeb.Blocks.Groups
                     string qualifierValue = group.Id.ToString();
                     
                     // Get the existing attributes for this entity type and qualifier value
-                    var attributes = attributeService.Get( entityTypeId, qualifierColumn, qualifierValue, true );
+                    var attributes = attributeService.GetByEntityTypeQualifier( entityTypeId, qualifierColumn, qualifierValue, true );
 
                     foreach ( var attribute in attributes )
                     {
@@ -1243,12 +1303,13 @@ namespace RockWeb.Blocks.Groups
             {
                 btnEdit.Visible = false;
                 btnDelete.Visible = false;
+                btnArchive.Visible = false;
+                btnUnarchive.Visible = false;
                 ShowReadonlyDetails( group );
             }
             else
             {
                 btnEdit.Visible = true;
-                btnDelete.Visible = !group.IsSystem;
                 if ( group.Id > 0 )
                 {
                     ShowReadonlyDetails( group );
@@ -1278,6 +1339,8 @@ namespace RockWeb.Blocks.Groups
                 hlInactive.Visible = true;
                 hlIsPrivate.Visible = true;
             }
+
+            hlArchived.Visible = group.IsArchived;
 
             if ( group.IsActive )
             {
@@ -1559,9 +1622,38 @@ namespace RockWeb.Blocks.Groups
         /// <param name="group">The group.</param>
         private void ShowReadonlyDetails( Group group )
         {
+            btnDelete.Visible = !group.IsSystem;
+            btnArchive.Visible = false;
+            btnUnarchive.Visible = false;
+
+            var rockContext = new RockContext();
+
+            // if History is enabled (and this isn't an IsSystem group), additional logic for if the Archive or Delete button is visible
+            if ( !group.IsSystem )
+            {
+                if ( !group.IsArchived )
+                {
+                    var groupType = GroupTypeCache.Read( group.GroupTypeId );
+                    if ( groupType != null && groupType.EnableGroupHistory )
+                    {
+                        bool hasGroupHistory = new GroupHistoricalService( rockContext ).Queryable().Any( a => a.GroupId == group.Id );
+                        if ( hasGroupHistory )
+                        {
+                            // if the group has GroupHistory enabled, and has group history snapshots, prompt to archive instead of delete
+                            btnDelete.Visible = false;
+                            btnArchive.Visible = true;
+                        }
+                    }
+                }
+                else
+                {
+                    btnDelete.Visible = false;
+                    btnUnarchive.Visible = true;
+                }
+            }
+
             SetHighlightLabelVisibility( group, true );
             SetEditMode( false );
-            var rockContext = new RockContext();
 
             string groupIconHtml = string.Empty;
             if ( group.GroupType != null )

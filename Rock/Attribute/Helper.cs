@@ -133,7 +133,7 @@ namespace Rock.Attribute
                     // if the entity is a block that implements IDynamicAttributesBlock, don't delete the attribute
                     if ( !dynamicAttributesBlock )
                     {
-                        foreach ( var a in attributeService.Get( entityTypeId, entityQualifierColumn, entityQualifierValue, true ).ToList() )
+                        foreach ( var a in attributeService.GetByEntityTypeQualifier( entityTypeId, entityQualifierColumn, entityQualifierValue, true ).ToList() )
                         {
                             if ( !existingKeys.Contains( a.Key ) )
                             {

@@ -648,7 +648,7 @@ namespace RockWeb.Blocks.Core
                 }
                 else
                 {
-                    query = attributeService.Get( _entityTypeId, _entityQualifierColumn, _entityQualifierValue, true );
+                    query = attributeService.GetByEntityTypeQualifier( _entityTypeId, _entityQualifierColumn, _entityQualifierValue, true );
                 }
             }
 
@@ -759,7 +759,7 @@ namespace RockWeb.Blocks.Core
             {
                 type = EntityTypeCache.Read( attributeModel.EntityTypeId.Value ).GetEntityType();
             }
-            edtAttribute.ReservedKeyNames = attributeService.Get( attributeModel.EntityTypeId, attributeModel.EntityTypeQualifierColumn, attributeModel.EntityTypeQualifierValue, true )
+            edtAttribute.ReservedKeyNames = attributeService.GetByEntityTypeQualifier( attributeModel.EntityTypeId, attributeModel.EntityTypeQualifierColumn, attributeModel.EntityTypeQualifierValue, true )
                  .Where( a => a.Id != attributeId )
                  .Select( a => a.Key )
                  .Distinct()

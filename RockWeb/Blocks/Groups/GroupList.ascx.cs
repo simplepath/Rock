@@ -584,7 +584,7 @@ namespace RockWeb.Blocks.Groups
                 if ( personContext != null )
                 {
                     // limit to Groups that the person is a member of
-                    var qry = new GroupMemberService( rockContext ).Queryable( true )
+                    var qry = new GroupMemberService( rockContext ).Queryable( true, true )
                         .Where( m => m.PersonId == personContext.Id )
                         .Join( qryGroups, gm => gm.GroupId, g => g.Id, ( gm, g ) => new { Group = g, GroupMember = gm } );
 

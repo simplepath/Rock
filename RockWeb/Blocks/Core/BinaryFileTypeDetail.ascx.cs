@@ -336,7 +336,7 @@ namespace RockWeb.Blocks.Core
                 var entityTypeId = Rock.Web.Cache.EntityTypeCache.Read( typeof( BinaryFile ) ).Id;
 
                 // delete BinaryFileAttributes that are no longer configured in the UI
-                var attributes = attributeService.Get( entityTypeId, "BinaryFileTypeId", binaryFileType.Id.ToString(), true );
+                var attributes = attributeService.GetByEntityTypeQualifier( entityTypeId, "BinaryFileTypeId", binaryFileType.Id.ToString(), true );
                 var selectedAttributeGuids = BinaryFileAttributesState.Select( a => a.Guid );
                 foreach ( var attr in attributes.Where( a => !selectedAttributeGuids.Contains( a.Guid ) ) )
                 {

@@ -1308,7 +1308,7 @@ namespace RockWeb.Blocks.Groups
             // Get the existing attributes for this entity type and qualifier value
             var attributeService = new AttributeService( rockContext );
             var regFieldService = new RegistrationTemplateFormFieldService( rockContext );
-            var attributes = attributeService.Get( entityTypeId, qualifierColumn, qualifierValue, true );
+            var attributes = attributeService.GetByEntityTypeQualifier( entityTypeId, qualifierColumn, qualifierValue, true );
 
             // Delete any of those attributes that were removed in the UI
             var selectedAttributeGuids = viewStateAttributes.Select( a => a.Guid );

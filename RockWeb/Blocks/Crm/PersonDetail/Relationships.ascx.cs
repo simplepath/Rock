@@ -232,7 +232,7 @@ namespace RockWeb.Blocks.Crm.PersonDetail
                         var rockContext = new RockContext();
                         var memberService = new GroupMemberService( rockContext );
 
-                        var group = memberService.Queryable( true )
+                        var group = memberService.Queryable( true, true )
                             .Where( m =>
                                 m.PersonId == Person.Id &&
                                 m.GroupRole.Guid == ownerRoleGuid )
@@ -245,7 +245,7 @@ namespace RockWeb.Blocks.Crm.PersonDetail
                             int? groupMemberId = hfRoleId.Value.AsIntegerOrNull();
                             if ( groupMemberId.HasValue )
                             {
-                                groupMember = memberService.Queryable( true )
+                                groupMember = memberService.Queryable( true, true )
                                 .Where( m => m.Id == groupMemberId.Value )
                                 .FirstOrDefault();
                             }
@@ -303,7 +303,7 @@ namespace RockWeb.Blocks.Crm.PersonDetail
                     using ( var rockContext = new RockContext() )
                     {
                         var memberService = new GroupMemberService( rockContext );
-                        var group = memberService.Queryable( true )
+                        var group = memberService.Queryable( true, true )
                             .Where( m =>
                                 m.PersonId == Person.Id &&
                                 m.GroupRole.Guid == ownerRoleGuid )

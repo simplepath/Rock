@@ -134,7 +134,7 @@ namespace RockWeb.Blocks.Crm.PersonDetail
                 using ( _bindGroupsRockContext = new RockContext() )
                 {
                     var memberService = new GroupMemberService( _bindGroupsRockContext );
-                    var groupMemberGroups = memberService.Queryable( true )
+                    var groupMemberGroups = memberService.Queryable( true, true )
                         .Where( m =>
                             m.PersonId == Person.Id &&
                             m.Group.GroupTypeId == _groupType.Id )
@@ -444,7 +444,7 @@ namespace RockWeb.Blocks.Crm.PersonDetail
                     using ( var rockContext = new RockContext() )
                     {
                         var memberService = new GroupMemberService( rockContext );
-                        var groupMemberGroups = memberService.Queryable( true )
+                        var groupMemberGroups = memberService.Queryable( true, true)
                             .Where( m =>
                                 m.PersonId == Person.Id &&
                                 m.Group.GroupTypeId == _groupType.Id )
@@ -462,7 +462,7 @@ namespace RockWeb.Blocks.Crm.PersonDetail
                 using ( _bindGroupsRockContext = new RockContext() )
                 {
                     var memberService = new GroupMemberService( _bindGroupsRockContext );
-                    var groups = memberService.Queryable( true )
+                    var groups = memberService.Queryable( true, true )
                         .Where( m =>
                             m.PersonId == Person.Id &&
                             m.Group.GroupTypeId == _groupType.Id )

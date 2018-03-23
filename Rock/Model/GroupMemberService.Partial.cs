@@ -35,7 +35,7 @@ namespace Rock.Model
         /// <returns></returns>
         public override GroupMember Get( int id )
         {
-            return this.Queryable( true ).FirstOrDefault( m => m.Id == id );
+            return this.Queryable( true, true ).FirstOrDefault( m => m.Id == id );
         }
 
         /// <summary>
@@ -45,7 +45,7 @@ namespace Rock.Model
         /// <returns></returns>
         public Person GetPerson( int groupMemberId )
         {
-            return this.Queryable( true ).Where( m => m.Id == groupMemberId ).Select( a => a.Person ).FirstOrDefault();
+            return this.Queryable( true, true ).Where( m => m.Id == groupMemberId ).Select( a => a.Person ).FirstOrDefault();
         }
 
         /// <summary>
@@ -55,7 +55,7 @@ namespace Rock.Model
         /// <returns></returns>
         public override GroupMember Get( Guid guid )
         {
-            return this.Queryable( true ).FirstOrDefault( m => m.Guid == guid );
+            return this.Queryable( true, true ).FirstOrDefault( m => m.Guid == guid );
         }
 
         /// <summary>
@@ -65,7 +65,7 @@ namespace Rock.Model
         /// <returns>A queryable collection of <see cref="Rock.Model.GroupMember">GroupMembers.</see></returns>
         public override IQueryable<GroupMember> Queryable()
         {
-            return Queryable( false );
+            return Queryable( false, false );
         }
 
         /// <summary>
@@ -74,10 +74,24 @@ namespace Rock.Model
         /// <param name="includeDeceased">A <see cref="System.Boolean"/> value indicating if deceased members should be included in the results. If <c>true</c> deceased members will
         /// be included, otherwise <c>false</c>.</param>
         /// <returns>A queryable collection of <see cref="Rock.Model.GroupMember"/></returns>
+        [Obsolete( "Use Queryable( bool includeDeceased, bool includeArchived )" )]
         public IQueryable<GroupMember> Queryable( bool includeDeceased )
         {
+            return Queryable( includeDeceased, false );
+        }
+
+        /// <summary>
+        /// Queryables the specified include deceased.
+        /// </summary>
+        /// <param name="includeDeceased">A <see cref="System.Boolean"/> value indicating if deceased members should be included in the results. If <c>true</c> deceased members will
+        /// be included, otherwise <c>false</c>.</param>
+        /// <param name="includeArchived">A <see cref="System.Boolean"/> value indicating if archived members should be included in the results. If <c>true</c> archived members will
+        /// be included, otherwise <c>false</c>.</param>
+        /// <returns></returns>
+        public IQueryable<GroupMember> Queryable( bool includeDeceased, bool includeArchived )
+        {
             var qry = base.Queryable();
-            if (!includeDeceased)
+            if ( !includeDeceased )
             {
                 qry = qry.Where( g => g.Person.IsDeceased == false );
             }
@@ -316,7 +330,7 @@ namespace Rock.Model
             var groupRole = groupMember.GroupRole;
             if ( groupRole == null )
             {
-                groupRole = Queryable( true )
+                groupRole = Queryable( true, true )
                     .Where( m => m.Id == groupMember.Id )
                     .Select( m => m.GroupRole )
                     .FirstOrDefault();
@@ -334,7 +348,7 @@ namespace Rock.Model
                     Guid knownRelationShipOwnerRoleGuid = new Guid( Rock.SystemGuid.GroupRole.GROUPROLE_KNOWN_RELATIONSHIPS_OWNER );
 
                     // The 'owner' of the group is determined by built-in KnownRelationshipsOwner role or the role that is marked as IsLeader for the group
-                    var ownerInfo = Queryable( true )
+                    var ownerInfo = Queryable( true, true )
                         .Where( m =>
                             m.GroupId == groupMember.GroupId &&
                             ( m.GroupRole.Guid.Equals( knownRelationShipOwnerRoleGuid ) || m.GroupRole.IsLeader ) )
@@ -358,7 +372,7 @@ namespace Rock.Model
                     {
                         // Find related person's group where the person is the Owner
                         // NOTE: The 'owner' of the group is determined by built-in KnownRelationshipsOwner role or the role that is marked as IsLeader for the group
-                        var inverseGroup = Queryable( true )
+                        var inverseGroup = Queryable( true, true )
                             .Where( m =>
                                 m.PersonId == groupMember.PersonId &&
                                 m.Group.GroupTypeId == groupRole.GroupTypeId &&
@@ -383,7 +397,7 @@ namespace Rock.Model
                             Guid inverseRoleGuid = Guid.Empty;
                             if ( Guid.TryParse( groupRole.GetAttributeValue( "InverseRelationship" ), out inverseRoleGuid ) )
                             {
-                                var inverseGroupMember = Queryable( true )
+                                var inverseGroupMember = Queryable( true, true )
                                     .Where( m =>
                                         m.PersonId == ownerPersonId &&
                                         m.GroupId == inverseGroup.Id &&
@@ -437,7 +451,7 @@ namespace Rock.Model
                 throw new Exception( "Specified relationshipRoleId is not a known relationships role" );
             }
 
-            var knownRelationshipGroup = groupMemberService.Queryable(true)
+            var knownRelationshipGroup = groupMemberService.Queryable( true, true )
                 .Where( m =>
                     m.PersonId == personId &&
                     m.GroupRole.Guid.Equals( ownerRole.Guid ) )
@@ -461,7 +475,7 @@ namespace Rock.Model
             }
 
             // Add relationships
-            var relationshipMember = groupMemberService.Queryable(true)
+            var relationshipMember = groupMemberService.Queryable( true, true )
                 .FirstOrDefault( m =>
                     m.GroupId == knownRelationshipGroup.Id &&
                     m.PersonId == relatedPersonId &&
@@ -508,7 +522,7 @@ namespace Rock.Model
            }
 
            // find the personId's "known relationship" group
-           int? knownRelationshipGroupId = groupMemberService.Queryable(true)
+           int? knownRelationshipGroupId = groupMemberService.Queryable( true, true )
                .Where( m =>
                    m.PersonId == personId &&
                    m.GroupRoleId == ownerRole.Id )
@@ -567,7 +581,7 @@ namespace Rock.Model
             }
 
             // lookup the relationship to delete
-            var relationshipMember = groupMemberService.Queryable(true)
+            var relationshipMember = groupMemberService.Queryable( true, true )
                 .FirstOrDefault( m =>
                     m.GroupId == knownRelationshipGroup.Id &&
                     m.PersonId == relatedPersonId &&

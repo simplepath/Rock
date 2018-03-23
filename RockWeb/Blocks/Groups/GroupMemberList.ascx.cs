@@ -652,22 +652,19 @@ namespace RockWeb.Blocks.Groups
                 int entityTypeId = new GroupMember().TypeId;
                 string groupQualifier = _group.Id.ToString();
                 string groupTypeQualifier = _group.GroupTypeId.ToString();
-                foreach ( var attributeModel in new AttributeService( rockContext ).Queryable()
-                    .Where( a =>
-                        a.EntityTypeId == entityTypeId &&
-                        a.IsGridColumn &&
-                        ( a.EntityTypeQualifierColumn.Equals( "GroupId", StringComparison.OrdinalIgnoreCase ) && a.EntityTypeQualifierValue.Equals( groupQualifier ) ) )
+                foreach ( var attribute in new AttributeService( rockContext ).GetByEntityTypeQualifier(entityTypeId, "GroupId", groupQualifier, true )
+                    .Where( a => a.IsGridColumn )
                     .OrderByDescending( a => a.EntityTypeQualifierColumn )
                     .ThenBy( a => a.Order )
-                    .ThenBy( a => a.Name ) )
+                    .ThenBy( a => a.Name ).ToAttributeCacheList() )
                 {
-                    AvailableAttributes.Add( AttributeCache.Read( attributeModel ) );
+                    AvailableAttributes.Add( attribute );
                 }
 
-                var inheritedAttribute = ( new GroupMember() { GroupId = _group.Id } ).GetInheritedAttributes( rockContext );
-                if ( inheritedAttribute.Count > 0 )
+                var inheritedGridColumnAttributes = ( new GroupMember() { GroupId = _group.Id } ).GetInheritedAttributes( rockContext ).Where( a => a.IsGridColumn == true && a.IsActive == true ).ToList();
+                if ( inheritedGridColumnAttributes.Count > 0 )
                 {
-                    AvailableAttributes.AddRange( inheritedAttribute );
+                    AvailableAttributes.AddRange( inheritedGridColumnAttributes );
                 }
             }
         }

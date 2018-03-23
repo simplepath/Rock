@@ -807,7 +807,7 @@ namespace RockWeb.Blocks.Cms
                     string qualifierValue = contentChannelTypeId.Value.ToString();
 
                     ItemInheritedKey = new AttributeService( rockContext )
-                        .Get( entityTypeID, "ContentChannelTypeId", qualifierValue, true )
+                        .GetByEntityTypeQualifier( entityTypeID, "ContentChannelTypeId", qualifierValue, true )
                         .Select( a => a.Key )
                         .ToList();
                 }
@@ -888,7 +888,7 @@ namespace RockWeb.Blocks.Cms
             AttributeService attributeService = new AttributeService( rockContext );
 
             // Get the existing attributes for this entity type and qualifier value
-            var existingAttributes = attributeService.Get( entityTypeId, qualifierColumn, qualifierValue, true );
+            var existingAttributes = attributeService.GetByEntityTypeQualifier( entityTypeId, qualifierColumn, qualifierValue, true );
 
             // Delete any of those attributes that were removed in the UI
             var selectedAttributeGuids = attributes.Select( a => a.Guid );

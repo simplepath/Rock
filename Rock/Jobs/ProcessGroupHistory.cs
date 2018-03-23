@@ -287,7 +287,7 @@ namespace Rock.Jobs
                 groupLocationsSaveToHistoryCurrent = groupLocationHistoricalCurrentsToInsert.Count();
 
                 // get the current max GroupLocatiionHistorical.Id to help narrow down which ones were inserted
-                int groupLocationHistoricalStartId = groupLocationHistoricalService.Queryable().Max( a => a.Id );
+                int groupLocationHistoricalStartId = groupLocationHistoricalService.Queryable().Max( a => ( int? ) a.Id ) ?? 0;
 
                 rockContext.BulkInsert( groupLocationHistoricalCurrentsToInsert );
 

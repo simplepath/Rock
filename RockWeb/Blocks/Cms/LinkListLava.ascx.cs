@@ -460,7 +460,7 @@ namespace RockWeb.Blocks.Cms
                     {
                         var attributeService = new AttributeService( rockContext );
                         var attributes = new AttributeService( rockContext )
-                            .Get( entityType.Id, "DefinedTypeId", definedType.Id.ToString(), false )
+                            .GetByEntityTypeQualifier( entityType.Id, "DefinedTypeId", definedType.Id.ToString(), false )
                             .ToList();
 
                         // Verify (and create if neccessary) the "Is Link" attribute

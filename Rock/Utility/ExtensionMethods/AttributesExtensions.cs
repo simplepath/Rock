@@ -184,7 +184,7 @@ namespace Rock
         /// <returns></returns>
         public static List<AttributeCache> ToAttributeCacheList( this IQueryable<Rock.Model.Attribute> attributeQuery )
         {
-            return attributeQuery.AsNoTracking().Select( a => a.Id ).ToList().Select( a => AttributeCache.Read( a ) ).ToList();
+            return attributeQuery.AsNoTracking().Select( a => a.Id ).ToList().Select( a => AttributeCache.Read( a ) ).ToList().Where( a => a != null ).ToList();
         }
 
         #endregion IHasAttributes extensions

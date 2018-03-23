@@ -1104,7 +1104,7 @@ WHERE gta.GroupTypeId IS NULL" );
 
             rockContext.BulkInsert( personAliasesToInsert );
 
-            var familyGroupMembersQry = new GroupMemberService( rockContext ).Queryable( true ).Where( a => a.Group.GroupTypeId == familyGroupTypeId );
+            var familyGroupMembersQry = new GroupMemberService( rockContext ).Queryable( true, true ).Where( a => a.Group.GroupTypeId == familyGroupTypeId );
 
             // get the person Ids along with the PersonImport and GroupMember record
             var personsIdsForPersonImport = from p in qryAllPersons.AsNoTracking().Where( a => a.ForeignId.HasValue && a.ForeignKey == foreignSystemKey ).Select( a => new { a.Id, a.ForeignId } ).ToList()
