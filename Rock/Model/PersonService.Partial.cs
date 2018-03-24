@@ -682,7 +682,7 @@ namespace Rock.Model
         {
             var familyGroupTypeId = GroupTypeCache.Read( Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY ).Id;
 
-            return new GroupMemberService( ( RockContext ) this.Context ).Queryable( true, true )
+            return new GroupMemberService( ( RockContext ) this.Context ).Queryable( true )
                 .Where( m => m.PersonId == personId && m.Group.GroupTypeId == familyGroupTypeId )
                 .OrderBy( m => m.GroupOrder ?? int.MaxValue )
                 .Select( m => m.Group );
@@ -869,7 +869,7 @@ namespace Rock.Model
             var groupMemberService = new GroupMemberService( ( RockContext ) this.Context );
 
             // construct the linq in a way that will return the group members sorted by the GroupOrder setting of the person
-            var groupMembers = groupMemberService.Queryable( true, true )
+            var groupMembers = groupMemberService.Queryable( true )
                 .Where( m =>
                     m.PersonId == personId &&
                     m.Group.GroupTypeId == groupTypeId )
@@ -1705,7 +1705,7 @@ namespace Rock.Model
 
             // get the geopoints for the family locations for the selected person
             return groupMemberService
-                .Queryable( true, true ).AsNoTracking()
+                .Queryable( true ).AsNoTracking()
                 .Where( m =>
                     m.PersonId == personId &&
                     m.Group.GroupTypeId == groupTypeFamilyId )
@@ -1974,7 +1974,7 @@ namespace Rock.Model
                 throw new Exception( "Group does not exist, or person is not in the specified group" );
             }
 
-            var memberInOtherFamilies = groupMemberService.Queryable( true, true )
+            var memberInOtherFamilies = groupMemberService.Queryable( true )
                 .Where( m =>
                     m.PersonId == personId &&
                     m.Group.GroupTypeId == group.GroupTypeId &&

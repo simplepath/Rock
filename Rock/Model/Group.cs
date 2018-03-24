@@ -438,8 +438,15 @@ namespace Rock.Model
         {
             get
             {
-                GroupTypeCache groupType = GroupTypeCache.Read( this.GroupTypeId );
-                return groupType;
+                if ( this.GroupTypeId > 0 )
+                {
+                    GroupTypeCache groupType = GroupTypeCache.Read( this.GroupTypeId );
+                    return groupType;
+                }
+                else
+                {
+                    return base.ParentAuthorityPre;
+                }
             }
         }
 

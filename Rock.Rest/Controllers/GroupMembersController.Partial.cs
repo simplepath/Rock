@@ -41,7 +41,7 @@ namespace Rock.Rest.Controllers
             if ( includeDeceased.AsBoolean( false ) )
             {
                 var rockContext = new Rock.Data.RockContext();
-                return new GroupMemberService( rockContext ).Queryable( true, true );
+                return new GroupMemberService( rockContext ).Queryable( true );
             }
             else
             {

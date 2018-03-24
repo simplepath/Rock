@@ -34,7 +34,7 @@ namespace RockWeb.Blocks.Groups
 {
     [DisplayName( "Group List" )]
     [Category( "Groups" )]
-    [Description( "Lists all groups for the configured group types. Query string parameters: <ul><li>GroupTypeId - Filters to a specific group type.</li></ui>" )]
+    [Description( "Lists all groups for the configured group types or all groups for the specified person context. Query string parameters: <ul><li>GroupTypeId - Filters to a specific group type.</li></ui>" )]
 
     [LinkedPage( "Detail Page", "", true, "", "", 0 )]
     [GroupTypesField( "Include Group Types", "The group types to display in the list.  If none are selected, all group types will be included.", false, "", "", 1 )]
@@ -584,7 +584,7 @@ namespace RockWeb.Blocks.Groups
                 if ( personContext != null )
                 {
                     // limit to Groups that the person is a member of
-                    var qry = new GroupMemberService( rockContext ).Queryable( true, true )
+                    var qry = new GroupMemberService( rockContext ).Queryable( true )
                         .Where( m => m.PersonId == personContext.Id )
                         .Join( qryGroups, gm => gm.GroupId, g => g.Id, ( gm, g ) => new { Group = g, GroupMember = gm } );
 

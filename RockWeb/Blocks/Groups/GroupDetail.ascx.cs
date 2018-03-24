@@ -376,6 +376,7 @@ namespace RockWeb.Blocks.Groups
         /// <param name="e">The <see cref="EventArgs"/> instance containing thmuch the samee event data.</param>
         protected void btnArchive_Click( object sender, EventArgs e )
         {
+            int? parentGroupId = null;
             RockContext rockContext = new RockContext();
 
             GroupService groupService = new GroupService( rockContext );
@@ -390,43 +391,13 @@ namespace RockWeb.Blocks.Groups
                     return;
                 }
 
-                group.IsArchived = true;
-                group.ArchivedByPersonAliasId = this.CurrentPersonAliasId;
-                group.ArchivedDateTime = RockDateTime.Now;
+                parentGroupId = group.ParentGroupId;
+                groupService.Archive( group, this.CurrentPersonAliasId, true );
+                
                 rockContext.SaveChanges();
             }
 
-            ShowReadonlyDetails( group );
-        }
-
-        /// <summary>
-        /// Handles the Click event of the btnUnarchive control.
-        /// </summary>
-        /// <param name="sender">The source of the event.</param>
-        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
-        protected void btnUnarchive_Click( object sender, EventArgs e )
-        {
-            RockContext rockContext = new RockContext();
-
-            GroupService groupService = new GroupService( rockContext );
-            AuthService authService = new AuthService( rockContext );
-            Group group = groupService.Get( hfGroupId.Value.AsInteger() );
-
-            if ( group != null )
-            {
-                if ( !group.IsAuthorized( Authorization.EDIT, this.CurrentPerson ) )
-                {
-                    mdDeleteWarning.Show( "You are not authorized to un-archive this group.", ModalAlertType.Information );
-                    return;
-                }
-
-                group.IsArchived = false;
-                group.ArchivedByPersonAliasId = null;
-                group.ArchivedDateTime = null;
-                rockContext.SaveChanges();
-            }
-
-            ShowReadonlyDetails( group );
+            NavigateAfterDeleteOrArchive( parentGroupId );
         }
 
         /// <summary>
@@ -494,6 +465,15 @@ namespace RockWeb.Blocks.Groups
                 }
             }
 
+            NavigateAfterDeleteOrArchive( parentGroupId );
+        }
+
+        /// <summary>
+        /// Navigates after a group is deleted or archived
+        /// </summary>
+        /// <param name="parentGroupId">The parent group identifier.</param>
+        private void NavigateAfterDeleteOrArchive( int? parentGroupId )
+        {
             // reload page, selecting the deleted group's parent
             var qryParams = new Dictionary<string, string>();
             if ( parentGroupId != null )
@@ -1304,7 +1284,6 @@ namespace RockWeb.Blocks.Groups
                 btnEdit.Visible = false;
                 btnDelete.Visible = false;
                 btnArchive.Visible = false;
-                btnUnarchive.Visible = false;
                 ShowReadonlyDetails( group );
             }
             else
@@ -1624,7 +1603,6 @@ namespace RockWeb.Blocks.Groups
         {
             btnDelete.Visible = !group.IsSystem;
             btnArchive.Visible = false;
-            btnUnarchive.Visible = false;
 
             var rockContext = new RockContext();
 
@@ -1648,7 +1626,6 @@ namespace RockWeb.Blocks.Groups
                 else
                 {
                     btnDelete.Visible = false;
-                    btnUnarchive.Visible = true;
                 }
             }
 

@@ -371,6 +371,15 @@ namespace Rock.Web.Cache
         public bool EnableGroupHistory { get; set; }
 
         /// <summary>
+        /// Gets or sets a value indicating whether [show marital status].
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [show marital status]; otherwise, <c>false</c>.
+        /// </value>
+        [DataMember]
+        public bool ShowMaritalStatus { get; set; }
+
+        /// <summary>
         /// Gets or sets the roles.
         /// </summary>
         /// <value>
@@ -552,6 +561,7 @@ namespace Rock.Web.Cache
                     .ForEach( s => GroupScheduleExclusions.Add( new DateRange( s.StartDate, s.EndDate ) ) );
 
                 this.EnableGroupHistory = groupType.EnableGroupHistory;
+                this.ShowMaritalStatus = groupType.ShowMaritalStatus;
             }
         }
 

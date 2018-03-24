@@ -309,7 +309,7 @@ namespace Rock.Jobs
                     var personService = new PersonService( rockContext );
                     var memberService = new GroupMemberService( rockContext );
 
-                    var qryGroupOwnerPersonIds = memberService.Queryable( true, true )
+                    var qryGroupOwnerPersonIds = memberService.Queryable( true )
                         .Where( m => m.GroupRoleId == ownerRoleId.Value ).Select( a => a.PersonId );
 
                     var personIdsWithoutKnownRelationshipGroup = personService.Queryable().Where( p => !qryGroupOwnerPersonIds.Contains( p.Id ) ).Select( a => a.Id ).ToList();

@@ -30,6 +30,36 @@ namespace Rock.Model
     public partial class GroupService
     {
         /// <summary>
+        /// Gets an <see cref="T:System.Linq.IQueryable`1" /> list of all models
+        /// </summary>
+        /// <returns></returns>
+        public override IQueryable<Group> Queryable()
+        {
+            // override Group Queryable so that Archived groups are never included
+            return base.Queryable().Where( a => a.IsArchived == false );
+        }
+
+        /// <summary>
+        /// Gets an <see cref="T:System.Linq.IQueryable`1" /> list of all models
+        /// with eager loading of properties specified in includes
+        /// </summary>
+        /// <param name="includes"></param>
+        /// <returns></returns>
+        public override IQueryable<Group> Queryable( string includes )
+        {
+            // override Group Queryable so that Archived groups are never included
+            return base.Queryable( includes ).Where( a => a.IsArchived == false );
+        }
+
+        /// <summary>
+        /// Returns a queryable of archived groups
+        /// </summary>
+        /// <returns></returns>
+        public IQueryable<Group> GetArchived()
+        {
+            return base.Queryable().Where( a => a.IsArchived );
+        }
+        /// <summary>
         /// Returns an enumerable collection of <see cref="Rock.Model.Group"/> entities that by their <see cref="Rock.Model.GroupType"/> Id.
         /// </summary>
         /// <param name="groupTypeId">An <see cref="System.Int32"/> representing the Id of the <see cref="Rock.Model.GroupType"/> that they belong to.</param>
@@ -38,7 +68,6 @@ namespace Rock.Model
         {
             return Queryable().Where( t => t.GroupTypeId == groupTypeId );
         }
-
 
         /// <summary>
         /// Returns the <see cref="Rock.Model.Group"/> containing a Guid property that matches the provided value.
@@ -1032,6 +1061,32 @@ namespace Rock.Model
             return base.Delete( item );
         }
 
+        /// <summary>
+        /// Archives the specified group and removes it from Auth if it is a security role
+        /// </summary>
+        /// <param name="group">The group.</param>
+        /// <param name="currentPersonAliasId">The current person alias identifier.</param>
+        /// <param name="removeFromAuthTables">if set to <c>true</c> remove from auth if this group is a security role.</param>
+        public void Archive( Group group, int? currentPersonAliasId, bool removeFromAuthTables)
+        {
+            group.IsArchived = true;
+            group.ArchivedByPersonAliasId = currentPersonAliasId;
+            group.ArchivedDateTime = RockDateTime.Now;
+
+            bool isSecurityRoleGroup = group.IsActive && ( group.IsSecurityRole || group.GroupType.Guid.Equals( Rock.SystemGuid.GroupType.GROUPTYPE_SECURITY_ROLE.AsGuid() ) );
+            if ( removeFromAuthTables && isSecurityRoleGroup )
+            {
+                AuthService authService = new AuthService( this.Context as RockContext );
+
+                Rock.Security.Role.Flush( group.Id );
+                foreach ( var auth in authService.Queryable().Where( a => a.GroupId == group.Id ).ToList() )
+                {
+                    authService.Delete( auth );
+                }
+
+                Rock.Security.Authorization.Flush();
+            }
+        }
     }
 
     /// <summary>

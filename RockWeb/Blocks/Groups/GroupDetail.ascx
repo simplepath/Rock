@@ -244,7 +244,6 @@
                             <Rock:ModalAlert ID="mdDeleteWarning" runat="server" />
                             <asp:LinkButton ID="btnDelete" runat="server" Text="Delete" CssClass="btn btn-link" OnClick="btnDelete_Click" CausesValidation="false" />
                             <asp:LinkButton ID="btnArchive" runat="server" Text="Archive" CssClass="btn btn-link js-archive-group" OnClick="btnArchive_Click" CausesValidation="false" />
-                            <asp:LinkButton ID="btnUnarchive" runat="server" Text="Un-Archive" CssClass="btn btn-link js-unarchive-group" OnClick="btnUnarchive_Click" CausesValidation="false" />
                             <span class="pull-right">
                                 <asp:HyperLink ID="hlFundraisingProgress" runat="server" CssClass="btn btn-sm btn-default" ToolTip="Fundraising"><i class="fa fa-line-chart"></i></asp:HyperLink>
                                 <asp:HyperLink ID="hlAttendance" runat="server" CssClass="btn btn-sm btn-default" ToolTip="Attendance"><i class="fa fa-check-square-o"></i></asp:HyperLink>
