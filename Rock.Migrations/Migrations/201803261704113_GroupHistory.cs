@@ -235,7 +235,6 @@ namespace Rock.Migrations
             AddForeignKey("dbo.Group", "ArchivedByPersonAliasId", "dbo.PersonAlias", "Id");
             AddForeignKey("dbo.GroupMember", "ArchivedByPersonAliasId", "dbo.PersonAlias", "Id");
 
-
             Sql( "UPDATE [Attribute] set [IsActive] = 1" );
 
             // Enforce that there isn't more than one CurrentRow per AttributeValue in AttributeValueHistorical
@@ -329,9 +328,8 @@ CREATE UNIQUE NONCLUSTERED  INDEX [IX_LocationIdCurrentRow] ON [dbo].[GroupLocat
             RockMigrationHelper.UpdateEntityAttribute( "Rock.Model.ServiceJob", "A75DFC58-7A1B-4799-BF31-451B2BBE38FF", "Class", "Rock.Jobs.MigrateHistorySummaryData", "Command Timeout", "Maximum amount of time (in seconds) to wait for the SQL Query to complete. Leave blank to use the default for this job (3600). Note, it could take several minutes, so you might want to set it at 3600 (60 minutes) or higher", 1, @"3600", "1F28861F-99C2-4EAC-B7F7-4AE60018D97E", "CommandTimeout" );
             RockMigrationHelper.AddAttributeValue( "FAC124D5-7C16-4AE9-9631-EF087349476F", 39, @"500000", "FAC124D5-7C16-4AE9-9631-EF087349476F" ); // Migrate History Summary Data: How Many Records
             RockMigrationHelper.AddAttributeValue( "1F28861F-99C2-4EAC-B7F7-4AE60018D97E", 39, @"3600", "1F28861F-99C2-4EAC-B7F7-4AE60018D97E" ); // Migrate History Summary Data: Command Timeout
-
         }
-
+        
         /// <summary>
         /// Operations to be performed during the downgrade process.
         /// </summary>
@@ -348,8 +346,7 @@ CREATE UNIQUE NONCLUSTERED  INDEX [IX_LocationIdCurrentRow] ON [dbo].[GroupLocat
             END" );
 
 
-
-            DropForeignKey( "dbo.GroupMemberHistorical", "ModifiedByPersonAliasId", "dbo.PersonAlias");
+            DropForeignKey("dbo.GroupMemberHistorical", "ModifiedByPersonAliasId", "dbo.PersonAlias");
             DropForeignKey("dbo.GroupMemberHistorical", "GroupRoleId", "dbo.GroupTypeRole");
             DropForeignKey("dbo.GroupMemberHistorical", "GroupMemberId", "dbo.GroupMember");
             DropForeignKey("dbo.GroupMemberHistorical", "GroupId", "dbo.Group");

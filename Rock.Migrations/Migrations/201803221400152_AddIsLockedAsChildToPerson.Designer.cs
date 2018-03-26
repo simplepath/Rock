@@ -7,13 +7,13 @@ namespace Rock.Migrations
     using System.Resources;
     
     [GeneratedCode("EntityFramework.Migrations", "6.1.3-40302")]
-    public sealed partial class GroupHistory : IMigrationMetadata
+    public sealed partial class AddIsLockedAsChildToPerson : IMigrationMetadata
     {
-        private readonly ResourceManager Resources = new ResourceManager(typeof(GroupHistory));
+        private readonly ResourceManager Resources = new ResourceManager(typeof(AddIsLockedAsChildToPerson));
         
         string IMigrationMetadata.Id
         {
-            get { return "201803210118573_GroupHistory"; }
+            get { return "201803221400152_AddIsLockedAsChildToPerson"; }
         }
         
         string IMigrationMetadata.Source
