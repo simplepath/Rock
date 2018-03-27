@@ -164,7 +164,7 @@ namespace RockWeb.Blocks.Groups
 
             qry = qry.Sort( sortProperty );
 
-            gList.LinqDataSource = qry;
+            gList.SetLinqDataSource( qry );
             gList.DataBind();
         }
 

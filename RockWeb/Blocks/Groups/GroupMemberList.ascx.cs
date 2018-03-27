@@ -162,6 +162,8 @@ namespace RockWeb.Blocks.Groups
                     gGroupMembers.RowItemText = _groupTypeCache.GroupTerm + " " + _groupTypeCache.GroupMemberTerm;
                     gGroupMembers.ExportFilename = _group.Name;
                     gGroupMembers.ExportSource = ExcelExportSource.DataSource;
+
+                    // we'll have custom javascript (see GroupMemberList.ascx ) do this instead 
                     gGroupMembers.ShowConfirmDeleteDialog = false;
 
                     // make sure they have Auth to edit the block OR edit to the Group
@@ -280,7 +282,7 @@ namespace RockWeb.Blocks.Groups
 
                         if ( !_deleteFieldColumnIndex.HasValue )
                         {
-                            _deleteFieldColumnIndex = gGroupMembers.Columns.IndexOf( _deleteField );
+                            _deleteFieldColumnIndex = gGroupMembers.GetColumnIndex( _deleteField );
                         }
 
                         if ( _deleteFieldColumnIndex.HasValue )

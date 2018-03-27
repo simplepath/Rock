@@ -1084,6 +1084,30 @@ namespace Rock.Model
         }
 
         /// <summary>
+        /// Deletes the specified group and removes it from Auth if it is a security role
+        /// </summary>
+        /// <param name="group">The group.</param>
+        /// <param name="removeFromAuthTables">if set to <c>true</c> [remove from authentication tables].</param>
+        public void Delete( Group group, bool removeFromAuthTables )
+        {
+            bool isSecurityRoleGroup = group.IsActive && ( group.IsSecurityRole || group.GroupType.Guid.Equals( Rock.SystemGuid.GroupType.GROUPTYPE_SECURITY_ROLE.AsGuid() ) );
+            if ( removeFromAuthTables && isSecurityRoleGroup )
+            {
+                AuthService authService = new AuthService( this.Context as RockContext );
+
+                Rock.Security.Role.Flush( group.Id );
+                foreach ( var auth in authService.Queryable().Where( a => a.GroupId == group.Id ).ToList() )
+                {
+                    authService.Delete( auth );
+                }
+
+                Rock.Security.Authorization.Flush();
+            }
+
+            this.Delete( group );
+        }
+
+        /// <summary>
         /// Archives the specified group and removes it from Auth if it is a security role
         /// </summary>
         /// <param name="group">The group.</param>
@@ -1116,12 +1140,12 @@ namespace Rock.Model
         /// <param name="group">The group.</param>
         /// <param name="personId">The person identifier.</param>
         /// <param name="groupRoleId">The group role identifier.</param>
-        /// <param name="archivedGroupMember">The archived group member.</param>
+        /// <param name="archivedGroupMember">The archived group member record (if there are multiple, this will be the most recently archived record</param>
         /// <returns></returns>
         public bool ExistsAsArchived( Group group, int personId, int groupRoleId, out GroupMember archivedGroupMember )
         {
             var groupMemberService = new GroupMemberService( this.Context as RockContext );
-            archivedGroupMember = groupMemberService.GetArchived().Where( a => a.GroupId == group.Id && a.PersonId == personId && a.GroupRoleId == groupRoleId ).FirstOrDefault();
+            archivedGroupMember = groupMemberService.GetArchived().Where( a => a.GroupId == group.Id && a.PersonId == personId && a.GroupRoleId == groupRoleId ).OrderByDescending( a => a.ArchivedDateTime ).FirstOrDefault();
             return archivedGroupMember != null;
         }
 
