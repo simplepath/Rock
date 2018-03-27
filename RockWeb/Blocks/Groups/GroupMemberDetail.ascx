@@ -15,7 +15,8 @@
                 </h1>
 
                 <div class="panel-labels">
-                    <Rock:HighlightLabel ID="hfDateAdded" runat="server" LabelType="Default" />
+                    <Rock:HighlightLabel ID="hlArchived" runat="server" CssClass="js-archived-label" LabelType="Danger" Text="Archived" />
+                    <Rock:HighlightLabel ID="hlDateAdded" runat="server" LabelType="Default" />
                 </div>
             </div>
             <Rock:PanelDrawer ID="pdAuditDetails" runat="server"></Rock:PanelDrawer>

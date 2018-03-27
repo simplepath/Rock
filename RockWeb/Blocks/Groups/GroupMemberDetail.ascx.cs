@@ -284,24 +284,46 @@ namespace RockWeb.Blocks.Groups
                     groupMember = groupMemberService.Get( groupMemberId );
                 }
 
+                if ( checkForArchivedGroupMember )
+                {
+                    // if the person or role hasn't change, then don't want to check for archived group member
+                    if ( groupMember.PersonId == personId.Value && groupMember.GroupRoleId == role.Id )
+                    {
+                        checkForArchivedGroupMember = false;
+                    }
+                }
+
                 // check for matching archived group member with same person and role if this is a new group member or if the person and/or role has changed
                 if ( checkForArchivedGroupMember )
                 {
-                    if ( groupMember.PersonId != personId.Value || groupMember.GroupRoleId != role.Id )
+                    // check if this is a duplicate member before checking for archived so that validation logic works a little smoother
+                    if ( !groupService.AllowsDuplicateMembers( group ) )
                     {
-                        var archivedGroupMember = groupMemberService.GetArchived().Where( a => a.GroupId == group.Id && a.PersonId == personId.Value && a.GroupRoleId == role.Id ).FirstOrDefault();
-                        if ( archivedGroupMember != null )
+                        GroupMember duplicateGroupMember;
+                        if ( groupService.ExistsAsMember( group, personId.Value, role.Id, out duplicateGroupMember ) )
                         {
-                            // matching archived person found, so prompt
-                            mdRestoreArchivedPrompt.Show();
-                            hfRestoreGroupMemberId.Value = archivedGroupMember.Id.ToString();
-                            return false;
+                            // duplicate exists, so let normal validation catch it instead of checking for archived group member
+                            checkForArchivedGroupMember = false;
                         }
-                        else
-                        {
-                            // if they said 'Don't restore', continue saving without restoring the archived record
+                    }
+                }
 
-                        }
+                if ( checkForArchivedGroupMember)
+                {
+                    GroupMember archivedGroupMember;
+                    if ( groupService.ExistsAsArchived( group, personId.Value, role.Id, out archivedGroupMember ) )
+                    {
+                        // matching archived person found, so prompt
+                        mdRestoreArchivedPrompt.Show();
+                        var person = new PersonService( rockContext ).Get( personId.Value );
+                        nbRestoreArchivedGroupMember.Text = string.Format(
+                            "There is an archived record for {0} as a {1} in this group. Do you want to restore the previous settings? Notes will be retained.",
+                            person,
+                            role
+                            );
+
+                        hfRestoreGroupMemberId.Value = archivedGroupMember.Id.ToString();
+                        return false;
                     }
                 }
 
@@ -623,14 +645,16 @@ namespace RockWeb.Blocks.Groups
 
             if ( groupMember.DateTimeAdded.HasValue )
             {
-                hfDateAdded.Text = string.Format( "Added: {0}", groupMember.DateTimeAdded.Value.ToShortDateString() );
-                hfDateAdded.Visible = true;
+                hlDateAdded.Text = string.Format( "Added: {0}", groupMember.DateTimeAdded.Value.ToShortDateString() );
+                hlDateAdded.Visible = true;
             }
             else
             {
-                hfDateAdded.Text = string.Empty;
-                hfDateAdded.Visible = false;
+                hlDateAdded.Text = string.Empty;
+                hlDateAdded.Visible = false;
             }
+
+            hlArchived.Visible = groupMember.IsArchived;
 
             // user has to have EDIT Auth to the Block OR the group
             nbEditModeMessage.Text = string.Empty;

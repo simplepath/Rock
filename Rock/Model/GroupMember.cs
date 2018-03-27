@@ -487,6 +487,7 @@ namespace Rock.Model
             errorMessage = string.Empty;
 
             // load group including members to save queries in group member validation
+            var groupService = new GroupService( rockContext );
             var group = this.Group ?? new GroupService( rockContext ).Queryable( "Members" ).Where( g => g.Id == this.GroupId ).FirstOrDefault();
 
             var groupType = GroupTypeCache.Read( group.GroupTypeId );
@@ -495,7 +496,7 @@ namespace Rock.Model
             var existingGroupMembership = group.Members.Where( m => m.PersonId == this.PersonId );
 
             // check to see if the person is already a member of the group/role
-            bool allowDuplicateGroupMembers = ConfigurationManager.AppSettings["AllowDuplicateGroupMembers"].AsBoolean();
+            bool allowDuplicateGroupMembers = groupService.AllowsDuplicateMembers( group );
 
             if ( !allowDuplicateGroupMembers )
             {
@@ -824,6 +825,9 @@ namespace Rock.Model
             // This will prevent archived members from being included in any GroupMember queries.
             // It will also prevent navigation properties of GroupMember from including archived group members.
             Z.EntityFramework.Plus.QueryFilterManager.Filter<GroupMember>( x => x.Where( m => m.IsArchived == false ) );
+
+            // In the case of GroupMember as a property (not a collection), we DO want to fetch the groupMember record even if it is archived, so ensure that AllowPropertyFilter = false;
+            Z.EntityFramework.Plus.QueryFilterManager.AllowPropertyFilter = false;
         }
     }
 

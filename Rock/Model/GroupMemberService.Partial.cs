@@ -37,7 +37,7 @@ namespace Rock.Model
         /// <returns></returns>
         public override GroupMember Get( int id )
         {
-            return this.Queryable( true ).FirstOrDefault( m => m.Id == id );
+            return this.AsNoFilter().FirstOrDefault( m => m.Id == id );
         }
 
         /// <summary>
@@ -47,7 +47,7 @@ namespace Rock.Model
         /// <returns></returns>
         public Person GetPerson( int groupMemberId )
         {
-            return this.Queryable( true ).Where( m => m.Id == groupMemberId ).Select( a => a.Person ).FirstOrDefault();
+            return this.AsNoFilter().Where( m => m.Id == groupMemberId ).Select( a => a.Person ).FirstOrDefault();
         }
 
         /// <summary>
@@ -57,7 +57,7 @@ namespace Rock.Model
         /// <returns></returns>
         public override GroupMember Get( Guid guid )
         {
-            return this.Queryable( true ).FirstOrDefault( m => m.Guid == guid );
+            return this.AsNoFilter().FirstOrDefault( m => m.Guid == guid );
         }
 
         /// <summary>
@@ -66,14 +66,23 @@ namespace Rock.Model
         /// <returns></returns>
         public IQueryable<GroupMember> GetArchived()
         {
+            return this.AsNoFilter().Where( a => a.IsArchived == true );
+        }
+
+        /// <summary>
+        /// Returns a Queryable of GroupMembers without filtering on Deceased or the global IsArchived filter
+        /// </summary>
+        /// <returns></returns>
+        public IQueryable<GroupMember> AsNoFilter()
+        {
             // Since Archived GroupMembers are filtered out globally for all EF queries, explicity query with the AsNoFilter option
             var baseDbSet = ( IDbSet<GroupMember> ) base.Queryable();
-            return baseDbSet.AsNoFilter().Where( a => a.IsArchived == true );
+            return baseDbSet.AsNoFilter();
         }
 
         /// <summary>
         /// Returns a queryable collection of <see cref="Rock.Model.GroupMember">GroupMembers</see>, excluding 
-        /// deceased group members
+        /// deceased and archived group members
         /// </summary>
         /// <returns>A queryable collection of <see cref="Rock.Model.GroupMember">GroupMembers.</see></returns>
         public override IQueryable<GroupMember> Queryable()

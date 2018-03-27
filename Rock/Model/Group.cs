@@ -660,6 +660,8 @@ namespace Rock.Model
             return result;
         }
 
+        
+
         /// <summary>
         /// Method that will be called on an entity immediately before the item is saved by context
         /// </summary>

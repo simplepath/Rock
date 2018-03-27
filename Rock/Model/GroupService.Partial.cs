@@ -1109,6 +1109,48 @@ namespace Rock.Model
                 Rock.Security.Authorization.Flush();
             }
         }
+
+        /// <summary>
+        /// Checks to see if there is an Archived Member of the group for the specified personId and groupRoleId
+        /// </summary>
+        /// <param name="group">The group.</param>
+        /// <param name="personId">The person identifier.</param>
+        /// <param name="groupRoleId">The group role identifier.</param>
+        /// <param name="archivedGroupMember">The archived group member.</param>
+        /// <returns></returns>
+        public bool ExistsAsArchived( Group group, int personId, int groupRoleId, out GroupMember archivedGroupMember )
+        {
+            var groupMemberService = new GroupMemberService( this.Context as RockContext );
+            archivedGroupMember = groupMemberService.GetArchived().Where( a => a.GroupId == group.Id && a.PersonId == personId && a.GroupRoleId == groupRoleId ).FirstOrDefault();
+            return archivedGroupMember != null;
+        }
+
+        /// <summary>
+        /// Returns true if duplicate group members are allowed in groups
+        /// Normally this is false, but there is a web.config option to allow it
+        /// </summary>
+        /// <param name="group">The group.</param>
+        /// <returns></returns>
+        public bool AllowsDuplicateMembers( Group group )
+        {
+            bool allowDuplicateGroupMembers = System.Configuration.ConfigurationManager.AppSettings["AllowDuplicateGroupMembers"].AsBoolean();
+            return allowDuplicateGroupMembers;
+        }
+
+        /// <summary>
+        /// Checks to see if there is an (unarchived) member of the group for the specified personId and groupRoleId
+        /// </summary>
+        /// <param name="group">The group.</param>
+        /// <param name="personId">The person identifier.</param>
+        /// <param name="groupRoleId">The group role identifier.</param>
+        /// <param name="groupMember">The group member.</param>
+        /// <returns></returns>
+        public bool ExistsAsMember( Group group, int personId, int groupRoleId, out GroupMember groupMember )
+        {
+            var groupMemberService = new GroupMemberService( this.Context as RockContext );
+            groupMember = groupMemberService.AsNoFilter().Where( a => a.IsArchived == false && a.GroupId == group.Id && a.PersonId == personId && a.GroupRoleId == groupRoleId ).FirstOrDefault();
+            return groupMember != null;
+        }
     }
 
     /// <summary>

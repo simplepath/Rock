@@ -160,7 +160,7 @@ namespace Rock.Jobs
             var groupMemberHistoricalService = new GroupMemberHistoricalService( rockContext );
             var groupMemberService = new GroupMemberService( rockContext );
 
-            var groupMembersWithHistoryEnabledQuery = groupMemberService.Queryable().Where( a => a.Group.GroupType.EnableGroupHistory == true ).AsNoTracking();
+            var groupMembersWithHistoryEnabledQuery = groupMemberService.AsNoFilter().Where( a => a.Group.GroupType.EnableGroupHistory == true ).AsNoTracking();
             var groupMemberHistoricalsCurrentQuery = groupMemberHistoricalService.Queryable().Where( a => a.CurrentRowIndicator == true ).AsNoTracking();
 
             // Mark GroupMemberHistorical Rows as History ( CurrentRowIndicator = false, etc ) if any of the tracked field values change
