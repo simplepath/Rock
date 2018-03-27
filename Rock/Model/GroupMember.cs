@@ -819,6 +819,11 @@ namespace Rock.Model
             this.HasRequired( p => p.Group ).WithMany( p => p.Members ).HasForeignKey( p => p.GroupId ).WillCascadeOnDelete( true );
             this.HasRequired( p => p.GroupRole ).WithMany().HasForeignKey( p => p.GroupRoleId ).WillCascadeOnDelete( false );
             this.HasOptional( p => p.ArchivedByPersonAlias ).WithMany().HasForeignKey( p => p.ArchivedByPersonAliasId ).WillCascadeOnDelete( false );
+
+            // Tell EF that we never want archived group members. 
+            // This will prevent archived members from being included in any GroupMember queries.
+            // It will also prevent navigation properties of GroupMember from including archived group members.
+            Z.EntityFramework.Plus.QueryFilterManager.Filter<GroupMember>( x => x.Where( m => m.IsArchived == false ) );
         }
     }
 

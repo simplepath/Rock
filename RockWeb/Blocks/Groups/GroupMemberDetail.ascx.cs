@@ -155,19 +155,60 @@ namespace RockWeb.Blocks.Groups
         #region Edit Events
 
         /// <summary>
+        /// Handles the Click event of the btnRestoreArchivedGroupMember control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
+        protected void btnRestoreArchivedGroupMember_Click( object sender, EventArgs e )
+        {
+            var rockContext = new RockContext();
+            var groupMemberService = new GroupMemberService( rockContext );
+            int restoreGroupMemberId = hfRestoreGroupMemberId.Value.AsInteger();
+            var groupMemberToRestore = groupMemberService.GetArchived().Where( a => a.Id == restoreGroupMemberId ).FirstOrDefault();
+            if ( groupMemberToRestore != null )
+            {
+                groupMemberToRestore.IsArchived = false;
+                groupMemberToRestore.ArchivedByPersonAliasId = null;
+                groupMemberToRestore.ArchivedDateTime = null;
+                rockContext.SaveChanges();
+                NavigateToCurrentPageReference( new Dictionary<string, string> { { "GroupMemberId", restoreGroupMemberId.ToString() } } );
+            }
+        }
+
+        /// <summary>
+        /// Handles the Click event of the btnDontRestoreArchiveGroupmember control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
+        protected void btnDontRestoreArchiveGroupmember_Click( object sender, EventArgs e )
+        {
+            // if they said Don't Restore, save the group member without prompting to restore
+            if ( SaveGroupMember( false ) )
+            {
+                if ( cvGroupMember.IsValid )
+                {
+                    Dictionary<string, string> qryString = new Dictionary<string, string>();
+                    qryString["GroupId"] = hfGroupId.Value;
+                    NavigateToParentPage( qryString );
+                }
+            }
+        }
+
+        /// <summary>
         /// Handles the Click event of the btnSave control.
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The <see cref="EventArgs" /> instance containing the event data.</param>
         protected void btnSave_Click( object sender, EventArgs e )
         {
-            SaveGroupMember();
-
-            if ( cvGroupMember.IsValid )
+            if ( SaveGroupMember( true ) )
             {
-                Dictionary<string, string> qryString = new Dictionary<string, string>();
-                qryString["GroupId"] = hfGroupId.Value;
-                NavigateToParentPage( qryString );
+                if ( cvGroupMember.IsValid )
+                {
+                    Dictionary<string, string> qryString = new Dictionary<string, string>();
+                    qryString["GroupId"] = hfGroupId.Value;
+                    NavigateToParentPage( qryString );
+                }
             }
         }
 
@@ -178,15 +219,21 @@ namespace RockWeb.Blocks.Groups
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void btnSaveThenAdd_Click( object sender, EventArgs e )
         {
-            SaveGroupMember();
-
-            if ( cvGroupMember.IsValid )
+            if ( SaveGroupMember( true) )
             {
-                ShowDetail( 0, hfGroupId.Value.AsIntegerOrNull() );
+                if ( cvGroupMember.IsValid )
+                {
+                    ShowDetail( 0, hfGroupId.Value.AsIntegerOrNull() );
+                }
             }
         }
 
-        private void SaveGroupMember()
+        /// <summary>
+        /// Saves the group member.
+        /// </summary>
+        /// <param name="checkForArchivedGroupMember">if set to <c>true</c> check to see if there already is a matching archived group member record</param>
+        /// <returns></returns>
+        private bool SaveGroupMember( bool checkForArchivedGroupMember )
         {
             if ( Page.IsValid )
             {
@@ -198,7 +245,7 @@ namespace RockWeb.Blocks.Groups
                 if ( group == null )
                 {
                     nbErrorMessage.Title = "Please select a Role";
-                    return;
+                    return false;
                 }
 
                 // Check to see if a person was selected
@@ -207,7 +254,7 @@ namespace RockWeb.Blocks.Groups
                 if ( !personId.HasValue || !personAliasId.HasValue )
                 {
                     nbErrorMessage.Title = "Please select a Person";
-                    return;
+                    return false;
                 }
 
                 // check to see if the user selected a role
@@ -215,7 +262,7 @@ namespace RockWeb.Blocks.Groups
                 if ( role == null )
                 {
                     nbErrorMessage.Title = "Please select a Role";
-                    return;
+                    return false;
                 }
 
                 var groupMemberService = new GroupMemberService( rockContext );
@@ -223,6 +270,7 @@ namespace RockWeb.Blocks.Groups
                 GroupMember groupMember;
 
                 int groupMemberId = int.Parse( hfGroupMemberId.Value );
+                               
 
                 // if adding a new group member 
                 if ( groupMemberId.Equals( 0 ) )
@@ -234,6 +282,27 @@ namespace RockWeb.Blocks.Groups
                 {
                     // load existing group member
                     groupMember = groupMemberService.Get( groupMemberId );
+                }
+
+                // check for matching archived group member with same person and role if this is a new group member or if the person and/or role has changed
+                if ( checkForArchivedGroupMember )
+                {
+                    if ( groupMember.PersonId != personId.Value || groupMember.GroupRoleId != role.Id )
+                    {
+                        var archivedGroupMember = groupMemberService.GetArchived().Where( a => a.GroupId == group.Id && a.PersonId == personId.Value && a.GroupRoleId == role.Id ).FirstOrDefault();
+                        if ( archivedGroupMember != null )
+                        {
+                            // matching archived person found, so prompt
+                            mdRestoreArchivedPrompt.Show();
+                            hfRestoreGroupMemberId.Value = archivedGroupMember.Id.ToString();
+                            return false;
+                        }
+                        else
+                        {
+                            // if they said 'Don't restore', continue saving without restoring the archived record
+
+                        }
+                    }
                 }
 
                 groupMember.PersonId = personId.Value;
@@ -343,7 +412,7 @@ namespace RockWeb.Blocks.Groups
 
                 if ( !Page.IsValid )
                 {
-                    return;
+                    return false;
                 }
 
                 // if the groupMember IsValid is false, and the UI controls didn't report any errors, it is probably because the custom rules of GroupMember didn't pass.
@@ -353,7 +422,7 @@ namespace RockWeb.Blocks.Groups
                 if ( !cvGroupMember.IsValid )
                 {
                     cvGroupMember.ErrorMessage = groupMember.ValidationResults.Select( a => a.ErrorMessage ).ToList().AsDelimited( "<br />" );
-                    return;
+                    return false;
                 }
 
                 // using WrapTransaction because there are three Saves
@@ -375,6 +444,8 @@ namespace RockWeb.Blocks.Groups
                     Rock.Security.Role.Flush( group.Id );
                 }
             }
+
+            return true;
         }
 
         /// <summary>
@@ -1117,5 +1188,9 @@ namespace RockWeb.Blocks.Groups
                 grpMoveGroupMember.Visible = false;
             }
         }
+
+
+
+        
     }
 }

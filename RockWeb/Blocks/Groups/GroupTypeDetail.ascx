@@ -123,8 +123,9 @@
                                     Help="Determines if groups of this type are allowed to have their own Group Member Attributes. This will show/hide the Member Attributes section on the Group Details block. If a group of this type already has specific group member attributes they will be kept." />
                                 <Rock:RockCheckBox ID="cbEnableSpecificGroupReq" runat="server" Label="Enable Specific Group Requirements"
                                     Help="Determines if groups of this type are allowed to have Group Requirements. This will show/hide the Group Requirements section on the Group Details block. If a group of this type already has specific group member attributes they will be kept." />
+                               <Rock:NotificationBox ID="nbGroupHistoryWarning" runat="server" NotificationBoxType="Warning" Text="Turning off group history will delete history for all groups and group members of this group type." Visible="false" />
                                 <Rock:RockCheckBox ID="cbEnableGroupHistory" runat="server" Label="Enable Group History" 
-                                    Help="Determines if groups of this type will keep a history of group and group member changes." />
+                                    Help="Determines if groups of this type will keep a history of group and group member changes." AutoPostBack="true" OnCheckedChanged="cbEnableGroupHistory_CheckedChanged" />
                            </div>
                            <div class="col-xs-6">
                                 <Rock:RockCheckBox ID="cbAllowGroupSync" runat="server" Label="Allow Group Sync"

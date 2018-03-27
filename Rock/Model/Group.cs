@@ -326,6 +326,7 @@ namespace Rock.Model
 
         /// <summary>
         /// Gets or sets a collection containing the <see cref="Rock.Model.GroupMember">GroupMembers</see> who are associated with the Group.
+        /// Note that this does not include Archived GroupMembers
         /// </summary>
         /// <value>
         /// A collection of <see cref="Rock.Model.GroupMember">GroupMembers</see> who are associated with the Group.

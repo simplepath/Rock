@@ -520,6 +520,14 @@ namespace RockWeb.Blocks.Groups
             groupType.AllowGroupSync = cbAllowGroupSync.Checked;
             groupType.EnableSpecificGroupRequirements = cbEnableSpecificGroupReq.Checked;
             groupType.AllowSpecificGroupMemberWorkflows = cbAllowSpecificGrpMemWorkFlows.Checked;
+
+            // if GroupHistory is turned off, we'll delete group and group member history for this group type
+            bool deleteGroupHistory = false;
+            if ( groupType.EnableGroupHistory && cbEnableGroupHistory.Checked == false )
+            {
+                deleteGroupHistory = true;
+            }
+
             groupType.EnableGroupHistory = cbEnableGroupHistory.Checked;
             groupType.ChildGroupTypes = new List<GroupType>();
             groupType.ChildGroupTypes.Clear();
@@ -624,6 +632,12 @@ namespace RockWeb.Blocks.Groups
             if ( triggersUpdated )
             {
                 GroupMemberWorkflowTriggerService.FlushCachedTriggers();
+            }
+
+            if ( deleteGroupHistory )
+            {
+                groupTypeService.BulkDeleteGroupHistory( groupType.Id );
+                
             }
 
             NavigateToParentPage();
@@ -2615,6 +2629,39 @@ namespace RockWeb.Blocks.Groups
         }
 
         /// <summary>
+        /// Handles the CheckedChanged event of the cbEnableGroupHistory control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
+        protected void cbEnableGroupHistory_CheckedChanged( object sender, EventArgs e )
+        {
+            if ( cbEnableGroupHistory.Checked == false )
+            {
+                // if toggling EnableGroupHistory from True to False, show a warning if Group/GroupMember History will be deleted when this group type is saved
+                int groupTypeId = hfGroupTypeId.Value.AsInteger();
+                var groupType = GroupTypeCache.Read( groupTypeId );
+                if ( groupType != null && groupType.EnableGroupHistory )
+                {
+                    using ( var rockContext = new RockContext() )
+                    {
+                        if ( new GroupHistoricalService( rockContext ).Queryable().Any( a => a.GroupTypeId == groupTypeId ) )
+                        {
+                            nbGroupHistoryWarning.Visible = true;
+                        }
+                        else if ( new GroupMemberHistoricalService( rockContext ).Queryable().Any( a => a.Group.GroupTypeId == groupTypeId ) )
+                        {
+                            nbGroupHistoryWarning.Visible = true;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                nbGroupHistoryWarning.Visible = false;
+            }
+        }
+
+        /// <summary>
         /// Handles the SaveClick event of the dlgGroupMemberAttribute control.
         /// </summary>
         /// <param name="sender">The source of the event.</param>
@@ -2767,5 +2814,7 @@ namespace RockWeb.Blocks.Groups
         }
 
         #endregion
+
+        
     }
 }

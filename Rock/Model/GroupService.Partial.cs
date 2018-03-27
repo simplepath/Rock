@@ -30,6 +30,28 @@ namespace Rock.Model
     public partial class GroupService
     {
         /// <summary>
+        /// Gets the model with the Guid value
+        /// </summary>
+        /// <param name="guid">The GUID.</param>
+        /// <returns></returns>
+        public override Group Get( Guid guid )
+        {
+            // if a specific Guid is specified, get the group record even if it is archived
+            return base.Queryable().FirstOrDefault( a => a.Guid == guid );
+        }
+
+        /// <summary>
+        /// Gets the model with the id value
+        /// </summary>
+        /// <param name="id">id</param>
+        /// <returns></returns>
+        public override Group Get( int id )
+        {
+            // if a specific id is specified, get the group record even if it is archived
+            return base.Queryable().FirstOrDefault( a => a.Id == id );
+        }
+
+        /// <summary>
         /// Gets an <see cref="T:System.Linq.IQueryable`1" /> list of all models
         /// </summary>
         /// <returns></returns>

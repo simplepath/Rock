@@ -39,9 +39,6 @@
                     <Rock:ModalAlert ID="maSignatureRequestSent" runat="server" Text="A Signature Request Has Been Sent." Visible="false" />
                 </asp:Panel>
 
-                <Rock:NotificationBox ID="NotificationBox1" runat="server" NotificationBoxType="Danger">
-                </Rock:NotificationBox>
-
                 <div id="pnlEditDetails" runat="server">
 
                     <div class="row">
@@ -98,6 +95,21 @@
                     </asp:Panel>
 
                     <Rock:NotificationBox runat="server" ID="nbRecheckedNotification" NotificationBoxType="Success" Dismissable="true" Text="Successfully re-checked requirements at {0}" Visible="false" />
+                    <Rock:ModalDialog ID="mdRestoreArchivedPrompt" runat="server" Visible="false" Title="Restore Group Member" CancelLinkVisible="false">
+                        <Content>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <asp:HiddenField ID="hfRestoreGroupMemberId" runat="server" />
+                                    <Rock:NotificationBox ID="nbRestoreArchivedGroupMember" runat="server" NotificationBoxType="Info" Text="There is an archived record for the person in this role in this group. Do you want to restore the previous settings? Notes will be retained." />
+                                </div>
+                            </div>
+                            <br />
+                            <div class="actions">
+                                <asp:LinkButton ID="btnRestoreArchivedGroupMember" runat="server" CssClass="btn btn-primary" Text="Restore" OnClick="btnRestoreArchivedGroupMember_Click" />
+                                <asp:LinkButton ID="btnDontRestoreArchiveGroupmember" runat="server" CssClass="btn btn-default" Text="Don't Restore" OnClick="btnDontRestoreArchiveGroupmember_Click" />
+                            </div>
+                        </Content>
+                    </Rock:ModalDialog>
 
                     <div class="actions">
                         <asp:LinkButton ID="btnSave" runat="server" AccessKey="s" Text="Save" ToolTip="Alt+S" CssClass="btn btn-primary" OnClick="btnSave_Click" />

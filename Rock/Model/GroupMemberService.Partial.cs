@@ -16,10 +16,12 @@
 //
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 
 using Rock.Data;
 using Rock.Web.Cache;
+using Z.EntityFramework.Plus;
 
 namespace Rock.Model
 {
@@ -64,7 +66,9 @@ namespace Rock.Model
         /// <returns></returns>
         public IQueryable<GroupMember> GetArchived()
         {
-            return base.Queryable().Where( a => a.IsArchived );
+            // Since Archived GroupMembers are filtered out globally for all EF queries, explicity query with the AsNoFilter option
+            var baseDbSet = ( IDbSet<GroupMember> ) base.Queryable();
+            return baseDbSet.AsNoFilter().Where( a => a.IsArchived == true );
         }
 
         /// <summary>
