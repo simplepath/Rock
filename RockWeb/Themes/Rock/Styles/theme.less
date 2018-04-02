@@ -43,7 +43,8 @@ main {
   display: block;
 }
 
-h3, h4,
+h3,
+h4,
 legend {
   font-weight: normal;
 }
@@ -59,10 +60,10 @@ a:hover {
   text-decoration: none;
 }
 
-input[type=text],
+input[type="text"],
 textarea,
 .form-control {
-  transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+  transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
 
   &:focus{
     border-color: rgba(238, 118, 36, .6);
@@ -96,10 +97,9 @@ textarea,
 }
 
 .label {
-  border-radius: 0; // labels always have curves
   font-weight: 400; // make the font light
+  border-radius: 0; // labels always have curves
 }
-
 
 
 .table-bordered > tbody > tr > td {
@@ -126,7 +126,8 @@ textarea,
   color: @text-color;
 }
 
-.btn.active, .btn:active { // removes the shadow from the toggles
+.btn.active,
+.btn:active { // removes the shadow from the toggles
   -webkit-box-shadow: none;
   box-shadow: none;
 }
@@ -167,18 +168,18 @@ textarea,
 }
 
 .grid-actions .form-control {
-  font-size: .8em;
   height: 37px;
+  font-size: .8em;
+  background-color: @grid-column-header-bg;
   border: 0;
   box-shadow: none;
-  background-color: @grid-column-header-bg;
 }
 
 .panel-block {
 
   > .panel-heading {
-    font-size: 1.125em;
     padding: 15px;
+    font-size: 1.125em;
     border-bottom: 1px solid @panel-border;
   }
 }
@@ -199,8 +200,8 @@ textarea,
 // grid styles
 
 td.grid-actions {
-  font-size: 1em;
   padding: 0 !important;
+  font-size: 1em;
 
   a.btn {
     opacity: .7;
@@ -219,17 +220,17 @@ td.grid-actions {
     margin-left: 8px;
   }
 
-  .checkbox input[type=checkbox] + span.label-text:before,
-  .radio input[type=radio] + span.label-text:before {
+  .checkbox input[type="checkbox"] + span.label-text::before,
+  .radio input[type="radio"] + span.label-text::before {
     margin: 0;
   }
 }
 
 .grid-actions {
   .btn {
+    font-size: 1.125em;
     background-color: transparent;
     border: 0;
-    font-size: 1.125em;
 
     &:hover {
       background-color: @btn-default-bg;
@@ -238,6 +239,7 @@ td.grid-actions {
 }
 
 /*#endregion */
+
 /*#region
 // 4. Theme Styling          */
 // -------------------------
@@ -251,8 +253,8 @@ td.grid-actions {
 }
 
 .rock-top-header {
-  background-color: @brand-color;
   margin-bottom: 0;
+  background-color: @brand-color;
   border: 0;
 
   @media (max-width: @screen-sm-max) {
@@ -285,37 +287,37 @@ td.grid-actions {
 
   .navbar-toggle {
     float: left;
-    font-size: 1.500em;
-    color: #fff;
     margin-top: 12px;
     margin-left: 27px;
+    font-size: 1.5em;
+    color: #fff;
     cursor: pointer;
   }
 
   .navbar-brand-corner {
-    display: none;
-    background-color: @navbarside-background-color;
-    color: #fff;
-    height: @navbar-top-height;
-    width: @navbarside-width;
     position: relative;
-    border-bottom: 1px solid lighten(@navbarside-background-color, 10%);
-    padding: 6px;
-    background-size: 45px;
+    display: none;
     float: left;
+    width: @navbarside-width;
+    height: @navbar-top-height;
+    padding: 6px;
+    color: #fff;
+    background-color: @navbarside-background-color;
+    background-size: 45px;
+    border-bottom: 1px solid lighten(@navbarside-background-color, 10%);
 
-    &:after {
-      content: "";
-      background-image: url(../../../Assets/Images/rock-logo-circle-white.svg);
-      background-size: 45px;
-      background-position: center center;
-      background-repeat: no-repeat;
-      opacity: 0.7;
-      top: 0;
-      left: 0;
-      bottom: 0;
-      right: 0;
+    &::after {
       position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      content: "";
+      background-image: url("../../../Assets/Images/rock-logo-circle-white.svg");
+      background-repeat: no-repeat;
+      background-position: center center;
+      background-size: 45px;
+      opacity: .7;
     }
 
     &:hover {
@@ -329,13 +331,13 @@ td.grid-actions {
 
   .navbar-brand-center {
     display: block;
-    height: @navbar-top-height;
     width: @navbar-top-height;
-    background-image: url(../../../Assets/Images/rock-logo-circle-white.svg);
-    background-repeat: no-repeat;
-    background-size: 45px;
-    background-position: center center;
+    height: @navbar-top-height;
     margin: 0 auto;
+    background-image: url("../../../Assets/Images/rock-logo-circle-white.svg");
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: 45px;
 
     @media (min-width: @screen-sm-min) {
       display: none;
@@ -350,20 +352,20 @@ td.grid-actions {
     }
 
     a {
-      font-size: 1em;
-      color: @navbartop-color;
-      line-height: 14px;
       padding: 0 16px;
+      font-size: 1em;
+      line-height: 14px;
+      color: @navbartop-color;
 
       &:hover,
       &:focus {
-        opacity: .8;
         background-color: transparent;
+        opacity: .8;
       }
 
       @media (min-width: @screen-sm-min) {
-        line-height: @navbar-top-height;
         margin-left: 24px;
+        line-height: @navbar-top-height;
 
         & > li {
           float: left;
@@ -375,12 +377,12 @@ td.grid-actions {
 
   .smartsearch {
     float: right;
+    width: 340px;
     height: 50px;
     margin: 15px 0;
+    font-size: .875em;
     color: @navbartop-color;
     border: 0;
-    width: 340px;
-    font-size: 0.875em;
 
     i {
       margin-top: 14px;
@@ -388,9 +390,9 @@ td.grid-actions {
     }
 
     input.searchinput {
-      color: @navbartop-color;
-      margin-top: 10px;
       padding-left: 30px;
+      margin-top: 10px;
+      color: @navbartop-color;
     }
 
     .dropdown {
@@ -403,7 +405,6 @@ td.grid-actions {
 
       .dropdown-menu {
         font-size: 1em;
-        ;
       }
     }
 
@@ -425,27 +426,27 @@ td.grid-actions {
       min-width: inherit;
 
       > a {
-        color: @navbartop-color;
-        line-height: @navbar-top-height;
         padding: 0 18px;
+        line-height: @navbar-top-height;
+        color: @navbartop-color;
 
 
         .profile-photo {
-          height: 43px;
-          width: 43px;
-          border-radius: 50%;
           float: left;
-          background-repeat: no-repeat;
-          background-size: cover;
+          width: 43px;
+          height: 43px;
           margin-top: 17px;
           margin-right: 12px;
+          background-repeat: no-repeat;
+          background-size: cover;
+          border-radius: 50%;
         }
 
         span {
           display: none;
         }
 
-        .fa-caret-down:before {
+        .fa-caret-down::before {
           content: @fa-var-chevron-down;
         }
 
@@ -456,8 +457,8 @@ td.grid-actions {
       }
 
       .dropdown-menu {
-        left: auto;
         right: 0;
+        left: auto;
       }
     }
   }
@@ -476,13 +477,13 @@ td.grid-actions {
     border: 0;
 
     a {
-      color: @navbartop-color;
-      line-height: 34px;
       width: 100%;
+      line-height: 34px;
+      color: @navbartop-color;
 
       &:hover {
-        background-color: @brand-color;
         color: #fff;
+        background-color: @brand-color;
         opacity: 1;
       }
 
@@ -492,29 +493,30 @@ td.grid-actions {
     }
 
     @media (min-width: @screen-sm-min) {
-      &:after {
+      &::after {
+        position: absolute;
+        top: -8px;
+        left: 75px;
+        display: inline-block;
+        margin-left: -6px;
+        content: "";
+        border-right: 8px solid transparent;
         border-bottom: 8px solid #fff;
         border-left: 8px solid transparent;
-        border-right: 8px solid transparent;
-        top: -8px;
-        content: "";
-        display: inline-block;
-        left: 75px;
-        margin-left: -6px;
-        position: absolute;
       }
     }
   }
 
   #header-collapse { // the collapse for the bookmarks search and login status
-    color: @navbarside-color;
-    background-color: lighten(@brand-color, 30%);
-    width: 100%;
-    font-size: 1em;
-    text-align: center;
-    padding: 12px 0;
+
     display: none;
+    width: 100%;
+    padding: 12px 0;
+    font-size: 1em;
+    color: @navbarside-color;
+    text-align: center;
     cursor: pointer;
+    background-color: lighten(@brand-color, 30%);
 
     @media (max-width: @screen-sm-min) {
       display: block;
@@ -532,29 +534,29 @@ td.grid-actions {
 
 .navbar-static-side {
   position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1031;
   display: none;
   width: @navbarside-width;
+  height: 100%;
   color: @navbarside-color;
   background-color: @navbarside-background-color;
-  height: 100%;
-  left: 0;
-  top: 0;
-  z-index: 1031;
 
   @media (min-width: @screen-sm-min) {
-    z-index: auto;
     position: absolute;
     top: auto;
+    z-index: auto;
   }
 
   .navbar-toggle-side-left {
-    height: @navbar-top-height;
-    font-size: 1.500em;
     display: block;
+    height: @navbar-top-height;
     padding-top: 22px;
     padding-left: 38px;
-    border-bottom: 1px solid lighten(@navbarside-background-color, 10%);
+    font-size: 1.5em;
     cursor: pointer;
+    border-bottom: 1px solid lighten(@navbarside-background-color, 10%);
 
     @media (min-width: @screen-sm-min) {
       display: none;
@@ -562,29 +564,29 @@ td.grid-actions {
   }
 
   &:before {
-    content: "";
     position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
     z-index: -1;
     width: inherit;
-    top: 0;
-    left: 0;
-    bottom: 0;
+    content: "";
     background-color: inherit;
   }
 
   .navbar-side {
+    position: fixed;
+    z-index: @zindex-navbar-fixed;
     display: inline-block;
     width: 100%;
-    cursor: default;
-    position: fixed;
     width: 100px;
-    z-index: @zindex-navbar-fixed;
+    cursor: default;
 
     & > li {
       margin-top: 0;
       text-align: center;
-      border-top: 1px solid lighten( @navbarside-background-color, 7%);
       cursor: pointer;
+      border-top: 1px solid lighten( @navbarside-background-color, 7%);
 
       &:last-child {
         border-bottom: 1px solid lighten( @navbarside-background-color, 7%);
@@ -616,10 +618,10 @@ td.grid-actions {
         z-index: 9999;
         display: none;
         width: 280px;
+        height: 100%;
         padding: 9px 20px;
         text-align: left;
         background-color: @navbarside-sub-bg;
-        height: 100%;
 
         li {
 
@@ -642,12 +644,12 @@ td.grid-actions {
         }
 
         li.title {
+          padding: 9px 20px;
+          margin: -9px -20px 0;
           margin-bottom: 24px;
           font-size: 1.5em;
           font-weight: @font-weight-light;
           color: @navbarside-color;
-          margin: -9px -20px 0;
-          padding: 9px 20px;
           background-color: lighten(@navbarside-sub-bg, 15%);
         }
 
@@ -725,24 +727,24 @@ body.navbar-side-close {
   }
 
   .page-title {
-    background-color: @pagetitle-background;
     padding: 20px 35px;
+    background-color: @pagetitle-background;
 
     .title {
-      font-size: 1.750em;
       margin: 0;
+      font-size: 1.75em;
     }
 
     .page-icon {
-      float: left;
       display: none;
+      float: left;
     }
 
     .breadcrumb {
       padding: 4px 0 0;
-      background-color: transparent;
       margin: 0;
-      font-size: 0.875em;
+      font-size: .875em;
+      background-color: transparent;
 
       i {
         display: none;
@@ -775,15 +777,15 @@ body.navbar-side-close {
   #content {
     position: absolute;
     top: 50%;
-    margin-top: -300px;
     width: 100%;
+    margin-top: -300px;
   }
 
   #logo {
-    margin: 0 auto 40px;
-    fill: @brand-color;
     width: 120px;
     height: 120px;
+    margin: 0 auto 40px;
+    fill: @brand-color;
   }
 
   .login-block {
@@ -803,9 +805,9 @@ body.navbar-side-close {
 // workflow page
 .workflow-activity {
   & > .panel-heading {
+    color: #fff;
     background-color: @btn-action-bg;
     border-color: @btn-action-bg;
-    color: #fff;
 
     a.btn-link {
       color: #fff;
@@ -813,9 +815,9 @@ body.navbar-side-close {
   }
 
   .btn-action.add-action {
+    color: @panel-heading-text-color;
     background-color: @gray-lighter;
     border-color: darken(@gray-lighter, 10%);
-    color: @panel-heading-text-color;
   }
 }
 
@@ -824,7 +826,9 @@ body.navbar-side-close {
     padding: 0;
   }
 }
+
 /*#endregion */
+
 /*#region
 // 5. Specific Page Styling        */
 // -------------------------
@@ -835,7 +839,7 @@ body.navbar-side-close {
   }
 
   .name .firstname {
-    font-size: 0.488em;
+    font-size: .488em;
     font-weight: @font-weight-light;
   }
 
@@ -845,6 +849,7 @@ body.navbar-side-close {
 }
 
 /*#endregion */
+
 /*#region
 // 6. Components          */
 // -------------------------
@@ -886,8 +891,8 @@ body.navbar-side-close {
       pointer-events: none;
       content: "";
       user-select: none;
-      border: 2px solid @input-border;
       background-color: #fff;
+      border: 2px solid @input-border;
       border-radius: .25rem;
     }
 
@@ -921,26 +926,27 @@ body.navbar-side-close {
       // the mixin is not used here to make sure there is feedback
       box-shadow: 0 0 0 1px #fff, 0 0 0 3px rgba(238, 118, 36, .2);
     }
-  
+
     &:active ~ .label-text::before {
       color: #fff;
-      background-color: lighten(orange, 30%);;
+      background-color: lighten(@brand-color, 30%);
     }
-  
+
     &:disabled {
       ~ .label-text {
         color: #6c757d;
-  
+
         &::before {
           background-color: #e9ecef;
         }
       }
     }
-  
+
   }
 }
 
-.checkbox, .checkbox-inline { 
+.checkbox,
+.checkbox-inline {
   input[type="checkbox"] {
     &:checked ~ .label-text::after {
       background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath fill='%23ffffff' d='M6.564.75l-3.59 3.612-1.538-1.55L0 4.26 2.974 7.25 8 2.193z'/%3E%3C/svg%3E");
@@ -948,7 +954,8 @@ body.navbar-side-close {
   }
 }
 
-.radio, .radio-inline { 
+.radio,
+.radio-inline {
   .label-text::before {
     border-radius: 50%;
   }
@@ -961,25 +968,21 @@ body.navbar-side-close {
 }
 
 // slider styling
-.irs-bar-edge {
-  border: 1px solid @brand-color !important;
-  background: @brand-color !important;
-  background: @brand-color !important;
-}
-
+.irs-bar-edge,
 .irs-bar {
+  background: @brand-color !important;
   border: 1px solid @brand-color !important;
-  background: @brand-color !important;
-  background: @brand-color !important;
 }
 
-.irs-from, .irs-to, .irs-single {
+.irs-from,
+.irs-to,
+.irs-single {
   background: @brand-color !important;
 }
 
 .irs-slider {
-  border: 1px solid #AAA !important;
   background: #fff !important;
+  border: 1px solid #aaa !important;
   box-shadow: none !important;
 }
 

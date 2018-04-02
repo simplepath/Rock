@@ -117,10 +117,10 @@ elements with nested rules, like .list .item { padding: 10px; }.*/
   margin: 0 !important;
   font-family: Arial, Helvetica, sans-serif;
   cursor: move;
-      filter: alpha(opacity=80);
-  opacity: .8;
 
   -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=80)";
+  filter: alpha(opacity=80);
+  opacity: .8;
 }
 
 /* Is a helper class to apply display: none to an element. */
@@ -131,18 +131,18 @@ elements with nested rules, like .list .item { padding: 10px; }.*/
 /* Is added to the mirrorContainer element when dragging. You can use it to style the mirrorContainer while something is being dragged. */
 .gu-unselectable {
   -webkit-user-select: none !important;
-     -moz-user-select: none !important;
-      -ms-user-select: none !important;
-          user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
 }
 
 /* Is added to the source element when its mirror image is dragged. It just adds opacity to it.*/
 .gu-transit {
   float: none !important; /* added to override the float from the component */
-      filter: alpha(opacity=20);
-  opacity: .2;
 
   -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=20)";
+  filter: alpha(opacity=20);
+  opacity: .2;
 }
 
 /* MP: workaround for https://github.com/bevacqua/dragula/issues/421 */
