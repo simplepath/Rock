@@ -298,7 +298,7 @@ namespace Rock.Communication.Transport
 
                 var personEntityTypeId = EntityTypeCache.Read( "Rock.Model.Person" ).Id;
                 var communicationEntityTypeId = EntityTypeCache.Read( "Rock.Model.Communication" ).Id;
-                var communicationCategoryId = CategoryCache.Read( Rock.SystemGuid.Category.HISTORY_PERSON_COMMUNICATIONS.AsGuid(), communicationRockContext ).Id;
+                var communicationCategoryGuid = Rock.SystemGuid.Category.HISTORY_PERSON_COMMUNICATIONS.AsGuid();
                 RestRequest restRequest = null;
 
                 // Loop through receipents and send the email
@@ -451,18 +451,15 @@ namespace Rock.Communication.Transport
                         // Log it
                         try
                         {
-                            var historyService = new HistoryService( recipientRockContext );
-                            historyService.Add( new History
-                            {
-                                CreatedByPersonAliasId = communication.SenderPersonAliasId,
-                                EntityTypeId = personEntityTypeId,
-                                CategoryId = communicationCategoryId,
-                                EntityId = recipient.PersonAlias.PersonId,
-                                Summary = string.Format( "Sent communication from <span class='field-value'>{0}</span>.", fromName ),
-                                Caption = subject,
-                                RelatedEntityTypeId = communicationEntityTypeId,
-                                RelatedEntityId = communication.Id
-                            } );
+                            var historyChangeList = new History.HistoryChangeList();
+                            historyChangeList.AddChange(
+                                History.HistoryVerb.Sent,
+                                History.HistoryChangeType.Record,
+                                $"Communication" )
+                                .SetRelatedData( fromName, communicationEntityTypeId, communication.Id )
+                                .SetCaption( subject );
+
+                            HistoryService.SaveChanges( recipientRockContext, typeof( Rock.Model.Person ), communicationCategoryGuid, recipient.PersonAlias.PersonId, historyChangeList, false, communication.SenderPersonAliasId );
                         }
                         catch ( Exception ex )
                         {
