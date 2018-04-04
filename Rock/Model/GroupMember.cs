@@ -328,6 +328,7 @@ namespace Rock.Model
             {
                 group = new GroupService( rockContext ).Get( this.GroupId );
             }
+
             if ( group != null )
             {
                 string oldGroupName = group.Name;
@@ -348,7 +349,8 @@ namespace Rock.Model
                         PersonId = newPersonId.Value,
                         HistoryChangeList = new History.HistoryChangeList(),
                         Caption = group.Name,
-                        GroupId = group.Id
+                        GroupId = group.Id,
+                        Group = group
                     } );
                 }
 
@@ -425,6 +427,13 @@ namespace Rock.Model
                 foreach ( var historyItem in HistoryChanges.Where( h => h.HistoryChangeList.Any() ) )
                 {
                     int personId = historyItem.PersonId > 0 ? historyItem.PersonId : PersonId;
+
+                    // if GroupId is 0, it is probably a Group that wasn't saved yet, so get the GroupId from historyItem.Group.Id instead
+                    if ( historyItem.GroupId == 0 )
+                    {
+                        historyItem.GroupId = historyItem.Group?.Id;
+                    }
+
                     HistoryService.SaveChanges( (RockContext)dbContext, typeof( Person ), Rock.SystemGuid.Category.HISTORY_PERSON_GROUP_MEMBERSHIP.AsGuid(),
                         personId, historyItem.HistoryChangeList, historyItem.Caption, typeof( Group ), historyItem.GroupId, true, this.ModifiedByPersonAliasId );
                 }
@@ -880,7 +889,7 @@ namespace Rock.Model
     /// <summary>
     /// Helper class for tracking changes
     /// </summary>
-    public class HistoryItem
+    public class HistoryItem 
     {
         /// <summary>
         /// Gets or sets the person identifier.
@@ -913,5 +922,13 @@ namespace Rock.Model
         /// The group identifier.
         /// </value>
         public int? GroupId { get; set; }
+
+        /// <summary>
+        /// Gets or sets the group. Use this to get the GroupId on PostSaveChanges if GroupId is 0 (new Group)
+        /// </summary>
+        /// <value>
+        /// The group.
+        /// </value>
+        public Group Group { get; set; }
     }
 }
