@@ -1,0 +1,10 @@
+﻿<div class="group-history-timeline js-group-history-timeline">
+    {% for History in HistoryList %}
+		<p>Category: {{ History.Category.Name}}</p>
+		<p>CreatedByPersonName: {{ History.CreatedByPersonName}}</p>
+		<p>CreatedDateTime: {{ History.CreatedDateTime}}</p>
+		{{ History | Debug }}
+		<div>SummaryHtml: {{ History.SummaryHtml }}</div>
+		<hr />
+    {% endfor %}
+</div>

@@ -57,6 +57,7 @@ namespace RockWeb.Blocks.Groups
     [LinkedPage( "Fundraising Progress Page", "The page to display fundraising progress for all its members.", false, "", "", 12 )]
     [BooleanField( "Show Location Addresses", "Determines if the location address should be shown when viewing the group details.", true, order: 13 )]
     [BooleanField( "Prevent Selecting Inactive Campus", "Should inactive campuses be excluded from the campus field when editing a group?.", false, "", 14 )]
+    [LinkedPage( "Group History Page", "The page to display group history.", false, "", "", 15 )]
 
     public partial class GroupDetail : RockBlock, IDetailBlock
     {
@@ -1605,13 +1606,13 @@ namespace RockWeb.Blocks.Groups
             btnArchive.Visible = false;
 
             var rockContext = new RockContext();
+            GroupTypeCache groupType = GroupTypeCache.Read( group.GroupTypeId );
 
             // if History is enabled (and this isn't an IsSystem group), additional logic for if the Archive or Delete button is visible
             if ( !group.IsSystem )
             {
                 if ( !group.IsArchived )
                 {
-                    var groupType = GroupTypeCache.Read( group.GroupTypeId );
                     if ( groupType != null && groupType.EnableGroupHistory )
                     {
                         bool hasGroupHistory = new GroupHistoricalService( rockContext ).Queryable().Any( a => a.GroupId == group.Id );
@@ -1633,11 +1634,11 @@ namespace RockWeb.Blocks.Groups
             SetEditMode( false );
 
             string groupIconHtml = string.Empty;
-            if ( group.GroupType != null )
+            if ( groupType != null )
             {
-                groupIconHtml = !string.IsNullOrWhiteSpace( group.GroupType.IconCssClass ) ?
-                    string.Format( "<i class='{0}' ></i>", group.GroupType.IconCssClass ) : string.Empty;
-                hlType.Text = group.GroupType.Name;
+                groupIconHtml = !string.IsNullOrWhiteSpace( groupType.IconCssClass ) ?
+                    string.Format( "<i class='{0}' ></i>", groupType.IconCssClass ) : string.Empty;
+                hlType.Text = groupType.Name;
             }
 
             hfGroupId.SetValue( group.Id );
@@ -1659,7 +1660,7 @@ namespace RockWeb.Blocks.Groups
             var pageParams = new Dictionary<string, string>();
             pageParams.Add( "GroupId", group.Id.ToString() );
 
-            hlAttendance.Visible = group.GroupType != null && group.GroupType.TakesAttendance;
+            hlAttendance.Visible = groupType != null && groupType.TakesAttendance;
             hlAttendance.NavigateUrl = LinkedPageUrl( "AttendancePage", pageParams );
 
             var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( this.RockPage, this.CurrentPerson );
@@ -1690,9 +1691,23 @@ namespace RockWeb.Blocks.Groups
                 hlMap.Visible = false;
             }
 
-            string template = group.GroupType.GroupViewLavaTemplate;
+            string groupHistoryUrl = LinkedPageUrl( "GroupHistoryPage", pageParams );
+            mergeFields.Add( "GroupHistoryUrl", groupHistoryUrl );
+            if ( groupHistoryUrl.IsNotNullOrWhitespace() )
+            {
+                hlGroupHistory.Visible = groupType != null && groupType.EnableGroupHistory;
+                hlGroupHistory.NavigateUrl = groupHistoryUrl;
+            }
+            else
+            {
+                hlGroupHistory.Visible = false;
+            }
 
-            lContent.Text = template.ResolveMergeFields( mergeFields ).ResolveClientIds( upnlGroupDetail.ClientID );
+            if ( groupType != null )
+            {
+                string template = groupType.GroupViewLavaTemplate;
+                lContent.Text = template.ResolveMergeFields( mergeFields ).ResolveClientIds( upnlGroupDetail.ClientID );
+            }
 
             string fundraisingProgressUrl = LinkedPageUrl( "FundraisingProgressPage", pageParams );
             var groupTypeIdFundraising = GroupTypeCache.Read( Rock.SystemGuid.GroupType.GROUPTYPE_FUNDRAISINGOPPORTUNITY.AsGuid() ).Id;

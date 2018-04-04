@@ -498,24 +498,6 @@ namespace Rock.Communication.Transport
                                                 .SetCaption( message.Subject );
 
                                             HistoryService.SaveChanges( recipientRockContext, typeof( Rock.Model.Person ), communicationCategoryGuid, recipient.PersonAlias.PersonId, historyChangeList, false, communication.SenderPersonAliasId );
-                                            /*
-
-                                            historyService.Add( new History
-                                            {
-                                                CreatedByPersonAliasId = communication.SenderPersonAliasId,
-                                                EntityTypeId = personEntityTypeId,
-                                                CategoryId = communicationCategoryId,
-                                                EntityId = recipient.PersonAlias.PersonId,
-                                                Verb = History.HistoryVerb.Sent.ConvertToString(false).ToUpper(),
-                                                ChangeType = History.HistoryChangeType.Record.ToString(),
-                                                ValueName = ,
-                                                NewValue = communication.ToString(),
-                                                // ToDo: TEST -- Summary = string.Format( "Sent communication from <span class='field-value'>{0}</span>.", message.From.DisplayName ),
-                                                Caption = message.Subject,
-                                                RelatedEntityTypeId = communicationEntityTypeId,
-                                                RelatedEntityId = communication.Id
-                                            } );
-                                            */
                                         }
                                         catch ( Exception ex )
                                         {
