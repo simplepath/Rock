@@ -120,7 +120,7 @@ namespace Rock.Model
                     history.EntityId = entityId;
                     history.Caption = caption.Truncate( 200 );
                     history.RelatedEntityTypeId = relatedEntityTypeId;
-                    history.RelatedEntityId = historyChange.RelatedEntityId;
+                    history.RelatedEntityId = relatedEntityId;
 
                     historyChange.CopyToHistory( history );
 
