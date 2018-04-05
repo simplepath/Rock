@@ -336,6 +336,52 @@ CREATE UNIQUE NONCLUSTERED  INDEX [IX_LocationIdCurrentRow] ON [dbo].[GroupLocat
             RockMigrationHelper.AddBlock( true, "93C79597-2274-4291-BE4F-E84569BB9B27", "", "AD5B3A8A-2111-4FC4-A026-51EEB4929CBA", "Group Archived List", "Main", @"", @"", 0, "5522523B-15F7-49EA-B6FF-374F2BD101C1" );
             // Attrib for BlockType: Group Archived List:core.CustomGridColumnsConfig
             RockMigrationHelper.UpdateBlockTypeAttribute( "AD5B3A8A-2111-4FC4-A026-51EEB4929CBA", "9C204CD0-1233-41C5-818A-C5DA439445AA", "core.CustomGridColumnsConfig", "core.CustomGridColumnsConfig", "", @"", 0, @"", "1F2041D0-946F-4F8B-9E43-2E7E080C7FC0" );
+
+            // Add History Categories for Group changes
+            Sql( @"
+DECLARE @CategoryId INT
+DECLARE @HistoryEntityTypeId INT
+
+SET @HistoryEntityTypeId = (
+		SELECT [Id]
+		FROM [EntityType]
+		WHERE [Name] = 'Rock.Model.History'
+		)
+
+INSERT INTO [Category] (
+	[IsSystem]
+	,[EntityTypeId]
+	,[Name]
+	,[Guid]
+	,[Order]
+	)
+VALUES (
+	1
+	,@HistoryEntityTypeId
+	,'Group'
+	,'180C5767-8769-4C51-865F-FEE29AEF80A0'
+	,0
+	)
+
+SET @CategoryId = SCOPE_IDENTITY()
+
+INSERT INTO [Category] (
+	[IsSystem]
+	,[ParentCategoryId]
+	,[EntityTypeId]
+	,[Name]
+	,[Guid]
+	,[Order]
+	)
+VALUES (
+	1
+	,@CategoryId
+	,@HistoryEntityTypeId
+	,'Group Changes'
+	,'089EB47D-D0EF-493E-B867-DC51BCDEF319'
+	,0
+	)
+" );
         }
 
         /// <summary>
@@ -343,6 +389,16 @@ CREATE UNIQUE NONCLUSTERED  INDEX [IX_LocationIdCurrentRow] ON [dbo].[GroupLocat
         /// </summary>
         public override void Down()
         {
+            // Remove HIstory Categories for Group Changes
+            Sql( @"
+DELETE
+FROM Category
+WHERE [Guid] = '089EB47D-D0EF-493E-B867-DC51BCDEF319'
+
+DELETE
+FROM Category
+WHERE [Guid] = '180C5767-8769-4C51-865F-FEE29AEF80A0'" );
+            
             /* Pages/Blocks*/
             // Remove Block: Group Archived List, from Page: Archived Groups, Site: Rock RMS
             RockMigrationHelper.DeleteBlock( "5522523B-15F7-49EA-B6FF-374F2BD101C1" );

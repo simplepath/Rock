@@ -766,7 +766,7 @@ namespace Rock.Model
         {
             if ( HistoryChangeList != null && HistoryChangeList.Any() )
             {
-                HistoryService.SaveChanges( (RockContext)dbContext, typeof( Group ), Rock.SystemGuid.Category.HISTORY_GROUP_CHANGES.AsGuid(), this.Id, HistoryChangeList, true, this.ModifiedByPersonAliasId );
+                HistoryService.SaveChanges( (RockContext)dbContext, typeof( Group ), Rock.SystemGuid.Category.HISTORY_GROUP_CHANGES.AsGuid(), this.Id, HistoryChangeList, this.Name, null, null,  true, this.ModifiedByPersonAliasId );
             }
 
             base.PostSaveChanges( dbContext );
