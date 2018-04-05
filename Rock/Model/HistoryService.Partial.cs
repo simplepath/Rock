@@ -16,10 +16,11 @@
 //
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-
+using System.Reflection;
 using Rock.Data;
 using Rock.Web.Cache;
 
@@ -30,6 +31,307 @@ namespace Rock.Model
     /// </summary>
     public partial class HistoryService
     {
+        #region Queryable
+
+        /// <summary>
+        /// Gets the entity query for the specified EntityTypeId
+        /// </summary>
+        /// <param name="entityTypeId">The entity type identifier.</param>
+        /// <returns></returns>
+        public IQueryable<IEntity> GetEntityQuery( int entityTypeId )
+        {
+            EntityTypeCache entityTypeCache = EntityTypeCache.Read( entityTypeId );
+
+            var rockContext = this.Context as RockContext;
+
+            if ( entityTypeCache.AssemblyName != null )
+            {
+                Type entityType = entityTypeCache.GetEntityType();
+                if ( entityType != null )
+                {
+                    Type[] modelType = { entityType };
+                    Type genericServiceType = typeof( Rock.Data.Service<> );
+                    Type modelServiceType = genericServiceType.MakeGenericType( modelType );
+                    Rock.Data.IService serviceInstance = Activator.CreateInstance( modelServiceType, new object[] { rockContext } ) as IService;
+
+                    MethodInfo qryMethod = serviceInstance.GetType().GetMethod( "Queryable", new Type[] { } );
+                    var entityQry = qryMethod.Invoke( serviceInstance, new object[] { } ) as IQueryable<IEntity>;
+
+                    return entityQry;
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Gets the history summary by date.
+        /// </summary>
+        /// <param name="historySummaryList">The history summary list.</param>
+        /// <param name="roundingInternal">The rounding internal.</param>
+        /// <returns></returns>
+        public List<HistorySummaryByDateTime> GetHistorySummaryByDateTime( HistorySummaryList historySummaryList, TimeSpan roundingInternal )
+        {
+            var result = historySummaryList.GroupBy( a => a.CreatedDateTime.Round( roundingInternal ) ).Select( a => new HistorySummaryByDateTime
+            {
+                DateTime = a.Key,
+                HistorySummaryList = a.ToList()
+            } ).ToList();
+
+            return result;
+        }
+
+        public HistorySummaryList GetHistorySummaryByVerb( IQueryable<History> historyQry )
+        {
+            // group the history into into summaries of records that were saved at the same time (for the same Entity, Category, etc)
+            var historySummaryQry = historyQry
+                .GroupBy( a => new
+                {
+                    CreatedDateTime = a.CreatedDateTime.Value,
+                    EntityTypeId = a.EntityTypeId,
+                    EntityId = a.EntityId,
+                    CategoryId = a.CategoryId,
+                    RelatedEntityTypeId = a.RelatedEntityTypeId,
+                    RelatedEntityId = a.RelatedEntityId,
+                    CreatedByPerson = a.CreatedByPersonAlias.Person,
+                    Verb = a.Verb
+                } )
+                .OrderBy( a => a.Key.CreatedDateTime )
+                .Select( x => new HistorySummaryByVerb
+                {
+                    CreatedDateTime = x.Key.CreatedDateTime,
+                    EntityTypeId = x.Key.EntityTypeId,
+                    EntityId = x.Key.EntityId,
+                    CategoryId = x.Key.CategoryId,
+                    RelatedEntityTypeId = x.Key.RelatedEntityTypeId,
+                    RelatedEntityId = x.Key.RelatedEntityId,
+                    CreatedByPerson = x.Key.CreatedByPerson,
+                    Verb = x.Key.Verb,
+                    HistoryList = x.OrderBy( h => h.Id ).ToList()
+                } );
+
+            // load the query into a list
+            var historySummaryList = new HistorySummaryList( historySummaryQry.ToList() );
+
+            PopulateHistorySummaryEntities( historyQry, historySummaryList );
+
+            return historySummaryList;
+        }
+
+        /// <summary>
+        /// Converts a history query grouped into a List of HistorySummary objects
+        /// </summary>
+        /// <param name="historyQry">The history qry.</param>
+        /// <returns></returns>
+        public HistorySummaryList GetHistorySummary( IQueryable<History> historyQry )
+        {
+            // group the history into into summaries of records that were saved at the same time (for the same Entity, Category, etc)
+            var historySummaryQry = historyQry
+                .GroupBy( a => new
+                {
+                    CreatedDateTime = a.CreatedDateTime.Value,
+                    EntityTypeId = a.EntityTypeId,
+                    EntityId = a.EntityId,
+                    CategoryId = a.CategoryId,
+                    RelatedEntityTypeId = a.RelatedEntityTypeId,
+                    RelatedEntityId = a.RelatedEntityId,
+                    CreatedByPerson = a.CreatedByPersonAlias.Person
+                } )
+                .OrderBy( a => a.Key.CreatedDateTime )
+                .Select( x => new HistorySummary
+                {
+                    CreatedDateTime = x.Key.CreatedDateTime,
+                    EntityTypeId = x.Key.EntityTypeId,
+                    EntityId = x.Key.EntityId,
+                    CategoryId = x.Key.CategoryId,
+                    RelatedEntityTypeId = x.Key.RelatedEntityTypeId,
+                    RelatedEntityId = x.Key.RelatedEntityId,
+                    CreatedByPerson = x.Key.CreatedByPerson,
+                    HistoryList = x.OrderBy( h => h.Id ).ToList()
+                } );
+
+            // load the query into a list
+            var historySummaryList = new HistorySummaryList( historySummaryQry.ToList() );
+
+            PopulateHistorySummaryEntities( historyQry, historySummaryList );
+
+            return historySummaryList;
+        }
+
+        /// <summary>
+        /// Populates the history summary entities.
+        /// </summary>
+        /// <param name="historySummaryList">The history summary list.</param>
+        private void PopulateHistorySummaryEntities( IQueryable<History> historyQry, HistorySummaryList historySummaryList )
+        {
+            // find all the EntityTypes that are used as the History.EntityTypeId records
+            var entityTypeIdList = historyQry.Select( a => a.EntityTypeId ).Distinct().ToList();
+            foreach ( var entityTypeId in entityTypeIdList )
+            {
+                // for each entityType, query whatever it is (for example Person) so that we can populate the HistorySummary with that Entity
+                var entityLookup = this.GetEntityQuery( entityTypeId ).AsNoTracking()
+                    .Where( a => historyQry.Any( h => h.EntityTypeId == entityTypeId && h.EntityId == a.Id ) )
+                    .ToList().ToDictionary( k => k.Id, v => v );
+
+                foreach ( var historySummary in historySummaryList.Where( a => a.EntityTypeId == entityTypeId ) )
+                {
+                    // set the History.Entity to the Entity referenced by History.EntityTypeId/EntityId. If EntityType is Rock.Model.Person, then Entity would be the full Person record where Person.Id = EntityId
+                    historySummary.Entity = entityLookup.GetValueOrNull( historySummary.EntityId );
+                }
+            }
+
+            // find all the EntityTypes that are used as the History.RelatedEntityTypeId records
+            var relatedEntityTypeIdList = historyQry.Where( a => a.RelatedEntityTypeId.HasValue ).Select( a => a.RelatedEntityTypeId.Value ).Distinct().ToList();
+            foreach ( var relatedEntityTypeId in relatedEntityTypeIdList )
+            {
+                // for each relatedEntityType, query whatever it is (for example Group) so that we can populate the HistorySummary with that RelatedEntity
+                var relatedEntityLookup = this.GetEntityQuery( relatedEntityTypeId ).AsNoTracking()
+                    .Where( a => historyQry.Any( h => h.RelatedEntityTypeId == relatedEntityTypeId && h.RelatedEntityId == a.Id ) )
+                    .ToList().ToDictionary( k => k.Id, v => v );
+
+                foreach ( var historySummary in historySummaryList.Where( a => a.RelatedEntityTypeId == relatedEntityTypeId && a.RelatedEntityId.HasValue ) )
+                {
+                    // set the History.RelatedEntity to the Entity referenced by History.RelatedEntityTypeId/RelatedEntityId. If RelatedEntityType is Rock.Model.Group, then RelatedEntity would be the full Group record where Group.Id = RelatedEntityId
+                    historySummary.RelatedEntity = relatedEntityLookup.GetValueOrNull( historySummary.RelatedEntityId.Value );
+                }
+            }
+        }
+
+        #endregion
+
+        #region HistorySummary classes
+
+        public class HistorySummaryByVerb : HistorySummary
+        {
+            public string Verb { get; set; }
+        }
+
+        public class HistorySummaryByDateTime
+        {
+            public DateTime DateTime { get; set; }
+            public List<HistorySummary> HistorySummaryList { get; set; }
+        }
+
+
+        public class HistorySummaryList : List<HistorySummary>
+        {
+            public HistorySummaryList( IEnumerable<HistorySummary> list ) : base( list )
+            {
+
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <seealso cref="DotLiquid.Drop" />
+        public class HistorySummary : DotLiquid.Drop
+        {
+            public DateTime CreatedDateTime { get; set; }
+
+            public string Caption
+            {
+                get
+                {
+                    return this.HistoryList.FirstOrDefault()?.Caption;
+                }
+            }
+
+            public int EntityTypeId { get; set; }
+
+            public string EntityTypeName
+            {
+                get
+                {
+                    return EntityTypeCache.Read( this.EntityTypeId ).FriendlyName;
+                }
+            }
+
+            public int EntityId { get; set; }
+
+            public IEntity Entity { get; set; }
+
+            public int CategoryId { get; set; }
+
+            public CategoryCache Category
+            {
+                get
+                {
+                    return CategoryCache.Read( this.CategoryId );
+                }
+            }
+
+            public int? RelatedEntityTypeId { get; set; }
+
+            public string RelatedEntityTypeName
+            {
+                get
+                {
+                    if ( RelatedEntityTypeId.HasValue )
+                    {
+                        return EntityTypeCache.Read( this.RelatedEntityTypeId.Value )?.FriendlyName;
+                    }
+
+                    return null;
+                }
+            }
+
+            public int? RelatedEntityId { get; set; }
+
+            public IEntity RelatedEntity { get; set; }
+
+            public Person CreatedByPerson { get; set; }
+
+            public string CreatedByPersonName
+            {
+                get
+                {
+                    return CreatedByPerson?.FullName;
+                }
+            }
+
+            public string FormattedCaption
+            {
+                get
+                {
+                    var category = this.Category;
+                    var caption = this.Caption;
+                    if ( category != null )
+                    {
+                        string urlMask = category.GetAttributeValue( "UrlMask" );
+                        string virtualUrl = string.Empty;
+                        if ( !string.IsNullOrWhiteSpace( urlMask ) )
+                        {
+                            if ( urlMask.Contains( "{0}" ) )
+                            {
+                                string p1 = this.RelatedEntityId.HasValue ? this.RelatedEntityId.Value.ToString() : "";
+                                string p2 = this.EntityId.ToString();
+                                virtualUrl = string.Format( urlMask, p1, p2 );
+                            }
+
+                            string resolvedUrl;
+
+                            if ( System.Web.HttpContext.Current == null )
+                            {
+                                resolvedUrl = virtualUrl;
+                            }
+                            else
+                            {
+                                resolvedUrl = System.Web.VirtualPathUtility.ToAbsolute( virtualUrl );
+                            }
+
+                            return string.Format( "<a href='{0}'>{1}</a>", resolvedUrl, caption );
+                        }
+                    }
+
+                    return caption;
+                }
+            }
+            public List<History> HistoryList { get; set; }
+        }
+
+        #endregion
+
         /// <summary>
         /// Adds the changes.
         /// </summary>

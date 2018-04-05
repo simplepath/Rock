@@ -15,20 +15,16 @@
 // </copyright>
 //
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.IO;
 using System.Linq;
 using System.Web.UI;
-using System.Web.UI.WebControls;
-
 using Rock;
+using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
 using Rock.Web.Cache;
-using Rock.Web.UI.Controls;
-using Rock.Attribute;
 using Rock.Web.UI;
+using Rock.Web.UI.Controls;
 
 namespace RockWeb.Blocks.Groups
 {
@@ -104,15 +100,29 @@ namespace RockWeb.Blocks.Groups
 
             int entityId = this.PageParameter( "GroupId" ).AsInteger();
 
-            var historyList = historyService.Queryable().Where( a => ( a.EntityTypeId == entityTypeIdGroup.Value && a.EntityId == entityId ) || ( a.RelatedEntityTypeId == entityTypeIdGroup && a.RelatedEntityId == entityId ) ).OrderByDescending( a => a.CreatedDateTime ).ToList();
+            rockContext.SqlLogging( true );
+
+            var historyQry = historyService.Queryable()
+                .Where( a => ( a.EntityTypeId == entityTypeIdGroup.Value && a.EntityId == entityId ) || ( a.RelatedEntityTypeId == entityTypeIdGroup && a.RelatedEntityId == entityId ) && a.CreatedDateTime.HasValue );
+
+            var historySummaryList = historyService.GetHistorySummary( historyQry );
+            var historySummaryByDate = historyService.GetHistorySummaryByDateTime( historySummaryList, new TimeSpan( 1, 0, 0 ) );
+            var historySummaryByVerb = historyService.GetHistorySummaryByVerb( historyQry );
+            var historySummaryByDateByVerb = historyService.GetHistorySummaryByDateTime( historySummaryByVerb, new TimeSpan( 1, 0, 0 ) );
 
             string groupHistoryLavaTemplate = this.GetAttributeValue( "GroupHistoryLavaTemplate" );
             var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( this.RockPage, this.CurrentPerson, new Rock.Lava.CommonMergeFieldsOptions { GetLegacyGlobalMergeFields = false } );
-            mergeFields.Add( "HistoryList", historyList );
+
+            mergeFields.Add( "HistorySummaryList", historySummaryList );
+            mergeFields.Add( "HistorySummaryByDateByVerb", historySummaryByDateByVerb );
             string groupHistoryHtml = groupHistoryLavaTemplate.ResolveMergeFields( mergeFields );
             lTimelineHtml.Text = groupHistoryHtml;
+
+            rockContext.SqlLogging( false );
         }
 
         #endregion
     }
+
+
 }

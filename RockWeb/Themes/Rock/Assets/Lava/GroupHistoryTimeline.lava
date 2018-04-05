@@ -1,10 +1,33 @@
 ﻿<div class="group-history-timeline js-group-history-timeline">
-    {% for History in HistoryList %}
-		<p>Category: {{ History.Category.Name}}</p>
-		<p>CreatedByPersonName: {{ History.CreatedByPersonName}}</p>
-		<p>CreatedDateTime: {{ History.CreatedDateTime}}</p>
-		{{ History | Debug }}
-		<div>SummaryHtml: {{ History.SummaryHtml }}</div>
+    {% for HistorySummary in HistorySummaryList %}
+		<dl>
+			<dt>CreatedDateTime</dt>
+			<dd>{{ HistorySummary.CreatedDateTime}}</dd>
+			
+			<dt>Category</dt>
+			<dd>{{ HistorySummary.Category.Name}}</dd>
+
+			<dt>{{ HistorySummary.EntityTypeName }} </dt>
+			<dd>{{ HistorySummary.Entity | ToString }}</dd>
+
+			<dt>{{ HistorySummary.RelatedEntityTypeName }} </dt>
+			<dd>{{ HistorySummary.RelatedEntity | ToString }}</dd>
+		
+		    <dt>CreatedByPersonName</dt>
+			<dd>{{ HistorySummary.CreatedByPersonName}}</dd>
+
+			<dt>FormattedCaption</dt>
+			<dd>{{ HistorySummary.FormattedCaption }}</dd>
+		
+		
+			<dt>Changes</dt>
+			<dd>
+				{% for History in HistorySummary.HistoryList %}
+					<p>{{ History.SummaryHtml }}</p>
+				{% endfor %}
+			</dd>
+
+		</dl>
 		<hr />
     {% endfor %}
 </div>
