@@ -1,31 +1,68 @@
 ﻿<div class="group-history-timeline js-group-history-timeline">
-    {% for HistorySummary in HistorySummaryList %}
+    {% for HistorySummaryByDateByVerb in HistorySummaryByDateByVerbList %}
 		<dl>
-			<dt>CreatedDateTime</dt>
-			<dd>{{ HistorySummary.CreatedDateTime}}</dd>
 			
-			<dt>Category</dt>
-			<dd>{{ HistorySummary.Category.Name}}</dd>
-
-			<dt>{{ HistorySummary.EntityTypeName }} </dt>
-			<dd>{{ HistorySummary.Entity | ToString }}</dd>
-
-			<dt>{{ HistorySummary.RelatedEntityTypeName }} </dt>
-			<dd>{{ HistorySummary.RelatedEntity | ToString }}</dd>
-		
-		    <dt>CreatedByPersonName</dt>
-			<dd>{{ HistorySummary.CreatedByPersonName}}</dd>
-
-			<dt>FormattedCaption</dt>
-			<dd>{{ HistorySummary.FormattedCaption }}</dd>
-		
-		
+			
+			<dt>Date</dt>
+			<dd>{{ HistorySummaryByDateByVerb.DateTime | Date:'M/d/yyyy'}}</dd>
+			
+			
 			<dt>Changes</dt>
-			<dd>
-				{% for History in HistorySummary.HistoryList %}
-					<p>{{ History.SummaryHtml }}</p>
-				{% endfor %}
-			</dd>
+            <dd class='margin-l-md'>
+                {% for HistorySummary in HistorySummaryByDateByVerb.HistorySummaryList %}
+
+                <strong>Verb: {{ HistorySummary.Verb }}</strong>
+                <dl>
+                    <dt>CreatedDateTime</dt>
+                    <dd>{{ HistorySummary.CreatedDateTime }}</dd>
+
+                    <dt>Caption</dt>
+                    <dd>{{ HistorySummary.Caption }}</dd>
+
+                    <dt>{{ HistorySummary.EntityTypeName }}</dt>
+                    <dd>{{ HistorySummary.Entity | ToString }}</dd>
+
+                    <dt>Category</dt>
+                    <dd>{{ HistorySummary.Category.Name }}</dd>
+
+                    <dt>{{ HistorySummary.RelatedEntityTypeName }}</dt>
+                    <dd>{{ HistorySummary.RelatedEntity | ToString }}</dd>
+
+                    <dt>CreatedByPersonName</dt>
+                    <dd>{{ HistorySummary.CreatedByPersonName }}</dd>
+
+                    <dt>FormattedCaption</dt>
+                    <dd>{{ HistorySummary.FormattedCaption }}</dd>
+
+                    {% assign historyDetailCount = HistorySummary.HistoryList | Size %}
+
+					{% if historyDetailCount > 1 %}
+
+                    <dt>Additional Details</dt>
+                    <dd>
+                        {% comment %} the first history record is the same as the HistorySummary, so skip it {% endcomment %}
+                        {% for History in HistorySummary.HistoryList offset:1 %}
+<pre>
+<code>
+    {{ History.SummaryHtml }}    
+	Verb: {{History.Verb}}
+        Caption: {{History.Caption}}
+        ChangeType: {{History.ChangeType}}
+        ValueName: {{History.ValueName}}
+        NewValue: {{History.NewValue}}
+        OldValue: {{History.OldValue}}
+        SourceOfChange: {{History.SourceOfChange}}
+</code>
+</pre>
+                        {% endfor %}
+                    </dd>
+
+					{% endif %}
+
+                </dl>
+                <hr />
+                {% endfor %}
+            </dd>
 
 		</dl>
 		<hr />

@@ -105,16 +105,16 @@ namespace RockWeb.Blocks.Groups
             var historyQry = historyService.Queryable()
                 .Where( a => ( a.EntityTypeId == entityTypeIdGroup.Value && a.EntityId == entityId ) || ( a.RelatedEntityTypeId == entityTypeIdGroup && a.RelatedEntityId == entityId ) && a.CreatedDateTime.HasValue );
 
-            var historySummaryList = historyService.GetHistorySummary( historyQry );
-            var historySummaryByDate = historyService.GetHistorySummaryByDateTime( historySummaryList, new TimeSpan( 1, 0, 0 ) );
+            //var historySummaryList = historyService.GetHistorySummary( historyQry );
+            //var historySummaryByDate = historyService.GetHistorySummaryByDateTime( historySummaryList, TimeSpan.FromDays(1) );
             var historySummaryByVerb = historyService.GetHistorySummaryByVerb( historyQry );
-            var historySummaryByDateByVerb = historyService.GetHistorySummaryByDateTime( historySummaryByVerb, new TimeSpan( 1, 0, 0 ) );
-
+            var historySummaryByDateByVerb = historyService.GetHistorySummaryByDateTime( historySummaryByVerb, TimeSpan.FromDays( 1 ) );
+            
             string groupHistoryLavaTemplate = this.GetAttributeValue( "GroupHistoryLavaTemplate" );
             var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( this.RockPage, this.CurrentPerson, new Rock.Lava.CommonMergeFieldsOptions { GetLegacyGlobalMergeFields = false } );
 
-            mergeFields.Add( "HistorySummaryList", historySummaryList );
-            mergeFields.Add( "HistorySummaryByDateByVerb", historySummaryByDateByVerb );
+            //mergeFields.Add( "HistorySummaryList", historySummaryList );
+            mergeFields.Add( "HistorySummaryByDateByVerbList", historySummaryByDateByVerb );
             string groupHistoryHtml = groupHistoryLavaTemplate.ResolveMergeFields( mergeFields );
             lTimelineHtml.Text = groupHistoryHtml;
 

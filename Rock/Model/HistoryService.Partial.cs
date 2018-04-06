@@ -68,11 +68,22 @@ namespace Rock.Model
         /// Gets the history summary by date.
         /// </summary>
         /// <param name="historySummaryList">The history summary list.</param>
-        /// <param name="roundingInternal">The rounding internal.</param>
+        /// <param name="roundingInterval">The rounding interval.</param>
         /// <returns></returns>
-        public List<HistorySummaryByDateTime> GetHistorySummaryByDateTime( HistorySummaryList historySummaryList, TimeSpan roundingInternal )
+        public List<HistorySummaryByDateTime> GetHistorySummaryByDateTime( HistorySummaryList historySummaryList, TimeSpan roundingInterval )
         {
-            var result = historySummaryList.GroupBy( a => a.CreatedDateTime.Round( roundingInternal ) ).Select( a => new HistorySummaryByDateTime
+            IEnumerable<IGrouping<DateTime, HistorySummary>> groupByQry;
+            if ( roundingInterval == TimeSpan.FromDays( 1 ) )
+            {
+                // if rounding by date, just group by the date without Time
+                groupByQry = historySummaryList.GroupBy( a => a.CreatedDateTime.Date );
+            }
+            else
+            {
+                groupByQry = historySummaryList.GroupBy( a => a.CreatedDateTime.Round( roundingInterval ) );
+            }
+
+            var result = groupByQry.Select( a => new HistorySummaryByDateTime
             {
                 DateTime = a.Key,
                 HistorySummaryList = a.ToList()
@@ -81,6 +92,11 @@ namespace Rock.Model
             return result;
         }
 
+        /// <summary>
+        /// Gets the history summary by verb.
+        /// </summary>
+        /// <param name="historyQry">The history qry.</param>
+        /// <returns></returns>
         public HistorySummaryList GetHistorySummaryByVerb( IQueryable<History> historyQry )
         {
             // group the history into into summaries of records that were saved at the same time (for the same Entity, Category, etc)
@@ -94,7 +110,6 @@ namespace Rock.Model
                     RelatedEntityTypeId = a.RelatedEntityTypeId,
                     RelatedEntityId = a.RelatedEntityId,
                     CreatedByPerson = a.CreatedByPersonAlias.Person,
-                    Verb = a.Verb
                 } )
                 .OrderBy( a => a.Key.CreatedDateTime )
                 .Select( x => new HistorySummaryByVerb
@@ -106,7 +121,6 @@ namespace Rock.Model
                     RelatedEntityTypeId = x.Key.RelatedEntityTypeId,
                     RelatedEntityId = x.Key.RelatedEntityId,
                     CreatedByPerson = x.Key.CreatedByPerson,
-                    Verb = x.Key.Verb,
                     HistoryList = x.OrderBy( h => h.Id ).ToList()
                 } );
 
@@ -201,23 +215,68 @@ namespace Rock.Model
 
         #region HistorySummary classes
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <seealso cref="Rock.Model.HistoryService.HistorySummary" />
         public class HistorySummaryByVerb : HistorySummary
         {
-            public string Verb { get; set; }
+            /// <summary>
+            /// Gets or sets the verb.
+            /// </summary>
+            /// <value>
+            /// The verb.
+            /// </value>
+            public string Verb
+            {
+                get
+                {
+                    if ( _verb == null )
+                    {
+                        _verb = this.HistoryList.FirstOrDefault()?.Verb ?? "";
+                    }
+
+                    return _verb;
+                }
+            }
+
+            private string _verb = null;
         }
 
-        public class HistorySummaryByDateTime
+        /// <summary>
+        /// 
+        /// </summary>
+        public class HistorySummaryByDateTime : DotLiquid.Drop
         {
+            /// <summary>
+            /// Gets or sets the date time.
+            /// </summary>
+            /// <value>
+            /// The date time.
+            /// </value>
             public DateTime DateTime { get; set; }
+
+            /// <summary>
+            /// Gets or sets the history summary list.
+            /// </summary>
+            /// <value>
+            /// The history summary list.
+            /// </value>
             public List<HistorySummary> HistorySummaryList { get; set; }
         }
 
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <seealso cref="System.Collections.Generic.List{Rock.Model.HistoryService.HistorySummary}" />
         public class HistorySummaryList : List<HistorySummary>
         {
+            /// <summary>
+            /// Initializes a new instance of the <see cref="HistorySummaryList"/> class.
+            /// </summary>
+            /// <param name="list">The list.</param>
             public HistorySummaryList( IEnumerable<HistorySummary> list ) : base( list )
             {
-
             }
         }
 
@@ -227,8 +286,20 @@ namespace Rock.Model
         /// <seealso cref="DotLiquid.Drop" />
         public class HistorySummary : DotLiquid.Drop
         {
+            /// <summary>
+            /// Gets or sets the created date time.
+            /// </summary>
+            /// <value>
+            /// The created date time.
+            /// </value>
             public DateTime CreatedDateTime { get; set; }
 
+            /// <summary>
+            /// Gets the caption.
+            /// </summary>
+            /// <value>
+            /// The caption.
+            /// </value>
             public string Caption
             {
                 get
@@ -237,8 +308,20 @@ namespace Rock.Model
                 }
             }
 
+            /// <summary>
+            /// Gets or sets the entity type identifier.
+            /// </summary>
+            /// <value>
+            /// The entity type identifier.
+            /// </value>
             public int EntityTypeId { get; set; }
 
+            /// <summary>
+            /// Gets the name of the entity type.
+            /// </summary>
+            /// <value>
+            /// The name of the entity type.
+            /// </value>
             public string EntityTypeName
             {
                 get
@@ -247,12 +330,36 @@ namespace Rock.Model
                 }
             }
 
+            /// <summary>
+            /// Gets or sets the entity identifier.
+            /// </summary>
+            /// <value>
+            /// The entity identifier.
+            /// </value>
             public int EntityId { get; set; }
 
+            /// <summary>
+            /// Gets or sets the entity.
+            /// </summary>
+            /// <value>
+            /// The entity.
+            /// </value>
             public IEntity Entity { get; set; }
 
+            /// <summary>
+            /// Gets or sets the category identifier.
+            /// </summary>
+            /// <value>
+            /// The category identifier.
+            /// </value>
             public int CategoryId { get; set; }
 
+            /// <summary>
+            /// Gets the category.
+            /// </summary>
+            /// <value>
+            /// The category.
+            /// </value>
             public CategoryCache Category
             {
                 get
@@ -261,8 +368,20 @@ namespace Rock.Model
                 }
             }
 
+            /// <summary>
+            /// Gets or sets the related entity type identifier.
+            /// </summary>
+            /// <value>
+            /// The related entity type identifier.
+            /// </value>
             public int? RelatedEntityTypeId { get; set; }
 
+            /// <summary>
+            /// Gets the name of the related entity type.
+            /// </summary>
+            /// <value>
+            /// The name of the related entity type.
+            /// </value>
             public string RelatedEntityTypeName
             {
                 get
@@ -276,12 +395,36 @@ namespace Rock.Model
                 }
             }
 
+            /// <summary>
+            /// Gets or sets the related entity identifier.
+            /// </summary>
+            /// <value>
+            /// The related entity identifier.
+            /// </value>
             public int? RelatedEntityId { get; set; }
 
+            /// <summary>
+            /// Gets or sets the related entity.
+            /// </summary>
+            /// <value>
+            /// The related entity.
+            /// </value>
             public IEntity RelatedEntity { get; set; }
 
+            /// <summary>
+            /// Gets or sets the created by person.
+            /// </summary>
+            /// <value>
+            /// The created by person.
+            /// </value>
             public Person CreatedByPerson { get; set; }
 
+            /// <summary>
+            /// Gets the name of the created by person.
+            /// </summary>
+            /// <value>
+            /// The name of the created by person.
+            /// </value>
             public string CreatedByPersonName
             {
                 get
@@ -290,6 +433,12 @@ namespace Rock.Model
                 }
             }
 
+            /// <summary>
+            /// Gets the formatted caption.
+            /// </summary>
+            /// <value>
+            /// The formatted caption.
+            /// </value>
             public string FormattedCaption
             {
                 get
@@ -327,6 +476,13 @@ namespace Rock.Model
                     return caption;
                 }
             }
+
+            /// <summary>
+            /// Gets or sets the history list.
+            /// </summary>
+            /// <value>
+            /// The history list.
+            /// </value>
             public List<History> HistoryList { get; set; }
         }
 

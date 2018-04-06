@@ -179,8 +179,8 @@ namespace Rock.Jobs
                         }
                         else if ( addedMatch.Success )
                         {
-                            historyVerb = History.HistoryVerb.Add;
-                            historyChangeType = History.HistoryChangeType.Record;
+                            historyVerb = History.HistoryVerb.Modify;
+                            historyChangeType = History.HistoryChangeType.Property;
 
                             historyRecord.ValueName = addedMatch.Groups[1].Value.Trim();
                             historyRecord.OldValue = null;
@@ -189,8 +189,8 @@ namespace Rock.Jobs
                         }
                         else if ( deletedMatch.Success )
                         {
-                            historyVerb = History.HistoryVerb.Delete;
-                            historyChangeType = History.HistoryChangeType.Record;
+                            historyVerb = History.HistoryVerb.Modify;
+                            historyChangeType = History.HistoryChangeType.Property;
                             historyRecord.ValueName = deletedMatch.Groups[1].Value.Trim();
                             historyRecord.OldValue = deletedMatch.Groups[2].Value;
                             historyRecord.NewValue = null;

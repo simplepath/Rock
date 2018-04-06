@@ -299,19 +299,30 @@ namespace Rock.Model
                                     }
                                     else
                                     {
-                                        StringBuilder modifySummary = new StringBuilder( $"Modified <span class='field-name'>{this.ValueName}</span>" );
-                                        if ( !string.IsNullOrEmpty( this.OldValue ) )
+                                        string summaryVerb;
+                                        string summaryValue;
+
+                                        if ( this.OldValue == null && this.NewValue != null )
                                         {
-                                            modifySummary.Append( $" value from <span class='field-value'>{this.OldValue}</span>" );
+                                            // pre-V8 when a property was modified from null, it would get summarized as 'Added ..."
+                                            summaryVerb = "Added";
+                                            summaryValue = $" value of <span class='field-value'>{this.NewValue}</span>";
+                                        }
+                                        else if ( this.OldValue != null && this.NewValue == null )
+                                        {
+                                            // pre-V8 when a property was modified to null, it would get summarized as 'Deleted ..."
+                                            summaryVerb = "Deleted";
+                                            summaryValue = $" value of <span class='field-value'>{this.OldValue}</span>";
+                                        }
+                                        else
+                                        {
+                                            summaryVerb = "Modified";
+                                            summaryValue = $" value from <span class='field-value'>{this.OldValue}</span> to <span class='field-value'>{this.NewValue}</span>";
                                         }
 
-                                        if ( !string.IsNullOrEmpty( this.NewValue ) )
-                                        {
-                                            modifySummary.Append( $" to <span class='field-value'>{this.NewValue}</span>" );
-                                        }
+                                        string modifySummary = $"{summaryVerb} <span class='field-name'>{this.ValueName}</span> {summaryValue}";
 
-                                        modifySummary.Append( "." );
-                                        return modifySummary.ToString();
+                                        return modifySummary;
                                     }
                                 }
 
@@ -556,11 +567,11 @@ namespace Rock.Model
                 {
                     if ( isSensitive )
                     {
-                        historyChangeList.AddChange( HistoryVerb.Delete, HistoryChangeType.Record, propertyName ).SetSensitive();
+                        historyChangeList.AddChange( HistoryVerb.Modify, HistoryChangeType.Property, propertyName ).SetSensitive();
                     }
                     else
                     {
-                        historyChangeList.AddChange( HistoryVerb.Delete, HistoryChangeType.Record, propertyName ).SetOldValue( oldValue );
+                        historyChangeList.AddChange( HistoryVerb.Modify, HistoryChangeType.Property, propertyName ).SetOldValue( oldValue );
                     }
                 }
             }
@@ -568,11 +579,11 @@ namespace Rock.Model
             {
                 if ( isSensitive )
                 {
-                    historyChangeList.AddChange( HistoryVerb.Add, HistoryChangeType.Record, propertyName ).SetSensitive();
+                    historyChangeList.AddChange( HistoryVerb.Modify, HistoryChangeType.Property, propertyName ).SetSensitive();
                 }
                 else
                 {
-                    historyChangeList.AddChange( HistoryVerb.Add, HistoryChangeType.Record, propertyName ).SetNewValue( newValue );
+                    historyChangeList.AddChange( HistoryVerb.Modify, HistoryChangeType.Property, propertyName ).SetNewValue( newValue );
                 }
             }
         }
