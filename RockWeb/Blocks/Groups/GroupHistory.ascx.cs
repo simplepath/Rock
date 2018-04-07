@@ -93,7 +93,8 @@ namespace RockWeb.Blocks.Groups
             RockContext rockContext = new RockContext();
             HistoryService historyService = new HistoryService( rockContext );
             int? entityTypeIdGroup = EntityTypeCache.GetId<Rock.Model.Group>();
-            if ( !entityTypeIdGroup.HasValue )
+            int? entityTypeIdGroupMember = EntityTypeCache.GetId<Rock.Model.GroupMember>();
+            if ( !entityTypeIdGroup.HasValue || !entityTypeIdGroupMember.HasValue )
             {
                 return;
             }
@@ -102,8 +103,12 @@ namespace RockWeb.Blocks.Groups
 
             rockContext.SqlLogging( true );
 
+            // get either history on the group (EntityTypeId is Group), or history on GroupMember's of this Group (EntityTypeId is GroupMember and RelatedEntityTypeId is Group)
             var historyQry = historyService.Queryable()
-                .Where( a => ( a.EntityTypeId == entityTypeIdGroup.Value && a.EntityId == entityId ) || ( a.RelatedEntityTypeId == entityTypeIdGroup && a.RelatedEntityId == entityId ) && a.CreatedDateTime.HasValue );
+                .Where( a => 
+                    ( a.EntityTypeId == entityTypeIdGroup.Value && a.EntityId == entityId ) 
+                    || 
+                    ( a.RelatedEntityTypeId == entityTypeIdGroup && a.EntityTypeId == entityTypeIdGroupMember && a.RelatedEntityId == entityId ) && a.CreatedDateTime.HasValue );
 
             //var historySummaryList = historyService.GetHistorySummary( historyQry );
             //var historySummaryByDate = historyService.GetHistorySummaryByDateTime( historySummaryList, TimeSpan.FromDays(1) );

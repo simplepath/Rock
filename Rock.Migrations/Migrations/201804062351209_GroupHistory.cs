@@ -398,7 +398,7 @@ WHERE [Guid] = '089EB47D-D0EF-493E-B867-DC51BCDEF319'
 DELETE
 FROM Category
 WHERE [Guid] = '180C5767-8769-4C51-865F-FEE29AEF80A0'" );
-            
+
             /* Pages/Blocks*/
             // Remove Block: Group Archived List, from Page: Archived Groups, Site: Rock RMS
             RockMigrationHelper.DeleteBlock( "5522523B-15F7-49EA-B6FF-374F2BD101C1" );
