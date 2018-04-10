@@ -33,9 +33,11 @@ namespace RockWeb.Blocks.Groups
     /// </summary>
     [DisplayName( "Group History" )]
     [Category( "Groups" )]
-    [Description( "Displays a timeline of group history" )]
+    [Description( "Displays a timeline of History" )]
 
-    [CodeEditorField( "Group History Lava Template", "The Lava Template to use when rendering the timeline view of group history.", CodeEditorMode.Lava, CodeEditorTheme.Rock, 100, false, @"{% include '~~/Assets/Lava/GroupHistoryTimeline.lava' %}", order: 1 )]
+    [CodeEditorField( "Timeline Lava Template", "The Lava Template to use when rendering the timeline view of the history.", CodeEditorMode.Lava, CodeEditorTheme.Rock, 100, false, @"{% include '~~/Assets/Lava/GroupHistoryTimeline.lava' %}", order: 1 )]
+    [EntityTypeField( "Primary Entity Type", "The Entity Type to show history for. Any history records that have this as the EntityType will be included", required: true, order: 2 )]
+    [EntityTypeField( "Secondary Entity Type", "The Entity Type to show history for. Any history records that have this as the EntityType and the PrimaryEntityType as the RelatedEntityType will be included. For example, for Group History, set Primary Entity Type as Group and Secondary Entity Type as GroupMember.", required: false, order: 2 )]
     public partial class GroupHistory : RockBlock, ICustomGridColumns
     {
         #region Base Control Methods
@@ -92,38 +94,66 @@ namespace RockWeb.Blocks.Groups
         {
             RockContext rockContext = new RockContext();
             HistoryService historyService = new HistoryService( rockContext );
-            int? entityTypeIdGroup = EntityTypeCache.GetId<Rock.Model.Group>();
-            int? entityTypeIdGroupMember = EntityTypeCache.GetId<Rock.Model.GroupMember>();
-            if ( !entityTypeIdGroup.HasValue || !entityTypeIdGroupMember.HasValue )
+
+            EntityTypeCache primaryEntityType = EntityTypeCache.Read( this.GetAttributeValue( "PrimaryEntityType" ).AsGuid() );
+            EntityTypeCache secondaryEntityType = EntityTypeCache.Read( this.GetAttributeValue( "SecondaryEntityType" ).AsGuid() );
+
+            if ( primaryEntityType == null )
             {
                 return;
             }
 
-            int entityId = this.PageParameter( "GroupId" ).AsInteger();
+            var primaryEntityTypePageParameterName = string.Format( "{0}Id", primaryEntityType.Name.Split( '.' ).LastOrDefault() );
+            int entityId = this.PageParameter( primaryEntityTypePageParameterName ).AsInteger();
+            if ( entityId == 0 )
+            {
+                return;
+            }
 
-            rockContext.SqlLogging( true );
+            var entityTypeIdPrimary = primaryEntityType.Id;
 
-            // get either history on the group (EntityTypeId is Group), or history on GroupMember's of this Group (EntityTypeId is GroupMember and RelatedEntityTypeId is Group)
-            var historyQry = historyService.Queryable()
-                .Where( a => 
-                    ( a.EntityTypeId == entityTypeIdGroup.Value && a.EntityId == entityId ) 
-                    || 
-                    ( a.RelatedEntityTypeId == entityTypeIdGroup && a.EntityTypeId == entityTypeIdGroupMember && a.RelatedEntityId == entityId ) && a.CreatedDateTime.HasValue );
 
-            //var historySummaryList = historyService.GetHistorySummary( historyQry );
-            //var historySummaryByDate = historyService.GetHistorySummaryByDateTime( historySummaryList, TimeSpan.FromDays(1) );
-            var historySummaryByVerb = historyService.GetHistorySummaryByVerb( historyQry );
-            var historySummaryByDateByVerb = historyService.GetHistorySummaryByDateTime( historySummaryByVerb, TimeSpan.FromDays( 1 ) );
+            var primaryEntity = historyService.GetEntityQuery( entityTypeIdPrimary ).FirstOrDefault( a => a.Id == entityId );
+
+            /////// get either history on the group (EntityTypeId is Group), or history on GroupMember's of this Group (EntityTypeId is GroupMember and RelatedEntityTypeId is Group)
             
-            string groupHistoryLavaTemplate = this.GetAttributeValue( "GroupHistoryLavaTemplate" );
+            var historyQry = historyService.Queryable().Where( a => a.CreatedDateTime.HasValue );
+
+            if ( secondaryEntityType == null )
+            {
+                // get history records where the primaryentity is the Entity
+                historyQry = historyQry.Where( a => a.EntityTypeId == entityTypeIdPrimary && a.EntityId == entityId );
+            }
+            else
+            {
+                // get history records where the primaryentity is the Entity OR the primaryEntity is the RelatedEntity and the Entity is the Secondary Entity
+                // For example, for GroupHistory, Set PrimaryEntityType to Group and SecondaryEntityType to GroupMember, then get history where the Group is History.Entity or the Group is the RelatedEntity and GroupMember is the EntityType
+                var entityTypeIdSecondary = secondaryEntityType.Id;
+                historyQry = historyQry.Where( a =>
+                    ( a.EntityTypeId == entityTypeIdPrimary && a.EntityId == entityId )
+                    || ( a.RelatedEntityTypeId == entityTypeIdPrimary && a.EntityTypeId == entityTypeIdSecondary && a.RelatedEntityId == entityId )
+                    );
+            }
+
+            var historySummaryList = historyService.GetHistorySummary( historyQry );
+            var historySummaryByDateList = historyService.GetHistorySummaryByDateTime( historySummaryList, TimeSpan.FromDays( 1 ) );
+            historySummaryByDateList = historySummaryByDateList.OrderByDescending( a => a.DateTime ).ToList();
+            var historySummaryByDateByVerbList = historyService.GetHistorySummaryByDateTimeAndVerb( historySummaryByDateList );
+
+            string timelineLavaTemplate = this.GetAttributeValue( "TimelineLavaTemplate" );
+
             var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( this.RockPage, this.CurrentPerson, new Rock.Lava.CommonMergeFieldsOptions { GetLegacyGlobalMergeFields = false } );
+            mergeFields.Add( "PrimaryEntity", primaryEntity );
+            mergeFields.Add( "PrimaryEntityTypeName", primaryEntityType.FriendlyName );
+            if ( secondaryEntityType != null )
+            {
+                mergeFields.Add( "SecondaryEntityTypeName", secondaryEntityType.FriendlyName );
+            }
 
-            //mergeFields.Add( "HistorySummaryList", historySummaryList );
-            mergeFields.Add( "HistorySummaryByDateByVerbList", historySummaryByDateByVerb );
-            string groupHistoryHtml = groupHistoryLavaTemplate.ResolveMergeFields( mergeFields );
-            lTimelineHtml.Text = groupHistoryHtml;
-
-            rockContext.SqlLogging( false );
+            mergeFields.Add( "HistorySummaryByDateList", historySummaryByDateList );
+            mergeFields.Add( "HistorySummaryByDateByVerbList", historySummaryByDateByVerbList );
+            string timelineHtml = timelineLavaTemplate.ResolveMergeFields( mergeFields );
+            lTimelineHtml.Text = timelineHtml;
         }
 
         #endregion

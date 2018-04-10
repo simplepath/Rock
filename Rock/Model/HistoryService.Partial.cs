@@ -70,7 +70,7 @@ namespace Rock.Model
         /// <param name="historySummaryList">The history summary list.</param>
         /// <param name="roundingInterval">The rounding interval.</param>
         /// <returns></returns>
-        public List<HistorySummaryByDateTime> GetHistorySummaryByDateTime( HistorySummaryList historySummaryList, TimeSpan roundingInterval )
+        public List<HistorySummaryByDateTime> GetHistorySummaryByDateTime( List<HistorySummary> historySummaryList, TimeSpan roundingInterval )
         {
             IEnumerable<IGrouping<DateTime, HistorySummary>> groupByQry;
             if ( roundingInterval == TimeSpan.FromDays( 1 ) )
@@ -93,43 +93,28 @@ namespace Rock.Model
         }
 
         /// <summary>
-        /// Gets the history summary by verb.
+        /// Gets the history summary by date time and verb.
         /// </summary>
-        /// <param name="historyQry">The history qry.</param>
+        /// <param name="historySummaryByDateTime">The history summary by date time.</param>
         /// <returns></returns>
-        public HistorySummaryList GetHistorySummaryByVerb( IQueryable<History> historyQry )
+        public List<HistorySummaryByDateTimeAndVerb> GetHistorySummaryByDateTimeAndVerb( List<HistorySummaryByDateTime> historySummaryByDateTimeList )
         {
-            // group the history into into summaries of records that were saved at the same time (for the same Entity, Category, etc)
-            var historySummaryQry = historyQry
-                .GroupBy( a => new
+            List<HistorySummaryByDateTimeAndVerb> historySummaryByDateTimeAndVerbList = new List<HistorySummaryByDateTimeAndVerb>();
+
+            foreach ( var historySummaryByDateTime in historySummaryByDateTimeList )
+            {
+                HistorySummaryByDateTimeAndVerb historySummaryByDateTimeAndVerb = new HistorySummaryByDateTimeAndVerb();
+                historySummaryByDateTimeAndVerb.DateTime = historySummaryByDateTime.DateTime;
+                historySummaryByDateTimeAndVerb.HistorySummaryListByVerbList = historySummaryByDateTime.HistorySummaryList.GroupBy( a => a.Verb ).Select( x => new HistorySummaryListByVerb
                 {
-                    CreatedDateTime = a.CreatedDateTime.Value,
-                    EntityTypeId = a.EntityTypeId,
-                    EntityId = a.EntityId,
-                    CategoryId = a.CategoryId,
-                    RelatedEntityTypeId = a.RelatedEntityTypeId,
-                    RelatedEntityId = a.RelatedEntityId,
-                    CreatedByPerson = a.CreatedByPersonAlias.Person,
-                } )
-                .OrderBy( a => a.Key.CreatedDateTime )
-                .Select( x => new HistorySummaryByVerb
-                {
-                    CreatedDateTime = x.Key.CreatedDateTime,
-                    EntityTypeId = x.Key.EntityTypeId,
-                    EntityId = x.Key.EntityId,
-                    CategoryId = x.Key.CategoryId,
-                    RelatedEntityTypeId = x.Key.RelatedEntityTypeId,
-                    RelatedEntityId = x.Key.RelatedEntityId,
-                    CreatedByPerson = x.Key.CreatedByPerson,
-                    HistoryList = x.OrderBy( h => h.Id ).ToList()
-                } );
+                    Verb = x.Key,
+                    HistorySummaryList = x.ToList()
+                } ).ToList();
 
-            // load the query into a list
-            var historySummaryList = new HistorySummaryList( historySummaryQry.ToList() );
+                historySummaryByDateTimeAndVerbList.Add( historySummaryByDateTimeAndVerb );
+            }
 
-            PopulateHistorySummaryEntities( historyQry, historySummaryList );
-
-            return historySummaryList;
+            return historySummaryByDateTimeAndVerbList;
         }
 
         /// <summary>
@@ -137,7 +122,7 @@ namespace Rock.Model
         /// </summary>
         /// <param name="historyQry">The history qry.</param>
         /// <returns></returns>
-        public HistorySummaryList GetHistorySummary( IQueryable<History> historyQry )
+        public List<HistorySummary> GetHistorySummary( IQueryable<History> historyQry )
         {
             // group the history into into summaries of records that were saved at the same time (for the same Entity, Category, etc)
             var historySummaryQry = historyQry
@@ -165,7 +150,7 @@ namespace Rock.Model
                 } );
 
             // load the query into a list
-            var historySummaryList = new HistorySummaryList( historySummaryQry.ToList() );
+            var historySummaryList = historySummaryQry.ToList();
 
             PopulateHistorySummaryEntities( historyQry, historySummaryList );
 
@@ -176,7 +161,7 @@ namespace Rock.Model
         /// Populates the history summary entities.
         /// </summary>
         /// <param name="historySummaryList">The history summary list.</param>
-        private void PopulateHistorySummaryEntities( IQueryable<History> historyQry, HistorySummaryList historySummaryList )
+        private void PopulateHistorySummaryEntities( IQueryable<History> historyQry, List<HistorySummary> historySummaryList )
         {
             // find all the EntityTypes that are used as the History.EntityTypeId records
             var entityTypeIdList = historyQry.Select( a => a.EntityTypeId ).Distinct().ToList();
@@ -218,29 +203,31 @@ namespace Rock.Model
         /// <summary>
         /// 
         /// </summary>
-        /// <seealso cref="Rock.Model.HistoryService.HistorySummary" />
-        public class HistorySummaryByVerb : HistorySummary
+        /// <seealso cref="DotLiquid.Drop" />
+        public class HistorySummaryByDateTimeAndVerb : DotLiquid.Drop
         {
             /// <summary>
-            /// Gets or sets the verb.
+            /// Gets or sets the date time.
             /// </summary>
             /// <value>
-            /// The verb.
+            /// The date time.
             /// </value>
-            public string Verb
-            {
-                get
-                {
-                    if ( _verb == null )
-                    {
-                        _verb = this.HistoryList.FirstOrDefault()?.Verb ?? "";
-                    }
+            public DateTime DateTime { get; set; }
 
-                    return _verb;
-                }
-            }
+            /// <summary>
+            /// Gets or sets the history summary list by verb list.
+            /// </summary>
+            /// <value>
+            /// The history summary list by verb list.
+            /// </value>
+            public List<HistorySummaryListByVerb> HistorySummaryListByVerbList { get; set; }
+        }
 
-            private string _verb = null;
+        public class HistorySummaryListByVerb : DotLiquid.Drop
+        {
+            public string Verb { get; set; }
+
+            public List<HistorySummary> HistorySummaryList { get; set; }
         }
 
         /// <summary>
@@ -268,21 +255,6 @@ namespace Rock.Model
         /// <summary>
         /// 
         /// </summary>
-        /// <seealso cref="System.Collections.Generic.List{Rock.Model.HistoryService.HistorySummary}" />
-        public class HistorySummaryList : List<HistorySummary>
-        {
-            /// <summary>
-            /// Initializes a new instance of the <see cref="HistorySummaryList"/> class.
-            /// </summary>
-            /// <param name="list">The list.</param>
-            public HistorySummaryList( IEnumerable<HistorySummary> list ) : base( list )
-            {
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
         /// <seealso cref="DotLiquid.Drop" />
         public class HistorySummary : DotLiquid.Drop
         {
@@ -295,6 +267,41 @@ namespace Rock.Model
             public DateTime CreatedDateTime { get; set; }
 
             /// <summary>
+            /// Gets the first history record.
+            /// </summary>
+            /// <value>
+            /// The first history record.
+            /// </value>
+            public History FirstHistoryRecord
+            {
+                get
+                {
+                    if ( _firstHistoryRecord == null )
+                    {
+                        _firstHistoryRecord = this.HistoryList?.FirstOrDefault();
+                    }
+
+                    return _firstHistoryRecord;
+                }
+            }
+
+            private History _firstHistoryRecord = null;
+
+            /// <summary>
+            /// Gets or sets the Summary verb (the Verb of the first history record in this summary)
+            /// </summary>
+            /// <value>
+            /// The verb.
+            /// </value>
+            public string Verb
+            {
+                get
+                {
+                    return this.FirstHistoryRecord?.Verb;
+                }
+            }
+
+            /// <summary>
             /// Gets the caption.
             /// </summary>
             /// <value>
@@ -304,7 +311,35 @@ namespace Rock.Model
             {
                 get
                 {
-                    return this.HistoryList.FirstOrDefault()?.Caption;
+                    return this.FirstHistoryRecord?.Caption;
+                }
+            }
+
+            /// <summary>
+            /// Gets the name of the value.
+            /// </summary>
+            /// <value>
+            /// The name of the value.
+            /// </value>
+            public string ValueName
+            {
+                get
+                {
+                    return this.FirstHistoryRecord?.ValueName;
+                }
+            }
+
+            /// <summary>
+            /// Gets the related data.
+            /// </summary>
+            /// <value>
+            /// The related data.
+            /// </value>
+            public string RelatedData
+            {
+                get
+                {
+                    return this.FirstHistoryRecord?.RelatedData;
                 }
             }
 

@@ -443,7 +443,7 @@ namespace Rock.Model
                             Regex returnurlRegEx = new Regex( @"returnurl=([^&]*)" );
                             cleanUrl = returnurlRegEx.Replace( cleanUrl, "returnurl=XXXXXXXXXXXXXXXXXXXXXXXXXXXX" );
 
-                            relatedDataBuilder.AppendFormat( ", to <span class='field-value'>{0}</span>, from <span class='field-value'>{1}</span>",
+                            relatedDataBuilder.AppendFormat( " to <span class='field-value'>{0}</span>, from <span class='field-value'>{1}</span>",
                                 cleanUrl, HttpContext.Current.Request.UserHostAddress );
                         }
 
