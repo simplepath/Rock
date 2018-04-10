@@ -223,10 +223,26 @@ namespace Rock.Model
             public List<HistorySummaryListByVerb> HistorySummaryListByVerbList { get; set; }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <seealso cref="DotLiquid.Drop" />
         public class HistorySummaryListByVerb : DotLiquid.Drop
         {
+            /// <summary>
+            /// Gets or sets the verb.
+            /// </summary>
+            /// <value>
+            /// The verb.
+            /// </value>
             public string Verb { get; set; }
 
+            /// <summary>
+            /// Gets or sets the history summary list.
+            /// </summary>
+            /// <value>
+            /// The history summary list.
+            /// </value>
             public List<HistorySummary> HistorySummaryList { get; set; }
         }
 

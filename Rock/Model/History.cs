@@ -35,7 +35,6 @@ namespace Rock.Model
     [DataContract]
     public partial class History : Model<History>
     {
-
         #region Entity Properties
 
         /// <summary>
@@ -351,6 +350,7 @@ namespace Rock.Model
                                 {
                                     return $"Processed refund for {this.ValueName}";
                                 }
+
                             case HistoryVerb.Matched:
                             case HistoryVerb.Unmatched:
                                 {
@@ -513,9 +513,9 @@ namespace Rock.Model
             AddedToGroup,
 
             /// <summary>
-            /// a person/groupmember was removed from a group
+            /// a person/groupmember was removed (or archived) from a group
             /// </summary>
-            RemovedFromGroup
+            RemovedFromGroup,
         }
 
         /// <summary>
@@ -651,7 +651,9 @@ namespace Rock.Model
         [Obsolete]
         public static void EvaluateChange( List<string> historyMessages, string propertyName, int? oldValue, int? newValue, bool isSensitive = false )
         {
-            EvaluateChange( historyMessages, propertyName,
+            EvaluateChange( 
+                historyMessages, 
+                propertyName,
                 oldValue.HasValue ? oldValue.Value.ToString() : string.Empty,
                 newValue.HasValue ? newValue.Value.ToString() : string.Empty,
                 isSensitive );
@@ -667,7 +669,9 @@ namespace Rock.Model
         /// <param name="isSensitive">if set to <c>true</c> [is sensitive].</param>
         public static void EvaluateChange( HistoryChangeList historyChangeList, string propertyName, int? oldValue, int? newValue, bool isSensitive = false )
         {
-            EvaluateChange( historyChangeList, propertyName,
+            EvaluateChange( 
+                historyChangeList, 
+                propertyName,
                 oldValue.HasValue ? oldValue.Value.ToString() : string.Empty,
                 newValue.HasValue ? newValue.Value.ToString() : string.Empty,
                 isSensitive );
@@ -684,7 +688,9 @@ namespace Rock.Model
         [Obsolete]
         public static void EvaluateChange( List<string> historyMessages, string propertyName, decimal? oldValue, decimal? newValue, bool isSensitive = false )
         {
-            EvaluateChange( historyMessages, propertyName,
+            EvaluateChange( 
+                historyMessages, 
+                propertyName,
                 oldValue.HasValue ? oldValue.Value.ToString( "N2" ) : string.Empty,
                 newValue.HasValue ? newValue.Value.ToString( "N2" ) : string.Empty,
                 isSensitive );
@@ -700,7 +706,9 @@ namespace Rock.Model
         /// <param name="isSensitive">if set to <c>true</c> [is sensitive].</param>
         public static void EvaluateChange( HistoryChangeList historyChangeList, string propertyName, decimal? oldValue, decimal? newValue, bool isSensitive = false )
         {
-            EvaluateChange( historyChangeList, propertyName,
+            EvaluateChange( 
+                historyChangeList, 
+                propertyName,
                 oldValue.HasValue ? oldValue.Value.ToString( "N2" ) : string.Empty,
                 newValue.HasValue ? newValue.Value.ToString( "N2" ) : string.Empty,
                 isSensitive );
@@ -770,7 +778,9 @@ namespace Rock.Model
         [Obsolete]
         public static void EvaluateChange( List<string> historyMessages, string propertyName, bool? oldValue, bool? newValue, bool isSensitive = false )
         {
-            EvaluateChange( historyMessages, propertyName,
+            EvaluateChange( 
+                historyMessages, 
+                propertyName,
                 oldValue.HasValue ? oldValue.Value.ToString() : string.Empty,
                 newValue.HasValue ? newValue.Value.ToString() : string.Empty,
                 isSensitive );
@@ -786,7 +796,9 @@ namespace Rock.Model
         /// <param name="isSensitive">if set to <c>true</c> [is sensitive].</param>
         public static void EvaluateChange( HistoryChangeList historyChangeList, string propertyName, bool? oldValue, bool? newValue, bool isSensitive = false )
         {
-            EvaluateChange( historyChangeList, propertyName,
+            EvaluateChange( 
+                historyChangeList, 
+                propertyName,
                 oldValue.HasValue ? oldValue.Value.ToString() : string.Empty,
                 newValue.HasValue ? newValue.Value.ToString() : string.Empty,
                 isSensitive );
@@ -1308,26 +1320,32 @@ namespace Rock.Model
             {
                 return GetDefinedValueValue( entity as DefinedValue, id, blankValue );
             }
+
             if ( typeof( T ) == typeof( GroupType ) )
             {
                 return GetGroupTypeValue( entity as GroupType, id, blankValue );
             }
+
             if ( typeof( T ) == typeof( Campus ) )
             {
                 return GetCampusValue( entity as Campus, id, blankValue );
             }
+
             if ( typeof( T ) == typeof( PersonAlias ) )
             {
                 return GetPersonAliasValue( entity as PersonAlias, id, rockContext, blankValue );
             }
+
             if ( typeof( T ) == typeof( Location ) )
             {
                 return GetLocationValue( entity as Location, id, rockContext, blankValue );
             }
+
             if ( typeof( T ) == typeof( Group ) )
             {
                 return GetGroupValue( entity as Group, id, rockContext, blankValue );
             }
+
             if ( typeof( T ) == typeof( GroupTypeRole ) )
             {
                 return GetGroupTypeRoleValue( entity as GroupTypeRole, id, rockContext, blankValue );
@@ -1957,5 +1975,4 @@ namespace Rock.Model
     }
 
     #endregion
-
 }

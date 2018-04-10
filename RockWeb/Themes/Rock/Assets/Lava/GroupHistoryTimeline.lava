@@ -43,10 +43,8 @@
                             {% assign historySkipOffset = 1 %}
                         {% when 'DELETE' %}
                             {{ PrimaryEntityTypeName }} Deleted
-                        {% when 'LOGIN'%}
-                            {{ 'Login' | PluralizeForQuantity:byVerbPluralizeCount }}
                         {% else %}
-                            {% comment %} Some unexpected Verb {% endcomment %}
+                            {% comment %} Some Verb that hasn't been implemented in this template yet, or some unexpected Verb {% endcomment %}
                             {{ historySummaryListByVerb.Verb }}
                     {% endcase %}
                 </h3>
@@ -86,11 +84,6 @@
                             </li>
                         {% endfor %}
                         </ul>
-                    </div>
-                    {% endif %}
-                    {% if historySummary.Verb == 'LOGIN'%}
-                    <div class='logindetails'>
-                        Logged in with <strong>{{ historySummary.ValueName }}</strong> {{ historySummary.RelatedData }} ( {{ historySummary.CreatedDateTime | HumanizeDateTime  }} )
                     </div>
                     {% endif %}
                 {% endfor %}

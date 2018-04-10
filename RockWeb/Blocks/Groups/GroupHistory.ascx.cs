@@ -13,11 +13,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // </copyright>
-//
 using System;
 using System.ComponentModel;
 using System.Linq;
 using System.Web.UI;
+
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -33,12 +33,10 @@ namespace RockWeb.Blocks.Groups
     /// </summary>
     [DisplayName( "Group History" )]
     [Category( "Groups" )]
-    [Description( "Displays a timeline of History" )]
+    [Description( "Displays a timeline of history for a group and it's members" )]
 
     [CodeEditorField( "Timeline Lava Template", "The Lava Template to use when rendering the timeline view of the history.", CodeEditorMode.Lava, CodeEditorTheme.Rock, 100, false, @"{% include '~~/Assets/Lava/GroupHistoryTimeline.lava' %}", order: 1 )]
-    [EntityTypeField( "Primary Entity Type", "The Entity Type to show history for. Any history records that have this as the EntityType will be included", required: true, order: 2 )]
-    [EntityTypeField( "Secondary Entity Type", "The Entity Type to show history for. Any history records that have this as the EntityType and the PrimaryEntityType as the RelatedEntityType will be included. For example, for Group History, set Primary Entity Type as Group and Secondary Entity Type as GroupMember.", required: false, order: 2 )]
-    public partial class GroupHistory : RockBlock, ICustomGridColumns
+    public partial class GroupHistory : RockBlock, IDetailBlock
     {
         #region Base Control Methods
 
@@ -65,7 +63,9 @@ namespace RockWeb.Blocks.Groups
 
             if ( !Page.IsPostBack )
             {
-                ShowContent();
+
+                int groupId = this.PageParameter( "GroupId" ).AsInteger();
+                ShowDetail( groupId );
             }
         }
 
@@ -80,7 +80,53 @@ namespace RockWeb.Blocks.Groups
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void Block_BlockUpdated( object sender, EventArgs e )
         {
+            ShowGroupHistory( hfGroupId.Value.AsInteger(), null );
+        }
 
+        /// <summary>
+        /// Handles the CheckedChanged event of the tglGroupHistoryMode control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
+        protected void tglGroupHistoryMode_CheckedChanged( object sender, EventArgs e )
+        {
+            if ( tglGroupHistoryMode.Checked )
+            {
+                ShowGroupHistory( hfGroupId.Value.AsInteger(), null );
+                pnlMembers.Visible = false;
+                pnlGroupHistoryOptions.Visible = true;
+            }
+            else
+            {
+                // Update the Member Grid, show it, and clear the timeline until a member is clicked
+                BindMembersGrid();
+                pnlMembers.Visible = true;
+                pnlGroupHistoryOptions.Visible = false;
+                lTimelineHtml.Text = string.Empty;
+            }
+        }
+
+        /// <summary>
+        /// Handles the Click event of the gGroupMemberHistory control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="RowEventArgs"/> instance containing the event data.</param>
+        protected void gGroupMemberHistory_Click( object sender, RowEventArgs e )
+        {
+            // hide the members grid and show individual history for selected group member
+            pnlMembers.Visible = false;
+            int groupMemberId = e.RowKeyId;
+            ShowGroupHistory( hfGroupId.Value.AsInteger(), groupMemberId );
+        }
+
+        /// <summary>
+        /// Handles the CheckedChanged event of the tglShowGroupMembersInHistory control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
+        protected void tglShowGroupMembersInHistory_CheckedChanged( object sender, EventArgs e )
+        {
+            ShowGroupHistory( hfGroupId.Value.AsInteger(), null );
         }
 
         #endregion
@@ -88,35 +134,101 @@ namespace RockWeb.Blocks.Groups
         #region Methods
 
         /// <summary>
-        /// Binds the grid.
+        /// Shows the detail.
         /// </summary>
-        private void ShowContent()
+        /// <param name="groupId">The group identifier.</param>
+        public void ShowDetail( int groupId )
+        {
+            hfGroupId.Value = groupId.ToString();
+            ShowGroupHistory( groupId, null );
+        }
+
+        /// <summary>
+        /// Binds the members grid.
+        /// </summary>
+        public void BindMembersGrid()
+        {
+            // TODO
+            int groupId = hfGroupId.Value.AsInteger();
+            var rockContext = new RockContext();
+            var groupMemberService = new GroupMemberService( rockContext );
+
+            // get the unfiltered list of group members, which includes archived and deceased
+            var qryGroupMembers = groupMemberService.AsNoFilter().Where( a => a.GroupId == groupId );
+
+            // don't include deceased
+            qryGroupMembers = qryGroupMembers.Where( a => a.Person.IsDeceased == false );
+
+            var sortProperty = gGroupMembers.SortProperty;
+            if ( sortProperty != null )
+            {
+                qryGroupMembers = qryGroupMembers.Sort( sortProperty );
+            }
+            else
+            {
+                qryGroupMembers = qryGroupMembers.OrderBy( a => a.GroupRole.Order ).ThenBy( a => a.Person.LastName ).ThenBy( a => a.Person.FirstName );
+            }
+
+            gGroupMembers.SetLinqDataSource( qryGroupMembers );
+            gGroupMembers.DataBind();
+        }
+
+        /// <summary>
+        /// Shows the group history for a group, or group history for a member of that group
+        /// </summary>
+        /// <param name="groupId">The group identifier.</param>
+        /// <param name="groupMemberId">The group member identifier.</param>
+        private void ShowGroupHistory( int groupId, int? groupMemberId )
+        {
+            int entityId;
+            EntityTypeCache primaryEntityType;
+            EntityTypeCache secondaryEntityType = null;
+            string[] secondaryEntityVerbs = { History.HistoryVerb.AddedToGroup.ConvertToString( false ).ToUpper(), History.HistoryVerb.RemovedFromGroup.ConvertToString( false ).ToUpper() };
+
+            if ( groupMemberId.HasValue )
+            {
+                primaryEntityType = EntityTypeCache.Read<Rock.Model.GroupMember>();
+                entityId = groupMemberId.Value;
+            }
+            else
+            {
+                primaryEntityType = EntityTypeCache.Read<Rock.Model.Group>();
+                entityId = groupId;
+                if ( tglShowGroupMembersInHistory.Checked )
+                {
+                    secondaryEntityType = EntityTypeCache.Read<Rock.Model.GroupMember>();
+                }
+            }
+
+            ShowTimeline( primaryEntityType, secondaryEntityType, secondaryEntityVerbs, entityId );
+        }
+
+        #endregion
+
+        #region Generic History Timeline functions
+
+        /// <summary>
+        /// Shows the timeline
+        /// </summary>
+        /// <param name="primaryEntityType">Type of the primary entity.</param>
+        /// <param name="secondaryEntityType">Type of the secondary entity.</param>
+        /// <param name="entityId">The entity identifier.</param>
+        private void ShowTimeline( EntityTypeCache primaryEntityType, EntityTypeCache secondaryEntityType, string[] secondaryEntityVerbs, int entityId )
         {
             RockContext rockContext = new RockContext();
             HistoryService historyService = new HistoryService( rockContext );
 
-            EntityTypeCache primaryEntityType = EntityTypeCache.Read( this.GetAttributeValue( "PrimaryEntityType" ).AsGuid() );
-            EntityTypeCache secondaryEntityType = EntityTypeCache.Read( this.GetAttributeValue( "SecondaryEntityType" ).AsGuid() );
+            // change this to adjust the granularity of the GetHistorySummaryByDateTime
+            TimeSpan dateSummaryGranularity = TimeSpan.FromDays( 1 );
 
             if ( primaryEntityType == null )
             {
                 return;
             }
 
-            var primaryEntityTypePageParameterName = string.Format( "{0}Id", primaryEntityType.Name.Split( '.' ).LastOrDefault() );
-            int entityId = this.PageParameter( primaryEntityTypePageParameterName ).AsInteger();
-            if ( entityId == 0 )
-            {
-                return;
-            }
-
             var entityTypeIdPrimary = primaryEntityType.Id;
 
-
             var primaryEntity = historyService.GetEntityQuery( entityTypeIdPrimary ).FirstOrDefault( a => a.Id == entityId );
-
-            /////// get either history on the group (EntityTypeId is Group), or history on GroupMember's of this Group (EntityTypeId is GroupMember and RelatedEntityTypeId is Group)
-            
             var historyQry = historyService.Queryable().Where( a => a.CreatedDateTime.HasValue );
 
             if ( secondaryEntityType == null )
@@ -131,12 +243,12 @@ namespace RockWeb.Blocks.Groups
                 var entityTypeIdSecondary = secondaryEntityType.Id;
                 historyQry = historyQry.Where( a =>
                     ( a.EntityTypeId == entityTypeIdPrimary && a.EntityId == entityId )
-                    || ( a.RelatedEntityTypeId == entityTypeIdPrimary && a.EntityTypeId == entityTypeIdSecondary && a.RelatedEntityId == entityId )
+                    || ( a.RelatedEntityTypeId == entityTypeIdPrimary && a.EntityTypeId == entityTypeIdSecondary && a.RelatedEntityId == entityId && secondaryEntityVerbs.Contains( a.Verb ) )
                     );
             }
 
             var historySummaryList = historyService.GetHistorySummary( historyQry );
-            var historySummaryByDateList = historyService.GetHistorySummaryByDateTime( historySummaryList, TimeSpan.FromDays( 1 ) );
+            var historySummaryByDateList = historyService.GetHistorySummaryByDateTime( historySummaryList, dateSummaryGranularity );
             historySummaryByDateList = historySummaryByDateList.OrderByDescending( a => a.DateTime ).ToList();
             var historySummaryByDateByVerbList = historyService.GetHistorySummaryByDateTimeAndVerb( historySummaryByDateList );
 
@@ -150,14 +262,12 @@ namespace RockWeb.Blocks.Groups
                 mergeFields.Add( "SecondaryEntityTypeName", secondaryEntityType.FriendlyName );
             }
 
-            mergeFields.Add( "HistorySummaryByDateList", historySummaryByDateList );
             mergeFields.Add( "HistorySummaryByDateByVerbList", historySummaryByDateByVerbList );
             string timelineHtml = timelineLavaTemplate.ResolveMergeFields( mergeFields );
             lTimelineHtml.Text = timelineHtml;
         }
 
         #endregion
-    }
 
-
+    }       
 }

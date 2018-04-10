@@ -337,6 +337,21 @@ CREATE UNIQUE NONCLUSTERED  INDEX [IX_LocationIdCurrentRow] ON [dbo].[GroupLocat
             // Attrib for BlockType: Group Archived List:core.CustomGridColumnsConfig
             RockMigrationHelper.UpdateBlockTypeAttribute( "AD5B3A8A-2111-4FC4-A026-51EEB4929CBA", "9C204CD0-1233-41C5-818A-C5DA439445AA", "core.CustomGridColumnsConfig", "core.CustomGridColumnsConfig", "", @"", 0, @"", "1F2041D0-946F-4F8B-9E43-2E7E080C7FC0" );
 
+
+            RockMigrationHelper.AddPage( true, "4E237286-B715-4109-A578-C1445EC02707", "D65F783D-87A9-4CC9-8110-E83466A0EADB", "Group History", "", "FCCF2570-DC09-4129-87BE-F1CAE25F1B9D", "" ); // Site:Rock RMS
+            RockMigrationHelper.UpdateBlockType( "Group History", "Displays a timeline of history for a group and it's members", "~/Blocks/Groups/GroupHistory.ascx", "Groups", "E916D65E-5D30-4086-9A11-8E891CCD930E" );
+            // Add Block to Page: Group History, Site: Rock RMS
+            RockMigrationHelper.AddBlock( true, "FCCF2570-DC09-4129-87BE-F1CAE25F1B9D", "", "E916D65E-5D30-4086-9A11-8E891CCD930E", "Group History", "Main", @"", @"", 0, "C27FF3C0-D7BF-4CAD-B33D-C0A6953370FC" );
+            // Attrib for BlockType: Group Detail:Group History Page
+            RockMigrationHelper.UpdateBlockTypeAttribute( "582BEEA1-5B27-444D-BC0A-F60CEB053981", "BD53F9C9-EBA9-4D3F-82EA-DE5DD34A8108", "Group History Page", "GroupHistoryPage", "", @"The page to display group history.", 15, @"", "F52CC072-7004-4A93-860F-65F6308374A4" );
+            // Attrib for BlockType: Group History:Timeline Lava Template
+            RockMigrationHelper.UpdateBlockTypeAttribute( "E916D65E-5D30-4086-9A11-8E891CCD930E", "1D0D3794-C210-48A8-8C68-3FBEC08A6BA5", "Timeline Lava Template", "TimelineLavaTemplate", "", @"The Lava Template to use when rendering the timeline view of the history.", 1, @"{% include '~~/Assets/Lava/GroupHistoryTimeline.lava' %}", "71E281C3-0046-4B0C-B3DC-6D776F5F053E" );
+            // Attrib Value for Block:GroupDetailRight, Attribute:Group History Page Page: Group Viewer, Site: Rock RMS
+            RockMigrationHelper.AddBlockAttributeValue( "88344FE3-737E-4741-A38D-D2D3A1653818", "F52CC072-7004-4A93-860F-65F6308374A4", @"fccf2570-dc09-4129-87be-f1cae25f1b9d" );
+            // Attrib Value for Block:Group History, Attribute:Timeline Lava Template Page: Group History, Site: Rock RMS
+            RockMigrationHelper.AddBlockAttributeValue( "C27FF3C0-D7BF-4CAD-B33D-C0A6953370FC", "71E281C3-0046-4B0C-B3DC-6D776F5F053E", @"{% include '~~/Assets/Lava/GroupHistoryTimeline.lava' %}" );
+
+
             // Add History Categories for Group changes
             Sql( @"
 DECLARE @CategoryId INT
@@ -389,7 +404,7 @@ VALUES (
         /// </summary>
         public override void Down()
         {
-            // Remove HIstory Categories for Group Changes
+            // Remove History Categories for Group Changes
             Sql( @"
 DELETE
 FROM Category
@@ -404,6 +419,11 @@ WHERE [Guid] = '180C5767-8769-4C51-865F-FEE29AEF80A0'" );
             RockMigrationHelper.DeleteBlock( "5522523B-15F7-49EA-B6FF-374F2BD101C1" );
             RockMigrationHelper.DeleteBlockType( "AD5B3A8A-2111-4FC4-A026-51EEB4929CBA" ); // Group Archived List
             RockMigrationHelper.DeletePage( "93C79597-2274-4291-BE4F-E84569BB9B27" ); //  Page: Archived Groups, Layout: Full Width, Site: Rock RMS
+
+            // Remove Block: Group History, from Page: Group History, Site: Rock RMS
+            RockMigrationHelper.DeleteBlock( "C27FF3C0-D7BF-4CAD-B33D-C0A6953370FC" );
+            RockMigrationHelper.DeleteBlockType( "E916D65E-5D30-4086-9A11-8E891CCD930E" ); // Group History
+            RockMigrationHelper.DeletePage( "FCCF2570-DC09-4129-87BE-F1CAE25F1B9D" ); //  Page: Group History, Layout: Full Width, Site: Rock RMS
 
 
             // Code Generated using Rock\Dev Tools\Sql\CodeGen_ServiceJobWithAttributes_ForAJob.sql
