@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Web.UI;
@@ -36,7 +37,7 @@ namespace RockWeb.Blocks.Groups
     [Description( "Displays a timeline of history for a group and it's members" )]
 
     [CodeEditorField( "Timeline Lava Template", "The Lava Template to use when rendering the timeline view of the history.", CodeEditorMode.Lava, CodeEditorTheme.Rock, 100, false, @"{% include '~~/Assets/Lava/GroupHistoryTimeline.lava' %}", order: 1 )]
-    public partial class GroupHistory : RockBlock, IDetailBlock
+    public partial class GroupHistory : RockBlock, ICustomGridColumns
     {
         #region Base Control Methods
 
@@ -63,9 +64,9 @@ namespace RockWeb.Blocks.Groups
 
             if ( !Page.IsPostBack )
             {
-
                 int groupId = this.PageParameter( "GroupId" ).AsInteger();
-                ShowDetail( groupId );
+                int? groupMemberId = this.PageParameter( "GroupMemberId" ).AsIntegerOrNull();
+                ShowDetail( groupId, groupMemberId );
             }
         }
 
@@ -80,7 +81,7 @@ namespace RockWeb.Blocks.Groups
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void Block_BlockUpdated( object sender, EventArgs e )
         {
-            ShowGroupHistory( hfGroupId.Value.AsInteger(), null );
+            ShowGroupHistory( hfGroupId.Value.AsInteger(), hfGroupMemberId.Value.AsIntegerOrNull() );
         }
 
         /// <summary>
@@ -120,6 +121,17 @@ namespace RockWeb.Blocks.Groups
         }
 
         /// <summary>
+        /// Handles the RowSelected event of the gGroupMembers control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="RowEventArgs"/> instance containing the event data.</param>
+        protected void gGroupMembers_RowSelected( object sender, RowEventArgs e )
+        {
+            Dictionary<string, string> additionalQueryParameters = new Dictionary<string, string> { { "GroupMemberId", e.RowKeyId.ToString() } };
+            this.NavigateToCurrentPageReference( additionalQueryParameters );
+        }
+
+        /// <summary>
         /// Handles the CheckedChanged event of the tglShowGroupMembersInHistory control.
         /// </summary>
         /// <param name="sender">The source of the event.</param>
@@ -137,10 +149,13 @@ namespace RockWeb.Blocks.Groups
         /// Shows the detail.
         /// </summary>
         /// <param name="groupId">The group identifier.</param>
-        public void ShowDetail( int groupId )
+        /// <param name="groupMemberId">The group member identifier.</param>
+        public void ShowDetail( int groupId, int? groupMemberId )
         {
             hfGroupId.Value = groupId.ToString();
-            ShowGroupHistory( groupId, null );
+            hfGroupMemberId.Value = groupMemberId.ToString();
+
+            ShowGroupHistory( groupId, groupMemberId );
         }
 
         /// <summary>
@@ -189,11 +204,23 @@ namespace RockWeb.Blocks.Groups
             {
                 primaryEntityType = EntityTypeCache.Read<Rock.Model.GroupMember>();
                 entityId = groupMemberId.Value;
+
+                var groupMember = new GroupMemberService( new RockContext() ).Get( groupMemberId.Value );
+                if ( groupMember != null )
+                {
+                    lReadOnlyTitle.Text = groupMember.ToString().FormatAsHtmlTitle();
+                }
             }
             else
             {
                 primaryEntityType = EntityTypeCache.Read<Rock.Model.Group>();
                 entityId = groupId;
+                var group = new GroupService( new RockContext() ).Get( groupId );
+                if ( group != null )
+                {
+                    lReadOnlyTitle.Text = group.Name.FormatAsHtmlTitle();
+                }
+
                 if ( tglShowGroupMembersInHistory.Checked )
                 {
                     secondaryEntityType = EntityTypeCache.Read<Rock.Model.GroupMember>();
@@ -243,13 +270,12 @@ namespace RockWeb.Blocks.Groups
                 var entityTypeIdSecondary = secondaryEntityType.Id;
                 historyQry = historyQry.Where( a =>
                     ( a.EntityTypeId == entityTypeIdPrimary && a.EntityId == entityId )
-                    || ( a.RelatedEntityTypeId == entityTypeIdPrimary && a.EntityTypeId == entityTypeIdSecondary && a.RelatedEntityId == entityId && secondaryEntityVerbs.Contains( a.Verb ) )
-                    );
+                    || ( a.RelatedEntityTypeId == entityTypeIdPrimary && a.EntityTypeId == entityTypeIdSecondary && a.RelatedEntityId == entityId && secondaryEntityVerbs.Contains( a.Verb ) ) );
             }
 
             var historySummaryList = historyService.GetHistorySummary( historyQry );
             var historySummaryByDateList = historyService.GetHistorySummaryByDateTime( historySummaryList, dateSummaryGranularity );
-            historySummaryByDateList = historySummaryByDateList.OrderByDescending( a => a.DateTime ).ToList();
+            historySummaryByDateList = historySummaryByDateList.OrderByDescending( a => a.SummaryDateTime ).ToList();
             var historySummaryByDateByVerbList = historyService.GetHistorySummaryByDateTimeAndVerb( historySummaryByDateList );
 
             string timelineLavaTemplate = this.GetAttributeValue( "TimelineLavaTemplate" );
@@ -268,6 +294,5 @@ namespace RockWeb.Blocks.Groups
         }
 
         #endregion
-
-    }       
+    }
 }

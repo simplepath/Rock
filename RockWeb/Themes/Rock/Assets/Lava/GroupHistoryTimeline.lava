@@ -226,7 +226,7 @@
                             {{ historySummaryListByVerb.Verb }}
                     {% endcase %}
                 </span>
-                <span class="timeline-date">{{ historySummaryByDateByVerb.DateTime | Date:'MMM d, yyyy h:mmtt' }}</span>
+                <span class="timeline-date">{{ historySummaryByDateByVerb.FirstHistoryDateTime | Date:'MMM d, yyyy h:mmtt' }}</span>
         <p class="timeline-details">
         
         {% for historySummary in historySummaryListByVerb.HistorySummaryList %}

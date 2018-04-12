@@ -85,7 +85,7 @@ namespace Rock.Model
 
             var result = groupByQry.Select( a => new HistorySummaryByDateTime
             {
-                DateTime = a.Key,
+                SummaryDateTime = a.Key,
                 HistorySummaryList = a.ToList()
             } ).ToList();
 
@@ -104,7 +104,7 @@ namespace Rock.Model
             foreach ( var historySummaryByDateTime in historySummaryByDateTimeList )
             {
                 HistorySummaryByDateTimeAndVerb historySummaryByDateTimeAndVerb = new HistorySummaryByDateTimeAndVerb();
-                historySummaryByDateTimeAndVerb.DateTime = historySummaryByDateTime.DateTime;
+                historySummaryByDateTimeAndVerb.SummaryDateTime = historySummaryByDateTime.SummaryDateTime;
                 historySummaryByDateTimeAndVerb.HistorySummaryListByVerbList = historySummaryByDateTime.HistorySummaryList.GroupBy( a => a.Verb ).Select( x => new HistorySummaryListByVerb
                 {
                     Verb = x.Key,
@@ -134,7 +134,7 @@ namespace Rock.Model
                     CategoryId = a.CategoryId,
                     RelatedEntityTypeId = a.RelatedEntityTypeId,
                     RelatedEntityId = a.RelatedEntityId,
-                    CreatedByPerson = a.CreatedByPersonAlias.Person
+                    CreatedByPersonAliasId = a.CreatedByPersonAliasId
                 } )
                 .OrderBy( a => a.Key.CreatedDateTime )
                 .Select( x => new HistorySummary
@@ -145,7 +145,7 @@ namespace Rock.Model
                     CategoryId = x.Key.CategoryId,
                     RelatedEntityTypeId = x.Key.RelatedEntityTypeId,
                     RelatedEntityId = x.Key.RelatedEntityId,
-                    CreatedByPerson = x.Key.CreatedByPerson,
+                    CreatedByPersonAliasId = x.Key.CreatedByPersonAliasId,
                     HistoryList = x.OrderBy( h => h.Id ).ToList()
                 } );
 
@@ -207,12 +207,28 @@ namespace Rock.Model
         public class HistorySummaryByDateTimeAndVerb : DotLiquid.Drop
         {
             /// <summary>
-            /// Gets or sets the date time.
+            /// Gets or sets the date time 
             /// </summary>
             /// <value>
             /// The date time.
             /// </value>
-            public DateTime DateTime { get; set; }
+            public DateTime SummaryDateTime { get; set; }
+
+            /// <summary>
+            /// Gets the date/time of the first history log in this summary's summarylist
+            /// </summary>
+            /// <value>
+            /// The first history date time.
+            /// </value>
+            public DateTime? FirstHistoryDateTime => this.HistorySummaryListByVerbList.FirstOrDefault()?.FirstHistoryDateTime;
+
+            /// <summary>
+            /// Gets the date/time of the last history log in this summary's summarylist
+            /// </summary>
+            /// <value>
+            /// The last history date time.
+            /// </value>
+            public DateTime? LastHistoryDateTime => this.HistorySummaryListByVerbList.FirstOrDefault()?.LastHistoryDateTime;
 
             /// <summary>
             /// Gets or sets the history summary list by verb list.
@@ -238,6 +254,22 @@ namespace Rock.Model
             public string Verb { get; set; }
 
             /// <summary>
+            /// Gets the date/time of the first history log in this summary's summarylist
+            /// </summary>
+            /// <value>
+            /// The first history date time.
+            /// </value>
+            public DateTime? FirstHistoryDateTime => this.HistorySummaryList?.FirstOrDefault()?.CreatedDateTime;
+
+            /// <summary>
+            /// Gets the date/time of the first history log in this summary's summarylist
+            /// </summary>
+            /// <value>
+            /// The first history date time.
+            /// </value>
+            public DateTime? LastHistoryDateTime => this.HistorySummaryList?.LastOrDefault()?.CreatedDateTime;
+
+            /// <summary>
             /// Gets or sets the history summary list.
             /// </summary>
             /// <value>
@@ -257,7 +289,7 @@ namespace Rock.Model
             /// <value>
             /// The date time.
             /// </value>
-            public DateTime DateTime { get; set; }
+            public DateTime SummaryDateTime { get; set; }
 
             /// <summary>
             /// Gets or sets the history summary list.
@@ -288,7 +320,7 @@ namespace Rock.Model
             /// <value>
             /// The first history record.
             /// </value>
-            public History FirstHistoryRecord
+            private History FirstHistoryRecord
             {
                 get
                 {
@@ -309,13 +341,7 @@ namespace Rock.Model
             /// <value>
             /// The verb.
             /// </value>
-            public string Verb
-            {
-                get
-                {
-                    return this.FirstHistoryRecord?.Verb;
-                }
-            }
+            public string Verb => this.FirstHistoryRecord?.Verb;
 
             /// <summary>
             /// Gets the caption.
@@ -323,13 +349,7 @@ namespace Rock.Model
             /// <value>
             /// The caption.
             /// </value>
-            public string Caption
-            {
-                get
-                {
-                    return this.FirstHistoryRecord?.Caption;
-                }
-            }
+            public string Caption => this.FirstHistoryRecord?.Caption;
 
             /// <summary>
             /// Gets the name of the value.
@@ -337,13 +357,7 @@ namespace Rock.Model
             /// <value>
             /// The name of the value.
             /// </value>
-            public string ValueName
-            {
-                get
-                {
-                    return this.FirstHistoryRecord?.ValueName;
-                }
-            }
+            public string ValueName => this.FirstHistoryRecord?.ValueName;
 
             /// <summary>
             /// Gets the related data.
@@ -351,13 +365,39 @@ namespace Rock.Model
             /// <value>
             /// The related data.
             /// </value>
-            public string RelatedData
-            {
-                get
-                {
-                    return this.FirstHistoryRecord?.RelatedData;
-                }
-            }
+            public string RelatedData => this.FirstHistoryRecord?.RelatedData;
+
+            /// <summary>
+            /// Gets the created by person identifier.
+            /// </summary>
+            /// <value>
+            /// The created by person identifier.
+            /// </value>
+            public int? CreatedByPersonId => this.FirstHistoryRecord?.CreatedByPersonId;
+
+            /// <summary>
+            /// Gets or sets the created by person.
+            /// </summary>
+            /// <value>
+            /// The created by person.
+            /// </value>
+            public Person CreatedByPerson => this.FirstHistoryRecord?.CreatedByPersonAlias.Person;
+
+            /// <summary>
+            /// Gets the name of the created by person.
+            /// </summary>
+            /// <value>
+            /// The name of the created by person.
+            /// </value>
+            public string CreatedByPersonName => this.FirstHistoryRecord?.CreatedByPersonName;
+
+            /// <summary>
+            /// Gets the created by person alias identifier.
+            /// </summary>
+            /// <value>
+            /// The created by person alias identifier.
+            /// </value>
+            public int? CreatedByPersonAliasId { get; internal set; }
 
             /// <summary>
             /// Gets or sets the entity type identifier.
@@ -462,27 +502,7 @@ namespace Rock.Model
             /// </value>
             public IEntity RelatedEntity { get; set; }
 
-            /// <summary>
-            /// Gets or sets the created by person.
-            /// </summary>
-            /// <value>
-            /// The created by person.
-            /// </value>
-            public Person CreatedByPerson { get; set; }
-
-            /// <summary>
-            /// Gets the name of the created by person.
-            /// </summary>
-            /// <value>
-            /// The name of the created by person.
-            /// </value>
-            public string CreatedByPersonName
-            {
-                get
-                {
-                    return CreatedByPerson?.FullName;
-                }
-            }
+            
 
             /// <summary>
             /// Gets the formatted caption.

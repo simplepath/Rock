@@ -4,12 +4,16 @@
     <ContentTemplate>
     <div class="panel panel-block">
             <div class="panel-heading">
-                <h1 class="panel-title"><i class="fa fa-history"></i> History</h1>
+                <h1 class="panel-title">
+                    <i class="fa fa-history"></i> 
+                    <asp:Literal ID="lReadOnlyTitle" runat="server" />
+                </h1>
                  <a class="btn btn-xs btn-default pull-right margin-l-sm" onclick="javascript: toggleOptions()"><i title="Options" class="fa fa-gear"></i></a>
             </div>
 
             <div class="panel-body js-options" style="display:none;">
             <asp:HiddenField ID="hfGroupId" runat="server" />
+            <asp:HiddenField ID="hfGroupMemberId" runat="server" />
                 <div class="col-md-6">
                     <Rock:Toggle ID="tglGroupHistoryMode" runat="server" OnText="Group Details" OffText="Members" OnCheckedChanged="tglGroupHistoryMode_CheckedChanged" Checked="true" />
                 </div>
@@ -34,14 +38,13 @@
                     </div>
 
                     <div class="grid grid-panel">
-                        <Rock:Grid ID="gGroupMembers" runat="server" AllowSorting="true" DataKeyNames="Id" CssClass="js-grid-group-members">
+                        <Rock:Grid ID="gGroupMembers" runat="server" AllowSorting="true" DataKeyNames="Id" CssClass="js-grid-group-members" OnRowSelected="gGroupMembers_RowSelected">
                             <Columns>
                                 <Rock:PersonField DataField="Person" HeaderText="Name" SortExpression="Person.LastName,Person.NickName" />
-                                <Rock:DateField DataField="DateTimeAdded" HeaderText="Date Added" SortExpression="DateTimeAdded" />
-                                <Rock:DateField DataField="ArchivedDateTime" HeaderText="Date Removed" SortExpression="ArchivedDateTime" />
-                                <Rock:RockBoundField DataField="GroupRole.Name" HeaderText="Role" SortExpression="GroupRole.Name" />
+                                <Rock:DateField DataField="DateTimeAdded" HeaderText="Date Added" SortExpression="DateTimeAdded" ItemStyle-HorizontalAlign="Left" />
+                                <Rock:DateField DataField="ArchivedDateTime" HeaderText="Date Removed" SortExpression="ArchivedDateTime" ItemStyle-HorizontalAlign="Left" />
+                                <Rock:RockBoundField DataField="GroupRole.Name" HeaderText="Last Role" SortExpression="GroupRole.Name" />
                                 <Rock:EnumField DataField="GroupMemberStatus" HeaderText="Last Status" SortExpression="GroupMemberStatus" />
-                                <Rock:LinkButtonField Text="<i class='fa fa-history'></i>" OnClick="gGroupMemberHistory_Click" />
                             </Columns>
                         </Rock:Grid>
                     </div>
