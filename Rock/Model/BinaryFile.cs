@@ -168,6 +168,24 @@ namespace Rock.Model
         public string Path { get; set; }
 
         /// <summary>
+        /// Gets or sets a value indicating the width of a file type.
+        /// </summary>
+        /// <value>
+        /// A <see cref="System.Int32"/> representing the width in pixels of a file type.
+        /// </value>
+        [DataMember]
+        public int? Width { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating the height of a file type.
+        /// </summary>
+        /// <value>
+        /// A <see cref="System.Int32"/> representing the height in pixels of a file type.
+        /// </value>
+        [DataMember]
+        public int? Height { get; set; }
+
+        /// <summary>
         /// Gets or sets the content last modified.
         /// </summary>
         /// <value>
@@ -324,7 +342,17 @@ namespace Rock.Model
                 if ( StorageProvider != null )
                 {
                     this.BinaryFileTypeId = entry.OriginalValues["BinaryFileTypeId"].ToString().AsInteger();
-                    StorageProvider.DeleteContent( this );
+
+                    try
+                    {
+                        StorageProvider.DeleteContent( this );
+                    }
+                    catch ( Exception ex )
+                    {
+                        // If an exception occurred while trying to delete provider's file, log the exception, but continue with the delete.
+                        ExceptionLogService.LogException( ex );
+                    }
+
                     this.BinaryFileTypeId = null;
                 }
             }
@@ -370,6 +398,7 @@ namespace Rock.Model
                     }
                 }
 
+
                 else if ( entry.State == System.Data.Entity.EntityState.Modified )
                 {
                     // when a file is saved (unless it is getting Deleted/Added), 
@@ -389,22 +418,32 @@ namespace Rock.Model
                             {
                                 settings.Add( attributeValue.Key, attributeValue.Value.Value );
                             }
-                            string settingsJson = settings.ToJson();
+                            string newSettingsJson = settings.ToJson();
+                            string oldSettingsJson = ( StorageSettings ?? new Dictionary<string, string>() ).ToJson();
 
                             if ( StorageProvider != null && (
                                 StorageEntityTypeId.Value != BinaryFileType.StorageEntityTypeId.Value ||
-                                StorageEntitySettings != settingsJson ) )
+                                oldSettingsJson != newSettingsJson ) )
                             {
-                                // Save the file contents before deleting
-                                var contentStream = ContentStream;
+                                try
+                                {
+                                    // Save the file contents before deleting
+                                    var contentStream = ContentStream;
 
-                                // Delete the current provider's storage
-                                StorageProvider.DeleteContent( this );
+                                    // Delete the current provider's storage
+                                    StorageProvider.DeleteContent( this );
+
+                                    // Reset the content stream
+                                    ContentStream = contentStream;
+                                }
+                                catch ( Exception ex )
+                                {
+                                    ExceptionLogService.LogException( ex );
+                                }
 
                                 // Set the new storage provider with its settings
                                 StorageEntityTypeId = BinaryFileType.StorageEntityTypeId;
-                                StorageEntitySettings = settingsJson;
-                                ContentStream = contentStream;
+                                StorageEntitySettings = newSettingsJson;
                             }
                         }
                     }

@@ -68,7 +68,7 @@ namespace Rock.Lava
         /// </returns>
         public static string ToString( object input )
         {
-            return input.ToString();
+            return input?.ToString();
         }
 
         /// <summary>
@@ -143,6 +143,12 @@ namespace Rock.Lava
             }
 
             var inputString = input.ToString();
+
+            if (inputString.Length <= length )
+            {
+                return inputString;
+            }
+
             return inputString.Right( length );
         }
 
@@ -719,6 +725,43 @@ namespace Rock.Lava
             {
                 return Uri.EscapeDataString( input );
             }
+        }
+
+        /// <summary>
+        /// URLs the encode.
+        /// </summary>
+        /// <param name="input">The input.</param>
+        /// <returns></returns>
+        public static string UrlEncode( string input )
+        {
+            return EscapeDataString( input );
+        }
+
+        /// <summary>
+        /// Uns the escape data string.
+        /// </summary>
+        /// <param name="input">The input.</param>
+        /// <returns></returns>
+        public static string UnescapeDataString( string input )
+        {
+            if ( input == null )
+            {
+                return null;
+            }
+            else
+            {
+                return Uri.UnescapeDataString( input );
+            }
+        }
+
+        /// <summary>
+        /// URLs the decode.
+        /// </summary>
+        /// <param name="input">The input.</param>
+        /// <returns></returns>
+        public static string UrlDecode( string input )
+        {
+            return UnescapeDataString( input );
         }
 
         /// <summary>
@@ -1938,6 +1981,33 @@ namespace Rock.Lava
         }
 
         /// <summary>
+        /// Loads a person by their alias guid
+        /// </summary>
+        /// <param name="context">The context.</param>
+        /// <param name="input">The input.</param>
+        /// <returns></returns>
+        public static Person PersonByAliasGuid( DotLiquid.Context context, object input )
+        {
+            if ( input == null )
+            {
+                return null;
+            }
+
+            Guid? personAliasGuid = input.ToString().AsGuidOrNull();
+
+            if ( personAliasGuid.HasValue )
+            {
+                var rockContext = new RockContext();
+
+                return new PersonAliasService( rockContext ).Get( personAliasGuid.Value ).Person;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
         /// Persons the by alias identifier.
         /// </summary>
         /// <param name="context">The context.</param>
@@ -3008,10 +3078,12 @@ namespace Rock.Lava
 
             var mergeFields = context.Environments.SelectMany( a => a ).ToDictionary( k => k.Key, v => v.Value );
 
+            var allFields = mergeFields.Union( context.Scopes.SelectMany( a => a ).DistinctBy(x => x.Key).ToDictionary( k => k.Key, v => v.Value ) );
+
             // if a specific MergeField was specified as the Input, limit the help to just that MergeField
-            if ( input != null && mergeFields.Any( a => a.Value == input ) )
+            if ( input != null && allFields.Any( a => a.Value == input ) )
             {
-                mergeFields = mergeFields.Where( a => a.Value == input ).ToDictionary( k => k.Key, v => v.Value );
+                mergeFields = allFields.Where( a => a.Value == input ).ToDictionary( k => k.Key, v => v.Value );
             }
 
             // TODO: implement the outputFormat option to support ASCII
@@ -3258,17 +3330,19 @@ namespace Rock.Lava
         }
 
         /// <summary>
-        /// To the json.
+        /// Returns a JSON representation of the object.
+        /// See https://www.rockrms.com/page/565#tojson
         /// </summary>
         /// <param name="input">The input.</param>
         /// <returns></returns>
         public static string ToJSON( object input )
         {
-            return input.ToJson();
+            return input.ToJson( Formatting.Indented );
         }
 
         /// <summary>
-        /// Returns a dynamic object from a JSON string
+        /// Returns a dynamic object from a JSON string.
+        /// See https://www.rockrms.com/page/565#fromjson
         /// </summary>
         /// <param name="input">The input.</param>
         /// <returns></returns>
