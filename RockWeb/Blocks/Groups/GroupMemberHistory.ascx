@@ -29,20 +29,69 @@
                             <Rock:SlidingDateRangePicker ID="sdrDateAdded" runat="server" Label="Date Added" EnabledSlidingDateRangeTypes="Previous, Last, Current, DateRange" />
                             <Rock:SlidingDateRangePicker ID="sdrDateRemoved" runat="server" Label="Date Removed" EnabledSlidingDateRangeTypes="Previous, Last, Current, DateRange" />
                             <Rock:RockCheckBoxList ID="cblRole" runat="server" Label="Last Role" DataTextField="Name" DataValueField="Id" RepeatDirection="Horizontal" />
-                            <Rock:RockCheckBoxList ID="cblGroupMemberStatus" runat="server" Label="Last Status" RepeatDirection="Horizontal"  />
+                            <Rock:RockCheckBoxList ID="cblGroupMemberStatus" runat="server" Label="Last Status" RepeatDirection="Horizontal" />
                         </Rock:GridFilter>
-                        <Rock:Grid ID="gGroupMembers" runat="server" AllowSorting="true" DataKeyNames="Id" CssClass="js-grid-group-members" OnRowSelected="gGroupMembers_RowSelected">
+                        <Rock:Grid ID="gGroupMembers" runat="server" AllowSorting="true" DataKeyNames="Id" CssClass="js-grid-group-members"
+                            OnRowSelected="gGroupMembers_RowSelected" OnRowDataBound="gGroupMembers_RowDataBound">
                             <Columns>
-                                <Rock:PersonField DataField="Person" HeaderText="Name" SortExpression="Person.LastName,Person.NickName" />
+                                <Rock:RockLiteralField ID="lPersonNameHtml" HeaderText="Name" SortExpression="Person.LastName,Person.NickName" />
+                                <Rock:PersonField DataField="Person" HeaderText="Name" ExcelExportBehavior="AlwaysInclude" Visible="false" />
                                 <Rock:DateField DataField="DateTimeAdded" HeaderText="Date Added" SortExpression="DateTimeAdded" ItemStyle-HorizontalAlign="Left" />
                                 <Rock:DateField DataField="ArchivedDateTime" HeaderText="Date Removed" SortExpression="ArchivedDateTime" ItemStyle-HorizontalAlign="Left" />
                                 <Rock:RockBoundField DataField="GroupRole.Name" HeaderText="Last Role" SortExpression="GroupRole.Name" />
                                 <Rock:EnumField DataField="GroupMemberStatus" HeaderText="Last Status" SortExpression="GroupMemberStatus" />
+                                <Rock:RockLiteralField ID="lPersonProfileLink" ItemStyle-HorizontalAlign="Center" HeaderStyle-CssClass="grid-columncommand" ItemStyle-CssClass="grid-columncommand" />
                             </Columns>
                         </Rock:Grid>
                     </div>
 
                 </div>
+
+                <script>
+
+                    Sys.Application.add_load(function () {
+                        $("div.photo-icon").lazyload({
+                            effect: "fadeIn"
+                        });
+
+                        // person-link-popover
+                        $('.js-person-popover').popover({
+                            placement: 'right',
+                            trigger: 'manual',
+                            delay: 500,
+                            html: true,
+                            content: function () {
+                                var dataUrl = Rock.settings.get('baseUrl') + 'api/People/PopupHtml/' + $(this).attr('personid') + '/false';
+
+                                var result = $.ajax({
+                                    type: 'GET',
+                                    url: dataUrl,
+                                    dataType: 'json',
+                                    contentType: 'application/json; charset=utf-8',
+                                    async: false
+                                }).responseText;
+
+                                var resultObject = jQuery.parseJSON(result);
+
+                                return resultObject.PickerItemDetailsHtml;
+
+                            }
+                        }).on('mouseenter', function () {
+                            var _this = this;
+                            $(this).popover('show');
+                            $(this).siblings('.popover').on('mouseleave', function () {
+                                $(_this).popover('hide');
+                            });
+                        }).on('mouseleave', function () {
+                            var _this = this;
+                            setTimeout(function () {
+                                if (!$('.popover:hover').length) {
+                                    $(_this).popover('hide')
+                                }
+                            }, 100);
+                        });
+                    });
+                </script>
             </asp:Panel>
 
             <div class="panel-body">

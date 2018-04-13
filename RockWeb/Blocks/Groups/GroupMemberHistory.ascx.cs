@@ -16,6 +16,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data.Entity;
 using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
@@ -52,6 +53,10 @@ namespace RockWeb.Blocks.Groups
             // this event gets fired after block settings are updated. it's nice to repaint the screen if these settings would alter it
             this.BlockUpdated += Block_BlockUpdated;
             this.AddConfigurationUpdateTrigger( upnlContent );
+            gGroupMembers.GridRebind += ( sender, ge ) => { BindMembersGrid(); };
+
+            /// add lazyload js so that person-link-popover javascript works (see GroupMemberList.ascx)
+            RockPage.AddScriptLink( ResolveRockUrl( "~/Scripts/jquery.lazyload.min.js" ) );
         }
 
         /// <summary>
@@ -166,6 +171,27 @@ namespace RockWeb.Blocks.Groups
         {
             gfGroupMembers.DeleteUserPreferences();
             BindFilter();
+        }
+
+        /// <summary>
+        /// Handles the RowDataBound event of the gGroupMembers control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="GridViewRowEventArgs"/> instance containing the event data.</param>
+        protected void gGroupMembers_RowDataBound( object sender, GridViewRowEventArgs e )
+        {
+            const string photoFormat = "<div class=\"photo-icon photo-round photo-round-xs pull-left margin-r-sm js-person-popover\" personid=\"{0}\" data-original=\"{1}&w=50\" style=\"background-image: url( '{2}' ); background-size: cover; background-repeat: no-repeat;\"></div>";
+            GroupMember groupMember = e.Row.DataItem as GroupMember;
+            Literal lPersonNameHtml = e.Row.FindControl( "lPersonNameHtml" ) as Literal;
+            Literal lPersonProfileLink = e.Row.FindControl( "lPersonProfileLink" ) as Literal;
+            if ( groupMember != null )
+            {
+                lPersonNameHtml.Text = string.Format( photoFormat, groupMember.PersonId, groupMember.Person.PhotoUrl, ResolveUrl( "~/Assets/Images/person-no-photo-male.svg" ) )
+                    + groupMember.ToString();
+
+                string personUrl = this.ResolveUrl( string.Format( "~/Person/{0}", groupMember.PersonId ) );
+                lPersonProfileLink.Text = string.Format( @"<a href='{0}'><div class='btn btn-default btn-sm'><i class='fa fa-user'></i></div></a>", personUrl );
+            }
         }
 
         #endregion
@@ -315,6 +341,8 @@ namespace RockWeb.Blocks.Groups
             {
                 qryGroupMembers = qryGroupMembers.OrderBy( a => a.GroupRole.Order ).ThenBy( a => a.Person.LastName ).ThenBy( a => a.Person.FirstName );
             }
+
+            qryGroupMembers = qryGroupMembers.Include( a => a.Person );
 
             gGroupMembers.SetLinqDataSource( qryGroupMembers );
             gGroupMembers.DataBind();
