@@ -160,6 +160,15 @@ namespace RockWeb.Blocks.Groups
             {
                 e.Value = SlidingDateRangePicker.FormatDelimitedValues( e.Value );
             }
+            else if ( e.Key == MakeKeyUniqueToGroup( groupId, "First Name" ) || e.Key == MakeKeyUniqueToGroup( groupId, "Last Name" ) )
+            {
+                // let the value go thru unchanged
+            }
+            else
+            {
+                // unexpected key or a key for another GroupId
+                e.Value = string.Empty;
+            }
         }
 
         /// <summary>
@@ -272,6 +281,15 @@ namespace RockWeb.Blocks.Groups
             int groupId = hfGroupId.Value.AsInteger();
             var rockContext = new RockContext();
             var groupMemberService = new GroupMemberService( rockContext );
+            var groupService = new GroupService( rockContext );
+            var group = groupService.Get( groupId );
+            if ( group != null )
+            {
+                lGroupTitle.Text = group.Name.FormatAsHtmlTitle();
+            }
+
+            lGroupMemberPreHtml.Visible = false;
+            lGroupMemberTitle.Visible = false;
 
             // get the unfiltered list of group members, which includes archived and deceased
             var qryGroupMembers = groupMemberService.AsNoFilter().Where( a => a.GroupId == groupId );
@@ -363,7 +381,10 @@ namespace RockWeb.Blocks.Groups
             var groupMember = new GroupMemberService( new RockContext() ).Get( groupMemberId );
             if ( groupMember != null )
             {
-                lReadOnlyTitle.Text = groupMember.ToString().FormatAsHtmlTitle();
+                lGroupTitle.Text = groupMember.Group.Name.FormatAsHtmlTitle();
+                lGroupMemberTitle.Text = groupMember.ToString().FormatAsHtmlTitle();
+                lGroupMemberPreHtml.Visible = true;
+                lGroupMemberTitle.Visible = true;
             }
 
             var rockContext = new RockContext();

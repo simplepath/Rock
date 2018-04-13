@@ -8,7 +8,10 @@
             <div class="panel-heading">
                 <h1 class="panel-title">
                     <i class="fa fa-history"></i>
-                    <asp:Literal ID="lReadOnlyTitle" runat="server" />
+                    <asp:Literal ID="lGroupTitle" runat="server" />
+                    <%-- lGroupMemberPreHtml and lGroupMemberTitle will be Visible=true when a GroupMember is selected  --%>
+                    <asp:Literal ID="lGroupMemberPreHtml" runat="server" Text=" | " Visible="false" />
+                    <asp:Literal ID="lGroupMemberTitle" runat="server" Visible="false" />
                 </h1>
             </div>
 

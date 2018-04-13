@@ -62,8 +62,16 @@ namespace RockWeb.Blocks.Groups
 
             if ( !Page.IsPostBack )
             {
-                int groupId = this.PageParameter( "GroupId" ).AsInteger();
-                ShowDetail( groupId  );
+                int? groupId = this.PageParameter( "GroupId" ).AsIntegerOrNull();
+                if ( groupId.HasValue )
+                {
+                    ShowDetail( groupId.Value );
+                }
+                else
+                {
+                    // don't show the block if a GroupId isn't in the URL
+                    this.Visible = false;
+                }
             }
         }
 

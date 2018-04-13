@@ -417,6 +417,14 @@ namespace Rock.Model
             private History _firstHistoryRecord = null;
 
             /// <summary>
+            /// Gets the Id of the First History Record (the record that the others are summarized under)
+            /// </summary>
+            /// <value>
+            /// The first history identifier.
+            /// </value>
+            public int FirstHistoryId => this.FirstHistoryRecord?.Id ?? 0;
+
+            /// <summary>
             /// Gets or sets the Summary verb (the Verb of the first history record in this summary)
             /// </summary>
             /// <value>
