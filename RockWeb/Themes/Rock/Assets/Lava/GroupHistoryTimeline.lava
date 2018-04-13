@@ -175,8 +175,8 @@
     <div class="timeline-container">
     {% for historySummaryByDateByVerb in HistorySummaryByDateByVerbList %}
         <!-- Summary Date: {{ historySummaryByDateByVerb.DateTime | Date:'M/d/yyyy' }} -->
-        {% for historySummaryListByVerb in historySummaryByDateByVerb.HistorySummaryListByVerbList %}
-        {% assign byVerbPluralizeCount = historySummaryListByVerb.HistorySummaryList | Size %}
+        {% for historySummaryListByEntityTypeAndVerb in historySummaryByDateByVerb.HistorySummaryListByEntityTypeAndVerbList %}
+        {% assign byVerbPluralizeCount = historySummaryListByEntityTypeAndVerb.HistorySummaryList | Size %}
         {% assign showSummaryEntity = false %}
         {% assign showHistoryDetails = false %}
         {% assign historySkipOffset = 0 %}
@@ -188,12 +188,12 @@
 
             <div class="timeline-content">
                 <span class="timeline-title">
-                {% case historySummaryListByVerb.Verb %}
+                {% case historySummaryListByEntityTypeAndVerb.Verb %}
                         {% when 'MODIFY' %}
-                            {% if PrimaryEntityTypeName == 'Group Member' %}
-                                {{ PrimaryEntityTypeName }} Updated
+                            {% if PrimaryEntityTypeName == historySummaryListByEntityTypeAndVerb.EntityTypeName %}
+                                 Updated
                             {% else %}
-                                Updated
+                                {{ historySummaryListByEntityTypeAndVerb.EntityTypeName | PluralizeForQuantity:byVerbPluralizeCount }} Updated
                             {% endif %}
                             {% assign showHistoryDetails = true %}
                         {% when 'ADDEDTOGROUP' %}
@@ -202,7 +202,7 @@
                                 {% assign showHistoryDetails = true %}
                                 {% assign historySkipOffset = 1 %}
                             {% else %}
-                                Added {% if byVerbPluralizeCount > 1 %}{{ byVerbPluralizeCount }}{% endif %} {{ SecondaryEntityTypeName | PluralizeForQuantity:byVerbPluralizeCount }} 
+                                Added {% if byVerbPluralizeCount > 1 %}{{ byVerbPluralizeCount }}{% endif %} {{ historySummaryListByEntityTypeAndVerb.EntityTypeName | PluralizeForQuantity:byVerbPluralizeCount }} 
                                 {% assign showSummaryEntity = true %}
                             {% endif %}
                         {% when 'REMOVEDFROMGROUP' %}
@@ -211,25 +211,25 @@
                                 {% assign showHistoryDetails = true %}
                                 {% assign historySkipOffset = 1 %}
                             {% else %}
-                                Removed {% if byVerbPluralizeCount > 1 %}{{ byVerbPluralizeCount }}{% endif %} {{ SecondaryEntityTypeName | PluralizeForQuantity:byVerbPluralizeCount }} 
+                                Removed {% if byVerbPluralizeCount > 1 %}{{ byVerbPluralizeCount }}{% endif %} {{ historySummaryListByEntityTypeAndVerb.EntityTypeName | PluralizeForQuantity:byVerbPluralizeCount }} 
                                 {% assign showSummaryEntity = true %}
                             {% endif %}
                         {% when 'ADD' %}
-                            {{ PrimaryEntityTypeName }} Created
+                            {{  historySummaryListByEntityTypeAndVerb.EntityTypeName }} Created
                             {% assign showHistoryDetails = true %}
                             {% comment %} When doing an 'ADD' summary, first history record is the same as the summary, so we can skip it {% endcomment %}
                             {% assign historySkipOffset = 1 %}
                         {% when 'DELETE' %}
-                            {{ PrimaryEntityTypeName }} Deleted
+                            {{  historySummaryListByEntityTypeAndVerb.EntityTypeName }} Deleted
                         {% else %}
                             {% comment %} Some Verb that hasn't been implemented in this template yet, or some unexpected Verb {% endcomment %}
-                            {{ historySummaryListByVerb.Verb }}
+                            {{ historySummaryListByEntityTypeAndVerb.Verb }}
                     {% endcase %}
                 </span>
-                <span class="timeline-date">{{ historySummaryByDateByVerb.FirstHistoryDateTime | Date:'MMM d, yyyy h:mmtt' }}</span>
+                <span class="timeline-date">{{ historySummaryListByEntityTypeAndVerb.FirstHistoryDateTime | Date:'MMM d, yyyy h:mmtt' }}</span>
         <p class="timeline-details">
         
-        {% for historySummary in historySummaryListByVerb.HistorySummaryList %}
+        {% for historySummary in historySummaryListByEntityTypeAndVerb.HistorySummaryList %}
        
             <div class='historysummary'>
                 {% if showSummaryEntity %}
@@ -244,6 +244,11 @@
                 <ul>
                 {% assign historyVerb = "" %}
                 {% assign CreatedByPersonId = "" %}
+                {%- if historySummary.Entity.Guid != PrimaryEntity.Guid -%}
+                    {% assign timelineOtherEntity = historySummary.Entity | ToString %}
+                    <p><span class='history-otherentity'>{{ timelineOtherEntity }}...</span></p>
+                {%- endif -%} 
+                
                 {% for history in historySummary.HistoryList offset:historySkipOffset  %}
                     {%- capture timelineEvent -%}
                         {% comment %} Build summary text for each history detail {% endcomment %}

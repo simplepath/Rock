@@ -17,10 +17,9 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Reflection;
+
 using Rock.Data;
 using Rock.Web.Cache;
 
@@ -31,7 +30,66 @@ namespace Rock.Model
     /// </summary>
     public partial class HistoryService
     {
-        #region Queryable
+        #region HistorySummary methods
+
+        /// <summary>
+        /// Gets the timeline HTML.
+        /// </summary>
+        /// <param name="timelineLavaTemplate">The timeline lava template.</param>
+        /// <param name="primaryEntityType">Type of the primary entity.</param>
+        /// <param name="entityId">The entity identifier.</param>
+        /// <param name="secondaryEntityType">Type of the secondary entity.</param>
+        /// <returns></returns>
+        public string GetTimelineHtml( string timelineLavaTemplate, EntityTypeCache primaryEntityType, int entityId, EntityTypeCache secondaryEntityType )
+        {
+            RockContext rockContext = this.Context as RockContext;
+            HistoryService historyService = new HistoryService( rockContext );
+
+            // change this to adjust the granularity of the GetHistorySummaryByDateTime
+            TimeSpan dateSummaryGranularity = TimeSpan.FromDays( 1 );
+
+            if ( primaryEntityType == null )
+            {
+                return null;
+            }
+
+            var entityTypeIdPrimary = primaryEntityType.Id;
+
+            var primaryEntity = historyService.GetEntityQuery( entityTypeIdPrimary ).FirstOrDefault( a => a.Id == entityId );
+            var historyQry = historyService.Queryable().Where( a => a.CreatedDateTime.HasValue );
+
+            if ( secondaryEntityType == null )
+            {
+                // get history records where the primaryentity is the Entity
+                historyQry = historyQry.Where( a => a.EntityTypeId == entityTypeIdPrimary && a.EntityId == entityId );
+            }
+            else
+            {
+                // get history records where the primaryentity is the Entity OR the primaryEntity is the RelatedEntity and the Entity is the Secondary Entity
+                // For example, for GroupHistory, Set PrimaryEntityType to Group and SecondaryEntityType to GroupMember, then get history where the Group is History.Entity or the Group is the RelatedEntity and GroupMember is the EntityType
+                var entityTypeIdSecondary = secondaryEntityType.Id;
+                historyQry = historyQry.Where( a =>
+                    ( a.EntityTypeId == entityTypeIdPrimary && a.EntityId == entityId )
+                    || ( a.RelatedEntityTypeId == entityTypeIdPrimary && a.EntityTypeId == entityTypeIdSecondary && a.RelatedEntityId == entityId ) );
+            }
+
+            var historySummaryList = historyService.GetHistorySummary( historyQry );
+            var historySummaryByDateList = historyService.GetHistorySummaryByDateTime( historySummaryList, dateSummaryGranularity );
+            historySummaryByDateList = historySummaryByDateList.OrderByDescending( a => a.SummaryDateTime ).ToList();
+            var historySummaryByDateByVerbList = historyService.GetHistorySummaryByDateTimeAndVerb( historySummaryByDateList );
+
+            var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( null, null, new Rock.Lava.CommonMergeFieldsOptions { GetLegacyGlobalMergeFields = false } );
+            mergeFields.Add( "PrimaryEntity", primaryEntity );
+            mergeFields.Add( "PrimaryEntityTypeName", primaryEntityType.FriendlyName );
+            if ( secondaryEntityType != null )
+            {
+                mergeFields.Add( "SecondaryEntityTypeName", secondaryEntityType.FriendlyName );
+            }
+
+            mergeFields.Add( "HistorySummaryByDateByVerbList", historySummaryByDateByVerbList );
+            string timelineHtml = timelineLavaTemplate.ResolveMergeFields( mergeFields );
+            return timelineHtml;
+        }
 
         /// <summary>
         /// Gets the entity query for the specified EntityTypeId
@@ -105,9 +163,10 @@ namespace Rock.Model
             {
                 HistorySummaryByDateTimeAndVerb historySummaryByDateTimeAndVerb = new HistorySummaryByDateTimeAndVerb();
                 historySummaryByDateTimeAndVerb.SummaryDateTime = historySummaryByDateTime.SummaryDateTime;
-                historySummaryByDateTimeAndVerb.HistorySummaryListByVerbList = historySummaryByDateTime.HistorySummaryList.GroupBy( a => a.Verb ).Select( x => new HistorySummaryListByVerb
+                historySummaryByDateTimeAndVerb.HistorySummaryListByEntityTypeAndVerbList = historySummaryByDateTime.HistorySummaryList.GroupBy( a => new { a.Verb, a.EntityTypeId } ).Select( x => new HistorySummaryListByEntityTypeAndVerb
                 {
-                    Verb = x.Key,
+                    Verb = x.Key.Verb,
+                    EntityTypeId = x.Key.EntityTypeId,
                     HistorySummaryList = x.ToList()
                 } ).ToList();
 
@@ -220,7 +279,7 @@ namespace Rock.Model
             /// <value>
             /// The first history date time.
             /// </value>
-            public DateTime? FirstHistoryDateTime => this.HistorySummaryListByVerbList.FirstOrDefault()?.FirstHistoryDateTime;
+            public DateTime? FirstHistoryDateTime => this.HistorySummaryListByEntityTypeAndVerbList.FirstOrDefault()?.FirstHistoryDateTime;
 
             /// <summary>
             /// Gets the date/time of the last history log in this summary's summarylist
@@ -228,22 +287,22 @@ namespace Rock.Model
             /// <value>
             /// The last history date time.
             /// </value>
-            public DateTime? LastHistoryDateTime => this.HistorySummaryListByVerbList.FirstOrDefault()?.LastHistoryDateTime;
+            public DateTime? LastHistoryDateTime => this.HistorySummaryListByEntityTypeAndVerbList.FirstOrDefault()?.LastHistoryDateTime;
 
             /// <summary>
-            /// Gets or sets the history summary list by verb list.
+            /// Gets or sets the history summary list group by EntityType and Verb
             /// </summary>
             /// <value>
             /// The history summary list by verb list.
             /// </value>
-            public List<HistorySummaryListByVerb> HistorySummaryListByVerbList { get; set; }
+            public List<HistorySummaryListByEntityTypeAndVerb> HistorySummaryListByEntityTypeAndVerbList { get; set; }
         }
 
         /// <summary>
         /// 
         /// </summary>
         /// <seealso cref="DotLiquid.Drop" />
-        public class HistorySummaryListByVerb : DotLiquid.Drop
+        public class HistorySummaryListByEntityTypeAndVerb : DotLiquid.Drop
         {
             /// <summary>
             /// Gets or sets the verb.
@@ -252,6 +311,28 @@ namespace Rock.Model
             /// The verb.
             /// </value>
             public string Verb { get; set; }
+
+            /// <summary>
+            /// Gets or sets the entity type identifier.
+            /// </summary>
+            /// <value>
+            /// The entity type identifier.
+            /// </value>
+            public int EntityTypeId { get; set; }
+
+            /// <summary>
+            /// Gets the name of the entity type.
+            /// </summary>
+            /// <value>
+            /// The name of the entity type.
+            /// </value>
+            public string EntityTypeName
+            {
+                get
+                {
+                    return EntityTypeCache.Read( this.EntityTypeId ).FriendlyName;
+                }
+            }
 
             /// <summary>
             /// Gets the date/time of the first history log in this summary's summarylist
@@ -740,15 +821,11 @@ namespace Rock.Model
         {
             if ( changes.Any() )
             {
-                Stopwatch sw = Stopwatch.StartNew();
                 AddChanges( rockContext, modelType, categoryGuid, entityId, changes, caption, relatedModelType, relatedEntityId, modifiedByPersonAliasId );
                 if ( commitSave )
                 {
                     rockContext.SaveChanges();
                 }
-
-                sw.Stop();
-                Debug.WriteLine( $"[{sw.Elapsed.TotalMilliseconds} ms], Save {changes.Count} HistoryChanges" );
             }
         }
 
