@@ -23,6 +23,14 @@
                     </div>
 
                     <div class="grid grid-panel">
+                        <Rock:GridFilter ID="gfGroupMembers" runat="server" OnDisplayFilterValue="gfGroupMembers_DisplayFilterValue" OnClearFilterClick="gfGroupMembers_ClearFilterClick" OnApplyFilterClick="gfGroupMembers_ApplyFilterClick">
+                            <Rock:RockTextBox ID="tbFirstName" runat="server" Label="First Name" />
+                            <Rock:RockTextBox ID="tbLastName" runat="server" Label="Last Name" />
+                            <Rock:SlidingDateRangePicker ID="sdrDateAdded" runat="server" Label="Date Added" EnabledSlidingDateRangeTypes="Previous, Last, Current, DateRange" />
+                            <Rock:SlidingDateRangePicker ID="sdrDateRemoved" runat="server" Label="Date Removed" EnabledSlidingDateRangeTypes="Previous, Last, Current, DateRange" />
+                            <Rock:RockCheckBoxList ID="cblRole" runat="server" Label="Last Role" DataTextField="Name" DataValueField="Id" RepeatDirection="Horizontal" />
+                            <Rock:RockCheckBoxList ID="cblGroupMemberStatus" runat="server" Label="Last Status" RepeatDirection="Horizontal"  />
+                        </Rock:GridFilter>
                         <Rock:Grid ID="gGroupMembers" runat="server" AllowSorting="true" DataKeyNames="Id" CssClass="js-grid-group-members" OnRowSelected="gGroupMembers_RowSelected">
                             <Columns>
                                 <Rock:PersonField DataField="Person" HeaderText="Name" SortExpression="Person.LastName,Person.NickName" />
