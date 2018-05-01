@@ -29,7 +29,7 @@ using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
 using Rock.Security;
-using Rock.Web.Cache;
+using Rock.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
 
@@ -445,12 +445,12 @@ namespace RockWeb.Blocks.Event
                     }
 
                     // Add attribute columns
-                    int entityTypeId = EntityTypeCache.Read( typeof( Rock.Model.ContentChannelItem ) ).Id;
+                    int entityTypeId = CacheEntityType.Get( typeof( Rock.Model.ContentChannelItem ) ).Id;
                     string qualifier = contentChannel.ContentChannelTypeId.ToString();
                     foreach ( var attributeCache in new AttributeService( rockContext ).GetByEntityTypeQualifier(entityTypeId, "ContentChannelTypeId", qualifier, false )
                         .Where( a => a.IsGridColumn )
                         .OrderBy( a => a.Order )
-                        .ThenBy( a => a.Name ).ToAttributeCacheList() )
+                        .ThenBy( a => a.Name ).ToCacheAttributeList() )
                     {
                         string dataFieldExpression = attributeCache.Key;
                         bool columnExists = gItems.Columns.OfType<AttributeField>().FirstOrDefault( a => a.DataField.Equals( dataFieldExpression ) ) != null;
@@ -534,7 +534,7 @@ namespace RockWeb.Blocks.Event
 
                             gItems.ObjectList = new Dictionary<string, object>();
                             items.ForEach( i => gItems.ObjectList.Add( i.Id.ToString(), i ) );
-                            gItems.EntityTypeId = EntityTypeCache.Read<ContentChannelItem>().Id;
+                            gItems.EntityTypeId = CacheEntityType.Get<ContentChannelItem>().Id;
 
                             gItems.DataSource = items.Select( i => new
                             {

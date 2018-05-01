@@ -22,9 +22,9 @@ using System.Web.UI;
 using System.Web.UI.WebControls;
 using Rock;
 using Rock.Attribute;
+using Rock.Cache;
 using Rock.Data;
 using Rock.Model;
-using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
 
@@ -237,7 +237,7 @@ namespace RockWeb.Blocks.Groups
             var rockContext = new RockContext();
             int groupId = hfGroupId.Value.AsInteger();
             var group = new GroupService( rockContext ).Get( groupId );
-            var groupTypeCache = GroupTypeCache.Read( group.GroupTypeId );
+            var groupTypeCache = CacheGroupType.Get( group.GroupTypeId );
 
             tbFirstName.Text = gfGroupMembers.GetUserPreference( MakeKeyUniqueToGroup( groupId, "First Name" ) );
             tbLastName.Text = gfGroupMembers.GetUserPreference( MakeKeyUniqueToGroup( groupId, "Last Name" ) );
@@ -373,9 +373,9 @@ namespace RockWeb.Blocks.Groups
         private void ShowGroupMemberHistory( int groupMemberId )
         {
             int entityId;
-            EntityTypeCache primaryEntityType;
+            CacheEntityType primaryEntityType;
 
-            primaryEntityType = EntityTypeCache.Read<Rock.Model.GroupMember>();
+            primaryEntityType = CacheEntityType.Get<Rock.Model.GroupMember>();
             entityId = groupMemberId;
 
             var groupMember = new GroupMemberService( new RockContext() ).Get( groupMemberId );

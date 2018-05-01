@@ -31,7 +31,7 @@ using Rock.Data;
 using Rock.Model;
 using Rock.Security;
 using Rock.Web;
-using Rock.Web.Cache;
+using Rock.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
 
@@ -933,7 +933,7 @@ namespace RockWeb.Blocks.Event
             foreach ( var control in phRegistrantsRegistrantFormFieldFilters.ControlsOfTypeRecursive<Control>().Where( a => a.ID != null && a.ID.StartsWith( "filter" ) && a.ID.Contains( "_" ) ) )
             {
                 var attributeId = control.ID.Split( '_' )[1].AsInteger();
-                var attribute = AttributeCache.Read( attributeId );
+                var attribute = CacheAttribute.Get( attributeId );
                 if ( attribute != null )
                 {
                     attribute.FieldType.Field.SetFilterValues( control, attribute.QualifierValues, new List<string>() );
@@ -1086,7 +1086,7 @@ namespace RockWeb.Blocks.Event
                     int? campusId = e.Value.AsIntegerOrNull();
                     if ( campusId.HasValue )
                     {
-                        var campus = CampusCache.Read( campusId.Value );
+                        var campus = CacheCampus.Get( campusId.Value );
                         e.Value = campus != null ? campus.Name : string.Empty;
                     }
                     else
@@ -1100,7 +1100,7 @@ namespace RockWeb.Blocks.Event
                     int? dvId = e.Value.AsIntegerOrNull();
                     if ( dvId.HasValue )
                     {
-                        var maritalStatus = DefinedValueCache.Read( dvId.Value );
+                        var maritalStatus = CacheDefinedValue.Get( dvId.Value );
                         e.Value = maritalStatus != null ? maritalStatus.Value : string.Empty;
                     }
                     else
@@ -1189,7 +1189,7 @@ namespace RockWeb.Blocks.Event
                                 var campusNames = new List<string>();
                                 foreach ( int campusId in campusIds )
                                 {
-                                    var campus = CampusCache.Read( campusId );
+                                    var campus = CacheCampus.Get( campusId );
                                     if ( campus != null )
                                     {
                                         campusNames.Add( campus.Name );
@@ -1699,7 +1699,7 @@ namespace RockWeb.Blocks.Event
             if ( keys.Any() )
             {
                 var entitySet = new Rock.Model.EntitySet();
-                entitySet.EntityTypeId = Rock.Web.Cache.EntityTypeCache.Read<Rock.Model.RegistrationRegistrant>().Id;
+                entitySet.EntityTypeId = Rock.Cache.CacheEntityType.Get<Rock.Model.RegistrationRegistrant>().Id;
                 entitySet.ExpireDateTime = RockDateTime.Now.AddMinutes( 20 );
 
                 foreach ( var key in keys )
@@ -1861,7 +1861,7 @@ namespace RockWeb.Blocks.Event
             foreach ( var control in phWaitListFormFieldFilters.ControlsOfTypeRecursive<Control>().Where( a => a.ID != null && a.ID.StartsWith( "filter" ) && a.ID.Contains( "_" ) ) )
             {
                 var attributeId = control.ID.Split( '_' )[1].AsInteger();
-                var attribute = AttributeCache.Read( attributeId );
+                var attribute = CacheAttribute.Get( attributeId );
                 if ( attribute != null )
                 {
                     attribute.FieldType.Field.SetFilterValues( control, attribute.QualifierValues, new List<string>() );
@@ -2015,7 +2015,7 @@ namespace RockWeb.Blocks.Event
                         int? campusId = e.Value.AsIntegerOrNull();
                         if ( campusId.HasValue )
                         {
-                            var campus = CampusCache.Read( campusId.Value );
+                            var campus = CacheCampus.Get( campusId.Value );
                             e.Value = campus != null ? campus.Name : string.Empty;
                         }
                         else
@@ -2029,7 +2029,7 @@ namespace RockWeb.Blocks.Event
                         int? dvId = e.Value.AsIntegerOrNull();
                         if ( dvId.HasValue )
                         {
-                            var maritalStatus = DefinedValueCache.Read( dvId.Value );
+                            var maritalStatus = CacheDefinedValue.Get( dvId.Value );
                             e.Value = maritalStatus != null ? maritalStatus.Value : string.Empty;
                         }
                         else
@@ -2110,7 +2110,7 @@ namespace RockWeb.Blocks.Event
                                 var campusNames = new List<string>();
                                 foreach ( int campusId in campusIds )
                                 {
-                                    var campus = CampusCache.Read( campusId );
+                                    var campus = CacheCampus.Get( campusId );
                                     if ( campus != null )
                                     {
                                         campusNames.Add( campus.Name );
@@ -2371,6 +2371,7 @@ namespace RockWeb.Blocks.Event
 
                 pnlDetails.Visible = true;
                 hfRegistrationInstanceId.Value = registrationInstance.Id.ToString();
+                hfRegistrationTemplateId.Value = registrationInstance.RegistrationTemplateId.ToString();
                 SetHasPayments( registrationInstance.Id, rockContext );
 
                 FollowingsHelper.SetFollowing( registrationInstance, pnlFollowing, this.CurrentPerson );
@@ -2670,7 +2671,7 @@ namespace RockWeb.Blocks.Event
                     !r.IsTemporary )
                 .Select( r => r.Id );
 
-            var registrationEntityType = EntityTypeCache.Read( typeof( Rock.Model.Registration ) );
+            var registrationEntityType = CacheEntityType.Get( typeof( Rock.Model.Registration ) );
             hfHasPayments.Value = new FinancialTransactionDetailService( rockContext )
                 .Queryable().AsNoTracking()
                 .Where( d =>
@@ -2690,6 +2691,8 @@ namespace RockWeb.Blocks.Event
         /// </summary>
         private void BindRegistrationsFilter()
         {
+            fRegistrations.UserPreferenceKeyPrefix = string.Format( "{0}-", hfRegistrationTemplateId.Value );
+
             sdrpRegistrationDateRange.DelimitedValues = fRegistrations.GetUserPreference( "Registrations Date Range" );
             ddlRegistrationPaymentStatus.SetValue( fRegistrations.GetUserPreference( "Payment Status" ) );
             tbRegistrationRegisteredByFirstName.Text = fRegistrations.GetUserPreference( "Registered By First Name" );
@@ -2708,7 +2711,7 @@ namespace RockWeb.Blocks.Event
             {
                 using ( var rockContext = new RockContext() )
                 {
-                    var registrationEntityType = EntityTypeCache.Read( typeof( Rock.Model.Registration ) );
+                    var registrationEntityType = CacheEntityType.Get( typeof( Rock.Model.Registration ) );
 
                     var instance = new RegistrationInstanceService( rockContext ).Get( instanceId.Value );
                     if ( instance != null )
@@ -2926,6 +2929,7 @@ namespace RockWeb.Blocks.Event
         /// </summary>
         private void BindRegistrantsFilter( RegistrationInstance instance )
         {
+            fRegistrants.UserPreferenceKeyPrefix = string.Format( "{0}-", hfRegistrationTemplateId.Value );
             sdrpRegistrantsRegistrantDateRange.DelimitedValues = fRegistrants.GetUserPreference( "Registrants Date Range" );
             tbRegistrantsRegistrantFirstName.Text = fRegistrants.GetUserPreference( "First Name" );
             tbRegistrantsRegistrantLastName.Text = fRegistrants.GetUserPreference( "Last Name" );
@@ -3028,9 +3032,9 @@ namespace RockWeb.Blocks.Event
                     }
 
                     bool preloadCampusValues = false;
-                    var registrantAttributes = new List<AttributeCache>();
-                    var personAttributes = new List<AttributeCache>();
-                    var groupMemberAttributes = new List<AttributeCache>();
+                    var registrantAttributes = new List<CacheAttribute>();
+                    var personAttributes = new List<CacheAttribute>();
+                    var groupMemberAttributes = new List<CacheAttribute>();
                     var registrantAttributeIds = new List<int>();
                     var personAttributesIds = new List<int>();
                     var groupMemberAttributesIds = new List<int>();
@@ -3186,19 +3190,29 @@ namespace RockWeb.Blocks.Event
                             foreach ( var attribute in registrantAttributes )
                             {
                                 var filterControl = phRegistrantsRegistrantFormFieldFilters.FindControl( "filterRegistrants_" + attribute.Id.ToString() );
-                                if ( filterControl != null )
+                                if ( filterControl == null ) continue;
+
+                                var filterValues = attribute.FieldType.Field.GetFilterValues( filterControl, attribute.QualifierValues, Rock.Reporting.FilterMode.SimpleFilter );
+                                var filterIsDefault = attribute.FieldType.Field.IsEqualToValue( filterValues, attribute.DefaultValue );
+                                var expression = attribute.FieldType.Field.AttributeFilterExpression( attribute.QualifierValues, filterValues, parameterExpression );
+                                if ( expression == null ) continue;
+
+                                var attributeValues = attributeValueService
+                                                      .Queryable()
+                                                      .Where( v => v.Attribute.Id == attribute.Id );
+
+                                var filteredAttributeValues = attributeValues.Where( parameterExpression, expression, null );
+
+                                if ( filterIsDefault )
                                 {
-                                    var filterValues = attribute.FieldType.Field.GetFilterValues( filterControl, attribute.QualifierValues, Rock.Reporting.FilterMode.SimpleFilter );
-                                    var expression = attribute.FieldType.Field.AttributeFilterExpression( attribute.QualifierValues, filterValues, parameterExpression );
-                                    if ( expression != null )
-                                    {
-                                        var attributeValues = attributeValueService
-                                            .Queryable()
-                                            .Where( v => v.Attribute.Id == attribute.Id );
-                                        attributeValues = attributeValues.Where( parameterExpression, expression, null );
-                                        qry = qry
-                                            .Where( r => attributeValues.Select( v => v.EntityId ).Contains( r.Id ) );
-                                    }
+                                    qry = qry.Where( w =>
+                                         !attributeValues.Any( v => v.EntityId == w.Id ) ||
+                                         filteredAttributeValues.Select( v => v.EntityId ).Contains( w.Id ) );
+                                }
+                                else
+                                {
+                                    qry = qry.Where( w =>
+                                        filteredAttributeValues.Select( v => v.EntityId ).Contains( w.Id ) );
                                 }
                             }
                         }
@@ -3220,19 +3234,29 @@ namespace RockWeb.Blocks.Event
                             foreach ( var attribute in personAttributes )
                             {
                                 var filterControl = phRegistrantsRegistrantFormFieldFilters.FindControl( "filterRegistrants_" + attribute.Id.ToString() );
-                                if ( filterControl != null )
+                                if ( filterControl == null ) continue;
+
+                                var filterValues = attribute.FieldType.Field.GetFilterValues( filterControl, attribute.QualifierValues, Rock.Reporting.FilterMode.SimpleFilter );
+                                var filterIsDefault = attribute.FieldType.Field.IsEqualToValue( filterValues, attribute.DefaultValue );
+                                var expression = attribute.FieldType.Field.AttributeFilterExpression( attribute.QualifierValues, filterValues, parameterExpression );
+                                if ( expression == null ) continue;
+
+                                var attributeValues = attributeValueService
+                                    .Queryable()
+                                    .Where( v => v.Attribute.Id == attribute.Id );
+
+                                var filteredAttributeValues = attributeValues.Where( parameterExpression, expression, null );
+
+                                if ( filterIsDefault )
                                 {
-                                    var filterValues = attribute.FieldType.Field.GetFilterValues( filterControl, attribute.QualifierValues, Rock.Reporting.FilterMode.SimpleFilter );
-                                    var expression = attribute.FieldType.Field.AttributeFilterExpression( attribute.QualifierValues, filterValues, parameterExpression );
-                                    if ( expression != null )
-                                    {
-                                        var attributeValues = attributeValueService
-                                            .Queryable()
-                                            .Where( v => v.Attribute.Id == attribute.Id );
-                                        attributeValues = attributeValues.Where( parameterExpression, expression, null );
-                                        qry = qry
-                                            .Where( r => attributeValues.Select( v => v.EntityId ).Contains( r.PersonAlias.PersonId ) );
-                                    }
+                                    qry = qry.Where( w =>
+                                         !attributeValues.Any( v => v.EntityId == w.PersonAlias.PersonId ) ||
+                                         filteredAttributeValues.Select( v => v.EntityId ).Contains( w.PersonAlias.PersonId ) );
+                                }
+                                else
+                                {
+                                    qry = qry.Where( w =>
+                                        filteredAttributeValues.Select( v => v.EntityId ).Contains(  w.PersonAlias.PersonId ) );
                                 }
                             }
                         }
@@ -3254,21 +3278,33 @@ namespace RockWeb.Blocks.Event
                             foreach ( var attribute in groupMemberAttributes )
                             {
                                 var filterControl = phRegistrantsRegistrantFormFieldFilters.FindControl( "filterRegistrants_" + attribute.Id.ToString() );
-                                if ( filterControl != null )
+                                if ( filterControl == null ) continue;
+
+                                var filterValues = attribute.FieldType.Field.GetFilterValues( filterControl, attribute.QualifierValues, Rock.Reporting.FilterMode.SimpleFilter );
+                                var filterIsDefault = attribute.FieldType.Field.IsEqualToValue( filterValues, attribute.DefaultValue );
+                                var expression = attribute.FieldType.Field.AttributeFilterExpression( attribute.QualifierValues, filterValues, parameterExpression );
+                                if ( expression == null ) continue;
+
+                                var attributeValues = attributeValueService
+                                    .Queryable()
+                                    .Where( v => v.Attribute.Id == attribute.Id );
+
+                                var filteredAttributeValues = attributeValues.Where( parameterExpression, expression, null );
+
+                                if ( filterIsDefault )
                                 {
-                                    var filterValues = attribute.FieldType.Field.GetFilterValues( filterControl, attribute.QualifierValues, Rock.Reporting.FilterMode.SimpleFilter );
-                                    var expression = attribute.FieldType.Field.AttributeFilterExpression( attribute.QualifierValues, filterValues, parameterExpression );
-                                    if ( expression != null )
-                                    {
-                                        var attributeValues = attributeValueService
-                                            .Queryable()
-                                            .Where( v => v.Attribute.Id == attribute.Id );
-                                        attributeValues = attributeValues.Where( parameterExpression, expression, null );
-                                        qry = qry
+                                    qry = qry.Where( r => r.GroupMemberId.HasValue &&
+                                         !attributeValues.Any( v => v.EntityId == r.GroupMemberId.Value ) ||
+                                         filteredAttributeValues.Select( v => v.EntityId ).Contains( r.GroupMemberId.Value ) );
+                                }
+                                else
+                                {
+                                    qry = qry.Where( r => r.GroupMemberId.HasValue &&
+                                        filteredAttributeValues.Select( v => v.EntityId ).Contains( r.GroupMemberId.Value ) );
+                                }
+                                qry = qry
                                             .Where( r => r.GroupMemberId.HasValue &&
                                             attributeValues.Select( v => v.EntityId ).Contains( r.GroupMemberId.Value ) );
-                                    }
-                                }
                             }
                         }
                     }
@@ -3381,7 +3417,7 @@ namespace RockWeb.Blocks.Event
                                         ) ).ToList();
 
                                 // Get the attributes to add to each row's object
-                                var attributes = new Dictionary<string, AttributeCache>();
+                                var attributes = new Dictionary<string, CacheAttribute>();
                                 RegistrantFields
                                         .Where( f => f.Attribute != null )
                                         .Select( f => f.Attribute )
@@ -3409,7 +3445,7 @@ namespace RockWeb.Blocks.Event
                                             v.EntityId.Value == registrant.PersonAlias.PersonId )
                                         .ToList()
                                         .ForEach( v => attributeFieldObject.AttributeValues
-                                            .Add( v.AttributeId.ToString() + v.Attribute.Key, new AttributeValueCache( v ) ) );
+                                            .Add( v.AttributeId.ToString() + v.Attribute.Key, new CacheAttributeValue( v ) ) );
 
                                     // Add any group member attribute values to object
                                     if ( registrant.GroupMemberId.HasValue )
@@ -3420,7 +3456,7 @@ namespace RockWeb.Blocks.Event
                                                 v.EntityId.Value == registrant.GroupMemberId.Value )
                                             .ToList()
                                             .ForEach( v => attributeFieldObject.AttributeValues
-                                                .Add( v.AttributeId.ToString() + v.Attribute.Key, new AttributeValueCache( v ) ) );
+                                                .Add( v.AttributeId.ToString() + v.Attribute.Key, new CacheAttributeValue( v ) ) );
                                     }
 
                                     // Add any registrant attribute values to object
@@ -3430,7 +3466,7 @@ namespace RockWeb.Blocks.Event
                                             v.EntityId.Value == registrant.Id )
                                         .ToList()
                                         .ForEach( v => attributeFieldObject.AttributeValues
-                                            .Add( v.AttributeId.ToString() + v.Attribute.Key, new AttributeValueCache( v ) ) );
+                                            .Add( v.AttributeId.ToString() + v.Attribute.Key, new CacheAttributeValue( v ) ) );
 
                                     // Add row attribute object to grid's object list
                                     gRegistrants.ObjectList.Add( registrant.Id.ToString(), attributeFieldObject );
@@ -3479,7 +3515,7 @@ namespace RockWeb.Blocks.Event
                                 new RegistrantFormField
                                 {
                                     FieldSource = formField.FieldSource,
-                                    Attribute = AttributeCache.Read( formField.AttributeId.Value )
+                                    Attribute = CacheAttribute.Get( formField.AttributeId.Value )
                                 } );
                         }
                     }
@@ -3565,7 +3601,7 @@ namespace RockWeb.Blocks.Event
                                 ddlRegistrantsCampus.Label = "Home Campus";
                                 ddlRegistrantsCampus.DataValueField = "Id";
                                 ddlRegistrantsCampus.DataTextField = "Name";
-                                ddlRegistrantsCampus.DataSource = CampusCache.All();
+                                ddlRegistrantsCampus.DataSource = CacheCampus.All();
                                 ddlRegistrantsCampus.DataBind();
                                 ddlRegistrantsCampus.Items.Insert( 0, new ListItem( string.Empty, string.Empty ) );
 
@@ -3581,7 +3617,7 @@ namespace RockWeb.Blocks.Event
                                 ddlGroupPlacementsCampus.Label = "Home Campus";
                                 ddlGroupPlacementsCampus.DataValueField = "Id";
                                 ddlGroupPlacementsCampus.DataTextField = "Name";
-                                ddlGroupPlacementsCampus.DataSource = CampusCache.All();
+                                ddlGroupPlacementsCampus.DataSource = CacheCampus.All();
                                 ddlGroupPlacementsCampus.DataBind();
                                 ddlGroupPlacementsCampus.Items.Insert( 0, new ListItem( string.Empty, string.Empty ) );
 
@@ -3597,7 +3633,7 @@ namespace RockWeb.Blocks.Event
                                 ddlWaitListCampus.Label = "Home Campus";
                                 ddlWaitListCampus.DataValueField = "Id";
                                 ddlWaitListCampus.DataTextField = "Name";
-                                ddlWaitListCampus.DataSource = CampusCache.All();
+                                ddlWaitListCampus.DataSource = CacheCampus.All();
                                 ddlWaitListCampus.DataBind();
                                 ddlWaitListCampus.Items.Insert( 0, new ListItem( string.Empty, string.Empty ) );
                                 ddlWaitListCampus.SetValue( fRegistrants.GetUserPreference( "WL-Home Campus" ) );
@@ -3853,7 +3889,7 @@ namespace RockWeb.Blocks.Event
 
                             case RegistrationPersonFieldType.MaritalStatus:
                                 var ddlRegistrantsMaritalStatusFilter = new RockDropDownList();
-                                ddlRegistrantsMaritalStatusFilter.BindToDefinedType( DefinedTypeCache.Read( Rock.SystemGuid.DefinedType.PERSON_MARITAL_STATUS.AsGuid() ), true );
+                                ddlRegistrantsMaritalStatusFilter.BindToDefinedType( CacheDefinedType.Get( Rock.SystemGuid.DefinedType.PERSON_MARITAL_STATUS.AsGuid() ), true );
                                 ddlRegistrantsMaritalStatusFilter.ID = "ddlRegistrantsMaritalStatusFilter";
                                 ddlRegistrantsMaritalStatusFilter.Label = "Marital Status";
 
@@ -3865,7 +3901,7 @@ namespace RockWeb.Blocks.Event
                                 phRegistrantsRegistrantFormFieldFilters.Controls.Add( ddlRegistrantsMaritalStatusFilter );
 
                                 var ddlGroupPlacementsMaritalStatusFilter = new RockDropDownList();
-                                ddlGroupPlacementsMaritalStatusFilter.BindToDefinedType( DefinedTypeCache.Read( Rock.SystemGuid.DefinedType.PERSON_MARITAL_STATUS.AsGuid() ), true );
+                                ddlGroupPlacementsMaritalStatusFilter.BindToDefinedType( CacheDefinedType.Get( Rock.SystemGuid.DefinedType.PERSON_MARITAL_STATUS.AsGuid() ), true );
                                 ddlGroupPlacementsMaritalStatusFilter.ID = "ddlGroupPlacementsMaritalStatusFilter";
                                 ddlGroupPlacementsMaritalStatusFilter.Label = "Marital Status";
 
@@ -3877,7 +3913,7 @@ namespace RockWeb.Blocks.Event
                                 phGroupPlacementsFormFieldFilters.Controls.Add( ddlGroupPlacementsMaritalStatusFilter );
 
                                 var ddlWaitlistMaritalStatusFilter = new RockDropDownList();
-                                ddlWaitlistMaritalStatusFilter.BindToDefinedType( DefinedTypeCache.Read( Rock.SystemGuid.DefinedType.PERSON_MARITAL_STATUS.AsGuid() ), true );
+                                ddlWaitlistMaritalStatusFilter.BindToDefinedType( CacheDefinedType.Get( Rock.SystemGuid.DefinedType.PERSON_MARITAL_STATUS.AsGuid() ), true );
                                 ddlWaitlistMaritalStatusFilter.ID = "ddlWaitlistMaritalStatusFilter";
                                 ddlWaitlistMaritalStatusFilter.Label = "Marital Status";
                                 ddlWaitlistMaritalStatusFilter.SetValue( fRegistrants.GetUserPreference( "WL-Marital Status" ) );
@@ -4082,7 +4118,7 @@ namespace RockWeb.Blocks.Event
                             boundField3.AttributeId = attribute.Id;
                             boundField3.HeaderText = attribute.Name;
 
-                            var attributeCache = Rock.Web.Cache.AttributeCache.Read( attribute.Id );
+                            var attributeCache = Rock.Cache.CacheAttribute.Get( attribute.Id );
                             if ( attributeCache != null )
                             {
                                 boundField.ItemStyle.HorizontalAlign = attributeCache.FieldType.Field.AlignValue;
@@ -4125,6 +4161,7 @@ namespace RockWeb.Blocks.Event
         /// </summary>
         private void BindPaymentsFilter()
         {
+            fPayments.UserPreferenceKeyPrefix = string.Format( "{0}-", hfRegistrationTemplateId.Value );
             sdrpPaymentDateRange.DelimitedValues = fPayments.GetUserPreference( "Payments Date Range" );
         }
 
@@ -4142,7 +4179,7 @@ namespace RockWeb.Blocks.Event
                     var creditCardTypes = new Dictionary<int, string>();
 
                     // If configured for a registration and registration is null, return
-                    int registrationEntityTypeId = EntityTypeCache.Read( typeof( Rock.Model.Registration ) ).Id;
+                    int registrationEntityTypeId = CacheEntityType.Get( typeof( Rock.Model.Registration ) ).Id;
 
                     // Get all the registrations for this instance
                     paymentRegistrations = new RegistrationService( rockContext )
@@ -4344,6 +4381,7 @@ namespace RockWeb.Blocks.Event
         /// <param name="instance">The instance.</param>
         private void BindWaitListFilter( RegistrationInstance instance )
         {
+            fWaitList.UserPreferenceKeyPrefix = string.Format( "{0}-", hfRegistrationTemplateId.Value );
             drpWaitListDateRange.DelimitedValues = fWaitList.GetUserPreference( "WL-Date Range" );
             tbWaitListFirstName.Text = fWaitList.GetUserPreference( "WL-First Name" );
             tbWaitListLastName.Text = fWaitList.GetUserPreference( "WL-Last Name" );
@@ -4412,9 +4450,9 @@ namespace RockWeb.Blocks.Event
                     }
 
                     bool preloadCampusValues = false;
-                    var registrantAttributes = new List<AttributeCache>();
-                    var personAttributes = new List<AttributeCache>();
-                    var groupMemberAttributes = new List<AttributeCache>();
+                    var registrantAttributes = new List<CacheAttribute>();
+                    var personAttributes = new List<CacheAttribute>();
+                    var groupMemberAttributes = new List<CacheAttribute>();
                     var registrantAttributeIds = new List<int>();
                     var personAttributesIds = new List<int>();
                     var groupMemberAttributesIds = new List<int>();
@@ -4564,19 +4602,29 @@ namespace RockWeb.Blocks.Event
                             foreach ( var attribute in registrantAttributes )
                             {
                                 var filterControl = phWaitListFormFieldFilters.FindControl( "filterWaitlist_" + attribute.Id.ToString() );
-                                if ( filterControl != null )
+                                if ( filterControl == null ) continue;
+
+                                var filterValues = attribute.FieldType.Field.GetFilterValues( filterControl, attribute.QualifierValues, Rock.Reporting.FilterMode.SimpleFilter );
+                                var filterIsDefault = attribute.FieldType.Field.IsEqualToValue( filterValues, attribute.DefaultValue );
+                                var expression = attribute.FieldType.Field.AttributeFilterExpression( attribute.QualifierValues, filterValues, parameterExpression );
+                                if ( expression == null ) continue;
+
+                                var attributeValues = attributeValueService
+                                    .Queryable()
+                                    .Where( v => v.Attribute.Id == attribute.Id );
+
+                                var filteredAttributeValues = attributeValues.Where( parameterExpression, expression, null );
+
+                                if ( filterIsDefault )
                                 {
-                                    var filterValues = attribute.FieldType.Field.GetFilterValues( filterControl, attribute.QualifierValues, Rock.Reporting.FilterMode.SimpleFilter );
-                                    var expression = attribute.FieldType.Field.AttributeFilterExpression( attribute.QualifierValues, filterValues, parameterExpression );
-                                    if ( expression != null )
-                                    {
-                                        var attributeValues = attributeValueService
-                                            .Queryable()
-                                            .Where( v => v.Attribute.Id == attribute.Id );
-                                        attributeValues = attributeValues.Where( parameterExpression, expression, null );
-                                        qry = qry
-                                            .Where( r => attributeValues.Select( v => v.EntityId ).Contains( r.Id ) );
-                                    }
+                                    qry = qry.Where( w =>
+                                         !attributeValues.Any( v => v.EntityId == w.Id ) ||
+                                         filteredAttributeValues.Select( v => v.EntityId ).Contains( w.Id ) );
+                                }
+                                else
+                                {
+                                    qry = qry.Where( w =>
+                                        filteredAttributeValues.Select( v => v.EntityId ).Contains( w.Id ) );
                                 }
                             }
                         }
@@ -4598,19 +4646,29 @@ namespace RockWeb.Blocks.Event
                             foreach ( var attribute in personAttributes )
                             {
                                 var filterControl = phWaitListFormFieldFilters.FindControl( "filterWaitlist_" + attribute.Id.ToString() );
-                                if ( filterControl != null )
+                                if ( filterControl == null ) continue;
+
+                                var filterValues = attribute.FieldType.Field.GetFilterValues( filterControl, attribute.QualifierValues, Rock.Reporting.FilterMode.SimpleFilter );
+                                var filterIsDefault = attribute.FieldType.Field.IsEqualToValue( filterValues, attribute.DefaultValue );
+                                var expression = attribute.FieldType.Field.AttributeFilterExpression( attribute.QualifierValues, filterValues, parameterExpression );
+                                if ( expression == null ) continue;
+
+                                var attributeValues = attributeValueService
+                                    .Queryable()
+                                    .Where( v => v.Attribute.Id == attribute.Id );
+
+                                var filteredAttributeValues = attributeValues.Where( parameterExpression, expression, null );
+
+                                if ( filterIsDefault )
                                 {
-                                    var filterValues = attribute.FieldType.Field.GetFilterValues( filterControl, attribute.QualifierValues, Rock.Reporting.FilterMode.SimpleFilter );
-                                    var expression = attribute.FieldType.Field.AttributeFilterExpression( attribute.QualifierValues, filterValues, parameterExpression );
-                                    if ( expression != null )
-                                    {
-                                        var attributeValues = attributeValueService
-                                            .Queryable()
-                                            .Where( v => v.Attribute.Id == attribute.Id );
-                                        attributeValues = attributeValues.Where( parameterExpression, expression, null );
-                                        qry = qry
-                                            .Where( r => attributeValues.Select( v => v.EntityId ).Contains( r.PersonAlias.PersonId ) );
-                                    }
+                                    qry = qry.Where( w =>
+                                         !attributeValues.Any( v => v.EntityId == w.PersonAlias.PersonId ) ||
+                                         filteredAttributeValues.Select( v => v.EntityId ).Contains( w.PersonAlias.PersonId ) );
+                                }
+                                else
+                                {
+                                    qry = qry.Where( w =>
+                                        filteredAttributeValues.Select( v => v.EntityId ).Contains( w.PersonAlias.PersonId ) );
                                 }
                             }
                         }
@@ -4632,20 +4690,29 @@ namespace RockWeb.Blocks.Event
                             foreach ( var attribute in groupMemberAttributes )
                             {
                                 var filterControl = phWaitListFormFieldFilters.FindControl( "filterWaitlist_" + attribute.Id.ToString() );
-                                if ( filterControl != null )
+                                if ( filterControl == null ) continue;
+
+                                var filterValues = attribute.FieldType.Field.GetFilterValues( filterControl, attribute.QualifierValues, Rock.Reporting.FilterMode.SimpleFilter );
+                                var filterIsDefault = attribute.FieldType.Field.IsEqualToValue( filterValues, attribute.DefaultValue );
+                                var expression = attribute.FieldType.Field.AttributeFilterExpression( attribute.QualifierValues, filterValues, parameterExpression );
+                                if ( expression == null ) continue;
+
+                                var attributeValues = attributeValueService
+                                    .Queryable()
+                                    .Where( v => v.Attribute.Id == attribute.Id );
+
+                                var filteredAttributeValues = attributeValues.Where( parameterExpression, expression, null );
+
+                                if ( filterIsDefault )
                                 {
-                                    var filterValues = attribute.FieldType.Field.GetFilterValues( filterControl, attribute.QualifierValues, Rock.Reporting.FilterMode.SimpleFilter );
-                                    var expression = attribute.FieldType.Field.AttributeFilterExpression( attribute.QualifierValues, filterValues, parameterExpression );
-                                    if ( expression != null )
-                                    {
-                                        var attributeValues = attributeValueService
-                                            .Queryable()
-                                            .Where( v => v.Attribute.Id == attribute.Id );
-                                        attributeValues = attributeValues.Where( parameterExpression, expression, null );
-                                        qry = qry
-                                            .Where( r => r.GroupMemberId.HasValue &&
-                                            attributeValues.Select( v => v.EntityId ).Contains( r.GroupMemberId.Value ) );
-                                    }
+                                    qry = qry.Where( w => w.GroupMemberId.HasValue &&
+                                         !attributeValues.Any( v => v.EntityId == w.GroupMemberId.Value ) ||
+                                         filteredAttributeValues.Select( v => v.EntityId ).Contains( w.GroupMemberId.Value ) );
+                                }
+                                else
+                                {
+                                    qry = qry.Where( w => w.GroupMemberId.HasValue &&
+                                        filteredAttributeValues.Select( v => v.EntityId ).Contains( w.GroupMemberId.Value ) );
                                 }
                             }
                         }
@@ -4755,7 +4822,7 @@ namespace RockWeb.Blocks.Event
                                         ) ).ToList();
 
                                 // Get the attributes to add to each row's object
-                                var attributes = new Dictionary<string, AttributeCache>();
+                                var attributes = new Dictionary<string, CacheAttribute>();
                                 RegistrantFields
                                         .Where( f => f.Attribute != null )
                                         .Select( f => f.Attribute )
@@ -4783,7 +4850,7 @@ namespace RockWeb.Blocks.Event
                                             v.EntityId.Value == registrant.PersonAlias.PersonId )
                                         .ToList()
                                         .ForEach( v => attributeFieldObject.AttributeValues
-                                            .Add( v.AttributeId.ToString() + v.Attribute.Key, new AttributeValueCache( v ) ) );
+                                            .Add( v.AttributeId.ToString() + v.Attribute.Key, new CacheAttributeValue( v ) ) );
 
                                     // Add any group member attribute values to object
                                     if ( registrant.GroupMemberId.HasValue )
@@ -4794,7 +4861,7 @@ namespace RockWeb.Blocks.Event
                                                 v.EntityId.Value == registrant.GroupMemberId.Value )
                                             .ToList()
                                             .ForEach( v => attributeFieldObject.AttributeValues
-                                                .Add( v.AttributeId.ToString() + v.Attribute.Key, new AttributeValueCache( v ) ) );
+                                                .Add( v.AttributeId.ToString() + v.Attribute.Key, new CacheAttributeValue( v ) ) );
                                     }
 
                                     // Add any registrant attribute values to object
@@ -4804,7 +4871,7 @@ namespace RockWeb.Blocks.Event
                                             v.EntityId.Value == registrant.Id )
                                         .ToList()
                                         .ForEach( v => attributeFieldObject.AttributeValues
-                                            .Add( v.AttributeId.ToString() + v.Attribute.Key, new AttributeValueCache( v ) ) );
+                                            .Add( v.AttributeId.ToString() + v.Attribute.Key, new CacheAttributeValue( v ) ) );
 
                                     // Add row attribute object to grid's object list
                                     gWaitList.ObjectList.Add( registrant.Id.ToString(), attributeFieldObject );
@@ -4827,7 +4894,8 @@ namespace RockWeb.Blocks.Event
             /// </summary>
         private void BindLinkagesFilter()
         {
-            cblCampus.DataSource = CampusCache.All();
+			fLinkages.UserPreferenceKeyPrefix = string.Format( "{0}-", hfRegistrationTemplateId.Value );
+            cblCampus.DataSource = CacheCampus.All();
             cblCampus.DataBind();
             string campusValue = fLinkages.GetUserPreference( "Campus" );
             if ( !string.IsNullOrWhiteSpace( campusValue ) )
@@ -4958,9 +5026,9 @@ namespace RockWeb.Blocks.Event
                     }
 
                     bool preloadCampusValues = false;
-                    var registrantAttributes = new List<AttributeCache>();
-                    var personAttributes = new List<AttributeCache>();
-                    var groupMemberAttributes = new List<AttributeCache>();
+                    var registrantAttributes = new List<CacheAttribute>();
+                    var personAttributes = new List<CacheAttribute>();
+                    var groupMemberAttributes = new List<CacheAttribute>();
                     var registrantAttributeIds = new List<int>();
                     var personAttributesIds = new List<int>();
                     var groupMemberAttributesIds = new List<int>();
@@ -5110,19 +5178,29 @@ namespace RockWeb.Blocks.Event
                             foreach ( var attribute in registrantAttributes )
                             {
                                 var filterControl = phGroupPlacementsFormFieldFilters.FindControl( "filterGroupPlacements_" + attribute.Id.ToString() );
-                                if ( filterControl != null )
+                                if ( filterControl == null ) continue;
+                                
+                                var filterValues = attribute.FieldType.Field.GetFilterValues( filterControl, attribute.QualifierValues, Rock.Reporting.FilterMode.SimpleFilter );
+                                var filterIsDefault = attribute.FieldType.Field.IsEqualToValue( filterValues, attribute.DefaultValue );
+                                var expression = attribute.FieldType.Field.AttributeFilterExpression( attribute.QualifierValues, filterValues, parameterExpression );
+                                if ( expression == null ) continue;
+
+                                var attributeValues = attributeValueService
+                                    .Queryable()
+                                    .Where( v => v.Attribute.Id == attribute.Id );
+
+                                var filteredAttributeValues = attributeValues.Where( parameterExpression, expression, null );
+
+                                if ( filterIsDefault )
                                 {
-                                    var filterValues = attribute.FieldType.Field.GetFilterValues( filterControl, attribute.QualifierValues, Rock.Reporting.FilterMode.SimpleFilter );
-                                    var expression = attribute.FieldType.Field.AttributeFilterExpression( attribute.QualifierValues, filterValues, parameterExpression );
-                                    if ( expression != null )
-                                    {
-                                        var attributeValues = attributeValueService
-                                            .Queryable()
-                                            .Where( v => v.Attribute.Id == attribute.Id );
-                                        attributeValues = attributeValues.Where( parameterExpression, expression, null );
-                                        qry = qry
-                                            .Where( r => attributeValues.Select( v => v.EntityId ).Contains( r.Id ) );
-                                    }
+                                    qry = qry.Where( w =>
+                                         !attributeValues.Any( v => v.EntityId == w.Id ) ||
+                                         filteredAttributeValues.Select( v => v.EntityId ).Contains( w.Id ) );
+                                }
+                                else
+                                {
+                                    qry = qry.Where( w =>
+                                        filteredAttributeValues.Select( v => v.EntityId ).Contains( w.Id ) );
                                 }
                             }
                         }
@@ -5144,19 +5222,30 @@ namespace RockWeb.Blocks.Event
                             foreach ( var attribute in personAttributes )
                             {
                                 var filterControl = phGroupPlacementsFormFieldFilters.FindControl( "filterGroupPlacements_" + attribute.Id.ToString() );
-                                if ( filterControl != null )
+                                if ( filterControl == null ) continue;
+
+
+                                var filterValues = attribute.FieldType.Field.GetFilterValues( filterControl, attribute.QualifierValues, Rock.Reporting.FilterMode.SimpleFilter );
+                                var filterIsDefault = attribute.FieldType.Field.IsEqualToValue( filterValues, attribute.DefaultValue );
+                                var expression = attribute.FieldType.Field.AttributeFilterExpression( attribute.QualifierValues, filterValues, parameterExpression );
+                                if ( expression == null ) continue;
+
+                                var attributeValues = attributeValueService
+                                    .Queryable()
+                                    .Where( v => v.Attribute.Id == attribute.Id );
+
+                                var filteredAttributeValues = attributeValues.Where( parameterExpression, expression, null );
+
+                                if ( filterIsDefault )
                                 {
-                                    var filterValues = attribute.FieldType.Field.GetFilterValues( filterControl, attribute.QualifierValues, Rock.Reporting.FilterMode.SimpleFilter );
-                                    var expression = attribute.FieldType.Field.AttributeFilterExpression( attribute.QualifierValues, filterValues, parameterExpression );
-                                    if ( expression != null )
-                                    {
-                                        var attributeValues = attributeValueService
-                                            .Queryable()
-                                            .Where( v => v.Attribute.Id == attribute.Id );
-                                        attributeValues = attributeValues.Where( parameterExpression, expression, null );
-                                        qry = qry
-                                            .Where( r => attributeValues.Select( v => v.EntityId ).Contains( r.PersonAlias.PersonId ) );
-                                    }
+                                    qry = qry.Where( w =>
+                                         !attributeValues.Any( v => v.EntityId == w.PersonAlias.PersonId ) ||
+                                         filteredAttributeValues.Select( v => v.EntityId ).Contains( w.PersonAlias.PersonId ) );
+                                }
+                                else
+                                {
+                                    qry = qry.Where( w =>
+                                        filteredAttributeValues.Select( v => v.EntityId ).Contains( w.PersonAlias.PersonId ) );
                                 }
                             }
                         }
@@ -5178,21 +5267,31 @@ namespace RockWeb.Blocks.Event
                             foreach ( var attribute in groupMemberAttributes )
                             {
                                 var filterControl = phGroupPlacementsFormFieldFilters.FindControl( "filterGroupPlacements_" + attribute.Id.ToString() );
-                                if ( filterControl != null )
+                                if ( filterControl == null ) continue;
+
+                                var filterValues = attribute.FieldType.Field.GetFilterValues( filterControl, attribute.QualifierValues, Rock.Reporting.FilterMode.SimpleFilter );
+                                var filterIsDefault = attribute.FieldType.Field.IsEqualToValue( filterValues, attribute.DefaultValue );
+                                var expression = attribute.FieldType.Field.AttributeFilterExpression( attribute.QualifierValues, filterValues, parameterExpression );
+                                if ( expression == null ) continue;
+
+                                var attributeValues = attributeValueService
+                                    .Queryable()
+                                    .Where( v => v.Attribute.Id == attribute.Id );
+
+
+                                var filteredAttributeValues = attributeValues.Where( parameterExpression, expression, null );
+
+                                if ( filterIsDefault )
                                 {
-                                    var filterValues = attribute.FieldType.Field.GetFilterValues( filterControl, attribute.QualifierValues, Rock.Reporting.FilterMode.SimpleFilter );
-                                    var expression = attribute.FieldType.Field.AttributeFilterExpression( attribute.QualifierValues, filterValues, parameterExpression );
-                                    if ( expression != null )
-                                    {
-                                        var attributeValues = attributeValueService
-                                            .Queryable()
-                                            .Where( v => v.Attribute.Id == attribute.Id );
-                                        attributeValues = attributeValues.Where( parameterExpression, expression, null );
-                                        qry = qry
-                                            .Where( r => r.GroupMemberId.HasValue &&
-                                            attributeValues.Select( v => v.EntityId ).Contains( r.GroupMemberId.Value ) );
-                                    }
+                                    qry = qry.Where( w => w.GroupMemberId.HasValue &&
+                                         !attributeValues.Any( v => v.EntityId == w.GroupMemberId.Value ) ||
+                                         filteredAttributeValues.Select( v => v.EntityId ).Contains( w.GroupMemberId.Value ) );
                                 }
+                                else
+                                {
+                                    qry = qry.Where( w => w.GroupMemberId.HasValue &&
+                                        filteredAttributeValues.Select( v => v.EntityId ).Contains( w.GroupMemberId.Value ) );
+                                }                               
                             }
                         }
                     }
@@ -5299,7 +5398,7 @@ namespace RockWeb.Blocks.Event
                                         ) ).ToList();
 
                                 // Get the attributes to add to each row's object
-                                var attributes = new Dictionary<string, AttributeCache>();
+                                var attributes = new Dictionary<string, CacheAttribute>();
                                 RegistrantFields
                                         .Where( f => f.Attribute != null )
                                         .Select( f => f.Attribute )
@@ -5327,7 +5426,7 @@ namespace RockWeb.Blocks.Event
                                             v.EntityId.Value == registrant.PersonAlias.PersonId )
                                         .ToList()
                                         .ForEach( v => attributeFieldObject.AttributeValues
-                                            .Add( v.AttributeId.ToString() + v.Attribute.Key, new AttributeValueCache( v ) ) );
+                                            .Add( v.AttributeId.ToString() + v.Attribute.Key, new CacheAttributeValue( v ) ) );
 
                                     // Add any group member attribute values to object
                                     if ( registrant.GroupMemberId.HasValue )
@@ -5338,7 +5437,7 @@ namespace RockWeb.Blocks.Event
                                                 v.EntityId.Value == registrant.GroupMemberId.Value )
                                             .ToList()
                                             .ForEach( v => attributeFieldObject.AttributeValues
-                                                .Add( v.AttributeId.ToString() + v.Attribute.Key, new AttributeValueCache( v ) ) );
+                                                .Add( v.AttributeId.ToString() + v.Attribute.Key, new CacheAttributeValue( v ) ) );
                                     }
 
                                     // Add any registrant attribute values to object
@@ -5348,7 +5447,7 @@ namespace RockWeb.Blocks.Event
                                             v.EntityId.Value == registrant.Id )
                                         .ToList()
                                         .ForEach( v => attributeFieldObject.AttributeValues
-                                            .Add( v.AttributeId.ToString() + v.Attribute.Key, new AttributeValueCache( v ) ) );
+                                            .Add( v.AttributeId.ToString() + v.Attribute.Key, new CacheAttributeValue( v ) ) );
 
                                     // Add row attribute object to grid's object list
                                     gGroupPlacements.ObjectList.Add( registrant.Id.ToString(), attributeFieldObject );
@@ -5483,7 +5582,7 @@ namespace RockWeb.Blocks.Event
             foreach ( var control in phGroupPlacementsFormFieldFilters.ControlsOfTypeRecursive<Control>().Where(a => a.ID != null && a.ID.StartsWith( "filter" ) && a.ID.Contains("_") ))
             {
                 var attributeId = control.ID.Split('_')[1].AsInteger();
-                var attribute = AttributeCache.Read( attributeId );
+                var attribute = CacheAttribute.Get( attributeId );
                 if ( attribute != null )
                 {
                     attribute.FieldType.Field.SetFilterValues( control, attribute.QualifierValues, new List<string>() );
@@ -5637,7 +5736,7 @@ namespace RockWeb.Blocks.Event
                         int? campusId = e.Value.AsIntegerOrNull();
                         if ( campusId.HasValue )
                         {
-                            var campus = CampusCache.Read( campusId.Value );
+                            var campus = CacheCampus.Get( campusId.Value );
                             e.Value = campus != null ? campus.Name : string.Empty;
                         }
                         else
@@ -5651,7 +5750,7 @@ namespace RockWeb.Blocks.Event
                         int? dvId = e.Value.AsIntegerOrNull();
                         if ( dvId.HasValue )
                         {
-                            var maritalStatus = DefinedValueCache.Read( dvId.Value );
+                            var maritalStatus = CacheDefinedValue.Get( dvId.Value );
                             e.Value = maritalStatus != null ? maritalStatus.Value : string.Empty;
                         }
                         else
@@ -5682,6 +5781,7 @@ namespace RockWeb.Blocks.Event
         /// <param name="instance">The instance.</param>
         private void BindGroupPlacementsFilter( RegistrationInstance instance )
         {
+            fGroupPlacements.UserPreferenceKeyPrefix = string.Format( "{0}-", hfRegistrationTemplateId.Value );
             sdrpGroupPlacementsDateRange.DelimitedValues = fGroupPlacements.GetUserPreference( "GroupPlacements-Date Range" );
             tbGroupPlacementsFirstName.Text = fGroupPlacements.GetUserPreference( "GroupPlacements-First Name" );
             tbGroupPlacementsLastName.Text = fGroupPlacements.GetUserPreference( "GroupPlacements-Last Name" );
@@ -5725,7 +5825,7 @@ namespace RockWeb.Blocks.Event
             /// <value>
             /// The attribute.
             /// </value>
-            public AttributeCache Attribute { get; set; }
+            public CacheAttribute Attribute { get; set; }
         }
 
         #endregion

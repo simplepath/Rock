@@ -24,7 +24,7 @@ using System.Web.UI.HtmlControls;
 using System.Web.UI.WebControls;
 
 using Rock.Model;
-using Rock.Web.Cache;
+using Rock.Cache;
 
 namespace Rock.Web.UI.Controls
 {
@@ -39,7 +39,7 @@ namespace Rock.Web.UI.Controls
         private RockTextBox _tbLastName;
         private DefinedValuePicker _ddlSuffix;
         private RockDropDownList _ddlGender;
-        private DatePicker _dpBirthdate;
+        private DatePartsPicker _dppBirthdate;
         private GradePicker _ddlGradePicker;
         private PhoneNumberBox _pnbMobile;
         private RockDropDownList _ddlRelationshipType;
@@ -130,12 +130,12 @@ namespace Rock.Web.UI.Controls
             get
             {
                 EnsureChildControls();
-                return _dpBirthdate.Visible;
+                return _dppBirthdate.Visible;
             }
             set
             {
                 EnsureChildControls();
-                _dpBirthdate.Visible = value;
+                _dppBirthdate.Visible = value;
             }
         }
 
@@ -150,12 +150,12 @@ namespace Rock.Web.UI.Controls
             get
             {
                 EnsureChildControls();
-                return _dpBirthdate.Required;
+                return _dppBirthdate.Required;
             }
             set
             {
                 EnsureChildControls();
-                _dpBirthdate.Required = value;
+                _dppBirthdate.Required = value;
             }
         }
 
@@ -277,16 +277,16 @@ namespace Rock.Web.UI.Controls
         /// <value>
         /// The attribute list.
         /// </value>
-        public List<AttributeCache> AttributeList
+        public List<CacheAttribute> AttributeList
         {
             get
             {
                 if ( _attributeList == null )
                 {
-                    _attributeList = ViewState["AttributeList"] as List<AttributeCache>;
+                    _attributeList = ViewState["AttributeList"] as List<CacheAttribute>;
                     if ( _attributeList == null )
                     {
-                        _attributeList = new List<AttributeCache>();
+                        _attributeList = new List<CacheAttribute>();
                     }
                 }
                 return _attributeList;
@@ -298,7 +298,7 @@ namespace Rock.Web.UI.Controls
                 RecreateChildControls();
             }
         }
-        private List<AttributeCache> _attributeList = null;
+        private List<CacheAttribute> _attributeList = null;
 
         /// <summary>
         /// Gets or sets the person identifier.
@@ -420,13 +420,13 @@ namespace Rock.Web.UI.Controls
             get
             {
                 EnsureChildControls();
-                return _dpBirthdate.SelectedDate;
+                return _dppBirthdate.SelectedDate;
             }
 
             set
             {
                 EnsureChildControls();
-                _dpBirthdate.SelectedDate = value;
+                _dppBirthdate.SelectedDate = value;
             }
         }
 
@@ -531,7 +531,7 @@ namespace Rock.Web.UI.Controls
                 _tbLastName.ValidationGroup = value;
                 _ddlSuffix.ValidationGroup = value;
                 _ddlGender.ValidationGroup = value;
-                _dpBirthdate.ValidationGroup = value;
+                _dppBirthdate.ValidationGroup = value;
                 _ddlGradePicker.ValidationGroup = value;
                 _pnbMobile.ValidationGroup = value;
                 _ddlRelationshipType.ValidationGroup = value;
@@ -558,7 +558,7 @@ namespace Rock.Web.UI.Controls
             _tbLastName = new RockTextBox();
             _ddlSuffix = new DefinedValuePicker();
             _ddlGender = new RockDropDownList();
-            _dpBirthdate = new DatePicker();
+            _dppBirthdate = new DatePartsPicker();
             _ddlGradePicker = new GradePicker { UseAbbreviation = true, UseGradeOffsetAsValue = true };
             _ddlGradePicker.Label = string.Empty;
             _pnbMobile = new PhoneNumberBox();
@@ -581,7 +581,7 @@ namespace Rock.Web.UI.Controls
             _tbLastName.ID = "_tbLastName";
             _ddlSuffix.ID = "_ddlSuffix";
             _ddlGender.ID = "_ddlGender";
-            _dpBirthdate.ID = "_dtBirthdate";
+            _dppBirthdate.ID = "_dtBirthdate";
             _ddlGradePicker.ID = "_ddlGrade";
             _pnbMobile.ID = "_pnbPhone";
             _ddlRelationshipType.ID = "_ddlRelationshipType";
@@ -593,7 +593,7 @@ namespace Rock.Web.UI.Controls
             Controls.Add( _tbNickName );
             Controls.Add( _tbLastName );
             Controls.Add( _ddlSuffix );
-            Controls.Add( _dpBirthdate );
+            Controls.Add( _dppBirthdate );
             Controls.Add( _ddlGender );
             Controls.Add( _ddlGradePicker );
             Controls.Add( _pnbMobile );
@@ -618,7 +618,7 @@ namespace Rock.Web.UI.Controls
             _ddlSuffix.Label = "Suffix";
             string suffixValue = _ddlSuffix.SelectedValue;
             _ddlSuffix.Items.Clear();
-            _ddlSuffix.BindToDefinedType( DefinedTypeCache.Read( Rock.SystemGuid.DefinedType.PERSON_SUFFIX.AsGuid() ), true );
+            _ddlSuffix.BindToDefinedType( CacheDefinedType.Get( Rock.SystemGuid.DefinedType.PERSON_SUFFIX.AsGuid() ), true );
             if ( !string.IsNullOrEmpty( suffixValue ) )
             {
                 _ddlSuffix.SelectedValue = suffixValue;
@@ -634,11 +634,10 @@ namespace Rock.Web.UI.Controls
                 _ddlGender.SelectedValue = genderValue;
             }
 
-            _dpBirthdate.StartView = DatePicker.StartViewOption.decade;
-            _dpBirthdate.ForceParse = false;
-            _dpBirthdate.AllowFutureDateSelection = false;
-            _dpBirthdate.RequiredErrorMessage = "Birthdate is required for all children";
-            _dpBirthdate.Label = "Birth Date";
+            _dppBirthdate.AllowFutureDates = false;
+            _dppBirthdate.RequiredErrorMessage = "Birthdate is required for all children";
+            _dppBirthdate.RequireYear = true;
+            _dppBirthdate.Label = "Birth Date";
 
             _ddlGradePicker.CssClass = "form-control";
             _ddlGradePicker.RequiredErrorMessage = _ddlGradePicker.Label + " is required for all children";
@@ -730,9 +729,9 @@ namespace Rock.Web.UI.Controls
 
                 if ( this.ShowBirthDate )
                 {
-                    writer.AddAttribute( HtmlTextWriterAttribute.Class, "col-sm-3" );
+                    writer.AddAttribute( HtmlTextWriterAttribute.Class, "col-sm-6" );
                     writer.RenderBeginTag( HtmlTextWriterTag.Div );
-                    _dpBirthdate.RenderControl( writer );
+                    _dppBirthdate.RenderControl( writer );
                     writer.RenderEndTag();
                 }
 

@@ -27,7 +27,7 @@ using Rock.Data;
 using Rock.Field.Types;
 using Rock.Model;
 using Rock.Security;
-using Rock.Web.Cache;
+using Rock.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
 
@@ -219,13 +219,13 @@ namespace RockWeb.Blocks.Crm.PersonDetail
             {
                 if ( ViewMode == VIEW_MODE_EDIT )
                 {
-                    int personEntityTypeId = EntityTypeCache.Read( typeof( Person ) ).Id;
+                    int personEntityTypeId = CacheEntityType.Get( typeof( Person ) ).Id;
 
                     var rockContext = new RockContext();
 
                     foreach ( int attributeId in AttributeList )
                     {
-                        var attribute = AttributeCache.Read( attributeId );
+                        var attribute = CacheAttribute.Get( attributeId );
 
                         if ( Person != null &&
                             attribute.IsAuthorized( Authorization.EDIT, CurrentPerson ) )
@@ -276,7 +276,7 @@ namespace RockWeb.Blocks.Crm.PersonDetail
             Guid? categoryGuid = GetAttributeValue( "Category" ).AsGuidOrNull();
             if ( categoryGuid.HasValue )
             {
-                var category = CategoryCache.Read( categoryGuid.Value );
+                var category = CacheCategory.Get( categoryGuid.Value );
                 if ( category != null )
                 {
                     if ( !string.IsNullOrWhiteSpace( category.IconCssClass ) )
@@ -294,7 +294,7 @@ namespace RockWeb.Blocks.Crm.PersonDetail
                     var orderedAttributeList = new AttributeService( new RockContext() ).GetByCategoryId( category.Id, false )
                         .OrderBy( a => a.Order )
                         .ThenBy( a => a.Name )
-                        .ToAttributeCacheList();
+                        .ToCacheAttributeList();
 
                     foreach ( int attributeId in orderOverride )
                     {
@@ -332,7 +332,7 @@ namespace RockWeb.Blocks.Crm.PersonDetail
             {
                 foreach ( int attributeId in AttributeList )
                 {
-                    var attribute = AttributeCache.Read( attributeId );
+                    var attribute = CacheAttribute.Get( attributeId );
                     string attributeValue = Person.GetAttributeValue( attribute.Key );
                     string formattedValue = string.Empty;
 

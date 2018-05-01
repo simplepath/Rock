@@ -19,7 +19,7 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Reflection;
-
+using Rock.Cache;
 using Rock.Data;
 using Rock.Web.Cache;
 
@@ -40,7 +40,7 @@ namespace Rock.Model
         /// <param name="entityId">The entity identifier.</param>
         /// <param name="secondaryEntityType">Type of the secondary entity.</param>
         /// <returns></returns>
-        public string GetTimelineHtml( string timelineLavaTemplate, EntityTypeCache primaryEntityType, int entityId, EntityTypeCache secondaryEntityType )
+        public string GetTimelineHtml( string timelineLavaTemplate, CacheEntityType primaryEntityType, int entityId, CacheEntityType secondaryEntityType )
         {
             RockContext rockContext = this.Context as RockContext;
             HistoryService historyService = new HistoryService( rockContext );
@@ -98,7 +98,7 @@ namespace Rock.Model
         /// <returns></returns>
         public IQueryable<IEntity> GetEntityQuery( int entityTypeId )
         {
-            EntityTypeCache entityTypeCache = EntityTypeCache.Read( entityTypeId );
+            CacheEntityType entityTypeCache = CacheEntityType.Get( entityTypeId );
 
             var rockContext = this.Context as RockContext;
 
@@ -330,7 +330,7 @@ namespace Rock.Model
             {
                 get
                 {
-                    return EntityTypeCache.Read( this.EntityTypeId ).FriendlyName;
+                    return CacheEntityType.Get( this.EntityTypeId )?.FriendlyName;
                 }
             }
 
@@ -506,7 +506,7 @@ namespace Rock.Model
             {
                 get
                 {
-                    return EntityTypeCache.Read( this.EntityTypeId ).FriendlyName;
+                    return CacheEntityType.Get( this.EntityTypeId )?.FriendlyName;
                 }
             }
 
@@ -540,11 +540,11 @@ namespace Rock.Model
             /// <value>
             /// The category.
             /// </value>
-            public CategoryCache Category
+            public CacheCategory Category
             {
                 get
                 {
-                    return CategoryCache.Read( this.CategoryId );
+                    return CacheCategory.Get( this.CategoryId );
                 }
             }
 
@@ -568,7 +568,7 @@ namespace Rock.Model
                 {
                     if ( RelatedEntityTypeId.HasValue )
                     {
-                        return EntityTypeCache.Read( this.RelatedEntityTypeId.Value )?.FriendlyName;
+                        return CacheEntityType.Get( this.RelatedEntityTypeId.Value )?.FriendlyName;
                     }
 
                     return null;
@@ -712,14 +712,14 @@ namespace Rock.Model
         /// <param name="modifiedByPersonAliasId">The modified by person alias identifier.</param>
         public static void AddChanges( RockContext rockContext, Type modelType, Guid categoryGuid, int entityId, History.HistoryChangeList changes, string caption, Type relatedModelType, int? relatedEntityId, int? modifiedByPersonAliasId = null )
         {
-            var entityType = EntityTypeCache.Read( modelType );
-            var category = CategoryCache.Read( categoryGuid );
+            var entityType = CacheEntityType.Get( modelType );
+            var category = CacheCategory.Get( categoryGuid );
             var creationDate = RockDateTime.Now;
 
             int? relatedEntityTypeId = null;
             if ( relatedModelType != null )
             {
-                var relatedEntityType = EntityTypeCache.Read( relatedModelType );
+                var relatedEntityType = CacheEntityType.Get( relatedModelType );
                 if ( relatedModelType != null )
                 {
                     relatedEntityTypeId = relatedEntityType.Id;
@@ -845,7 +845,7 @@ namespace Rock.Model
         /// <param name="entityId">The entity identifier.</param>
         public static void DeleteChanges( RockContext rockContext, Type modelType, int entityId )
         {
-            var entityType = EntityTypeCache.Read( modelType );
+            var entityType = CacheEntityType.Get( modelType );
             if ( entityType != null )
             {
                 var historyService = new HistoryService( rockContext );

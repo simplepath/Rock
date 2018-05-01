@@ -20,7 +20,7 @@ using System.Data.Entity;
 using System.Data.Entity.Spatial;
 using System.Linq;
 using Rock.Data;
-using Rock.Web.Cache;
+using Rock.Cache;
 
 namespace Rock.Model
 {
@@ -182,7 +182,7 @@ namespace Rock.Model
             var rockContext = (RockContext)this.Context;
             var groupLocationService = new GroupLocationService( rockContext );
 
-            var familyGroupTypeId = GroupTypeCache.Read( Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY ).Id;
+            var familyGroupTypeId = CacheGroupType.Get( Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY ).Id;
 
             return groupLocationService.GetMappedLocationsByGeofences( geofences )
                 .Where( l =>
@@ -514,6 +514,29 @@ namespace Rock.Model
         }
 
         /// <summary>
+        /// Check if the group has the person as a member.
+        /// Returns false if the group is not found or if the person id is null.
+        /// </summary>
+        /// <param name="groupGuid">The group unique identifier.</param>
+        /// <param name="personId">The person identifier.</param>
+        /// <returns></returns>
+        public bool GroupHasMember(Guid groupGuid, int? personId )
+        {
+            if (personId == null)
+            {
+                return false;
+            }
+
+            Group group = this.GetByGuid( groupGuid );
+            if (group ==  null)
+            {
+                return false;
+            }
+
+            return group.Members.Where( m => m.PersonId == personId ).Any();
+        }
+
+        /// <summary>
         /// Groups the members not meeting requirements.
         /// </summary>
         /// <param name="groupId">The group identifier.</param>
@@ -670,7 +693,7 @@ namespace Rock.Model
         /// <returns></returns>
         public static Group SaveNewFamily( RockContext rockContext, List<GroupMember> familyMembers, int? campusId, bool savePersonAttributes )
         {
-            var familyGroupType = GroupTypeCache.GetFamilyGroupType();
+            var familyGroupType = CacheGroupType.GetFamilyGroupType();
             string familyName = familyMembers.FirstOrDefault().Person.LastName + " Family";
             return SaveNewGroup( rockContext, familyGroupType.Id, null, familyName, familyMembers, campusId, savePersonAttributes );
         }
@@ -688,7 +711,7 @@ namespace Rock.Model
         /// <returns></returns>
         public static Group SaveNewGroup( RockContext rockContext, int groupTypeId, Guid? parentGroupGuid, string groupName, List<GroupMember> groupMembers, int? campusId, bool savePersonAttributes )
         {
-            var groupType = GroupTypeCache.Read( groupTypeId );
+            var groupType = CacheGroupType.Get( groupTypeId );
 
             if ( groupType != null )
             {
@@ -1010,7 +1033,7 @@ namespace Rock.Model
         {
             if ( location != null )
             {
-                var groupType = GroupTypeCache.Read( group.GroupTypeId );
+                var groupType = CacheGroupType.Get( group.GroupTypeId );
                 if ( groupType != null )
                 {
                     var locationType = groupType.LocationTypeValues.FirstOrDefault( l => l.Guid.Equals( locationTypeGuid.AsGuid() ) );
@@ -1095,13 +1118,13 @@ namespace Rock.Model
             {
                 AuthService authService = new AuthService( this.Context as RockContext );
 
-                Rock.Security.Role.Flush( group.Id );
+                Rock.Cache.CacheRole.Remove( group.Id );
                 foreach ( var auth in authService.Queryable().Where( a => a.GroupId == group.Id ).ToList() )
                 {
                     authService.Delete( auth );
                 }
 
-                Rock.Security.Authorization.Flush();
+                Rock.Security.Authorization.Clear();
             }
 
             this.Delete( group );
@@ -1124,13 +1147,13 @@ namespace Rock.Model
             {
                 AuthService authService = new AuthService( this.Context as RockContext );
 
-                Rock.Security.Role.Flush( group.Id );
+                Rock.Cache.CacheRole.Remove( group.Id );
                 foreach ( var auth in authService.Queryable().Where( a => a.GroupId == group.Id ).ToList() )
                 {
                     authService.Delete( auth );
                 }
 
-                Rock.Security.Authorization.Flush();
+                Rock.Security.Authorization.Clear();
             }
         }
 

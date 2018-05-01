@@ -26,10 +26,10 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 using Rock.Data;
-using Rock.Security;
+using Rock.Cache;
 using Rock.UniversalSearch;
 using Rock.UniversalSearch.IndexModels;
-using Rock.Web.Cache;
+using Rock.Security;
 
 namespace Rock.Model
 {
@@ -441,7 +441,7 @@ namespace Rock.Model
             {
                 if ( this.GroupTypeId > 0 )
                 {
-                    GroupTypeCache groupType = GroupTypeCache.Read( this.GroupTypeId );
+                    CacheGroupType groupType = CacheGroupType.Get( this.GroupTypeId );
                     return groupType;
                 }
                 else
@@ -520,7 +520,7 @@ namespace Rock.Model
         {
             var roleLimitWarnings = new StringBuilder();
             var group = this;
-            var groupType = GroupTypeCache.Read( group.GroupTypeId );
+            var groupType = CacheGroupType.Get( group.GroupTypeId );
             if ( groupType?.Roles != null && groupType.Roles.Any() )
             {
                 var groupMemberService = new GroupMemberService( new RockContext() );
@@ -575,7 +575,7 @@ namespace Rock.Model
             if ( !authorized && person != null && ( action == Authorization.VIEW || action == Authorization.MANAGE_MEMBERS || action == Authorization.EDIT ) )
             {
                 // Get the cached group type
-                var groupType = GroupTypeCache.Read( this.GroupTypeId );
+                var groupType = CacheGroupType.Get( this.GroupTypeId );
                 if ( groupType != null )
                 {
                     // For each occurrence of this person in this group, check to see if their role is valid
@@ -810,8 +810,8 @@ namespace Rock.Model
         /// <summary>
         /// Get a list of all inherited Attributes that should be applied to this entity.
         /// </summary>
-        /// <returns>A list of all inherited AttributeCache objects.</returns>
-        public override List<AttributeCache> GetInheritedAttributes( Rock.Data.RockContext rockContext )
+        /// <returns>A list of all inherited CacheAttribute objects.</returns>
+        public override List<Cache.CacheAttribute> GetInheritedAttributes( Rock.Data.RockContext rockContext )
         {
             var groupType = this.GroupType;
             if ( groupType == null && this.GroupTypeId > 0 )

@@ -32,7 +32,7 @@ using Rock.Data;
 using Rock.Model;
 using Rock.Security;
 using Rock.Web;
-using Rock.Web.Cache;
+using Rock.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
 using Attribute = Rock.Model.Attribute;
@@ -94,11 +94,11 @@ namespace RockWeb.Blocks.Groups
 
         private List<GroupMemberWorkflowTrigger> MemberWorkflowTriggersState { get; set; }
 
-        private GroupTypeCache CurrentGroupTypeCache
+        private CacheGroupType CurrentGroupTypeCache
         {
             get
             {
-                return GroupTypeCache.Read( CurrentGroupTypeId );
+                return CacheGroupType.Get( CurrentGroupTypeId );
             }
 
             set
@@ -224,7 +224,7 @@ namespace RockWeb.Blocks.Groups
             gGroupMemberAttributes.GridReorder += gGroupMemberAttributes_GridReorder;
 
             SecurityField groupMemberAttributeSecurityField = gGroupMemberAttributes.Columns.OfType<SecurityField>().FirstOrDefault();
-            groupMemberAttributeSecurityField.EntityTypeId = EntityTypeCache.GetId<Attribute>() ?? 0;
+            groupMemberAttributeSecurityField.EntityTypeId = CacheEntityType.GetId<Attribute>() ?? 0;
 
             gGroupRequirements.DataKeyNames = new string[] { "Guid" };
             gGroupRequirements.Actions.ShowAdd = true;
@@ -245,7 +245,7 @@ namespace RockWeb.Blocks.Groups
             gMemberWorkflowTriggers.GridReorder += gMemberWorkflowTriggers_GridReorder;
 
             btnDelete.Attributes["onclick"] = string.Format( "javascript: return Rock.dialogs.confirmDelete(event, '{0}');", Group.FriendlyTypeName );
-            btnSecurity.EntityTypeId = EntityTypeCache.Read( typeof( Rock.Model.Group ) ).Id;
+            btnSecurity.EntityTypeId = CacheEntityType.Get( typeof( Rock.Model.Group ) ).Id;
 
             rblScheduleSelect.BindToEnum<ScheduleType>();
 
@@ -434,7 +434,7 @@ namespace RockWeb.Blocks.Groups
                 bool isSecurityRoleGroup = group.IsActive && ( group.IsSecurityRole || group.GroupType.Guid.Equals( Rock.SystemGuid.GroupType.GROUPTYPE_SECURITY_ROLE.AsGuid() ) );
                 if ( isSecurityRoleGroup )
                 {
-                    Rock.Security.Role.Flush( group.Id );
+                    Rock.Cache.CacheRole.Remove( group.Id );
                     foreach ( var auth in authService.Queryable().Where( a => a.GroupId == group.Id ).ToList() )
                     {
                         authService.Delete( auth );
@@ -462,7 +462,7 @@ namespace RockWeb.Blocks.Groups
 
                 if ( isSecurityRoleGroup )
                 {
-                    Rock.Security.Authorization.Flush();
+                    Rock.Security.Authorization.Clear();
                 }
             }
 
@@ -517,7 +517,7 @@ namespace RockWeb.Blocks.Groups
             CategoryService categoryService = new CategoryService( rockContext );
             GroupSyncService groupSyncService = new GroupSyncService( rockContext );
 
-            var roleGroupType = GroupTypeCache.Read( Rock.SystemGuid.GroupType.GROUPTYPE_SECURITY_ROLE.AsGuid() );
+            var roleGroupType = CacheGroupType.Get( Rock.SystemGuid.GroupType.GROUPTYPE_SECURITY_ROLE.AsGuid() );
             int roleGroupTypeId = roleGroupType != null ? roleGroupType.Id : int.MinValue;
 
             if ( CurrentGroupTypeId == 0 )
@@ -814,7 +814,7 @@ namespace RockWeb.Blocks.Groups
                 group.SaveAttributeValues( rockContext );
 
                 /* Take care of Group Member Attributes */
-                var entityTypeId = EntityTypeCache.Read( typeof( GroupMember ) ).Id;
+                var entityTypeId = CacheEntityType.Get( typeof( GroupMember ) ).Id;
                 string qualifierColumn = "GroupId";
                 string qualifierValue = group.Id.ToString();
 
@@ -825,7 +825,7 @@ namespace RockWeb.Blocks.Groups
                 var selectedAttributeGuids = GroupMemberAttributesState.Select( a => a.Guid );
                 foreach ( var attr in attributes.Where( a => !selectedAttributeGuids.Contains( a.Guid ) ) )
                 {
-                    Rock.Web.Cache.AttributeCache.Flush( attr.Id );
+                    Rock.Cache.CacheAttribute.Remove( attr.Id );
 
                     attributeService.Delete( attr );
                 }
@@ -861,8 +861,8 @@ namespace RockWeb.Blocks.Groups
                 if ( !isNowSecurityRole )
                 {
                     // if this group was a SecurityRole, but no longer is, flush
-                    Rock.Security.Role.Flush( group.Id );
-                    Rock.Security.Authorization.Flush();
+                    Rock.Cache.CacheRole.Remove( group.Id );
+                    Rock.Security.Authorization.Clear();
                 }
             }
             else
@@ -870,15 +870,15 @@ namespace RockWeb.Blocks.Groups
                 if ( isNowSecurityRole )
                 {
                     // new security role, flush
-                    Rock.Security.Authorization.Flush();
+                    Rock.Security.Authorization.Clear();
                 }
             }
 
-            AttributeCache.FlushEntityAttributes();
+            CacheAttribute.RemoveEntityAttributes();
 
             if ( triggersUpdated )
             {
-                GroupMemberWorkflowTriggerService.FlushCachedTriggers();
+                GroupMemberWorkflowTriggerService.RemoveCachedTriggers();
             }
 
             var qryParams = new Dictionary<string, string>();
@@ -983,7 +983,7 @@ namespace RockWeb.Blocks.Groups
                     newGroup.SaveAttributeValues( rockContext );
 
                     /* Take care of Group Member Attributes */
-                    var entityTypeId = EntityTypeCache.Read( typeof( GroupMember ) ).Id;
+                    var entityTypeId = CacheEntityType.Get( typeof( GroupMember ) ).Id;
                     string qualifierColumn = "GroupId";
                     string qualifierValue = group.Id.ToString();
                     
@@ -1029,7 +1029,7 @@ namespace RockWeb.Blocks.Groups
                     }
 
                     rockContext.SaveChanges();
-                    Rock.Security.Authorization.Flush();
+                    Rock.Security.Authorization.Clear();
                 } );
 
                 NavigateToCurrentPage( new Dictionary<string, string> { { "GroupId", newGroup.Id.ToString() } } );
@@ -1389,6 +1389,9 @@ namespace RockWeb.Blocks.Groups
 
             BindGroupSyncGrid();
 
+            // only Rock admins can alter if the group is a security role
+            cbIsSecurityRole.Visible = groupService.GroupHasMember( new Guid( Rock.SystemGuid.Group.GROUP_ADMINISTRATORS ), CurrentUser.PersonId );           
+
             // GroupType depends on Selected ParentGroup
             ddlParentGroup_SelectedIndexChanged( null, null );
             gpParentGroup.Label = "Parent Group";
@@ -1398,7 +1401,7 @@ namespace RockWeb.Blocks.Groups
                 if ( GetAttributeValue( "LimittoSecurityRoleGroups" ).AsBoolean() )
                 {
                     // default GroupType for new Group to "Security Roles"  if LimittoSecurityRoleGroups
-                    var securityRoleGroupType = GroupTypeCache.GetSecurityRoleGroupType();
+                    var securityRoleGroupType = CacheGroupType.GetSecurityRoleGroupType();
                     if ( securityRoleGroupType != null )
                     {
                         CurrentGroupTypeId = securityRoleGroupType.Id;
@@ -1423,7 +1426,7 @@ namespace RockWeb.Blocks.Groups
                     CurrentGroupTypeId = ddlGroupType.SelectedValueAsInt() ?? 0;
                 }
 
-                var groupType = GroupTypeCache.Read( CurrentGroupTypeId, rockContext );
+                var groupType = CacheGroupType.Get( CurrentGroupTypeId, rockContext );
                 lGroupType.Text = groupType != null ? groupType.Name : string.Empty;
                 ddlGroupType.SetValue( CurrentGroupTypeId );
             }
@@ -1475,7 +1478,7 @@ namespace RockWeb.Blocks.Groups
         /// <param name="groupType">Type of the group.</param>
         /// <param name="group">The group.</param>
         /// <param name="setValues">if set to <c>true</c> [set values].</param>
-        private void ShowGroupTypeEditDetails( GroupTypeCache groupType, Group group, bool setValues )
+        private void ShowGroupTypeEditDetails( CacheGroupType groupType, Group group, bool setValues )
         {
             if ( group != null )
             {
@@ -1533,7 +1536,7 @@ namespace RockWeb.Blocks.Groups
             }
         }
 
-        private void SetScheduleControls( GroupTypeCache groupType, Group group )
+        private void SetScheduleControls( CacheGroupType groupType, Group group )
         {
             if ( group != null )
             {
@@ -1606,7 +1609,7 @@ namespace RockWeb.Blocks.Groups
             btnArchive.Visible = false;
 
             var rockContext = new RockContext();
-            GroupTypeCache groupType = GroupTypeCache.Read( group.GroupTypeId );
+            CacheGroupType groupType = CacheGroupType.Get( group.GroupTypeId );
 
             // if History is enabled (and this isn't an IsSystem group), additional logic for if the Archive or Delete button is visible
             if ( !group.IsSystem )
@@ -1670,10 +1673,10 @@ namespace RockWeb.Blocks.Groups
             mergeFields.Add( "ContentItemPage", LinkedPageRoute( "ContentItemPage" ) );
             mergeFields.Add( "ShowLocationAddresses", GetAttributeValue( "ShowLocationAddresses" ).AsBoolean() );
 
-            var mapStyleValue = DefinedValueCache.Read( GetAttributeValue( "MapStyle" ) );
+            var mapStyleValue = CacheDefinedValue.Get( GetAttributeValue( "MapStyle" ) );
             if ( mapStyleValue == null )
             {
-                mapStyleValue = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.MAP_STYLE_ROCK );
+                mapStyleValue = CacheDefinedValue.Get( Rock.SystemGuid.DefinedValue.MAP_STYLE_ROCK );
             }
 
             mergeFields.Add( "MapStyle", mapStyleValue );
@@ -1710,7 +1713,7 @@ namespace RockWeb.Blocks.Groups
             }
 
             string fundraisingProgressUrl = LinkedPageUrl( "FundraisingProgressPage", pageParams );
-            var groupTypeIdFundraising = GroupTypeCache.Read( Rock.SystemGuid.GroupType.GROUPTYPE_FUNDRAISINGOPPORTUNITY.AsGuid() ).Id;
+            var groupTypeIdFundraising = CacheGroupType.Get( Rock.SystemGuid.GroupType.GROUPTYPE_FUNDRAISINGOPPORTUNITY.AsGuid() ).Id;
             var fundraisingGroupTypeIdList = new GroupTypeService( rockContext ).Queryable().Where( a => a.Id == groupTypeIdFundraising || a.InheritedGroupTypeId == groupTypeIdFundraising ).Select( a => a.Id ).ToList();
 
             if ( fundraisingProgressUrl.IsNotNullOrWhitespace() && fundraisingGroupTypeIdList.Contains( group.GroupTypeId ) )
@@ -1964,7 +1967,7 @@ namespace RockWeb.Blocks.Groups
 
             while ( inheritedGroupTypeId.HasValue )
             {
-                var inheritedGroupType = GroupTypeCache.Read( inheritedGroupTypeId.Value );
+                var inheritedGroupType = CacheGroupType.Get( inheritedGroupTypeId.Value );
                 if ( inheritedGroupType != null )
                 {
                     string qualifierValue = inheritedGroupType.Id.ToString();
@@ -2116,7 +2119,7 @@ namespace RockWeb.Blocks.Groups
             int? groupTypeId = this.CurrentGroupTypeId;
             if ( groupTypeId.HasValue )
             {
-                var groupType = GroupTypeCache.Read( groupTypeId.Value );
+                var groupType = CacheGroupType.Get( groupTypeId.Value );
                 if ( groupType != null )
                 {
                     GroupLocationPickerMode groupTypeModes = groupType.LocationSelectionMode;
@@ -2760,7 +2763,7 @@ namespace RockWeb.Blocks.Groups
             if ( attributeGuid.Equals( Guid.Empty ) )
             {
                 attribute = new Attribute();
-                attribute.FieldTypeId = FieldTypeCache.Read( Rock.SystemGuid.FieldType.TEXT ).Id;
+                attribute.FieldTypeId = CacheFieldType.Get( Rock.SystemGuid.FieldType.TEXT ).Id;
                 edtGroupMemberAttributes.ActionTitle = ActionTitle.Add( "attribute for group members of " + tbName.Text );
             }
             else

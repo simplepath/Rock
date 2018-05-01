@@ -55,6 +55,7 @@
         <asp:Panel ID="pnlDetails" runat="server">
 
             <asp:HiddenField ID="hfRegistrationInstanceId" runat="server" />
+            <asp:HiddenField ID="hfRegistrationTemplateId" runat="server" />
 
             <div class="panel panel-block">
 
@@ -72,7 +73,7 @@
                 <Rock:PanelDrawer ID="pdAuditDetails" runat="server"></Rock:PanelDrawer>
                 <div class="panel-body">
 
-                    <asp:ValidationSummary ID="vsDetails" runat="server" HeaderText="Please Correct the Following" CssClass="alert alert-danger" />
+                    <asp:ValidationSummary ID="vsDetails" runat="server" HeaderText="Please Correct the Following" CssClass="alert alert-validation" />
 
                     <div id="pnlEditDetails" runat="server">
 

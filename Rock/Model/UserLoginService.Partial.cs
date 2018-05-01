@@ -20,7 +20,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Web;
 using System.Web.Security;
-
+using Rock.Cache;
 using Rock.Data;
 using Rock.Security;
 using Rock.Web.Cache;
@@ -72,7 +72,7 @@ namespace Rock.Model
         /// <param name="password">A <see cref="System.String"/> representing the new password.</param>
         public void SetPassword( UserLogin user, string password )
         {
-            var entityType = EntityTypeCache.Read( user.EntityTypeId ?? 0);
+            var entityType = CacheEntityType.Get( user.EntityTypeId ?? 0);
 
             var authenticationComponent = AuthenticationContainer.GetComponent( entityType.Name );
             if ( authenticationComponent == null || !authenticationComponent.IsActive )
@@ -94,7 +94,7 @@ namespace Rock.Model
             int passwordAttemptWindow = 0;
             int maxInvalidPasswordAttempts = int.MaxValue;
 
-            var globalAttributes = GlobalAttributesCache.Read();
+            var globalAttributes = CacheGlobalAttributes.Get();
             if ( !Int32.TryParse( globalAttributes.GetValue( "PasswordAttemptWindow" ), out passwordAttemptWindow ) )
                 passwordAttemptWindow = 0;
             if ( !Int32.TryParse( globalAttributes.GetValue( "MaxInvalidPasswordAttempts" ), out maxInvalidPasswordAttempts ) )
@@ -249,7 +249,7 @@ namespace Rock.Model
         /// <returns>A <see cref="System.Boolean"/> value that indicates if the password is valid. <c>true</c> if valid; otherwise <c>false</c>.</returns>
         public static bool IsPasswordValid( string password )
         {
-            var globalAttributes = GlobalAttributesCache.Read();
+            var globalAttributes = CacheGlobalAttributes.Get();
             string passwordRegex = globalAttributes.GetValue( "PasswordRegularExpression" );
             if ( string.IsNullOrEmpty( passwordRegex ) )
             {
@@ -268,7 +268,7 @@ namespace Rock.Model
         /// <returns>A user friendly description of the password rules.</returns>
         public static string FriendlyPasswordRules()
         {
-            var globalAttributes = GlobalAttributesCache.Read();
+            var globalAttributes = CacheGlobalAttributes.Get();
             string passwordRegex = globalAttributes.GetValue( "PasswordRegexFriendlyDescription" );
             if ( string.IsNullOrEmpty( passwordRegex ) )
             {
@@ -313,7 +313,7 @@ namespace Rock.Model
             {
                 var userLoginService = new UserLoginService( rockContext );
 
-                var entityType = EntityTypeCache.Read( entityTypeId );
+                var entityType = CacheEntityType.Get( entityTypeId );
                 if ( entityType != null )
                 {
                     UserLogin user = userLoginService.GetByUserName( username );
@@ -343,7 +343,7 @@ namespace Rock.Model
                     userLoginService.Add( user );
                     rockContext.SaveChanges();
 
-                    var historyCategory = CategoryCache.Read( Rock.SystemGuid.Category.HISTORY_PERSON_ACTIVITY.AsGuid(), rockContext );
+                    var historyCategory = CacheCategory.Get( Rock.SystemGuid.Category.HISTORY_PERSON_ACTIVITY.AsGuid(), rockContext );
                     if ( historyCategory != null )
                     {
                         var changes = new History.HistoryChangeList();
@@ -426,7 +426,7 @@ namespace Rock.Model
                         {
                             var impersonatedByUser = HttpContext.Current?.Session["ImpersonatedByUser"] as UserLogin;
 
-                            relatedEntityTypeId = EntityTypeCache.GetId<Rock.Model.Person>();
+                            relatedEntityTypeId = CacheEntityType.GetId<Rock.Model.Person>();
                             relatedEntityId = impersonatedByUser?.PersonId;
                             
                             if ( impersonatedByUser != null )

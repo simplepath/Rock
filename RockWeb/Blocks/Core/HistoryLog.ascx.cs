@@ -24,6 +24,7 @@ using System.Web.UI.WebControls;
 
 using Rock;
 using Rock.Attribute;
+using Rock.Cache;
 using Rock.Constants;
 using Rock.Data;
 using Rock.Model;
@@ -158,7 +159,7 @@ namespace RockWeb.Blocks.Core
                         int? categoryId = e.Value.AsIntegerOrNull();
                         if ( categoryId.HasValue )
                         {
-                            var category = Rock.Web.Cache.CategoryCache.Read( categoryId.Value );
+                            var category = CacheCategory.Get( categoryId.Value );
                             if ( category != null )
                             {
                                 e.Value = category.Name;
@@ -248,7 +249,7 @@ namespace RockWeb.Blocks.Core
         {
             if ( _entity != null )
             {
-                var entityTypeCache = EntityTypeCache.Read( _entity.GetType(), false );
+                var entityTypeCache = CacheEntityType.Get( _entity.GetType(), false );
                 if ( entityTypeCache != null )
                 {
                     var rockContext = new RockContext();
@@ -301,7 +302,7 @@ namespace RockWeb.Blocks.Core
                     }
 
                     gHistory.DataSource = historySummaryList;
-                    gHistory.EntityTypeId = EntityTypeCache.Read<History>().Id;
+                    gHistory.EntityTypeId = CacheEntityType.Get<History>().Id;
                     gHistory.DataBind();
                 }
             }

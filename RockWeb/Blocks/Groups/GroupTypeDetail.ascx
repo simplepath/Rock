@@ -41,7 +41,7 @@
 
                 <div id="pnlEditDetails" runat="server">
 
-                    <asp:ValidationSummary ID="valGroupTypeDetail" runat="server" HeaderText="Please Correct the Following" CssClass="alert alert-danger" />
+                    <asp:ValidationSummary ID="valGroupTypeDetail" runat="server" HeaderText="Please Correct the Following" CssClass="alert alert-validation" />
                     <asp:CustomValidator ID="cvGroupType" runat="server" Display="None" />
 
                     <div class="row">
@@ -361,7 +361,7 @@
                                 <Rock:DataTextBox ID="tbGroupMemberTerm" runat="server" SourceTypeName="Rock.Model.GroupType, Rock" PropertyName="GroupMemberTerm" Required="true"
                                     Help="The term to use for members in groups of this group type." />
                                 <Rock:DataTextBox ID="tbIconCssClass" runat="server" SourceTypeName="Rock.Model.GroupType, Rock" PropertyName="IconCssClass"
-                                    Help="The Font Awesome icon class to use when displaying groups of thie group type." />
+                                    Help="The Font Awesome icon class to use when displaying groups of this group type." />
                             </div>
                             <div class="col-md-6">
                                 <Rock:RockCheckBox ID="cbShowInGroupList" runat="server" Label="Show in Group Lists" Text="Yes"
@@ -396,7 +396,7 @@
         <Rock:ModalDialog ID="dlgGroupTypeRoles" runat="server" OnSaveClick="gGroupTypeRoles_SaveClick" OnCancelScript="clearActiveDialog();" ValidationGroup="Roles">
             <Content>
                 <asp:HiddenField ID="hfRoleGuid" runat="server" />
-                <asp:ValidationSummary ID="vsRoles" runat="server" HeaderText="Please Correct the Following" CssClass="alert alert-danger" ValidationGroup="Roles" />
+                <asp:ValidationSummary ID="vsRoles" runat="server" HeaderText="Please Correct the Following" CssClass="alert alert-validation" ValidationGroup="Roles" />
                 <div class="row">
                     <div class="col-md-6">
                         <Rock:DataTextBox ID="tbRoleName" runat="server" SourceTypeName="Rock.Model.GroupTypeRole, Rock" PropertyName="Name" ValidationGroup="Roles" />
@@ -474,7 +474,7 @@
 
                 <Rock:NotificationBox ID="nbDuplicateGroupRequirement" runat="server" NotificationBoxType="Warning" />
 
-                <asp:ValidationSummary ID="vsGroupTypeGroupRequirement" runat="server" HeaderText="Please Correct the Following" CssClass="alert alert-danger" ValidationGroup="vg_GroupTypeGroupRequirement" />
+                <asp:ValidationSummary ID="vsGroupTypeGroupRequirement" runat="server" HeaderText="Please Correct the Following" CssClass="alert alert-validation" ValidationGroup="vg_GroupTypeGroupRequirement" />
 
                 <Rock:RockDropDownList ID="ddlGroupRequirementType" runat="server" Label="Group Requirement Type" Required="true" ValidationGroup="vg_GroupTypeGroupRequirement" />
 
@@ -487,7 +487,7 @@
         <Rock:ModalDialog ID="dlgMemberWorkflowTriggers" runat="server" OnSaveClick="dlgMemberWorkflowTriggers_SaveClick" OnCancelScript="clearActiveDialog();" ValidationGroup="Trigger">
             <Content>
                 <asp:HiddenField ID="hfTriggerGuid" runat="server" />
-                <asp:ValidationSummary ID="vsTrigger" runat="server" HeaderText="Please Correct the Following" CssClass="alert alert-danger" ValidationGroup="Trigger" />
+                <asp:ValidationSummary ID="vsTrigger" runat="server" HeaderText="Please Correct the Following" CssClass="alert alert-validation" ValidationGroup="Trigger" />
                 <Rock:NotificationBox ID="nbInvalidWorkflowType" runat="server" NotificationBoxType="Danger" Visible="false"
                     Text="The Workflow Type is missing or invalid. Make sure you selected a valid Workflow Type (and not a category)." />
                 <div class="row">

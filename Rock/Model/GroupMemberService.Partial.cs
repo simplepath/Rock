@@ -20,7 +20,7 @@ using System.Data.Entity;
 using System.Linq;
 
 using Rock.Data;
-using Rock.Web.Cache;
+using Rock.Cache;
 using Z.EntityFramework.Plus;
 
 namespace Rock.Model
@@ -283,7 +283,7 @@ namespace Rock.Model
         /// </returns>
         public IEnumerable<string> GetFirstNames( int groupId, bool includeDeceased, bool includeInactive )
         {
-            var dvActive = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_ACTIVE.AsGuid() );
+            var dvActive = CacheDefinedValue.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_ACTIVE.AsGuid() );
             if ( dvActive != null )
             {
                 return GetByGroupId( groupId, includeDeceased )
@@ -311,7 +311,7 @@ namespace Rock.Model
         {
             Guid groupTypefamilyGuid = new Guid( Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY );
             Guid homeAddressTypeGuid = new Guid( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME );
-            var homeAddressTypeValueId = Rock.Web.Cache.DefinedValueCache.Read( homeAddressTypeGuid ).Id;
+            var homeAddressTypeValueId = Rock.Cache.CacheDefinedValue.Get( homeAddressTypeGuid ).Id;
 
             return Queryable()
                 .Where( m => m.Group.GroupType.Guid == groupTypefamilyGuid )
@@ -484,7 +484,7 @@ namespace Rock.Model
             var groupMemberService = this;
             var rockContext = this.Context as RockContext;
 
-            var knownRelationshipGroupType = GroupTypeCache.Read( Rock.SystemGuid.GroupType.GROUPTYPE_KNOWN_RELATIONSHIPS );
+            var knownRelationshipGroupType = CacheGroupType.Get( Rock.SystemGuid.GroupType.GROUPTYPE_KNOWN_RELATIONSHIPS );
             var ownerRole = knownRelationshipGroupType.Roles.FirstOrDefault( r => r.Guid.Equals( Rock.SystemGuid.GroupRole.GROUPROLE_KNOWN_RELATIONSHIPS_OWNER.AsGuid() ) );
             var relationshipRole = knownRelationshipGroupType.Roles.FirstOrDefault( r => r.Id == relationshipRoleId );
             if ( ownerRole == null )
@@ -554,7 +554,7 @@ namespace Rock.Model
            var groupMemberService = this;
            var rockContext = this.Context as RockContext;
 
-           var knownRelationshipGroupType = GroupTypeCache.Read( Rock.SystemGuid.GroupType.GROUPTYPE_KNOWN_RELATIONSHIPS );
+           var knownRelationshipGroupType = CacheGroupType.Get( Rock.SystemGuid.GroupType.GROUPTYPE_KNOWN_RELATIONSHIPS );
            var ownerRole = knownRelationshipGroupType.Roles.FirstOrDefault( r => r.Guid.Equals( Rock.SystemGuid.GroupRole.GROUPROLE_KNOWN_RELATIONSHIPS_OWNER.AsGuid() ) );
            var relationshipRole = knownRelationshipGroupType.Roles.FirstOrDefault( r => r.Id == relationshipRoleId );
            if ( ownerRole == null )
@@ -600,7 +600,7 @@ namespace Rock.Model
             var groupMemberService = this;
             var rockContext = this.Context as RockContext;
 
-            var knownRelationshipGroupType = GroupTypeCache.Read( Rock.SystemGuid.GroupType.GROUPTYPE_KNOWN_RELATIONSHIPS );
+            var knownRelationshipGroupType = CacheGroupType.Get( Rock.SystemGuid.GroupType.GROUPTYPE_KNOWN_RELATIONSHIPS );
             var ownerRole = knownRelationshipGroupType.Roles.FirstOrDefault( r => r.Guid.Equals( Rock.SystemGuid.GroupRole.GROUPROLE_KNOWN_RELATIONSHIPS_OWNER.AsGuid() ) );
             var relationshipRole = knownRelationshipGroupType.Roles.FirstOrDefault( r => r.Id == relationshipRoleId );
             if ( ownerRole == null )

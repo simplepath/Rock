@@ -19,6 +19,7 @@ using System.Web.UI;
 
 using Rock;
 using Rock.Attribute;
+using Rock.Cache;
 using Rock.Data;
 using Rock.Model;
 using Rock.Web.Cache;
@@ -121,10 +122,10 @@ namespace RockWeb.Blocks.Groups
         private void ShowGroupHistory( int groupId )
         {
             int entityId;
-            EntityTypeCache primaryEntityType;
-            EntityTypeCache secondaryEntityType = null;
+            CacheEntityType primaryEntityType;
+            CacheEntityType secondaryEntityType = null;
 
-            primaryEntityType = EntityTypeCache.Read<Rock.Model.Group>();
+            primaryEntityType = CacheEntityType.Get<Rock.Model.Group>();
             entityId = groupId;
             var group = new GroupService( new RockContext() ).Get( groupId );
             if ( group != null )
@@ -134,7 +135,7 @@ namespace RockWeb.Blocks.Groups
 
             if ( tglShowGroupMembersInHistory.Checked )
             {
-                secondaryEntityType = EntityTypeCache.Read<Rock.Model.GroupMember>();
+                secondaryEntityType = CacheEntityType.Get<Rock.Model.GroupMember>();
             }
 
             var rockContext = new RockContext();

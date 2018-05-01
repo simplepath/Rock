@@ -30,6 +30,7 @@ using Rock.Web.UI.Controls;
 using Rock.Attribute;
 using Rock.Web.UI;
 using System.Data.Entity;
+using Rock.Cache;
 
 namespace RockWeb.Blocks.Groups
 {
@@ -221,7 +222,7 @@ namespace RockWeb.Blocks.Groups
                     int? groupTypeId = e.Value.AsIntegerOrNull();
                     if ( groupTypeId.HasValue )
                     {
-                        var groupType = GroupTypeCache.Read( groupTypeId.Value );
+                        var groupType = CacheGroupType.Get( groupTypeId.Value );
                         if ( groupType != null )
                         {
                             e.Value = groupType.Name;
