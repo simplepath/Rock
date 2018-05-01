@@ -149,18 +149,82 @@ namespace Rock.Model
         /// <returns>
         /// An enumerable collection of <see cref="Rock.Model.Person"/> entities that match the search criteria.
         /// </returns>
+        [Obsolete( "Use FindPersons instead.", false )]
         public IEnumerable<Person> GetByMatch( string firstName, string lastName, string email, bool includeDeceased = false, bool includeBusinesses = false )
+        {
+            return this.FindPersons( firstName, lastName, email, includeDeceased, includeBusinesses );
+        }
+
+        /// <summary>
+        /// Gets an enumerable collection of <see cref="Rock.Model.Person"/> entities that have a matching email address, firstname and lastname.
+        /// </summary>
+        /// <param name="firstName">The first name.</param>
+        /// <param name="lastName">The last name.</param>
+        /// <param name="email">The email.</param>
+        /// <param name="includeDeceased">if set to <c>true</c> [include deceased].</param>
+        /// <param name="includeBusinesses">if set to <c>true</c> [include businesses].</param>
+        /// <returns></returns>
+        public IEnumerable<Person> FindPersons( string firstName, string lastName, string email, bool includeDeceased = false, bool includeBusinesses = false )
         {
             firstName = firstName ?? string.Empty;
             lastName = lastName ?? string.Empty;
             email = email ?? string.Empty;
 
+            var previousEmailQry = new PersonSearchKeyService( this.Context as RockContext ).Queryable();
+
             return Queryable( includeDeceased, includeBusinesses )
                 .Where( p =>
-                    email != "" && p.Email == email &&
+                    ( ( email != "" && p.Email == email ) || previousEmailQry.Any( a => a.PersonAlias.PersonId == p.Id && a.SearchValue == email ) ) &&
                     firstName != "" && ( p.FirstName == firstName || p.NickName == firstName ) &&
                     lastName != "" && p.LastName == lastName )
                 .ToList();
+        }
+
+        /// <summary>
+        /// Looks for a single exact match based on the critieria provided. If more than one person is found it will return null (consider using FindPersons).
+        /// </summary>
+        /// <param name="firstName">The first name.</param>
+        /// <param name="lastName">The last name.</param>
+        /// <param name="email">The email.</param>
+        /// <param name="updatePrimaryEmail">if set to <c>true</c> the person's primary email will be updated to the search value if it was found as a person search key (alternate lookup address).</param>
+        /// <param name="includeDeceased">if set to <c>true</c> include deceased individuals.</param>
+        /// <param name="includeBusinesses">if set to <c>true</c> include businesses records.</param>
+        /// <returns></returns>
+        public Person FindPerson( string firstName, string lastName, string email, bool updatePrimaryEmail, bool includeDeceased = false, bool includeBusinesses = false )
+        {
+            var matches = this.FindPersons( firstName, lastName, email, includeDeceased, includeBusinesses ).ToList();
+
+            // We're looking for a single exact match
+            if ( matches.Count != 1 )
+            {
+                return null;
+            }
+
+            var exactMatch = matches.First();
+
+            // Check if we care about updating the person's primary email
+            if ( !updatePrimaryEmail )
+            {
+                return exactMatch;
+            }
+
+            // OK we care, but are the emails the same already
+            if ( exactMatch.Email == email )
+            {
+                return exactMatch;
+            }
+
+            // The emails don't match and we've been instructed to update them
+            using ( var privateContext = new RockContext() )
+            {
+                var privatePersonService = new PersonService( privateContext );
+                var updatePerson = privatePersonService.Get( exactMatch.Id );
+                updatePerson.Email = email;
+                privateContext.SaveChanges();
+            }
+
+            // Return a freshly queried person
+            return this.Get( exactMatch.Id );
         }
 
         /// <summary>
@@ -171,7 +235,33 @@ namespace Rock.Model
         /// <returns>
         /// An enumerable collection of <see cref="Rock.Model.Person"/> entities that match the search criteria.
         /// </returns>
+        [Obsolete( "Use FindBusinesses instead.", false )]
         public IEnumerable<Person> GetBusinessByMatch( string businessName, string email )
+        {
+            businessName = businessName ?? string.Empty;
+            email = email ?? string.Empty;
+            var query = Queryable( false, true );
+            var definedValueBusinessType = CacheDefinedValue.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_BUSINESS.AsGuid() );
+            if ( definedValueBusinessType != null )
+            {
+                int recordTypeBusiness = definedValueBusinessType.Id;
+                query = query.Where( p => p.RecordTypeValueId == recordTypeBusiness );
+            }
+
+            return query
+            .Where( p =>
+                email != "" && p.Email == email &&
+                businessName != "" && p.LastName == businessName )
+            .ToList();
+        }
+
+        /// <summary>
+        /// Gets an enumerable collection of <see cref="Rock.Model.Person"/> entities that have a matching email address, firstname and lastname and a record type of business.
+        /// </summary>
+        /// <param name="businessName">Name of the business.</param>
+        /// <param name="email">The email.</param>
+        /// <returns></returns>
+        public IEnumerable<Person> FindBusinesses( string businessName, string email )
         {
             businessName = businessName ?? string.Empty;
             email = email ?? string.Empty;
@@ -1175,11 +1265,11 @@ namespace Rock.Model
         }
 
         /// <summary>
-		/// Gets any search keys for this person
-		/// </summary>
-		/// <param name="personId">The person identifier.</param>
-		/// <returns></returns>
-		public IQueryable<PersonSearchKey> GetPersonSearchKeys( int personId )
+        /// Gets any search keys for this person
+        /// </summary>
+        /// <param name="personId">The person identifier.</param>
+        /// <returns></returns>
+        public IQueryable<PersonSearchKey> GetPersonSearchKeys( int personId )
         {
             return new PersonSearchKeyService( ( RockContext ) this.Context ).Queryable()
                 .Where( m => m.PersonAlias.PersonId == personId );
@@ -1681,14 +1771,17 @@ namespace Rock.Model
         /// <param name="reason">The reason.</param>
         /// <param name="reasonNote">The reason note.</param>
         /// <returns></returns>
-        /// 
         [Obsolete]
         public List<string> InactivatePerson( Person person, Web.Cache.DefinedValueCache reason, string reasonNote )
         {
-            History.HistoryChangeList historyChangeList;
-            InactivatePerson( person, CacheDefinedValue.Get(reason.Id), reasonNote, out historyChangeList );
+            var changes = new List<string>();
 
-            return historyChangeList.Select( a => a.Summary ).ToList();
+            if ( reason != null )
+            {
+                changes = InactivatePerson( person, CacheDefinedValue.Get( reason.Id ), reasonNote );
+            }
+
+            return changes;
         }
 
         /// <summary>
@@ -1697,10 +1790,10 @@ namespace Rock.Model
         /// <param name="person">The person.</param>
         /// <param name="reason">The reason.</param>
         /// <param name="reasonNote">The reason note.</param>
-        /// <param name="historyChangeList">The history change list.</param>
-        public void InactivatePerson( Person person, CacheDefinedValue reason, string reasonNote, out History.HistoryChangeList historyChangeList )
+        /// <returns></returns>
+        public List<string> InactivatePerson( Person person, CacheDefinedValue reason, string reasonNote )
         {
-            historyChangeList = new History.HistoryChangeList();
+            var changes = new List<string>();
 
             var inactiveStatus = CacheDefinedValue.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_INACTIVE.AsGuid() );
             if ( inactiveStatus != null && reason != null )
@@ -1713,6 +1806,8 @@ namespace Rock.Model
                 person.RecordStatusReasonValueId = reason.Id;
                 person.InactiveReasonNote = reasonNote;
             }
+
+            return changes;
         }
 
         #endregion
@@ -2092,7 +2187,7 @@ namespace Rock.Model
         /// <param name="value">The value.</param>
         public static void SaveUserPreference( Person person, string key, string value )
         {
-            int? personEntityTypeId = CacheEntityType.Get( Person.USER_VALUE_ENTITY )?.Id;
+            int? personEntityTypeId = Rock.Cache.CacheEntityType.Get( Person.USER_VALUE_ENTITY ).Id;
 
             using ( var rockContext = new RockContext() )
             {
@@ -2160,7 +2255,7 @@ namespace Rock.Model
         {
             if ( preferences != null )
             {
-                int? personEntityTypeId = CacheEntityType.Get( Person.USER_VALUE_ENTITY ).Id;
+                int? personEntityTypeId = Rock.Cache.CacheEntityType.Get( Person.USER_VALUE_ENTITY ).Id;
 
                 using ( var rockContext = new RockContext() )
                 {
@@ -2282,7 +2377,7 @@ namespace Rock.Model
         /// <returns>A list of <see cref="System.String"/> containing the values associated with the user's preference setting.</returns>
         public static string GetUserPreference( Person person, string key )
         {
-            int? personEntityTypeId = CacheEntityType.Get( Person.USER_VALUE_ENTITY )?.Id;
+            int? personEntityTypeId = Rock.Cache.CacheEntityType.Get( Person.USER_VALUE_ENTITY ).Id;
 
             using ( var rockContext = new Rock.Data.RockContext() )
             {
@@ -2310,7 +2405,7 @@ namespace Rock.Model
         /// <param name="key">A <see cref="System.String"/> representing the key (name) of the preference setting.</param>
         public static void DeleteUserPreference( Person person, string key )
         {
-            int? personEntityTypeId = CacheEntityType.Get( Person.USER_VALUE_ENTITY )?.Id;
+            int? personEntityTypeId = Rock.Cache.CacheEntityType.Get( Person.USER_VALUE_ENTITY ).Id;
 
             using ( var rockContext = new RockContext() )
             {
@@ -2339,7 +2434,7 @@ namespace Rock.Model
         /// <returns>A dictionary containing all of the <see cref="Rock.Model.Person">Person's</see> user preference settings.</returns>
         public static Dictionary<string, string> GetUserPreferences( Person person )
         {
-            int? personEntityTypeId = CacheEntityType.Get( Person.USER_VALUE_ENTITY )?.Id;
+            int? personEntityTypeId = Rock.Cache.CacheEntityType.Get( Person.USER_VALUE_ENTITY ).Id;
 
             var values = new Dictionary<string, string>();
 
@@ -2501,32 +2596,32 @@ namespace Rock.Model
 UPDATE x
 SET x.PrimaryFamilyId = x.CalculatedPrimaryFamilyId
 FROM (
-	SELECT p.Id
-		,p.NickName
-		,p.LastName
-		,p.PrimaryFamilyId
-		,pf.CalculatedPrimaryFamilyId
-	FROM Person p
-	OUTER APPLY (
-		SELECT TOP 1 g.Id [CalculatedPrimaryFamilyId]
-		FROM GroupMember gm
-		JOIN [Group] g ON g.Id = gm.GroupId
-		WHERE g.GroupTypeId = {groupTypeIdFamily}
-			AND gm.PersonId = p.Id
-		ORDER BY gm.GroupOrder
-			,gm.GroupId
-		) pf
-	WHERE (
-			p.PrimaryFamilyId IS NULL
-			OR (p.PrimaryFamilyId != pf.CalculatedPrimaryFamilyId)
-			)" );
+    SELECT p.Id
+        ,p.NickName
+        ,p.LastName
+        ,p.PrimaryFamilyId
+        ,pf.CalculatedPrimaryFamilyId
+    FROM Person p
+    OUTER APPLY (
+        SELECT TOP 1 g.Id [CalculatedPrimaryFamilyId]
+        FROM GroupMember gm
+        JOIN [Group] g ON g.Id = gm.GroupId
+        WHERE g.GroupTypeId = {groupTypeIdFamily}
+            AND gm.PersonId = p.Id
+        ORDER BY gm.GroupOrder
+            ,gm.GroupId
+        ) pf
+    WHERE (
+            p.PrimaryFamilyId IS NULL
+            OR (p.PrimaryFamilyId != pf.CalculatedPrimaryFamilyId)
+            )" );
 
             if ( personId.HasValue )
             {
                 sqlUpdateBuilder.Append( $" AND ( p.Id = {personId}) " );
             }
 
-            sqlUpdateBuilder.Append( @"	) x " );
+            sqlUpdateBuilder.Append( @"    ) x " );
 
             int recordsUpdated = rockContext.Database.ExecuteSqlCommand( sqlUpdateBuilder.ToString() );
 
