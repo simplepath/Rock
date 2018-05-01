@@ -167,9 +167,7 @@ namespace RockWeb.Blocks.Groups
             var groupMemberToRestore = groupMemberService.GetArchived().Where( a => a.Id == restoreGroupMemberId ).FirstOrDefault();
             if ( groupMemberToRestore != null )
             {
-                groupMemberToRestore.IsArchived = false;
-                groupMemberToRestore.ArchivedByPersonAliasId = null;
-                groupMemberToRestore.ArchivedDateTime = null;
+                groupMemberService.Restore( groupMemberToRestore );
                 rockContext.SaveChanges();
                 NavigateToCurrentPageReference( new Dictionary<string, string> { { "GroupMemberId", restoreGroupMemberId.ToString() } } );
             }

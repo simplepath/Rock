@@ -525,6 +525,7 @@ namespace RockWeb.Blocks.Groups
 
                 if ( archive )
                 {
+                    // NOTE: Delete will AutoArchive, but since we know that we need to archive, we can call .Archive directly 
                     groupMemberService.Archive( groupMember, this.CurrentPersonAliasId, true );
                 }
                 else
@@ -551,7 +552,6 @@ namespace RockWeb.Blocks.Groups
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The <see cref="EventArgs" /> instance containing the event data.</param>
-        /// <exception cref="System.NotImplementedException"></exception>
         protected void gGroupMembers_AddClick( object sender, EventArgs e )
         {
             NavigateToLinkedPage( "DetailPage", "GroupMemberId", 0, "GroupId", _group.Id );
@@ -572,7 +572,6 @@ namespace RockWeb.Blocks.Groups
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The <see cref="GridRebindEventArgs" /> instance containing the event data.</param>
-        /// <exception cref="System.NotImplementedException"></exception>
         protected void gGroupMembers_GridRebind( object sender, GridRebindEventArgs e )
         {
             BindGroupMembersGrid( e.IsExporting, e.IsCommunication );

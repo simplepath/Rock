@@ -22,6 +22,7 @@ using System.Linq;
 using Rock.Data;
 using Rock.Cache;
 using Z.EntityFramework.Plus;
+using System.Web;
 
 namespace Rock.Model
 {
@@ -437,9 +438,75 @@ namespace Rock.Model
             return null;
         }
 
+        /// <summary>
+        /// Adds the GroupMember to the Group. If a matching 'Archived' GroupMember is found with same role and person, it'll be recovered instead of adding a new record
+        /// </summary>
+        /// <param name="item">The item.</param>
+        public override void Add( GroupMember item )
+        {
+            var rockContext = this.Context as RockContext;
+            var groupService = new GroupService( rockContext );
+            var group = item.Group ?? groupService.GetNoTracking( item.GroupId );
+            GroupMember archivedGroupMember;
+            if ( groupService.ExistsAsArchived( group, item.PersonId, item.GroupRoleId, out archivedGroupMember ) )
+            {
+                this.Restore( archivedGroupMember );
+                
+            }
+            else
+            {
+                base.Add( item );
+            }
+        }
 
         /// <summary>
-        /// Deletes the specified group member with an option to null the GroupMemberId from Registrant tables
+        /// Restores the archived GroupMember record
+        /// HINT: Use <see cref="GroupService.ExistsAsArchived"></see> to get the matching archived groupmember
+        /// </summary>
+        /// <param name="groupId">The group identifier.</param>
+        /// <param name="personId">The person identifier.</param>
+        /// <param name="groupRoleId">The group role identifier.</param>
+        /// <returns></returns>
+        public void Restore( GroupMember archivedGroupMember )
+        {
+            archivedGroupMember.IsArchived = false;
+            archivedGroupMember.ArchivedByPersonAliasId = null;
+            archivedGroupMember.ArchivedDateTime = null;
+        }
+
+        /// <summary>
+        /// Deletes or Archives (Soft-Deletes) GroupMember record depending on GroupType.EnableGroupHistory and if the GroupMember has history snapshots
+        /// </summary>
+        /// <param name="item">The item.</param>
+        /// <returns></returns>
+        public override bool Delete( GroupMember item )
+        {
+            var rockContext = this.Context as RockContext;
+            int? groupTypeId = item.Group?.GroupTypeId;
+
+            if ( !groupTypeId.HasValue)
+            {
+                groupTypeId = new GroupService( rockContext ).GetSelect( item.GroupId, a => a.GroupTypeId );
+            }
+
+            var groupTypeCache = CacheGroupType.Get( groupTypeId.Value );
+            if ( groupTypeCache.EnableGroupHistory == true )
+            {
+                var groupMemberHistoricalService = new GroupMemberHistoricalService( rockContext );
+                if ( groupMemberHistoricalService.Queryable().Any( a => a.GroupMemberId == item.Id ) )
+                {
+                    // if the group's GroupType has GroupHistory enabled, and this group member has group member history snapshots, then we need to Archive instead of Delete
+                    this.Archive( item, null, false );
+                    return true;
+                }
+            }
+
+            return base.Delete( item );
+        }
+
+        /// <summary>
+        /// Deletes or Archives (Soft-Deletes) GroupMember record depending on GroupType.EnableGroupHistory and if the GroupMember has history snapshots
+        /// with an option to null the GroupMemberId from Registrant tables
         /// </summary>
         /// <param name="groupMember">The group member.</param>
         /// <param name="removeFromRegistrants">if set to <c>true</c> [remove from registrants].</param>
@@ -458,7 +525,7 @@ namespace Rock.Model
         /// Archives the specified group member with an option to null the GroupMemberId from Registrant tables
         /// </summary>
         /// <param name="groupMember">The group member.</param>
-        /// <param name="currentPersonAliasId">The current person alias identifier.</param>
+        /// <param name="currentPersonAliasId">The current person alias identifier (leave null to have Rock figure it out)</param>
         /// <param name="removeFromRegistrants">if set to <c>true</c> [remove from registrants].</param>
         public void Archive( GroupMember groupMember, int? currentPersonAliasId, bool removeFromRegistrants )
         {
@@ -466,6 +533,14 @@ namespace Rock.Model
             foreach ( var registrant in registrantService.Queryable().Where( r => r.GroupMemberId == groupMember.Id ) )
             {
                 registrant.GroupMemberId = null;
+            }
+
+            if ( !currentPersonAliasId.HasValue )
+            {
+                if ( HttpContext.Current != null && HttpContext.Current.Items.Contains( "CurrentPerson" ) )
+                {
+                    currentPersonAliasId = ( HttpContext.Current.Items["CurrentPerson"] as Person )?.PrimaryAliasId;
+                }
             }
 
             groupMember.IsArchived = true;
