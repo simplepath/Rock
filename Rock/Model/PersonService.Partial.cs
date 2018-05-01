@@ -1774,14 +1774,18 @@ namespace Rock.Model
         [Obsolete]
         public List<string> InactivatePerson( Person person, Web.Cache.DefinedValueCache reason, string reasonNote )
         {
-            var changes = new List<string>();
+            History.HistoryChangeList historyChangeList;
 
+            // since this is an obsolete method now, convert the definedValueCache to a CacheDefinedValue
+            CacheDefinedValue cacheReason = null;
             if ( reason != null )
             {
-                changes = InactivatePerson( person, CacheDefinedValue.Get( reason.Id ), reasonNote );
+                cacheReason = CacheDefinedValue.Get( reason.Id );
             }
 
-            return changes;
+            InactivatePerson( person, cacheReason, reasonNote, out historyChangeList );
+
+            return historyChangeList.Select( a => a.Summary ).ToList();
         }
 
         /// <summary>
@@ -1790,10 +1794,10 @@ namespace Rock.Model
         /// <param name="person">The person.</param>
         /// <param name="reason">The reason.</param>
         /// <param name="reasonNote">The reason note.</param>
-        /// <returns></returns>
-        public List<string> InactivatePerson( Person person, CacheDefinedValue reason, string reasonNote )
+        /// <param name="historyChangeList">The history change list.</param>
+        public void InactivatePerson( Person person, CacheDefinedValue reason, string reasonNote, out History.HistoryChangeList historyChangeList )
         {
-            var changes = new List<string>();
+            historyChangeList = new History.HistoryChangeList();
 
             var inactiveStatus = CacheDefinedValue.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_INACTIVE.AsGuid() );
             if ( inactiveStatus != null && reason != null )
@@ -1806,8 +1810,6 @@ namespace Rock.Model
                 person.RecordStatusReasonValueId = reason.Id;
                 person.InactiveReasonNote = reasonNote;
             }
-
-            return changes;
         }
 
         #endregion
