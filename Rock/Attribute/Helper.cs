@@ -1462,11 +1462,11 @@ namespace Rock.Attribute
             {
                 foreach ( var attributeCategory in GetAttributeCategories( item, false, false, supressOrdering ) )
                 {
-                    if ( attributeCategory.Attributes.Where( a => !exclude.Contains( a.Name ) && !exclude.Contains( a.Key ) ).Select( a => a.Key ).Count() > 0 )
+                    if ( attributeCategory.Attributes.Where( a => a.IsActive ).Where( a => !exclude.Contains( a.Name ) && !exclude.Contains( a.Key ) ).Select( a => a.Key ).Count() > 0 )
                     {
                         AddEditControls(
                             attributeCategory.Category != null ? attributeCategory.Category.Name : string.Empty,
-                            attributeCategory.Attributes.Select( a => a.Key ).ToList(),
+                            attributeCategory.Attributes.Where( a => a.IsActive ).Select( a => a.Key ).ToList(),
                             item, parentControl, validationGroup, setValue, exclude, numberOfColumns );
                     }
                 }
@@ -1799,7 +1799,7 @@ namespace Rock.Attribute
                 HtmlGenericControl dl = new HtmlGenericControl( "dl" );
                 parentControl.Controls.Add( dl );
 
-                foreach ( var attribute in attributeCategory.Attributes )
+                foreach ( var attribute in attributeCategory.Attributes.Where( a => CacheAttribute.Get( a.Id ).IsActive ) )
                 {
                     if ( exclude == null || ( !exclude.Contains( attribute.Name ) && !exclude.Contains( attribute.Key ) ) )
                     {
