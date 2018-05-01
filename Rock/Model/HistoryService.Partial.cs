@@ -39,8 +39,9 @@ namespace Rock.Model
         /// <param name="primaryEntityType">Type of the primary entity.</param>
         /// <param name="entityId">The entity identifier.</param>
         /// <param name="secondaryEntityType">Type of the secondary entity.</param>
+        /// <param name="additionalMergeFields">The additional merge fields.</param>
         /// <returns></returns>
-        public string GetTimelineHtml( string timelineLavaTemplate, CacheEntityType primaryEntityType, int entityId, CacheEntityType secondaryEntityType )
+        public string GetTimelineHtml( string timelineLavaTemplate, CacheEntityType primaryEntityType, int entityId, CacheEntityType secondaryEntityType, Dictionary<string, object> additionalMergeFields )
         {
             RockContext rockContext = this.Context as RockContext;
             HistoryService historyService = new HistoryService( rockContext );
@@ -87,6 +88,13 @@ namespace Rock.Model
             }
 
             mergeFields.Add( "HistorySummaryByDateByVerbList", historySummaryByDateByVerbList );
+            if ( additionalMergeFields != null )
+            {
+                foreach ( var additionalMergeField in additionalMergeFields )
+                {
+                    mergeFields.AddOrIgnore( additionalMergeField.Key, additionalMergeField.Value );
+                }
+            }
             string timelineHtml = timelineLavaTemplate.ResolveMergeFields( mergeFields );
             return timelineHtml;
         }
@@ -591,7 +599,7 @@ namespace Rock.Model
             /// </value>
             public IEntity RelatedEntity { get; set; }
 
-            
+
 
             /// <summary>
             /// Gets the formatted caption.

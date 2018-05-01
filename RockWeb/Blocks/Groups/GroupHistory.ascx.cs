@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Web.UI;
 
@@ -36,6 +37,8 @@ namespace RockWeb.Blocks.Groups
     [Description( "Displays a timeline of history for a group" )]
 
     [CodeEditorField( "Timeline Lava Template", "The Lava Template to use when rendering the timeline view of the history.", CodeEditorMode.Lava, CodeEditorTheme.Rock, 100, false, @"{% include '~~/Assets/Lava/GroupHistoryTimeline.lava' %}", order: 1 )]
+    [LinkedPage( "Group History Grid Page", required: true, order: 2 )]
+    [LinkedPage( "Group Member History Page", required: true, order: 3 )]
     public partial class GroupHistory : RockBlock, ICustomGridColumns
     {
         #region Base Control Methods
@@ -141,7 +144,11 @@ namespace RockWeb.Blocks.Groups
             var rockContext = new RockContext();
             var historyService = new HistoryService( rockContext );
             string timelineLavaTemplate = this.GetAttributeValue( "TimelineLavaTemplate" );
-            string timelineHtml = historyService.GetTimelineHtml( timelineLavaTemplate, primaryEntityType, entityId, secondaryEntityType );
+            var additionalMergeFields = new Dictionary<string, object>();
+            additionalMergeFields.Add( "GroupHistoryGridPage", LinkedPageRoute( "GroupHistoryGridPage" ) );
+            additionalMergeFields.Add( "GroupMemberHistoryPage", LinkedPageRoute( "GroupMemberHistoryPage" ) );
+
+            string timelineHtml = historyService.GetTimelineHtml( timelineLavaTemplate, primaryEntityType, entityId, secondaryEntityType, additionalMergeFields );
             lTimelineHtml.Text = timelineHtml;
         }
 
