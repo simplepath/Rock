@@ -243,7 +243,7 @@ namespace Rock.Migrations
             AddColumn( "dbo.Group", "ArchivedDateTime", c => c.DateTime() );
             AddColumn( "dbo.Group", "ArchivedByPersonAliasId", c => c.Int() );
             AddColumn( "dbo.GroupType", "EnableGroupHistory", c => c.Boolean( nullable: false ) );
-            AddColumn( "dbo.Attribute", "IsActive", c => c.Boolean( nullable: false ) );
+            AddColumn( "dbo.Attribute", "IsActive", c => c.Boolean( nullable: false, defaultValue: true ) );
             AddColumn( "dbo.Attribute", "EnableHistory", c => c.Boolean( nullable: false ) );
             AddColumn( "dbo.GroupMember", "InactiveDateTime", c => c.DateTime() );
             AddColumn( "dbo.GroupMember", "IsArchived", c => c.Boolean( nullable: false ) );
