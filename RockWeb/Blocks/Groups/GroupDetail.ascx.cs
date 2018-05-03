@@ -456,6 +456,7 @@ namespace RockWeb.Blocks.Groups
                     }
                 }
 
+                // NOTE: groupService.Delete will automatically Archive instead Delete if this Group has GroupHistory enabled, but since this block has UI logic for Archive vs Delete, we can do a direct Archive in btnArchive_Click
                 groupService.Delete( group );
 
                 rockContext.SaveChanges();

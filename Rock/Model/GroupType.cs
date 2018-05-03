@@ -589,6 +589,16 @@ namespace Rock.Model
         [DataMember]
         public bool EnableGroupHistory { get; set; } = false;
 
+        /// <summary>
+        /// The color used to visually distinguish groups on lists.
+        /// </summary>
+        /// <value>
+        /// The group type color.
+        /// </value>
+        [DataMember]
+        [MaxLength( 100 )]
+        public string GroupTypeColor { get; set; }
+
         #endregion
 
         #region Virtual Properties

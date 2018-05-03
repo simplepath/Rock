@@ -965,6 +965,15 @@ namespace Rock.Model
             this.HasOptional( p => p.Schedule ).WithMany().HasForeignKey( p => p.ScheduleId ).WillCascadeOnDelete( false );
             this.HasOptional( p => p.RequiredSignatureDocumentTemplate ).WithMany().HasForeignKey( p => p.RequiredSignatureDocumentTemplateId ).WillCascadeOnDelete( false );
             this.HasOptional( p => p.ArchivedByPersonAlias ).WithMany().HasForeignKey( p => p.ArchivedByPersonAliasId ).WillCascadeOnDelete( false );
+
+            // Tell EF that we never want archived groups. 
+            // This will prevent archived members from being included in any Groupqueries.
+            // It will also prevent navigation properties of Group from including archived groups.
+            Z.EntityFramework.Plus.QueryFilterManager.Filter<Group>( x => x.Where( m => m.IsArchived == false ) );
+
+            // In the case of Group as a property (not a collection), we DO want to fetch the group record even if it is archived, so ensure that AllowPropertyFilter = false;
+            // NOTE: This is not specific to Group, it is for any Filtered Model (currently just Group and GroupMember)
+            Z.EntityFramework.Plus.QueryFilterManager.AllowPropertyFilter = false;
         }
     }
 

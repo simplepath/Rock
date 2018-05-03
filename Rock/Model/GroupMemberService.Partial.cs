@@ -32,16 +32,6 @@ namespace Rock.Model
     public partial class GroupMemberService
     {
         /// <summary>
-        /// Gets the specified identifier.
-        /// </summary>
-        /// <param name="id">The identifier.</param>
-        /// <returns></returns>
-        public override GroupMember Get( int id )
-        {
-            return this.AsNoFilter().FirstOrDefault( m => m.Id == id );
-        }
-
-        /// <summary>
         /// Gets the person.
         /// </summary>
         /// <param name="groupMemberId">The group member identifier.</param>
@@ -52,33 +42,12 @@ namespace Rock.Model
         }
 
         /// <summary>
-        /// Gets the specified unique identifier.
-        /// </summary>
-        /// <param name="guid">The unique identifier.</param>
-        /// <returns></returns>
-        public override GroupMember Get( Guid guid )
-        {
-            return this.AsNoFilter().FirstOrDefault( m => m.Guid == guid );
-        }
-
-        /// <summary>
         /// Returns a queryable for Archived GroupMembers
         /// </summary>
         /// <returns></returns>
         public IQueryable<GroupMember> GetArchived()
         {
             return this.AsNoFilter().Where( a => a.IsArchived == true );
-        }
-
-        /// <summary>
-        /// Returns a Queryable of GroupMembers without filtering on Deceased or the global GroupMember.IsArchived filter
-        /// </summary>
-        /// <returns></returns>
-        public IQueryable<GroupMember> AsNoFilter()
-        {
-            // Since Archived GroupMembers are filtered out globally for all EF queries, explicity query with the AsNoFilter option
-            var baseDbSet = ( IDbSet<GroupMember> ) base.Queryable();
-            return baseDbSet.AsNoFilter();
         }
 
         /// <summary>
@@ -489,7 +458,7 @@ namespace Rock.Model
             }
 
             var groupTypeCache = CacheGroupType.Get( groupTypeId.Value );
-            if ( groupTypeCache.EnableGroupHistory == true )
+            if ( groupTypeCache?.EnableGroupHistory == true )
             {
                 var groupMemberHistoricalService = new GroupMemberHistoricalService( rockContext );
                 if ( groupMemberHistoricalService.Queryable().Any( a => a.GroupMemberId == item.Id ) )

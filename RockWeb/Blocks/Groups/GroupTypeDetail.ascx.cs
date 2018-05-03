@@ -499,6 +499,7 @@ namespace RockWeb.Blocks.Groups
             groupType.ShowMaritalStatus = cbShowMaritalStatus.Checked;
             groupType.GroupViewLavaTemplate = ceGroupLavaTemplate.Text;
             groupType.IconCssClass = tbIconCssClass.Text;
+            groupType.GroupTypeColor = cpGroupTypeColor.Text;
             groupType.TakesAttendance = cbTakesAttendance.Checked;
             groupType.GroupsRequireCampus = cbGroupsRequireCampus.Checked;
             groupType.GroupAttendanceRequiresLocation = cbGroupAttendanceRequiresLocation.Checked;
@@ -811,6 +812,7 @@ namespace RockWeb.Blocks.Groups
             }
 
             tbIconCssClass.Text = groupType.IconCssClass;
+            cpGroupTypeColor.Text = groupType.GroupTypeColor;
 
             // Locations
             cbAllowMultipleLocations.Enabled = !groupType.IsSystem;

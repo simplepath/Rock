@@ -243,6 +243,7 @@ namespace Rock.Migrations
             AddColumn( "dbo.Group", "ArchivedDateTime", c => c.DateTime() );
             AddColumn( "dbo.Group", "ArchivedByPersonAliasId", c => c.Int() );
             AddColumn( "dbo.GroupType", "EnableGroupHistory", c => c.Boolean( nullable: false ) );
+            AddColumn( "dbo.GroupType", "GroupTypeColor", c => c.String( maxLength: 100 ) );
             AddColumn( "dbo.Attribute", "IsActive", c => c.Boolean( nullable: false, defaultValue: true ) );
             AddColumn( "dbo.Attribute", "EnableHistory", c => c.Boolean( nullable: false ) );
             AddColumn( "dbo.GroupMember", "InactiveDateTime", c => c.DateTime() );
@@ -371,6 +372,7 @@ CREATE UNIQUE NONCLUSTERED  INDEX [IX_LocationIdCurrentRow] ON [dbo].[GroupLocat
             DropColumn( "dbo.Attribute", "EnableHistory" );
             DropColumn( "dbo.Attribute", "IsActive" );
             DropColumn( "dbo.GroupType", "EnableGroupHistory" );
+            DropColumn( "dbo.GroupType", "GroupTypeColor" );
             DropColumn( "dbo.Group", "ArchivedByPersonAliasId" );
             DropColumn( "dbo.Group", "ArchivedDateTime" );
             DropColumn( "dbo.Group", "IsArchived" );

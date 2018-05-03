@@ -145,6 +145,7 @@ namespace Rock.Model
             target.GroupMemberTerm = source.GroupMemberTerm;
             target.GroupsRequireCampus = source.GroupsRequireCampus;
             target.GroupTerm = source.GroupTerm;
+            target.GroupTypeColor = source.GroupTypeColor;
             target.GroupTypePurposeValueId = source.GroupTypePurposeValueId;
             target.GroupViewLavaTemplate = source.GroupViewLavaTemplate;
             target.IconCssClass = source.IconCssClass;

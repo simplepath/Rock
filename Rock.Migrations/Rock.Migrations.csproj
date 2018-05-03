@@ -197,9 +197,9 @@
     <Compile Include="Migrations\201804272301456_MergeFromV7_4.Designer.cs">
       <DependentUpon>201804272301456_MergeFromV7_4.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201805011850485_GroupHistory.cs" />
-    <Compile Include="Migrations\201805011850485_GroupHistory.Designer.cs">
-      <DependentUpon>201805011850485_GroupHistory.cs</DependentUpon>
+    <Compile Include="Migrations\201805031828265_GroupHistory.cs" />
+    <Compile Include="Migrations\201805031828265_GroupHistory.Designer.cs">
+      <DependentUpon>201805031828265_GroupHistory.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Version 7.0\Version 1.7.1\201801121251097_InteractionBlocks.cs" />
     <Compile Include="Migrations\Version 7.0\Version 1.7.1\201801121251097_InteractionBlocks.Designer.cs">
@@ -2878,8 +2878,8 @@
     <EmbeddedResource Include="Migrations\201804272301456_MergeFromV7_4.resx">
       <DependentUpon>201804272301456_MergeFromV7_4.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201805011850485_GroupHistory.resx">
-      <DependentUpon>201805011850485_GroupHistory.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201805031828265_GroupHistory.resx">
+      <DependentUpon>201805031828265_GroupHistory.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\Version 7.0\Version 1.7.1\201801121251097_InteractionBlocks.resx">
       <DependentUpon>201801121251097_InteractionBlocks.cs</DependentUpon>

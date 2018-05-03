@@ -21,6 +21,7 @@ using System.Data.Entity.Spatial;
 using System.Linq;
 using Rock.Data;
 using Rock.Cache;
+using Z.EntityFramework.Plus;
 
 namespace Rock.Model
 {
@@ -30,29 +31,7 @@ namespace Rock.Model
     public partial class GroupService
     {
         /// <summary>
-        /// Gets the model with the Guid value
-        /// </summary>
-        /// <param name="guid">The GUID.</param>
-        /// <returns></returns>
-        public override Group Get( Guid guid )
-        {
-            // if a specific Guid is specified, get the group record even if it is archived
-            return base.Queryable().FirstOrDefault( a => a.Guid == guid );
-        }
-
-        /// <summary>
-        /// Gets the model with the id value
-        /// </summary>
-        /// <param name="id">id</param>
-        /// <returns></returns>
-        public override Group Get( int id )
-        {
-            // if a specific id is specified, get the group record even if it is archived
-            return base.Queryable().FirstOrDefault( a => a.Id == id );
-        }
-
-        /// <summary>
-        /// Gets an <see cref="T:System.Linq.IQueryable`1" /> list of all models
+        /// Returns a queryable collection of <see cref="Rock.Model.Group">Groups</see>, excluding archived groups
         /// </summary>
         /// <returns></returns>
         public override IQueryable<Group> Queryable()
@@ -62,7 +41,7 @@ namespace Rock.Model
         }
 
         /// <summary>
-        /// Gets an <see cref="T:System.Linq.IQueryable`1" /> list of all models
+        /// Returns a queryable collection of <see cref="Rock.Model.Group">Groups</see>, excluding archived groups,
         /// with eager loading of properties specified in includes
         /// </summary>
         /// <param name="includes"></param>
@@ -79,8 +58,9 @@ namespace Rock.Model
         /// <returns></returns>
         public IQueryable<Group> GetArchived()
         {
-            return base.Queryable().Where( a => a.IsArchived );
+            return this.AsNoFilter().Where( a => a.IsArchived == true );
         }
+
         /// <summary>
         /// Returns an enumerable collection of <see cref="Rock.Model.Group"/> entities that by their <see cref="Rock.Model.GroupType"/> Id.
         /// </summary>
@@ -1089,7 +1069,7 @@ namespace Rock.Model
         }
 
         /// <summary>
-        /// Deletes a specified group. Returns a boolean flag indicating if the deletion was successful.
+        /// Deletes or Archives (Soft-Deletes) Group record depending on GroupType.EnableGroupHistory and if the Group has history snapshots. Returns a boolean flag indicating if the deletion was successful.
         /// </summary>
         /// <param name="item">The <see cref="Rock.Model.Group" /> to delete.</param>
         /// <returns>
@@ -1097,6 +1077,20 @@ namespace Rock.Model
         /// </returns>
         public override bool Delete( Group item )
         {
+            var groupTypeCache = CacheGroupType.Get( item.GroupTypeId );
+            if ( groupTypeCache?.EnableGroupHistory == true )
+            {
+                var rockContext = this.Context as RockContext;
+                var groupHistoricalService = new GroupHistoricalService( rockContext );
+                var groupMemberHistoricalService = new GroupMemberHistoricalService( rockContext );
+                if ( groupHistoricalService.Queryable().Any( a => a.GroupId == item.Id ) || groupMemberHistoricalService.Queryable().Any( a => a.GroupId == item.Id ) )
+                {
+                    // if this group's GroupType has GroupHistory enabled, and this group has group or group member history snapshots, then we need to Archive instead of Delete
+                    this.Archive( item, null, false );
+                    return true;
+                }
+            }
+
             string message;
             if ( !CanDelete( item, out message ) )
             {
@@ -1107,7 +1101,8 @@ namespace Rock.Model
         }
 
         /// <summary>
-        /// Deletes the specified group and removes it from Auth if it is a security role
+        /// Deletes or Archives (Soft-Deletes) Group record depending on GroupType.EnableGroupHistory and if the Group has history snapshots, with an option to
+        /// remove it from Auth if it is a security role
         /// </summary>
         /// <param name="group">The group.</param>
         /// <param name="removeFromAuthTables">if set to <c>true</c> [remove from authentication tables].</param>

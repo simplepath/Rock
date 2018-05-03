@@ -873,6 +873,7 @@ namespace Rock.Model
             Z.EntityFramework.Plus.QueryFilterManager.Filter<GroupMember>( x => x.Where( m => m.IsArchived == false ) );
 
             // In the case of GroupMember as a property (not a collection), we DO want to fetch the groupMember record even if it is archived, so ensure that AllowPropertyFilter = false;
+            // NOTE: This is not specific to GroupMember, it is for any Filtered Model (currently just Group and GroupMember)
             Z.EntityFramework.Plus.QueryFilterManager.AllowPropertyFilter = false;
         }
     }

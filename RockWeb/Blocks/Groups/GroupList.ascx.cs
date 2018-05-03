@@ -456,11 +456,11 @@ namespace RockWeb.Blocks.Groups
                             return;
                         }
 
+                        // NOTE: groupService.Delete will automatically Archive instead Delete if this Group has GroupHistory enabled, but since this block has UI logic for Archive vs Delete, we can do a direct Archive
                         groupService.Archive( group, this.CurrentPersonAliasId, true );
                     }
                     else
                     {
-
                         if ( !group.IsAuthorized( Authorization.EDIT, this.CurrentPerson ) )
                         {
                             mdGridWarning.Show( "You are not authorized to delete this group", ModalAlertType.Information );
@@ -473,7 +473,7 @@ namespace RockWeb.Blocks.Groups
                             mdGridWarning.Show( errorMessage, ModalAlertType.Information );
                             return;
                         }
-
+                        
                         groupService.Delete( group, true );
                     }
                 }

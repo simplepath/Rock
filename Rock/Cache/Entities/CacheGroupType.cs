@@ -360,6 +360,15 @@ namespace Rock.Cache
         public bool EnableGroupHistory { get; set; }
 
         /// <summary>
+        /// The color used to visually distinguish groups on lists.
+        /// </summary>
+        /// <value>
+        /// The group type color.
+        /// </value>
+        [DataMember]
+        public string GroupTypeColor { get; set; }
+
+        /// <summary>
         /// Gets or sets a value indicating whether [show marital status].
         /// </summary>
         /// <value>
@@ -569,6 +578,7 @@ namespace Rock.Cache
                 .ForEach( s => GroupScheduleExclusions.Add( new DateRange( s.StartDate, s.EndDate ) ) );
 
             EnableGroupHistory = groupType.EnableGroupHistory;
+            GroupTypeColor = groupType.GroupTypeColor;
             ShowMaritalStatus = groupType.ShowMaritalStatus;
         }
 
