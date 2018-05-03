@@ -71,7 +71,7 @@ namespace Rock.Model
         }
 
         /// <summary>
-        /// Returns a Queryable of GroupMembers without filtering on Deceased or the global IsArchived filter
+        /// Returns a Queryable of GroupMembers without filtering on Deceased or the global GroupMember.IsArchived filter
         /// </summary>
         /// <returns></returns>
         public IQueryable<GroupMember> AsNoFilter()
@@ -451,7 +451,6 @@ namespace Rock.Model
             if ( groupService.ExistsAsArchived( group, item.PersonId, item.GroupRoleId, out archivedGroupMember ) )
             {
                 this.Restore( archivedGroupMember );
-                
             }
             else
             {

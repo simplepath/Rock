@@ -914,6 +914,7 @@
     <Compile Include="Model\GroupMemberHistorical.cs" />
     <Compile Include="Model\GroupHistorical.cs" />
     <Compile Include="Model\GroupSync.cs" />
+    <Compile Include="Model\GroupMemberHistoricalService.Partial.cs" />
     <Compile Include="Model\InteractionComponent.Partial.cs" />
     <Compile Include="Model\InteractionService.Partial.cs" />
     <Compile Include="Model\MetaFirstNameGenderLookup.cs" />
