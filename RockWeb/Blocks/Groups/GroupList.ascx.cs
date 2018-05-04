@@ -355,7 +355,18 @@ namespace RockWeb.Blocks.Groups
         /// <param name="e">The <see cref="RowEventArgs" /> instance containing the event data.</param>
         protected void gGroups_Edit( object sender, RowEventArgs e )
         {
-            NavigateToLinkedPage( "DetailPage", "GroupId", e.RowKeyId );
+            int groupId;
+            if ( gGroups.DataKeyNames[0] == "GroupMemberId" )
+            {
+                int groupMemberId = e.RowKeyId;
+                groupId = new GroupMemberService( new RockContext() ).GetSelect( groupMemberId, a => a.GroupId );
+            }
+            else
+            {
+                groupId = e.RowKeyId;
+            }
+
+            NavigateToLinkedPage( "DetailPage", "GroupId", groupId );
         }
 
         /// <summary>
