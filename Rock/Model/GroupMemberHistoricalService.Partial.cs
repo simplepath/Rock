@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
+using Rock.Cache;
 using Rock.Data;
 
 namespace Rock.Model
@@ -132,6 +133,22 @@ namespace Rock.Model
             /// The group identifier.
             /// </value>
             public int GroupId => Group.Id;
+
+            /// <summary>
+            /// Gets the group type identifier.
+            /// </summary>
+            /// <value>
+            /// The group type identifier.
+            /// </value>
+            public int GroupTypeId => Group.GroupTypeId;
+
+            /// <summary>
+            /// The color used to visually distinguish groups on lists.
+            /// </summary>
+            /// <value>
+            /// The color of the group type.
+            /// </value>
+            public string GroupTypeColor => CacheGroupType.Get( GroupTypeId )?.GroupTypeColor;
 
             /// <summary>
             /// Gets or sets the start stop history.
