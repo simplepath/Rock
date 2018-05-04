@@ -4874,6 +4874,12 @@
     <Content Include="Migrations\201804272301456_MergeFromV7_4_spCrm_PersonMerge.sql">
       <DependentUpon>201804272301456_MergeFromV7_4.cs</DependentUpon>
     </Content>
+    <Content Include="Migrations\201805031828265_GroupHistory_spCrm_PersonMerge.sql">
+      <DependentUpon>201805031828265_GroupHistory.cs</DependentUpon>
+    </Content>
+    <Content Include="Migrations\201805031828265_GroupHistory_spCrm_PersonMergeRelationships.sql">
+      <DependentUpon>201805031828265_GroupHistory.cs</DependentUpon>
+    </Content>
     <Content Include="Migrations\Version 7.0\Version 1.7.0\201707182207536_AttendanceAnalyticsQuery_NonAttendees.sql">
       <DependentUpon>201707182207536_PageShortLinks.cs</DependentUpon>
     </Content>

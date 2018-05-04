@@ -36,6 +36,10 @@ namespace Rock.Migrations
             UpPagesBlocks();
 
             UpAddHistoryCategories();
+
+            // Update PersonMerge stored procs to work with Groups/GroupMembers that have GroupHistory 
+            Sql( MigrationSQL._201805031828265_GroupHistory_spCrm_PersonMerge );
+            Sql( MigrationSQL._201805031828265_GroupHistory_spCrm_PersonMergeRelationships );
         }
 
         /// <summary>
