@@ -483,6 +483,7 @@
     <Compile Include="Cache\Entities\CacheWorkflowActionType.cs" />
     <Compile Include="Cache\Entities\CacheWorkflowActivityType.cs" />
     <Compile Include="Cache\Entities\CacheWorkflowType.cs" />
+    <Compile Include="Cache\IItemCache.cs" />
     <Compile Include="Cache\NonEntities\CacheEntityNoteTypes.cs" />
     <Compile Include="Cache\NonEntities\CacheWorkflowTriggers.cs" />
     <Compile Include="Cache\RockCache.cs" />
@@ -2193,7 +2194,7 @@
     <Compile Include="Workflow\Action\WorkflowControl\SetStatus.cs" />
     <Compile Include="Workflow\Action\WorkflowControl\SetWorkflowName.cs" />
     <Compile Include="Workflow\Action\WorkflowControl\UserForm.cs" />
-    <Compile Include="Workflow\Action\WorkflowControl\WebRequest.cs" />
+    <Compile Include="Workflow\Action\Utility\WebRequest.cs" />
     <Compile Include="Workflow\Action\WorkflowControl\WriteToLog.cs" />
     <Compile Include="Workflow\TriggerCache.cs" />
   </ItemGroup>
