@@ -4619,9 +4619,9 @@ namespace Rock.Migrations.Migrations {
         ///		Uses the following constants:
         ///			* Group Type - Family: 790E [rest of string was truncated]&quot;;.
         /// </summary>
-        public static string _201805031828265_GroupHistory_spCrm_PersonMerge {
+        public static string _201805072022522_GroupHistory_spCrm_PersonMerge {
             get {
-                return ResourceManager.GetString("_201805031828265_GroupHistory_spCrm_PersonMerge", resourceCulture);
+                return ResourceManager.GetString("_201805072022522_GroupHistory_spCrm_PersonMerge", resourceCulture);
             }
         }
         
@@ -4639,9 +4639,9 @@ namespace Rock.Migrations.Migrations {
         ///	&lt;param name=&quot;Old Id&quot; datatype=&quot;int&quot;&gt;The person id of the non-primary Person being merged&lt;/param&gt;
         ///	&lt;param name=&quot;New Id&quot; datatype=&quot;int&quot;&gt;The person id of t [rest of string was truncated]&quot;;.
         /// </summary>
-        public static string _201805031828265_GroupHistory_spCrm_PersonMergeRelationships {
+        public static string _201805072022522_GroupHistory_spCrm_PersonMergeRelationships {
             get {
-                return ResourceManager.GetString("_201805031828265_GroupHistory_spCrm_PersonMergeRelationships", resourceCulture);
+                return ResourceManager.GetString("_201805072022522_GroupHistory_spCrm_PersonMergeRelationships", resourceCulture);
             }
         }
     }
