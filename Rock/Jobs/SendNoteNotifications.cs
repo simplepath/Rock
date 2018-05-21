@@ -21,10 +21,10 @@ using System.Linq;
 using Quartz;
 
 using Rock.Attribute;
+using Rock.Cache;
 using Rock.Communication;
 using Rock.Data;
 using Rock.Model;
-using Rock.Web.Cache;
 
 namespace Rock.Jobs
 {
@@ -386,7 +386,7 @@ namespace Rock.Jobs
                 return;
             }
 
-            var noteType = NoteTypeCache.Read( note.NoteTypeId );
+            var noteType = CacheNoteType.Get( note.NoteTypeId );
 
             // make sure the note's notetype has an EntityTypeId (is should, but just in case it doesn't)
             int? noteEntityTypeId = noteType?.EntityTypeId;

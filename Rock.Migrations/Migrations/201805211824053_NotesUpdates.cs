@@ -18,7 +18,7 @@ namespace Rock.Migrations
 {
     using System;
     using System.Data.Entity.Migrations;
-    
+
     /// <summary>
     ///
     /// </summary>
@@ -32,66 +32,66 @@ namespace Rock.Migrations
             CreateTable(
                 "dbo.NoteWatch",
                 c => new
-                    {
-                        Id = c.Int(nullable: false, identity: true),
-                        NoteTypeId = c.Int(),
-                        EntityTypeId = c.Int(),
-                        EntityId = c.Int(),
-                        NoteId = c.Int(),
-                        IsWatching = c.Boolean(nullable: false),
-                        WatchReplies = c.Boolean(nullable: false),
-                        AllowOverride = c.Boolean(nullable: false),
-                        WatcherPersonAliasId = c.Int(),
-                        WatcherGroupId = c.Int(),
-                        CreatedDateTime = c.DateTime(),
-                        ModifiedDateTime = c.DateTime(),
-                        CreatedByPersonAliasId = c.Int(),
-                        ModifiedByPersonAliasId = c.Int(),
-                        Guid = c.Guid(nullable: false),
-                        ForeignId = c.Int(),
-                        ForeignGuid = c.Guid(),
-                        ForeignKey = c.String(maxLength: 100),
-                    })
-                .PrimaryKey(t => t.Id)
-                .ForeignKey("dbo.PersonAlias", t => t.CreatedByPersonAliasId)
-                .ForeignKey("dbo.EntityType", t => t.EntityTypeId, cascadeDelete: true)
-                .ForeignKey("dbo.PersonAlias", t => t.ModifiedByPersonAliasId)
-                .ForeignKey("dbo.Note", t => t.NoteId, cascadeDelete: true)
-                .ForeignKey("dbo.NoteType", t => t.NoteTypeId)
-                .ForeignKey("dbo.Group", t => t.WatcherGroupId, cascadeDelete: true)
-                .ForeignKey("dbo.PersonAlias", t => t.WatcherPersonAliasId, cascadeDelete: true)
-                .Index(t => t.NoteTypeId)
-                .Index(t => t.EntityTypeId)
-                .Index(t => t.NoteId)
-                .Index(t => t.WatcherPersonAliasId)
-                .Index(t => t.WatcherGroupId)
-                .Index(t => t.CreatedByPersonAliasId)
-                .Index(t => t.ModifiedByPersonAliasId)
-                .Index(t => t.Guid, unique: true);
-            
-            AddColumn("dbo.Note", "ParentNoteId", c => c.Int());
-            AddColumn("dbo.Note", "ApprovalStatus", c => c.Int(nullable: false));
-            AddColumn("dbo.Note", "ApprovedByPersonAliasId", c => c.Int());
-            AddColumn("dbo.Note", "ApprovedDateTime", c => c.DateTime());
-            AddColumn("dbo.Note", "NotificationsSent", c => c.Boolean(nullable: false));
-            AddColumn("dbo.Note", "ApprovalsSent", c => c.Boolean(nullable: false));
-            AddColumn("dbo.Note", "NoteUrl", c => c.String());
-            AddColumn("dbo.Note", "EditedDateTime", c => c.DateTime());
-            AddColumn("dbo.Note", "EditedByPersonAliasId", c => c.Int());
-            AddColumn("dbo.NoteType", "RequiresApprovals", c => c.Boolean(nullable: false));
-            AddColumn("dbo.NoteType", "AllowsWatching", c => c.Boolean(nullable: false));
-            AddColumn("dbo.NoteType", "AllowsReplies", c => c.Boolean(nullable: false));
-            AddColumn("dbo.NoteType", "MaxReplyDepth", c => c.Int());
-            AddColumn("dbo.NoteType", "BackgroundColor", c => c.String(maxLength: 100));
-            AddColumn("dbo.NoteType", "FontColor", c => c.String(maxLength: 100));
-            AddColumn("dbo.NoteType", "BorderColor", c => c.String(maxLength: 100));
-            AddColumn("dbo.NoteType", "SendApprovalNotifications", c => c.Boolean(nullable: false));
-            AddColumn("dbo.NoteType", "AutoWatchAuthors", c => c.Boolean(nullable: false));
-            AddColumn("dbo.NoteType", "ApprovalUrlTemplate", c => c.String());
-            CreateIndex("dbo.Note", "ParentNoteId");
-            CreateIndex("dbo.Note", "EditedByPersonAliasId");
-            AddForeignKey("dbo.Note", "EditedByPersonAliasId", "dbo.PersonAlias", "Id");
-            AddForeignKey("dbo.Note", "ParentNoteId", "dbo.Note", "Id");
+                {
+                    Id = c.Int( nullable: false, identity: true ),
+                    NoteTypeId = c.Int(),
+                    EntityTypeId = c.Int(),
+                    EntityId = c.Int(),
+                    NoteId = c.Int(),
+                    IsWatching = c.Boolean( nullable: false ),
+                    WatchReplies = c.Boolean( nullable: false ),
+                    AllowOverride = c.Boolean( nullable: false ),
+                    WatcherPersonAliasId = c.Int(),
+                    WatcherGroupId = c.Int(),
+                    CreatedDateTime = c.DateTime(),
+                    ModifiedDateTime = c.DateTime(),
+                    CreatedByPersonAliasId = c.Int(),
+                    ModifiedByPersonAliasId = c.Int(),
+                    Guid = c.Guid( nullable: false ),
+                    ForeignId = c.Int(),
+                    ForeignGuid = c.Guid(),
+                    ForeignKey = c.String( maxLength: 100 ),
+                } )
+                .PrimaryKey( t => t.Id )
+                .ForeignKey( "dbo.PersonAlias", t => t.CreatedByPersonAliasId )
+                .ForeignKey( "dbo.EntityType", t => t.EntityTypeId, cascadeDelete: true )
+                .ForeignKey( "dbo.PersonAlias", t => t.ModifiedByPersonAliasId )
+                .ForeignKey( "dbo.Note", t => t.NoteId, cascadeDelete: true )
+                .ForeignKey( "dbo.NoteType", t => t.NoteTypeId )
+                .ForeignKey( "dbo.Group", t => t.WatcherGroupId, cascadeDelete: true )
+                .ForeignKey( "dbo.PersonAlias", t => t.WatcherPersonAliasId, cascadeDelete: true )
+                .Index( t => t.NoteTypeId )
+                .Index( t => t.EntityTypeId )
+                .Index( t => t.NoteId )
+                .Index( t => t.WatcherPersonAliasId )
+                .Index( t => t.WatcherGroupId )
+                .Index( t => t.CreatedByPersonAliasId )
+                .Index( t => t.ModifiedByPersonAliasId )
+                .Index( t => t.Guid, unique: true );
+
+            AddColumn( "dbo.Note", "ParentNoteId", c => c.Int() );
+            AddColumn( "dbo.Note", "ApprovalStatus", c => c.Int( nullable: false ) );
+            AddColumn( "dbo.Note", "ApprovedByPersonAliasId", c => c.Int() );
+            AddColumn( "dbo.Note", "ApprovedDateTime", c => c.DateTime() );
+            AddColumn( "dbo.Note", "NotificationsSent", c => c.Boolean( nullable: false ) );
+            AddColumn( "dbo.Note", "ApprovalsSent", c => c.Boolean( nullable: false ) );
+            AddColumn( "dbo.Note", "NoteUrl", c => c.String() );
+            AddColumn( "dbo.Note", "EditedDateTime", c => c.DateTime() );
+            AddColumn( "dbo.Note", "EditedByPersonAliasId", c => c.Int() );
+            AddColumn( "dbo.NoteType", "RequiresApprovals", c => c.Boolean( nullable: false ) );
+            AddColumn( "dbo.NoteType", "AllowsWatching", c => c.Boolean( nullable: false ) );
+            AddColumn( "dbo.NoteType", "AllowsReplies", c => c.Boolean( nullable: false ) );
+            AddColumn( "dbo.NoteType", "MaxReplyDepth", c => c.Int() );
+            AddColumn( "dbo.NoteType", "BackgroundColor", c => c.String( maxLength: 100 ) );
+            AddColumn( "dbo.NoteType", "FontColor", c => c.String( maxLength: 100 ) );
+            AddColumn( "dbo.NoteType", "BorderColor", c => c.String( maxLength: 100 ) );
+            AddColumn( "dbo.NoteType", "SendApprovalNotifications", c => c.Boolean( nullable: false ) );
+            AddColumn( "dbo.NoteType", "AutoWatchAuthors", c => c.Boolean( nullable: false ) );
+            AddColumn( "dbo.NoteType", "ApprovalUrlTemplate", c => c.String() );
+            CreateIndex( "dbo.Note", "ParentNoteId" );
+            CreateIndex( "dbo.Note", "EditedByPersonAliasId" );
+            AddForeignKey( "dbo.Note", "EditedByPersonAliasId", "dbo.PersonAlias", "Id" );
+            AddForeignKey( "dbo.Note", "ParentNoteId", "dbo.Note", "Id" );
 
             // Update all current notes to Approved since approve is a new thing 
             Sql( "UPDATE [Note] SET [ApprovalStatus] = 1 WHERE [ApprovalStatus] != 1" );
@@ -110,7 +110,7 @@ WHERE [Caption] = 'You - Personal Note'
             Sql( $@"
 UPDATE [NoteType]
 SET [ApprovalUrlTemplate] = '{{ ''Global'' | Attribute:''InternalApplicationRoot'' }}PrayerRequestDetail/{{ Note.EntityId }}#{{ Note.NoteAnchorId }}'
-WHERE [Guid] = '{Rock.SystemGuid.NoteType.PRAYER_COMMENT}'");
+WHERE [Guid] = '{Rock.SystemGuid.NoteType.PRAYER_COMMENT}'" );
 
 
             // Delete old NoteTypes block (it has been refactoed into NoteTypeList/NoteTypeDetail)
@@ -383,7 +383,7 @@ WHERE [Guid] = '{Rock.SystemGuid.NoteType.PRAYER_COMMENT}'");
             RockMigrationHelper.DeleteAttribute( "37A23D75-DF97-485B-AD9F-949D2717537C" );
             // Attrib for BlockType: Note Type List:Entity Type
             RockMigrationHelper.DeleteAttribute( "6AF551AE-139A-4F0B-A337-87F10FD818B4" );
-            
+
             // Attrib for BlockType: Note Watch Detail:Note Type
             RockMigrationHelper.DeleteAttribute( "88515FFF-3910-4347-901E-DDFA05F5B4AD" );
             // Attrib for BlockType: Note Watch Detail:Entity Type
@@ -408,7 +408,7 @@ WHERE [Guid] = '{Rock.SystemGuid.NoteType.PRAYER_COMMENT}'");
             RockMigrationHelper.DeleteBlock( "EE043ED9-DCA3-4096-9580-264DA8CA459E" );
             RockMigrationHelper.DeleteBlockType( "BEC5B592-9E9E-4C55-BD0D-2B8065A1802E" ); // Note Type List
             RockMigrationHelper.DeleteBlockType( "5DA1D088-2142-4645-AF9C-EF52DA5B4EEA" ); // Note Type Detail
-            
+
             RockMigrationHelper.DeleteBlockType( "E8718774-3DCA-4AFF-9F4C-FBA50A00BB57" ); // Note Watch List
             RockMigrationHelper.DeleteBlockType( "361F15FC-4C08-4A26-B482-CC260E708F7C" ); // Note Watch Detail
             RockMigrationHelper.DeletePage( "421C838D-F6BA-46C5-8DBF-36CA0CC17B77" ); //  Page: Note Type Detail, Layout: Full Width, Site: Rock RMS

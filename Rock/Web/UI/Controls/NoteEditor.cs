@@ -20,11 +20,10 @@ using System.Text;
 using System.Web.UI;
 using System.Web.UI.HtmlControls;
 using System.Web.UI.WebControls;
-
+using Rock.Cache;
 using Rock.Data;
 using Rock.Model;
 using Rock.Security;
-using Rock.Web.Cache;
 
 namespace Rock.Web.UI.Controls
 {
@@ -457,7 +456,7 @@ namespace Rock.Web.UI.Controls
 
             _aSecurity.ID = "_aSecurity";
             _aSecurity.Attributes["class"] = "btn btn-security btn-xs security pull-right fa fa-lock js-notesecurity";
-            _aSecurity.Attributes["data-entitytype-id"] = EntityTypeCache.Read( typeof( Rock.Model.Note ) ).Id.ToString();
+            _aSecurity.Attributes["data-entitytype-id"] = CacheEntityType.Get( typeof( Rock.Model.Note ) ).Id.ToString();
             Controls.Add( _aSecurity );
 
             _dtCreateDate.ID = this.ID + "_tbCreateDate";
@@ -471,7 +470,7 @@ namespace Rock.Web.UI.Controls
         /// <param name="writer">The <see cref="T:System.Web.UI.HtmlTextWriter" /> object that receives the control content.</param>
         public override void RenderControl( HtmlTextWriter writer )
         {
-            var noteType = NoteTypeId.HasValue ? NoteTypeCache.Read( NoteTypeId.Value ) : null;
+            var noteType = NoteTypeId.HasValue ? CacheNoteType.Get( NoteTypeId.Value ) : null;
             StringBuilder noteCss = new StringBuilder();
             noteCss.Append( "note js-note-editor" );
             if ( !string.IsNullOrEmpty( noteType?.CssClass ) )
@@ -663,7 +662,7 @@ namespace Rock.Web.UI.Controls
                 note.EditedDateTime = RockDateTime.Now;
                 note.NoteUrl = this.RockBlock()?.CurrentPageReference?.BuildUrl();
 
-                var noteType = NoteTypeCache.Read( note.NoteTypeId );
+                var noteType = CacheNoteType.Get( note.NoteTypeId );
 
                 if ( noteType.RequiresApprovals )
                 {

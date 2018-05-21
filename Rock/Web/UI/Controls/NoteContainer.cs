@@ -28,7 +28,7 @@ using Rock.Data;
 using Rock.Lava;
 using Rock.Model;
 using Rock.Security;
-using Rock.Web.Cache;
+using Rock.Cache;
 
 namespace Rock.Web.UI.Controls
 {
@@ -66,16 +66,16 @@ namespace Rock.Web.UI.Controls
         /// The note types.
         /// </value>
         [Obsolete( "Use NoteOptions.NoteTypes instead" )]
-        public List<NoteTypeCache> NoteTypes
+        public List<Rock.Web.Cache.NoteTypeCache> NoteTypes
         {
             get
             {
-                return NoteOptions?.NoteTypes;
+                return NoteOptions?.NoteTypes.Select( a => Rock.Web.Cache.NoteTypeCache.Read( a.Id ) ).ToList();
             }
 
             set
             {
-                NoteOptions.NoteTypes = value;
+                NoteOptions.NoteTypes = value?.Select( a => CacheNoteType.Get( a.Id ) ).ToList();
             }
         }
 

@@ -24,10 +24,9 @@ using System.Data.Entity.Infrastructure;
 using System.Data.Entity.ModelConfiguration;
 using System.Linq;
 using System.Runtime.Serialization;
-
+using Rock.Cache;
 using Rock.Data;
 using Rock.Security;
-using Rock.Web.Cache;
 
 namespace Rock.Model
 {
@@ -304,7 +303,7 @@ namespace Rock.Model
             {
                 using ( var rockContext = new RockContext() )
                 {
-                    var noteTypeEntityTypeId = NoteTypeCache.Read( this.NoteTypeId )?.EntityTypeId;
+                    var noteTypeEntityTypeId = CacheNoteType.Get( this.NoteTypeId )?.EntityTypeId;
                     if ( noteTypeEntityTypeId.HasValue && this.EntityId.HasValue )
                     {
                         var entity = new EntityTypeService( rockContext ).GetEntity( this.NoteType.EntityTypeId, this.EntityId.Value );
@@ -327,7 +326,7 @@ namespace Rock.Model
         {
             get
             {
-                string approvalUrlTemplate = NoteTypeCache.Read( this.NoteTypeId )?.ApprovalUrlTemplate;
+                string approvalUrlTemplate = CacheNoteType.Get( this.NoteTypeId )?.ApprovalUrlTemplate;
                 if ( string.IsNullOrWhiteSpace( approvalUrlTemplate ) )
                 {
                     approvalUrlTemplate = "{{ 'Global' | Attribute:'InternalApplicationRoot' }}{{ Note.NoteUrl }}#{{ Note.NoteAnchorId }}";
@@ -351,7 +350,7 @@ namespace Rock.Model
         {
             get
             {
-                var noteType = NoteTypeCache.Read( this.NoteTypeId );
+                var noteType = CacheNoteType.Get( this.NoteTypeId );
                 return noteType ?? base.ParentAuthority;
             }
         }
@@ -422,7 +421,7 @@ namespace Rock.Model
                 {
                     return true;
                 }
-                else if ( NoteTypeCache.Read( this.NoteTypeId )?.RequiresApprovals == false )
+                else if ( CacheNoteType.Get( this.NoteTypeId )?.RequiresApprovals == false )
                 {
                     return true;
                 }
@@ -478,7 +477,7 @@ namespace Rock.Model
         {
             if ( state == EntityState.Added )
             {
-                var noteType = NoteTypeCache.Read( this.NoteTypeId );
+                var noteType = CacheNoteType.Get( this.NoteTypeId );
                 if ( noteType?.AutoWatchAuthors == true )
                 {
                     // if this is a new note, and AutoWatchAuthors, then add a NoteWatch so the author will get notified when there are any replies

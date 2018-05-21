@@ -16,9 +16,8 @@
 //
 using System.Collections.Generic;
 using System.Linq;
-
+using Rock.Cache;
 using Rock.Model;
-using Rock.Web.Cache;
 
 namespace Rock.Web.UI.Controls
 {
@@ -50,11 +49,11 @@ namespace Rock.Web.UI.Controls
         /// <value>
         /// The note types.
         /// </value>
-        public List<NoteTypeCache> NoteTypes
+        public List<CacheNoteType> NoteTypes
         {
             get
             {
-                return _noteTypeIds.Select( a => NoteTypeCache.Read( a ) ).ToList();
+                return _noteTypeIds.Select( a => CacheNoteType.Get( a ) ).ToList();
             }
 
             set
@@ -68,7 +67,7 @@ namespace Rock.Web.UI.Controls
         /// </summary>
         /// <param name="currentPerson">The current person.</param>
         /// <returns></returns>
-        public List<NoteTypeCache> GetViewableNoteTypes( Person currentPerson )
+        public List<CacheNoteType> GetViewableNoteTypes( Person currentPerson )
         {
             return this.NoteTypes?.Where( a => a.IsAuthorized( Security.Authorization.VIEW, currentPerson ) ).ToList();
         }
@@ -78,7 +77,7 @@ namespace Rock.Web.UI.Controls
         /// </summary>
         /// <param name="currentPerson">The current person.</param>
         /// <returns></returns>
-        public List<NoteTypeCache> GetEditableNoteTypes( Person currentPerson )
+        public List<CacheNoteType> GetEditableNoteTypes( Person currentPerson )
         {
             return this.NoteTypes?.Where( a => a.UserSelectable && a.IsAuthorized( Security.Authorization.EDIT, currentPerson ) ).ToList();
         }

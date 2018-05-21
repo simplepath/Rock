@@ -21,10 +21,10 @@ using System.Linq;
 using System.Web.UI;
 
 using Rock;
+using Rock.Cache;
 using Rock.Constants;
 using Rock.Data;
 using Rock.Model;
-using Rock.Web.Cache;
 using Rock.Web.UI;
 
 namespace RockWeb.Blocks.Core
@@ -161,8 +161,8 @@ namespace RockWeb.Blocks.Core
             {
                 rockContext.SaveChanges();
 
-                NoteTypeCache.Flush( noteType.Id );
-                NoteTypeCache.FlushEntityNoteTypes();
+                CacheNoteType.Remove( noteType.Id );
+                CacheNoteType.RemoveEntityNoteTypes();
             }
 
             NavigateToParentPage();
@@ -182,14 +182,14 @@ namespace RockWeb.Blocks.Core
             bool showEntityTypePicker = true;
 
             var rockContext = new RockContext();
-            EntityTypeCache entityType = null;
+            CacheEntityType entityType = null;
 
             if ( noteTypeId > 0 )
             {
                 noteType = new NoteTypeService( rockContext ).Get( noteTypeId );
                 lActionTitle.Text = ActionTitle.Edit( NoteType.FriendlyTypeName ).FormatAsHtmlTitle();
                 pdAuditDetails.SetEntity( noteType, ResolveRockUrl( "~" ) );
-                entityType = EntityTypeCache.Read( noteType.EntityTypeId );
+                entityType = CacheEntityType.Get( noteType.EntityTypeId );
             }
 
             if ( noteType == null )
@@ -202,7 +202,7 @@ namespace RockWeb.Blocks.Core
                 if ( entityTypeId.HasValue )
                 {
                     noteType.EntityTypeId = entityTypeId.Value;
-                    entityType = EntityTypeCache.Read( entityTypeId.Value );
+                    entityType = CacheEntityType.Get( entityTypeId.Value );
                     showEntityTypePicker = false;
                     lActionTitle.Text = ActionTitle.Add( entityType.FriendlyName + " " + NoteType.FriendlyTypeName ).FormatAsHtmlTitle();
                 }

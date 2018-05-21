@@ -24,10 +24,10 @@ using System.Web.UI.WebControls;
 
 using Rock;
 using Rock.Attribute;
+using Rock.Cache;
 using Rock.Data;
 using Rock.Model;
 using Rock.Security;
-using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
 
@@ -46,7 +46,7 @@ namespace RockWeb.Blocks.Core
     {
         #region fields
 
-        private EntityTypeCache _blockConfigEntityType = null;
+        private CacheEntityType _blockConfigEntityType = null;
 
         #endregion fields
 
@@ -71,7 +71,7 @@ namespace RockWeb.Blocks.Core
 
             foreach ( var securityField in gNoteTypes.Columns.OfType<SecurityField>() )
             {
-                securityField.EntityTypeId = EntityTypeCache.Read( typeof( NoteType ) ).Id;
+                securityField.EntityTypeId = CacheEntityType.Get( typeof( NoteType ) ).Id;
             }
 
             this.BlockUpdated += NoteTypeList_BlockUpdated;
@@ -97,7 +97,7 @@ namespace RockWeb.Blocks.Core
             Guid? entityTypeGuid = this.GetAttributeValue( "EntityType" ).AsGuidOrNull();
             if ( entityTypeGuid.HasValue )
             {
-                _blockConfigEntityType = EntityTypeCache.Read( entityTypeGuid.Value );
+                _blockConfigEntityType = CacheEntityType.Get( entityTypeGuid.Value );
             }
 
             gfNoteTypes.Visible = _blockConfigEntityType == null;
@@ -148,7 +148,7 @@ namespace RockWeb.Blocks.Core
                     int? entityTypeId = e.Value.AsIntegerOrNull();
                     if ( entityTypeId.HasValue )
                     {
-                        var entityType = EntityTypeCache.Read( entityTypeId.Value );
+                        var entityType = CacheEntityType.Get( entityTypeId.Value );
                         if ( entityType != null )
                         {
                             e.Value = entityType.FriendlyName;
@@ -180,8 +180,8 @@ namespace RockWeb.Blocks.Core
                         service.Delete( noteType );
                         rockContext.SaveChanges();
 
-                        NoteTypeCache.Flush( noteTypeId );
-                        NoteTypeCache.FlushEntityNoteTypes();
+                        CacheNoteType.Remove( noteTypeId );
+                        CacheNoteType.RemoveEntityNoteTypes();
                     }
                     else
                     {
@@ -251,7 +251,7 @@ namespace RockWeb.Blocks.Core
                 new NoteTypeService( rockContext ).Reorder( noteTypes, e.OldIndex, e.NewIndex );
                 rockContext.SaveChanges();
 
-                noteTypes.ForEach( t => NoteTypeCache.Flush( t.Id ) );
+                noteTypes.ForEach( t => CacheNoteType.Remove( t.Id ) );
             }
 
             BindGrid();

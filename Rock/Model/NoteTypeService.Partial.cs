@@ -16,7 +16,7 @@
 //
 using System.Collections.Generic;
 using System.Linq;
-
+using Rock.Cache;
 using Rock.Data;
 using Rock.Web.Cache;
 
@@ -93,8 +93,8 @@ namespace Rock.Model
             var rockContext = this.Context as RockContext;
             var groupMemberService = new GroupMemberService( rockContext );
 
-            var noteType = NoteTypeCache.Read( noteTypeId );
-            int? noteTypeEntityTypeId = EntityTypeCache.GetId<NoteType>();
+            var noteType = CacheNoteType.Get( noteTypeId );
+            int? noteTypeEntityTypeId = CacheEntityType.GetId<NoteType>();
             if ( !noteTypeEntityTypeId.HasValue || noteType == null )
             {
                 // shouldn't happen
