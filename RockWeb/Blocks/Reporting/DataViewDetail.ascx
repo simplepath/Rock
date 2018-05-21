@@ -16,7 +16,7 @@
                 </div>
                 <div class="panel-body">
 
-                    <asp:ValidationSummary ID="vsDetails" runat="server" HeaderText="Please Correct the Following" CssClass="alert alert-danger" />
+                    <asp:ValidationSummary ID="vsDetails" runat="server" HeaderText="Please Correct the Following" CssClass="alert alert-validation" />
 
                     <fieldset>
 
@@ -62,9 +62,9 @@
 
                         <fieldset>
 
-                            <p class="description">
+                            <div class="description">
                                 <asp:Literal ID="lDescription" runat="server"></asp:Literal>
-                            </p>
+                            </div>
 
                             <div class="row">
                                 <div class="col-md-6">

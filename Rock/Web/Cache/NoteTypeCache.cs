@@ -16,10 +16,9 @@
 //
 using System;
 using System.Collections.Generic;
-using System.Data.Entity;
-using System.Linq;
 using System.Runtime.Serialization;
 
+using Rock.Cache;
 using Rock.Data;
 using Rock.Model;
 
@@ -29,20 +28,19 @@ namespace Rock.Web.Cache
     /// Information about a NoteType that is cached by Rock. 
     /// </summary>
     [Serializable]
+    [Obsolete( "Use Rock.Cache.NoteTypeCache instead" )]
     public class NoteTypeCache : CachedModel<NoteType>
     {
         #region constructors
 
-        private NoteTypeCache( Rock.Model.NoteType model )
+        private NoteTypeCache( CacheNoteType cacheNoteType )
         {
-            CopyFromModel( model );
+            CopyFromNewCache( cacheNoteType );
         }
 
         #endregion
 
         #region Properties
-
-        private object _obj = new object();
 
         /// <summary>
         /// Gets or sets a value indicating whether this instance is system.
@@ -125,144 +123,52 @@ namespace Rock.Web.Cache
         [DataMember]
         public int Order { get; set; }
 
-        /// <summary>
-        /// Gets or sets a value indicating whether [requires approvals].
-        /// </summary>
-        /// <value>
-        ///   <c>true</c> if [requires approvals]; otherwise, <c>false</c>.
-        /// </value>
-        [DataMember]
-        public bool RequiresApprovals { get; set; }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether [allows watching].
-        /// </summary>
-        /// <value>
-        ///   <c>true</c> if [allows watching]; otherwise, <c>false</c>.
-        /// </value>
-        [DataMember]
-        public bool AllowsWatching { get; set; }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether [allows replies].
-        /// </summary>
-        /// <value>
-        ///   <c>true</c> if [allows replies]; otherwise, <c>false</c>.
-        /// </value>
-        [DataMember]
-        public bool AllowsReplies { get; set; }
-
-        /// <summary>
-        /// Gets or sets the maximum reply depth.
-        /// </summary>
-        /// <value>
-        /// The maximum reply depth.
-        /// </value>
-        [DataMember]
-        public int? MaxReplyDepth { get; set; }
-
-        /// <summary>
-        /// Gets or sets the background color of each note
-        /// </summary>
-        /// <value>
-        /// The color of the background.
-        /// </value>
-        [DataMember]
-        public string BackgroundColor { get; set; }
-
-        /// <summary>
-        /// Gets or sets the font color of the note text
-        /// </summary>
-        /// <value>
-        /// The color of the font.
-        /// </value>
-        [DataMember]
-        public string FontColor { get; set; }
-
-        /// <summary>
-        /// Gets or sets the border color of each note
-        /// </summary>
-        /// <value>
-        /// The color of the border.
-        /// </value>
-        [DataMember]
-        public string BorderColor { get; set; }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether [send approval notifications].
-        /// </summary>
-        /// <value>
-        ///   <c>true</c> if [send approval notifications]; otherwise, <c>false</c>.
-        /// </value>
-        [DataMember]
-        public bool SendApprovalNotifications { get; set; }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether [automatic watch authors].
-        /// </summary>
-        /// <value>
-        ///   <c>true</c> if [automatic watch authors]; otherwise, <c>false</c>.
-        /// </value>
-        [DataMember]
-        public bool AutoWatchAuthors { get; set; }
-
-        /// <summary>
-        /// Gets or sets the approval URL template.
-        /// </summary>
-        /// <value>
-        /// The approval URL template.
-        /// </value>
-        [DataMember]
-        public string ApprovalUrlTemplate { get; set; }
-
         #endregion
 
         #region Methods
 
         /// <summary>
-        /// A dictionary of actions that this class supports and the description of each.
-        /// </summary>
-        public override Dictionary<string, string> SupportedActions
-        {
-            get
-            {
-                var supportedActions = base.SupportedActions;
-                supportedActions.AddOrReplace( Rock.Security.Authorization.APPROVE, "The roles and/or users that have access to approve notes." );
-                return supportedActions;
-            }
-        }
-
-        /// <summary>
         /// Copies from model.
         /// </summary>
         /// <param name="model">The model.</param>
-        public override void CopyFromModel( Data.IEntity model )
+        public override void CopyFromModel( IEntity model )
         {
             base.CopyFromModel( model );
 
-            if ( model is NoteType )
-            {
-                var NoteType = (NoteType)model;
-                this.IsSystem = NoteType.IsSystem;
-                this.EntityTypeId = NoteType.EntityTypeId;
-                this.EntityTypeQualifierColumn = NoteType.EntityTypeQualifierColumn;
-                this.EntityTypeQualifierValue = NoteType.EntityTypeQualifierValue;
-                this.Name = NoteType.Name;
-                this.UserSelectable = NoteType.UserSelectable;
-                this.CssClass = NoteType.CssClass;
-                this.IconCssClass = NoteType.IconCssClass;
-                this.Order = NoteType.Order;
-                this.RequiresApprovals = NoteType.RequiresApprovals;
-                this.AllowsWatching = NoteType.AllowsWatching;
-                this.AllowsReplies = NoteType.AllowsReplies;
-                this.MaxReplyDepth = NoteType.MaxReplyDepth;
-                this.BackgroundColor = NoteType.BackgroundColor;
-                this.FontColor = NoteType.FontColor;
-                this.BorderColor = NoteType.BorderColor;
-                this.SendApprovalNotifications = NoteType.SendApprovalNotifications;
-                this.AutoWatchAuthors = NoteType.AutoWatchAuthors;
-                this.ApprovalUrlTemplate = NoteType.ApprovalUrlTemplate;
-            }
+            if ( !( model is NoteType ) ) return;
+
+            var NoteType = (NoteType)model;
+            IsSystem = NoteType.IsSystem;
+            EntityTypeId = NoteType.EntityTypeId;
+            EntityTypeQualifierColumn = NoteType.EntityTypeQualifierColumn;
+            EntityTypeQualifierValue = NoteType.EntityTypeQualifierValue;
+            Name = NoteType.Name;
+            UserSelectable = NoteType.UserSelectable;
+            CssClass = NoteType.CssClass;
+            IconCssClass = NoteType.IconCssClass;
+            Order = NoteType.Order;
+        }
+
+        /// <summary>
+        /// Copies properties from a new cached entity
+        /// </summary>
+        /// <param name="cacheEntity">The cache entity.</param>
+        protected sealed override void CopyFromNewCache( IEntityCache cacheEntity )
+        {
+            base.CopyFromNewCache( cacheEntity );
+
+            if ( !( cacheEntity is CacheNoteType ) ) return;
+
+            var NoteType = (CacheNoteType)cacheEntity;
+            IsSystem = NoteType.IsSystem;
+            EntityTypeId = NoteType.EntityTypeId;
+            EntityTypeQualifierColumn = NoteType.EntityTypeQualifierColumn;
+            EntityTypeQualifierValue = NoteType.EntityTypeQualifierValue;
+            Name = NoteType.Name;
+            UserSelectable = NoteType.UserSelectable;
+            CssClass = NoteType.CssClass;
+            IconCssClass = NoteType.IconCssClass;
+            Order = NoteType.Order;
         }
 
         /// <summary>
@@ -273,17 +179,12 @@ namespace Rock.Web.Cache
         /// </returns>
         public override string ToString()
         {
-            return this.Name;
+            return Name;
         }
 
         #endregion
 
         #region Static Methods
-
-        private static string CacheKey( int id )
-        {
-            return string.Format( "Rock:NoteType:{0}", id );
-        }
 
         /// <summary>
         /// Returns NoteType object from cache.  If NoteType does not already exist in cache, it
@@ -294,33 +195,7 @@ namespace Rock.Web.Cache
         /// <returns></returns>
         public static NoteTypeCache Read( int id, RockContext rockContext = null )
         {
-            return GetOrAddExisting( NoteTypeCache.CacheKey( id ),
-                () => LoadById( id, rockContext ) );
-        }
-
-        private static NoteTypeCache LoadById( int id, RockContext rockContext )
-        {
-            if ( rockContext != null )
-            {
-                return LoadById2( id, rockContext );
-            }
-
-            using ( var rockContext2 = new RockContext() )
-            {
-                return LoadById2( id, rockContext2 );
-            }
-        }
-
-        private static NoteTypeCache LoadById2( int id, RockContext rockContext )
-        {
-            var NoteTypeService = new Rock.Model.NoteTypeService( rockContext );
-            var NoteTypeModel = NoteTypeService.Get( id );
-            if ( NoteTypeModel != null )
-            {
-                return new NoteTypeCache( NoteTypeModel );
-            }
-
-            return null;
+            return new NoteTypeCache( CacheNoteType.Get( id, rockContext ) );
         }
 
         /// <summary>
@@ -331,33 +206,7 @@ namespace Rock.Web.Cache
         /// <returns></returns>
         public static NoteTypeCache Read( Guid guid, RockContext rockContext = null )
         {
-            int id = GetOrAddExisting( guid.ToString(),
-                () => LoadByGuid( guid, rockContext ) );
-
-            return Read( id, rockContext );
-        }
-
-        private static int LoadByGuid( Guid guid, RockContext rockContext )
-        {
-            if ( rockContext != null )
-            {
-                return LoadByGuid2( guid, rockContext );
-            }
-
-            using ( var rockContext2 = new RockContext() )
-            {
-                return LoadByGuid2( guid, rockContext2 );
-            }
-        }
-
-        private static int LoadByGuid2( Guid guid, RockContext rockContext )
-        {
-            var NoteTypeService = new NoteTypeService( rockContext );
-            return NoteTypeService
-                .Queryable().AsNoTracking()
-                .Where( c => c.Guid.Equals( guid ) )
-                .Select( c => c.Id )
-                .FirstOrDefault();
+            return new NoteTypeCache( CacheNoteType.Get( guid, rockContext ) );
         }
 
         /// <summary>
@@ -365,19 +214,9 @@ namespace Rock.Web.Cache
         /// </summary>
         /// <param name="NoteTypeModel">The NoteTypeModel to cache</param>
         /// <returns></returns>
-        public static NoteTypeCache Read( Rock.Model.NoteType NoteTypeModel )
+        public static NoteTypeCache Read( NoteType NoteTypeModel )
         {
-            return GetOrAddExisting( NoteTypeCache.CacheKey( NoteTypeModel.Id ),
-                () => LoadByModel( NoteTypeModel ) );
-        }
-
-        private static NoteTypeCache LoadByModel( Rock.Model.NoteType NoteTypeModel )
-        {
-            if ( NoteTypeModel != null )
-            {
-                return new NoteTypeCache( NoteTypeModel );
-            }
-            return null;
+            return new NoteTypeCache( CacheNoteType.Get( NoteTypeModel ) );
         }
 
         /// <summary>
@@ -386,25 +225,12 @@ namespace Rock.Web.Cache
         /// <param name="id">The id of the NoteType to remove from cache</param>
         public static void Flush( int id )
         {
-            FlushCache( NoteTypeCache.CacheKey( id ) );
+            CacheNoteType.Remove( id );
         }
 
         #endregion
 
         #region Entity Note Types Cache
-
-        /// <summary>
-        /// The _lock
-        /// </summary>
-        private static object _lock = new object();
-
-        /// <summary>
-        /// Gets or sets all entity note types.
-        /// </summary>
-        /// <value>
-        /// All entity noteTypes.
-        /// </value>
-        private static List<EntityNoteTypes> AllEntityNoteTypes { get; set; }
 
         /// <summary>
         /// Gets the by entity.
@@ -416,60 +242,17 @@ namespace Rock.Web.Cache
         /// <returns></returns>
         public static List<NoteTypeCache> GetByEntity( int? entityTypeid, string entityTypeQualifierColumn, string entityTypeQualifierValue, bool includeNonSelectable = false )
         {
-            LoadEntityNoteTypes();
+            var entityNoteTypes = new List<NoteTypeCache>();
 
-            var matchingNoteTypeIds = AllEntityNoteTypes
-                .Where( a => a.EntityTypeId.Equals( entityTypeid ) )
-                .ToList()
-                .Where( a => 
-                    ( a.EntityTypeQualifierColumn ?? string.Empty ) == ( entityTypeQualifierColumn ?? string.Empty ) &&
-                    ( a.EntityTypeQualifierValue ?? string.Empty ) == ( entityTypeQualifierValue ?? string.Empty ) )
-                .SelectMany( a => a.NoteTypeIds )
-                .ToList();
+            var cacheEntityNoteTypes = CacheNoteType.GetByEntity( entityTypeid, entityTypeQualifierColumn, entityTypeQualifierValue );
+            if ( cacheEntityNoteTypes == null ) return entityNoteTypes;
 
-            var noteTypes = new List<NoteTypeCache>();
-            foreach ( int noteTypeId in matchingNoteTypeIds )
+            foreach ( var cacheEntityNoteType in cacheEntityNoteTypes )
             {
-                var noteType = NoteTypeCache.Read( noteTypeId );
-                if ( noteType != null && ( includeNonSelectable || noteType.UserSelectable ) )
-                {
-                    noteTypes.Add( noteType );
-                }
+                entityNoteTypes.Add( new NoteTypeCache( cacheEntityNoteType ) );
             }
 
-            return noteTypes;
-        }
-
-        /// <summary>
-        /// Loads the entity noteTypes.
-        /// </summary>
-        private static void LoadEntityNoteTypes()
-        {
-            lock ( _lock )
-            {
-                if ( AllEntityNoteTypes == null )
-                {
-                    using ( var rockContext = new RockContext() )
-                    {
-                        AllEntityNoteTypes = new NoteTypeService( rockContext )
-                            .Queryable().AsNoTracking()
-                            .GroupBy( a => new
-                            {
-                                a.EntityTypeId,
-                                a.EntityTypeQualifierColumn,
-                                a.EntityTypeQualifierValue
-                            } )
-                            .Select( a => new EntityNoteTypes()
-                            {
-                                EntityTypeId = a.Key.EntityTypeId,
-                                EntityTypeQualifierColumn = a.Key.EntityTypeQualifierColumn,
-                                EntityTypeQualifierValue = a.Key.EntityTypeQualifierValue,
-                                NoteTypeIds = a.Select( v => v.Id ).ToList()
-                            } )
-                            .ToList();
-                    }
-                }
-            }
+            return entityNoteTypes;
         }
 
         /// <summary>
@@ -477,10 +260,7 @@ namespace Rock.Web.Cache
         /// </summary>
         public static void FlushEntityNoteTypes()
         {
-            lock ( _lock )
-            {
-                AllEntityNoteTypes = null;
-            }
+            CacheNoteType.RemoveEntityNoteTypes();
         }
 
         #endregion
@@ -492,6 +272,7 @@ namespace Rock.Web.Cache
     /// 
     /// </summary>
     [Serializable]
+    [Obsolete( "Use Rock.Cache.EntityNoteTypes instead" )]
     internal class EntityNoteTypes
     {
         /// <summary>

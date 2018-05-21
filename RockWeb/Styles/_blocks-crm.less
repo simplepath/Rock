@@ -1,4 +1,4 @@
-﻿/*
+/*
     Used to manage styles related to the person details page
 
     1. Page Styles
@@ -116,7 +116,7 @@
     position: relative;
     display: table;
     max-width: 200px;
-    padding: 5px 5px 5px 5px;
+    padding: 5px;
     margin: 0 auto;
     background-color: @persondetails-bio-photo-border;
 
@@ -135,12 +135,16 @@
 
       i {
         position: absolute;
-        top: -60px;
-        left: 10px;
+        top: -61px;
+        left: 8px;
         font-size: 24px;
         color: #fff;
         opacity: 0;
         transition: 1s;
+      }
+
+      &:hover i {
+        opacity: .5;
       }
 
       &.following {
@@ -260,10 +264,10 @@
 
 .originate-call {
   &:before {
-    content: @fa-var-phone-square;
+    margin-right: 6px;
     font-family: @fa-font-face;
     font-weight: @fa-theme-weight;
-    margin-right: 6px;
+    content: @fa-var-phone-square;
   }
 }
 
@@ -307,13 +311,13 @@
 
   &:before {
     font-family: @fa-font-face;
-    font-weight: @fa-theme-weight;
     font-size: 45px;
+    font-weight: @fa-theme-weight;
     color: @brand-success;
     content: @fa-var-circle;
   }
 
-  &.era-loss:before {
+  &.era-loss::before {
     color: #ee7624;
   }
 
@@ -449,21 +453,21 @@
   .duration-metric {
     &:before {
       font-family: @fa-font-face;
-      font-weight: @fa-theme-weight;
       font-size: 45px;
+      font-weight: @fa-theme-weight;
       color: #e5d24d;
       content: @fa-var-circle;
     }
 
-    &.duration-months:before {
+    &.duration-months::before {
       color: #69ad5e;
     }
 
-    &.duration-years:before {
+    &.duration-years::before {
       color: #56789e;
     }
 
-    &.duration-new:before {
+    &.duration-new::before {
       color: #d25555;
     }
 
@@ -500,8 +504,8 @@
 
     &:before {
       font-family: @fa-font-face;
-      font-weight: @fa-theme-weight;
       font-size: 45px;
+      font-weight: @fa-theme-weight;
       color: @brand-warning;
       content: @fa-var-square;
     }
@@ -525,6 +529,14 @@
       font-size: 11px;
       font-weight: @font-weight-semibold;
     }
+  }
+}
+
+.badge-content {
+  &.fa-layers {
+    width: 50px;
+    height: 43px;
+    font-size: 4em;
   }
 }
 
@@ -580,13 +592,13 @@
     span.signal {
       position: absolute;
       top: 10px;
-      left: 0px;
+      left: 0;
       width: 100%;
       padding-left: 17%;
       font-size: 16px;
       font-weight: 700;
-      text-align: center;
       color: @persondetails-badge-bg;
+      text-align: center;
     }
   }
 }
@@ -625,12 +637,12 @@
     color: #4f89bd;
 
     i {
-      font-size: 47px;
+      font-size: 40px;
     }
 
     span.deviceCount {
       position: absolute;
-      top: 17px;
+      top: 10px;
       right: 50%;
       width: 36px;
       margin-right: -18px;
@@ -712,17 +724,28 @@
       .person-image {
         border-color: @persondetails-familybar-photo-bg;
         border-radius: 50%;
+        overflow: hidden;
+        background-color: #fafafa;
+        border: none;
+        position:relative;
+
+        &::after {
+          border: 1px solid rgba(0,0,0,.0975);
+          border-radius: 50%;
+          bottom: 0;
+          content: "";
+          left: 0;
+          pointer-events: none;
+          position: absolute;
+          right: 0;
+          top: 0;
+        }
       }
 
       &:hover {
         background-color: darken(@persondetails-familybar-bg, 8%);
         border-radius: @border-radius-base;
 
-        .person-image {
-          filter: grayscale(0%);
-          filter: url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\'><filter id=\'grayscale\'><feColorMatrix type=\'matrix\' values=\'1 0 0 0 0, 0 1 0 0 0, 0 0 1 0 0, 0 0 0 1 0\'/></filter></svg>#grayscale");
-          -webkit-filter: grayscale(0%);
-        }
       }
     }
   }
@@ -767,6 +790,7 @@
 .persondetails-group:first-child {
   header {
     margin: -15px -15px 0 -15px;
+    border-top-width: 0;
   }
 }
 
@@ -809,12 +833,13 @@ span.field-name {
   border-radius: 4px;
 }
 
+/* white-space was nowrap but changed to inherit; see discussion at https://github.com/SparkDevNetwork/Rock/commit/e4230496c8a1dc199f1bbb26f95dfa025d64dd02#r28278277 */
 span.field-value {
   padding: 2px 4px;
   font-family: Monaco,Menlo,Consolas,"Courier New",monospace;
   font-size: 90%;
   color: @pagetitle-text-color;
-  white-space: nowrap;
+  white-space: inherit;
   background-color: @pagetitle-bg;
   border-radius: 4px;
 }
@@ -858,14 +883,16 @@ span.field-value {
     > tbody > tr > td {
       position: relative;
       padding-left: 35%;
+
       /* Behave  like a "row" */
       border: 0;
       border-bottom: 1px solid @gray-lighter;
     }
 
-    td:before {
+    td::before {
       /* Now like a table header */
       position: absolute;
+
       /* Top/left values mimic padding */
       top: 8px;
       left: 6px;
@@ -883,6 +910,7 @@ span.field-value {
         display: block;
         width: 100%;
         padding: 6px;
+
         /* Top/left values mimic padding */
         font-size: @grid-column-header-font-size;
         font-weight: @grid-column-header-font-weight;
@@ -892,6 +920,7 @@ span.field-value {
         border-bottom: 2px solid @grid-column-header-border-color;
       }
     }
+
     /* Label the data */
     tbody {
       td:nth-of-type(1):before {
@@ -1061,11 +1090,11 @@ span.field-value {
 // -------------------------
 
 .person-bio {
-  div.deceased h1.title.name:after {
+  div.deceased h1.title.name::after {
     margin-left: 12px;
     font-size: 14px;
     color: @brand-danger;
-    content: 'Deceased';
+    content: "Deceased";
   }
 }
 
@@ -1075,10 +1104,10 @@ span.field-value {
       background-color: darken(@gray-light, 10%);
     }
 
-    .person-info:after {
+    .person-info::after {
       font-size: 10px;
       color: @brand-danger;
-      content: 'Deceased';
+      content: "Deceased";
     }
   }
 }
@@ -1207,7 +1236,7 @@ tr.inactive {
       width: 100%;
       height: 70%;
       background-color: transparent;
-      border-top: 2px solid red;
+      border-top: 2px solid @brand-danger;
       border-radius: 0;
     }
   }

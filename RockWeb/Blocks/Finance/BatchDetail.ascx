@@ -25,7 +25,7 @@
                 <Rock:NotificationBox ID="nbWarningMessage" runat="server" NotificationBoxType="Warning" />
 
                 <div id="pnlEditDetails" runat="server">
-                    <asp:ValidationSummary ID="valSummaryBatch" runat="server" HeaderText="Please Correct the Following" CssClass="alert alert-danger" />
+                    <asp:ValidationSummary ID="valSummaryBatch" runat="server" HeaderText="Please Correct the Following" CssClass="alert alert-validation" />
                     <asp:CustomValidator ID="cvBatch" runat="server" />
 
                     <div class="row">
@@ -71,7 +71,7 @@
                                 <Rock:Grid ID="gAccounts" runat="server" AllowPaging="false" DisplayType="Light" RowItemText="Account" AllowSorting="false">
                                     <Columns>
                                         <Rock:RockBoundField DataField="Name" HeaderText="Account Totals" />
-                                        <Rock:CurrencyField DataField="Amount" ItemStyle-HorizontalAlign="Right" />
+                                        <Rock:CurrencyField DataField="Amount" HeaderStyle-HorizontalAlign="Right" ItemStyle-HorizontalAlign="Right" />
                                     </Columns>
                                 </Rock:Grid>
                             </div>
@@ -79,7 +79,7 @@
                                 <Rock:Grid ID="gCurrencyTypes" runat="server" AllowPaging="false" DisplayType="Light" RowItemText="CurrencyType" AllowSorting="false">
                                     <Columns>
                                         <Rock:RockBoundField DataField="Name" HeaderText="Currency Totals" />
-                                        <Rock:CurrencyField DataField="Amount" ItemStyle-HorizontalAlign="Right" />
+                                        <Rock:CurrencyField DataField="Amount" HeaderStyle-HorizontalAlign="Right" ItemStyle-HorizontalAlign="Right" />
                                     </Columns>
                                 </Rock:Grid>
                             </div>

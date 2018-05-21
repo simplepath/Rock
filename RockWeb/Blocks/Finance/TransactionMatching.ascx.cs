@@ -29,7 +29,7 @@ using Rock.Model;
 using Rock.Security;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
-using Rock.Web.Cache;
+using Rock.Cache;
 
 namespace RockWeb.Blocks.Finance
 {
@@ -44,6 +44,7 @@ namespace RockWeb.Blocks.Finance
     [LinkedPage( "Add Family Link", "Select the page where a new family can be added. If specified, a link will be shown which will open in a new window when clicked", false, "6a11a13d-05ab-4982-a4c2-67a8b1950c74,af36e4c2-78c6-4737-a983-e7a78137ddc7", "", 2 )]
     [LinkedPage( "Add Business Link", "Select the page where a new business can be added. If specified, a link will be shown which will open in a new window when clicked", false, "", "", 3 )]
     [LinkedPage( "Batch Detail Page", "Select the page for displaying batch details", false, "", "", 3)]
+    [LinkedPage( "Transaction Detail Page", "Select the page to return to, if this block was being used to edit a single transaction.", false, "", "", 4 )]
     public partial class TransactionMatching : RockBlock, IDetailBlock
     {
         #region Properties
@@ -121,7 +122,7 @@ namespace RockWeb.Blocks.Finance
         console.log(evt.type);
         console.log(params);
         $('#{0}').attr('disabled', 'disabled');
-        __doPostBack('{1}', '');
+        window.location = ""javascript: __doPostBack('{1}', '')"";
     }});
 ", btnNext.ClientID, ddlAddAccount.ClientID );
 
@@ -273,7 +274,7 @@ namespace RockWeb.Blocks.Finance
 
             UpdateVisibleAccountBoxes();
 
-            rcwEnvelope.Visible = GlobalAttributesCache.Read().EnableGivingEnvelopeNumber;
+            rcwEnvelope.Visible = CacheGlobalAttributes.Get().EnableGivingEnvelopeNumber;
         }
 
         /// <summary>
@@ -301,6 +302,15 @@ namespace RockWeb.Blocks.Finance
 
             hfBatchId.Value = batchId.ToString();
             hfTransactionId.Value = string.Empty;
+
+            int? specificTransactionId = PageParameter( "TransactionId" ).AsIntegerOrNull();
+            if ( specificTransactionId.HasValue )
+            {
+                hfBackNextHistory.Value = specificTransactionId.Value.ToString();
+                btnPrevious.Visible = false;
+                btnCancel.Visible = true;
+                btnNext.Text = "Save";
+            }
 
             NavigateToTransaction( Direction.Next );
         }
@@ -484,7 +494,7 @@ namespace RockWeb.Blocks.Finance
 
                     // stored the value in cents to avoid javascript floating point math issues
                     hfOriginalTotalAmount.Value = (transactionToMatch.TotalAmount*100).ToString();
-                    hfCurrencySymbol.Value = GlobalAttributesCache.Value( "CurrencySymbol" );
+                    hfCurrencySymbol.Value = CacheGlobalAttributes.Value( "CurrencySymbol" );
 
                     // get the first 2 images (should be no more than 2, but just in case)
                     var transactionImages = transactionToMatch.Images.OrderBy( a => a.Order ).Take( 2 ).ToList();
@@ -788,7 +798,7 @@ namespace RockWeb.Blocks.Finance
 
             cbOnlyShowSelectedAccounts.Checked = this.GetUserPreference( keyPrefix + "only-show-selected-accounts" ).AsBoolean();
 
-            cpAccounts.Campuses = Rock.Web.Cache.CampusCache.All();
+            cpAccounts.Campuses = Rock.Cache.CacheCampus.All();
             cpAccounts.SelectedCampusId = ( this.GetUserPreference( keyPrefix + "account-campus" ) ?? string.Empty ).AsIntegerOrNull();
 
             mdAccountsPersonalFilter.Show();
@@ -835,7 +845,7 @@ namespace RockWeb.Blocks.Finance
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void btnNext_Click( object sender, EventArgs e )
         {
-            var changes = new List<string>();
+            var changes = new History.HistoryChangeList();
 
             var rockContext = new RockContext();
             var financialTransactionService = new FinancialTransactionService( rockContext );
@@ -870,7 +880,7 @@ namespace RockWeb.Blocks.Finance
                     financialTransactionDetailService.Delete( detail );
                 }
 
-                changes.Add( "Unmatched transaction" );
+                changes.AddChange( History.HistoryVerb.Unmatched, History.HistoryChangeType.Record,  "Transaction" );
 
                 HistoryService.SaveChanges(
                     rockContext,
@@ -974,7 +984,7 @@ namespace RockWeb.Blocks.Finance
                 financialTransaction.FinancialPaymentDetail.LoadAttributes(rockContext);
                 Helper.GetEditValues(phPaymentAttributeEdits, financialTransaction.FinancialPaymentDetail);
 
-                changes.Add( "Matched transaction" );
+                changes.AddChange( History.HistoryVerb.Matched, History.HistoryChangeType.Record, "Transaction" );
 
                 HistoryService.SaveChanges(
                     rockContext,
@@ -996,7 +1006,41 @@ namespace RockWeb.Blocks.Finance
                 MarkTransactionAsNotProcessedByCurrentUser( hfTransactionId.Value.AsInteger() );
             }
 
-            NavigateToTransaction( Direction.Next );
+            int? specificTransactionId = PageParameter( "TransactionId" ).AsIntegerOrNull();
+            if ( specificTransactionId.HasValue )
+            {
+                var qryParams = new Dictionary<string, string>();
+                int? batchId = hfBatchId.Value.AsIntegerOrNull();
+                if ( batchId.HasValue )
+                {
+                    qryParams.Add( "BatchId", batchId.Value.ToString() );
+                }
+                qryParams.Add( "TransactionId", specificTransactionId.Value.ToString() );
+
+                NavigateToLinkedPage( "TransactionDetailPage", qryParams );
+            }
+            else
+            {
+                NavigateToTransaction( Direction.Next );
+            }
+        }
+
+        /// <summary>
+        /// Handles the Click event of the btnCancel control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
+        protected void btnCancel_Click( object sender, EventArgs e )
+        {
+            var qryParams = new Dictionary<string, string>();
+            int? batchId = hfBatchId.Value.AsIntegerOrNull();
+            if ( batchId.HasValue )
+            {
+                qryParams.Add( "BatchId", batchId.Value.ToString() );
+            }
+            qryParams.Add( "TransactionId", PageParameter( "TransactionId" ).AsInteger().ToString() );
+
+            NavigateToLinkedPage( "TransactionDetailPage", qryParams );
         }
 
         /// <summary>
@@ -1044,7 +1088,7 @@ namespace RockWeb.Blocks.Finance
         protected void btnFindByEnvelopeNumber_Click( object sender, EventArgs e )
         {
             var rockContext = new RockContext();
-            var personGivingEnvelopeAttribute = AttributeCache.Read( Rock.SystemGuid.Attribute.PERSON_GIVING_ENVELOPE_NUMBER.AsGuid() );
+            var personGivingEnvelopeAttribute = CacheAttribute.Get( Rock.SystemGuid.Attribute.PERSON_GIVING_ENVELOPE_NUMBER.AsGuid() );
             var envelopeNumber = tbEnvelopeNumber.Text;
             if ( !string.IsNullOrEmpty( envelopeNumber ) )
             {
@@ -1199,5 +1243,6 @@ namespace RockWeb.Blocks.Finance
         }
 
         #endregion
+
     }
 }

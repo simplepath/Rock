@@ -27,7 +27,7 @@ using Rock.Data;
 using Rock.Model;
 using Rock.Reporting;
 using Rock.Web;
-using Rock.Web.Cache;
+using Rock.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
 
@@ -116,9 +116,9 @@ namespace RockWeb.Blocks.Reporting
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
-        protected void gReport_GridRebind( object sender, EventArgs e )
+        protected void gReport_GridRebind( object sender, GridRebindEventArgs e )
         {
-            BindReportGrid();
+            BindReportGrid(e.IsCommunication);
         }
 
         /// <summary>
@@ -241,7 +241,7 @@ namespace RockWeb.Blocks.Reporting
         {
             try
             {
-                var filteredEntityTypeName = EntityTypeCache.Read( reportEntityType ).Name;
+                var filteredEntityTypeName = CacheEntityType.Get( reportEntityType ).Name;
                 if ( filter.ExpressionType == FilterExpressionType.Filter )
                 {
                     var filterControl = new FilterField();
@@ -273,7 +273,7 @@ namespace RockWeb.Blocks.Reporting
 
                     if ( filter.EntityTypeId.HasValue )
                     {
-                        var entityTypeCache = Rock.Web.Cache.EntityTypeCache.Read( filter.EntityTypeId.Value, rockContext );
+                        var entityTypeCache = Rock.Cache.CacheEntityType.Get( filter.EntityTypeId.Value, rockContext );
                         if ( entityTypeCache != null )
                         {
                             filterControl.FilterEntityTypeName = entityTypeCache.Name;
@@ -284,10 +284,10 @@ namespace RockWeb.Blocks.Reporting
 
                     filterControl.ShowCheckbox = filterIsVisible && showCheckbox;
 
-                    var reportEntityTypeCache = EntityTypeCache.Read( reportEntityType );
+                    var reportEntityTypeCache = CacheEntityType.Get( reportEntityType );
                     var reportEntityTypeModel = reportEntityTypeCache.GetEntityType();
 
-                    var filterEntityType = EntityTypeCache.Read( filter.EntityTypeId ?? 0 );
+                    var filterEntityType = CacheEntityType.Get( filter.EntityTypeId ?? 0 );
                     var component = Rock.Reporting.DataFilterContainer.GetComponent( filterEntityType.Name );
                     if ( component != null )
                     {
@@ -478,7 +478,7 @@ namespace RockWeb.Blocks.Reporting
         /// <summary>
         /// Binds the report grid.
         /// </summary>
-        private void BindReportGrid()
+        private void BindReportGrid(bool isCommunication = false)
         {
             var rockContext = new RockContext();
             var reportService = new ReportService( rockContext );
@@ -510,9 +510,9 @@ namespace RockWeb.Blocks.Reporting
 
                 DataViewFilterOverrides dataViewFilterOverrides = ReportingHelper.GetFilterOverridesFromControls( report.DataView, phFilters );
 
-                ReportingHelper.BindGrid( report, gReport, this.CurrentPerson, dataViewFilterOverrides, null, false, out errorMessage );
+                ReportingHelper.BindGrid( report, gReport, this.CurrentPerson, dataViewFilterOverrides, null, isCommunication, out errorMessage );
 
-                if ( report.EntityTypeId != EntityTypeCache.GetId<Rock.Model.Person>() )
+                if ( report.EntityTypeId != CacheEntityType.GetId<Rock.Model.Person>() )
                 {
                     var personColumn = gReport.ColumnsOfType<BoundField>().Where( a => a.HeaderText == personIdField ).FirstOrDefault();
                     if ( personColumn != null )
@@ -686,7 +686,7 @@ namespace RockWeb.Blocks.Reporting
                     groupedFilter.Title = string.Format( "[{0}]", groupedFilter.FilterExpressionType.ConvertToString() );
                 }
 
-                ddlPersonIdField.Visible = report.EntityTypeId != EntityTypeCache.GetId<Rock.Model.Person>();
+                ddlPersonIdField.Visible = report.EntityTypeId != CacheEntityType.GetId<Rock.Model.Person>();
                 ddlPersonIdField.Items.Clear();
                 ddlPersonIdField.Items.Add( new ListItem() );
                 ddlPersonIdField.Items.Add( new ListItem( "Id", "Id" ) );

@@ -14,7 +14,6 @@
             <div class="panel-heading">
                 <h1 class="panel-title"><i class="fa fa-shield"></i> Protect My Ministry</h1>
                 <div class="panel-labels">
-                    <Rock:HighlightLabel ID="hlMode" runat="server" LabelType="Type" />
                     <Rock:HighlightLabel ID="hlActive" runat="server" />
                 </div>
 
@@ -22,7 +21,7 @@
 
             <div class="panel-body">
 
-                <asp:ValidationSummary ID="valSummary" runat="server" HeaderText="Please Correct the Following" CssClass="alert alert-danger" />
+                <asp:ValidationSummary ID="valSummary" runat="server" HeaderText="Please Correct the Following" CssClass="alert alert-validation" />
                 <Rock:NotificationBox ID="nbNotification" runat="server" Title="Please Correct the Following" NotificationBoxType="Danger" Visible="false" />
 
                 <div id="pnlNew" runat="server" class="row">
@@ -63,6 +62,7 @@
 
                     <div class="actions">
                         <asp:LinkButton ID="lbEdit" runat="server" Text="Edit" CssClass="btn btn-primary" OnClick="lbEdit_Click" />
+                        <asp:LinkButton ID="btnDefault" runat="server" CssClass="btn btn-primary" OnClick="btnDefault_Click">Enable As Default Background Check Provider</asp:LinkButton>
                     </div>
                 </div>
 
@@ -76,7 +76,6 @@
                             <Rock:UrlLinkBox ID="urlWebHook" runat="server" Label="Result Webhook" Required="true"
                                 Help="The URL that Protect My Ministry should use when sending background check results back to your server." />
                             <Rock:RockCheckBox id="cbActive" runat="server" Label="Active" />
-                            <Rock:RockCheckBox ID="cbTestMode" runat="server" Label="Test Mode" />
                         </div>
                     </div>
                     <div class="actions">
@@ -129,7 +128,7 @@
             <Content>
 
                 <asp:HiddenField ID="hfDefinedValueId" runat="server" />
-                <asp:ValidationSummary ID="valSummaryPackage" runat="server" HeaderText="Please Correct the Following" CssClass="alert alert-danger" ValidationGroup="Package" />
+                <asp:ValidationSummary ID="valSummaryPackage" runat="server" HeaderText="Please Correct the Following" CssClass="alert alert-validation" ValidationGroup="Package" />
 
                 <div class="row">
                     <div class="col-md-6">

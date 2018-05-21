@@ -428,18 +428,33 @@ namespace Rock.SystemGuid
         #region Personal Device Type
 
         /// <summary>
-        /// Personal device types for notifications
+        /// Mobile Personal device type
         /// </summary>
         public const string PERSONAL_DEVICE_TYPE_MOBILE = "5A8F264F-3BE6-4F15-912A-3CE93A98E8F6";
+
+        /// <summary>
+        /// Computer personal device type
+        /// </summary>
+        public const string PERSONAL_DEVICE_TYPE_COMPUTER = "828ADECE-EFE7-49DF-BA8C-B3F132509A95";
 
         #endregion
 
         #region Personal Device Platform
 
         /// <summary>
-        /// A default personal device platform
+        /// Other platform
         /// </summary>
         public const string PERSONAL_DEVICE_PLATFORM_OTHER = "13091A2D-C483-46FA-B489-E5D230B353C8";
+
+        /// <summary>
+        /// IOS platform
+        /// </summary>        
+        public const string PERSONAL_DEVICE_PLATFORM_IOS = "F00515E7-4EF3-480D-A45D-372CE3D80E69";
+
+        /// <summary>
+        /// Android platform
+        /// </summary>       
+        public const string PERSONAL_DEVICE_PLATFORM_ANDROID = "63464BB8-83E2-4914-B922-5075311758F9";
 
         #endregion
 
@@ -477,6 +492,12 @@ namespace Rock.SystemGuid
         /// Default RSS Channel Template
         /// </summary>
         public const string DEFAULT_RSS_CHANNEL = "D6149581-9EFC-40D8-BD38-E92C0717BEDA";
+
+
+        /// <summary>
+        /// The default ical description
+        /// </summary>
+        public const string DEFAULT_ICAL_DESCRIPTION = "DCBA4862-73E9-49B5-8AD5-08E17BE68025";
 
         #endregion
 
@@ -528,6 +549,15 @@ namespace Rock.SystemGuid
         /// The PBX CDR medium value
         /// </summary>
         public const string PBX_CDR_MEDIUM_VALUE = "B3904B57-62A2-57AC-43EA-94D4DEBA3D51";
+
+        #endregion
+
+        #region Person Search Keys
+
+        /// <summary>
+        /// Interaction Channel Type: Website
+        /// </summary>
+        public const string PERSON_SEARCH_KEYS_EMAIL = "D6CFD200-B33B-4D01-B49F-24325E47D8B8";
 
         #endregion
 

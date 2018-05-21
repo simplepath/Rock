@@ -2,20 +2,21 @@
 <asp:UpdatePanel ID="upnlContent" runat="server">
     <ContentTemplate>
 
-        <asp:Panel ID="pnlLogin" runat="server" DefaultButton="btnLogin">
+        <asp:Panel ID="pnlLogin" runat="server" DefaultButton="btnLogin" CssClass="login-block">
 
             <fieldset>
                 <legend>Login</legend>
 
                 <div class="row">
-                    <asp:Panel ID="pnlRemoteAuthLogins" runat="server" CssClass="col-md-6 margin-b-lg">
+                    <Rock:NotificationBox ID="nbAdminRedirectPrompt" runat="server" NotificationBoxType="Danger" Visible="false" />
+                    <asp:Panel ID="pnlRemoteAuthLogins" runat="server" CssClass="col-md-6 margin-b-lg remote-logins">
                         <p>
                             <asp:Literal ID="lRemoteAuthLoginsHeadingText" runat="server" Text="Login with social account" /></p>
                         <asp:PlaceHolder ID="phExternalLogins" runat="server"></asp:PlaceHolder>
                     </asp:Panel>
                     <asp:Panel ID="pnlInternalAuthLogin" runat="server" CssClass="col-md-6">
 
-                        <asp:ValidationSummary ID="valSummary" runat="server" HeaderText="Please Correct the Following" CssClass="alert alert-danger" />
+                        <asp:ValidationSummary ID="valSummary" runat="server" HeaderText="Please Correct the Following" CssClass="alert alert-validation" />
 
                         <asp:Literal ID="lPromptMessage" runat="server" />
                         <asp:Literal ID="lInvalidPersonTokenText" runat="server" />
@@ -23,7 +24,7 @@
                         <Rock:RockTextBox ID="tbPassword" runat="server" Label="Password" autocomplete="off" Required="true" DisplayRequiredIndicator="false" ValidateRequestMode="Disabled" TextMode="Password"></Rock:RockTextBox>
                         <Rock:RockCheckBox ID="cbRememberMe" runat="server" Text="Remember me on this computer" />
 
-                        <asp:Button ID="btnLogin" runat="server" Text="Login" CssClass="btn btn-primary" OnClick="btnLogin_Click" />
+                        <Rock:BootstrapButton ID="btnLogin" runat="server" Text="Login" CssClass="btn btn-primary" OnClick="btnLogin_Click" DataLoadingText="Logging In..." />
                         <asp:Button ID="btnNewAccount" runat="server" Text="Register" CssClass="btn btn-action" OnClick="btnNewAccount_Click" CausesValidation="false" />
                         <asp:Button ID="btnHelp" runat="server" Text="Forgot Account" CssClass="btn btn-link" OnClick="btnHelp_Click" CausesValidation="false" />
 

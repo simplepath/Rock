@@ -24,7 +24,7 @@ using System.Web.UI.HtmlControls;
 using System.Web.UI.WebControls;
 
 using Rock.Model;
-using Rock.Web.Cache;
+using Rock.Cache;
 
 namespace Rock.Web.UI.Controls
 {
@@ -277,16 +277,16 @@ namespace Rock.Web.UI.Controls
         /// <value>
         /// The attribute list.
         /// </value>
-        public List<AttributeCache> AttributeList
+        public List<CacheAttribute> AttributeList
         {
             get
             {
                 if ( _attributeList == null )
                 {
-                    _attributeList = ViewState["AttributeList"] as List<AttributeCache>;
+                    _attributeList = ViewState["AttributeList"] as List<CacheAttribute>;
                     if ( _attributeList == null )
                     {
-                        _attributeList = new List<AttributeCache>();
+                        _attributeList = new List<CacheAttribute>();
                     }
                 }
                 return _attributeList;
@@ -298,7 +298,7 @@ namespace Rock.Web.UI.Controls
                 RecreateChildControls();
             }
         }
-        private List<AttributeCache> _attributeList = null;
+        private List<CacheAttribute> _attributeList = null;
 
         /// <summary>
         /// Gets or sets the person identifier.
@@ -618,7 +618,7 @@ namespace Rock.Web.UI.Controls
             _ddlSuffix.Label = "Suffix";
             string suffixValue = _ddlSuffix.SelectedValue;
             _ddlSuffix.Items.Clear();
-            _ddlSuffix.BindToDefinedType( DefinedTypeCache.Read( Rock.SystemGuid.DefinedType.PERSON_SUFFIX.AsGuid() ), true );
+            _ddlSuffix.BindToDefinedType( CacheDefinedType.Get( Rock.SystemGuid.DefinedType.PERSON_SUFFIX.AsGuid() ), true );
             if ( !string.IsNullOrEmpty( suffixValue ) )
             {
                 _ddlSuffix.SelectedValue = suffixValue;
@@ -634,11 +634,10 @@ namespace Rock.Web.UI.Controls
                 _ddlGender.SelectedValue = genderValue;
             }
 
-            _dpBirthdate.StartView = DatePicker.StartViewOption.decade;
-            _dpBirthdate.ForceParse = false;
-            _dpBirthdate.AllowFutureDateSelection = false;
             _dpBirthdate.RequiredErrorMessage = "Birthdate is required for all children";
             _dpBirthdate.Label = "Birth Date";
+            _dpBirthdate.ShowOnFocus = false;
+            _dpBirthdate.StartView = DatePicker.StartViewOption.decade;
 
             _ddlGradePicker.CssClass = "form-control";
             _ddlGradePicker.RequiredErrorMessage = _ddlGradePicker.Label + " is required for all children";
@@ -924,6 +923,22 @@ namespace Rock.Web.UI.Controls
         public int? GradeOffset { get; set; }
 
         /// <summary>
+        /// Gets or sets the mobile phone number.
+        /// </summary>
+        /// <value>
+        /// The mobile phone number.
+        /// </value>
+        public string MobilePhoneNumber { get; set; }
+
+        /// <summary>
+        /// Gets or sets the mobile country code.
+        /// </summary>
+        /// <value>
+        /// The mobile country code.
+        /// </value>
+        public string MobileCountryCode { get; set; }
+
+        /// <summary>
         /// Gets or sets the type of the relationship.
         /// </summary>
         /// <value>
@@ -954,6 +969,10 @@ namespace Rock.Web.UI.Controls
             BirthDate = person.BirthDate;
             GradeOffset = person.GradeOffset;
             Age = person.Age;
+
+            var mobilePhone = person.GetPhoneNumber( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() );
+            MobilePhoneNumber = mobilePhone?.Number;
+            MobileCountryCode = mobilePhone?.CountryCode;
         }
 
         /// <summary>

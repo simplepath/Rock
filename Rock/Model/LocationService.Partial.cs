@@ -497,7 +497,7 @@ namespace Rock.Model
             if ( !campusId.HasValue )
             {
                 var campusLocations = new Dictionary<int, int>();
-                Rock.Web.Cache.CampusCache.All()
+                Rock.Cache.CacheCampus.All()
                     .Where( c => c.LocationId.HasValue )
                     .Select( c => new
                     {
@@ -515,12 +515,12 @@ namespace Rock.Model
                         .FirstOrDefault();
                     if ( campusId != 0 )
                     {
-                        break;
+                        return campusId;
                     }
                 }
             }
 
-            return campusId;
+            return null;
         }
 
         /// <summary>
