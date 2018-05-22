@@ -60,6 +60,35 @@ namespace Rock.Storage
         /// <returns></returns>
         public abstract Stream GetContentStream( BinaryFile file );
 
+
+        /// <summary>
+        /// Saves a temporary file to disk from BinaryFile.ContentStream
+        /// </summary>
+        /// <param name="binaryFile">The binary file.</param>
+        /// <param name="fileSize">Size of the file, null if nothing is written.</param>
+        /// <returns>The full path of the file created. Empty string if no file was written</returns>
+        public virtual string SaveTempFile( BinaryFile binaryFile, out long? fileSize )
+        {
+            fileSize = null;
+            string tempFilePath = @"~/App_Data/" + binaryFile.FileName;
+            tempFilePath = System.Web.Hosting.HostingEnvironment.MapPath( tempFilePath ) ?? tempFilePath;
+
+            // Write the contents to file
+            using ( var inputStream = binaryFile.ContentStream )
+            {
+                if ( inputStream != null )
+                {
+                    fileSize = inputStream.Length;
+                    using ( var outputStream = File.OpenWrite( tempFilePath ) )
+                    {
+                        inputStream.CopyTo( outputStream );
+                    }
+                }
+            }
+
+            return fileSize == null ? string.Empty : tempFilePath;
+        }
+
         /// <summary>
         /// Gets the path.
         /// </summary>

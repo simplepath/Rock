@@ -77,6 +77,33 @@ namespace Rock.Storage.Provider
             }
         }
 
+        /// <summary>
+        /// Saves a temporary file to disk using file copy if a file on disk exists, otherwise it uses binaryFile.ContentStream
+        /// </summary>
+        /// <param name="binaryFile">The binary file.</param>
+        /// <param name="fileSize">Size of the file, null if nothing is written.</param>
+        /// <returns>
+        /// The full path of the file created. Empty string if no file was written
+        /// </returns>
+        public override string SaveTempFile( BinaryFile binaryFile, out long? fileSize )
+        {
+            fileSize = null;
+            string tempFilePath = @"~/App_Data/" + binaryFile.FileName;
+            tempFilePath = System.Web.Hosting.HostingEnvironment.MapPath( tempFilePath ) ?? tempFilePath;
+
+            // Since we have a copy on disk use that instead of the stream. This is in case the stream was corrupted.
+            if ( File.Exists( binaryFile.Path ) )
+            {
+                File.Copy( binaryFile.Path, tempFilePath );
+                fileSize = new FileInfo( tempFilePath ).Length;
+            }
+            else
+            {
+                base.SaveTempFile( binaryFile, out fileSize );
+            }
+
+            return fileSize == null ? string.Empty : tempFilePath;
+        }
 
         /// <summary>
         /// Deletes the content from the external storage medium associated with the provider.

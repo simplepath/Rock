@@ -391,26 +391,41 @@ namespace Rock.Model
                             }
                             string settingsJson = settings.ToJson();
 
-                            if ( StorageProvider != null && (
-                                StorageEntityTypeId.Value != BinaryFileType.StorageEntityTypeId.Value ||
-                                StorageEntitySettings != settingsJson ) )
+                            if ( StorageProvider != null &&
+                                ( StorageEntityTypeId.Value != BinaryFileType.StorageEntityTypeId.Value || StorageEntitySettings != settingsJson ) )
                             {
+                                // if moving from file system
+                                if ( StorageEntityTypeId.Value == EntityTypeCache.GetId<Rock.Storage.Provider.FileSystem>() )
+                                {
+                                    // Write ContentStream to Temp File
+                                    long? tempFileSize;
+                                    string tempFilePath = StorageProvider.SaveTempFile( this, out tempFileSize );
+                                    FileSize = tempFileSize;
 
-                                var ms = new MemoryStream();
-                                ContentStream.CopyTo( ms );
-                                ContentStream.Dispose();
+                                    // Dispose ContentStream so we can delete the original file
+                                    ContentStream.Dispose();
 
-                                // Delete the current provider's storage
-                                StorageProvider.DeleteContent( this );
+                                    // Delete the old file
+                                    StorageProvider.DeleteContent( this );
+
+                                    // Read the temp file back into ContentStream
+                                    ContentStream = new MemoryStream( File.ReadAllBytes( tempFilePath ) );
+
+                                    // Delete the temp file
+                                    File.Delete( tempFilePath );
+                                }
+                                else
+                                {
+                                    // if moving from DB
+                                    var contentStream = ContentStream;
+                                    StorageProvider.DeleteContent( this );
+                                    FileSize = ContentStream.Length;
+                                    ContentStream = contentStream;
+                                }
 
                                 // Set the new storage provider with its settings
                                 StorageEntityTypeId = BinaryFileType.StorageEntityTypeId;
                                 StorageEntitySettings = settingsJson;
-
-                                ContentStream = new MemoryStream();
-                                ms.Position = 0;
-                                ms.CopyTo( ContentStream );
-                                FileSize = ContentStream.Length;
                             }
                         }
                     }
