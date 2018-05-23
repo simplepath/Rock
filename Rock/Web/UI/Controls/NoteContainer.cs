@@ -137,7 +137,7 @@ namespace Rock.Web.UI.Controls
         /// </summary>
         public string AddAnchorCSSClass
         {
-            get { return ViewState["AddAnchorCSSClass"] as string ?? "btn btn-xs btn-action"; }
+            get { return ViewState["AddAnchorCSSClass"] as string ?? "btn btn-xs btn-action btn-square"; }
             set { ViewState["AddAnchorCSSClass"] = value; }
         }
 

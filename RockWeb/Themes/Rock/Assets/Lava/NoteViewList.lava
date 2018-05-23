@@ -1,6 +1,6 @@
-﻿<div class="note-view-list js-notelist">
+﻿<ul class="note-list list-unstyled js-notelist">
     {% for note in NoteList %}
 		{% assign noteReplyDepth = 0 %}
 		{% include '~~/Assets/Lava/NoteViewItem.lava' %}
     {% endfor %}
-</div>
+</ul>
