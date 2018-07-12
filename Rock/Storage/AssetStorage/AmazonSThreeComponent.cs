@@ -70,12 +70,14 @@ namespace Rock.Storage.AssetStorage
             foreach ( S3Object s3Object in response.S3Objects )
             {
                 var asset = new Asset();
-                asset.Name = s3Object.Key;
+                asset.Name = GetNameFromKey( s3Object.Key );
+                asset.Key = s3Object.Key;
+                asset.Uri = $"https://{AWSRegion.SystemName}.s3.amazonaws.com/{Bucket}/{s3Object.Key}";
                 asset.Type = GetAssetType( s3Object.Key );
                 asset.IconCssClass = GetIconCssClass( s3Object.Key );
                 asset.FileSize = s3Object.Size;
                 asset.LastModifiedDateTime = s3Object.LastModified;
-                asset.Description = string.Empty;
+                asset.Description = s3Object.StorageClass.ToString();
 
                 assets.Add( asset );
             }
@@ -159,7 +161,19 @@ namespace Rock.Storage.AssetStorage
         #endregion Override Methods
 
         #region private Methods
-       private AssetType GetAssetType( string name )
+
+        private string GetNameFromKey( string key )
+        {
+            if ( key.LastIndexOf('/') < 1)
+            {
+                return key;
+            }
+
+            string[] pathSegments = key.Split( '/' );
+            return pathSegments[pathSegments.Length - 1].TrimEnd( '/' );
+        }
+
+        private AssetType GetAssetType( string name )
         {
             if ( name.EndsWith("/"))
             {

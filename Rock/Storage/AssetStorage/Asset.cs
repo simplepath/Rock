@@ -24,11 +24,68 @@ namespace Rock.Storage.AssetStorage
 {
     public class Asset
     {
+        /// <summary>
+        /// The name of the asset as it should appear to the end user
+        /// </summary>
+        /// <value>
+        /// The name.
+        /// </value>
         public string Name { get; set; }
+
+        /// <summary>
+        /// The name of the asset as it needs to be on the cloud service ( i.e. includes folder name)
+        /// </summary>
+        /// <value>
+        /// The key.
+        /// </value>
+        public string Key { get; set; }
+
+        /// <summary>
+        /// Gets or sets the URI.
+        /// </summary>
+        /// <value>
+        /// The URI.
+        /// </value>
+        public string Uri { get; set; }
+
+        /// <summary>
+        /// File or folder
+        /// </summary>
+        /// <value>
+        /// The type.
+        /// </value>
         public AssetType Type { get; set; }
+
+        /// <summary>
+        /// The Font Awesom class to represent the file
+        /// </summary>
+        /// <value>
+        /// The icon CSS class.
+        /// </value>
         public string IconCssClass { get; set; }
+
+        /// <summary>
+        /// File size in bytes
+        /// </summary>
+        /// <value>
+        /// The size of the file.
+        /// </value>
         public long FileSize { get; set; }
+
+        /// <summary>
+        /// Gets or sets the last modified date time.
+        /// </summary>
+        /// <value>
+        /// The last modified date time.
+        /// </value>
         public DateTime? LastModifiedDateTime { get; set; }
+
+        /// <summary>
+        /// Gets or sets the description. Free form text for desired meta data provided by the storage provider.
+        /// </summary>
+        /// <value>
+        /// The description.
+        /// </value>
         public string Description { get; set; }
     }
 

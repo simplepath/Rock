@@ -36,5 +36,15 @@ namespace Rock.Tests.Rock.StorageTests
             Assert.True( s3Component.CreateFolder( asset ) );
 
         }
+
+        [Fact]
+        public void TestGetObjects()
+        {
+            var s3Component = new AmazonSThreeComponent( AWSAccessKey, AWSSecretKey, AWSRegion );
+            s3Component.Bucket = this.Bucket;
+
+            var assetList = s3Component.GetObjects();
+            Assert.True( assetList.Count > 0 );
+        }
     }
 }
