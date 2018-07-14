@@ -25,7 +25,7 @@ namespace Rock.Storage.AssetStorage
     public class Asset
     {
         /// <summary>
-        /// The name of the asset as it should appear to the end user
+        /// The name of the asset as it should appear to the end user. The name should be the last segment of the key.
         /// </summary>
         /// <value>
         /// The name.
@@ -33,7 +33,7 @@ namespace Rock.Storage.AssetStorage
         public string Name { get; set; }
 
         /// <summary>
-        /// The name of the asset as it needs to be on the cloud service ( i.e. includes folder name)
+        /// The name of the asset as it needs to be on the cloud service ( i.e. includes all folder names)
         /// </summary>
         /// <value>
         /// The key.

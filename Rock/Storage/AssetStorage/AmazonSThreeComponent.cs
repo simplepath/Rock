@@ -16,27 +16,19 @@ namespace Rock.Storage.AssetStorage
 {
     public class AmazonSThreeComponent : AssetStorageComponent
     {
+
         #region Properties
         public AmazonS3Client Client { get; set; }
 
         public string Bucket { get; set; }
 
-        public string RootFolder { get; set; }
-
-        public string AWSAccessKey { get; set; }
-
-        public string AWSSecretKey { get; set; }
-
-        public string AWSProfileName { get; set; }
-
-        public RegionEndpoint AWSRegion { get; set; }
         #endregion Properties
 
         #region Contstructors
         public AmazonSThreeComponent() : base()
         {
-            //TODO: get the settings from attributes
-            Client = new AmazonS3Client( AWSAccessKey, AWSSecretKey, AWSRegion );
+            //TODO: get client the settings from attributes
+            Client = new AmazonS3Client();
         }
 
         public AmazonSThreeComponent( AmazonS3Client amazonS3Client) : base()
@@ -53,39 +45,10 @@ namespace Rock.Storage.AssetStorage
         #region Override Methods
         public override List<Asset> GetObjects()
         {
-            /*
-             * A name without a "/" is a file in the root.
-             * A name ending with a "/" is a folder
-             * A name delimited with a "/" is folder/file
-             * A folder can nest n levels e.g. folder/folder/folder/file
-             */
-            var assets = new List<Asset>();
-
-            ListObjectsRequest request = new ListObjectsRequest();
-            request.BucketName = this.Bucket;
-            request.Prefix = this.RootFolder;
-            
-            ListObjectsResponse response = Client.ListObjects( request );
-
-            foreach ( S3Object s3Object in response.S3Objects )
-            {
-                var asset = new Asset();
-                asset.Name = GetNameFromKey( s3Object.Key );
-                asset.Key = s3Object.Key;
-                asset.Uri = $"https://{AWSRegion.SystemName}.s3.amazonaws.com/{Bucket}/{s3Object.Key}";
-                asset.Type = GetAssetType( s3Object.Key );
-                asset.IconCssClass = GetIconCssClass( s3Object.Key );
-                asset.FileSize = s3Object.Size;
-                asset.LastModifiedDateTime = s3Object.LastModified;
-                asset.Description = s3Object.StorageClass.ToString();
-
-                assets.Add( asset );
-            }
-
-            return assets;
+            return GetObjects( new Asset { Type = AssetType.Folder } );
         }
 
-        public override List<Asset> GetObjects( string folder )
+        public override List<Asset> GetObjects( Asset asset )
         {
             /*
              * A name without a "/" is a file in the root.
@@ -94,22 +57,20 @@ namespace Rock.Storage.AssetStorage
              * A folder can nest n levels e.g. folder/folder/folder/file
              */
 
-
-            return null;
+            asset.Key = FixKey( asset );
+            return GetObjectsInFolderWithRecursion( asset );
         }
 
         public override bool UploadObject( Asset asset, Stream file )
         {
-            return true;
-        }
+            asset.Key = asset.Key.IsNullOrWhiteSpace() ? RootFolder + asset.Name : asset.Key;
 
-        public override bool CreateFolder( Asset asset )
-        {
             try
             {
                 PutObjectRequest request = new PutObjectRequest();
                 request.BucketName = this.Bucket;
-                request.Key = asset.Name;
+                request.Key = asset.Key;
+                request.InputStream = file;
 
                 PutObjectResponse response = Client.PutObject( request );
                 if ( response.HttpStatusCode == System.Net.HttpStatusCode.OK )
@@ -117,7 +78,31 @@ namespace Rock.Storage.AssetStorage
                     return true;
                 }
             }
-            catch ( Exception ex)
+            catch ( Exception ex )
+            {
+                ExceptionLogService.LogException( ex );
+            }
+
+            return false;
+        }
+
+        public override bool CreateFolder( Asset asset )
+        {
+            asset.Key = asset.Key.IsNullOrWhiteSpace() ? RootFolder + asset.Name : asset.Key;
+            
+            try
+            {
+                PutObjectRequest request = new PutObjectRequest();
+                request.BucketName = this.Bucket;
+                request.Key = asset.Key;
+
+                PutObjectResponse response = Client.PutObject( request );
+                if ( response.HttpStatusCode == System.Net.HttpStatusCode.OK )
+                {
+                    return true;
+                }
+            }
+            catch ( Exception ex )
             {
                 ExceptionLogService.LogException( ex );
             }
@@ -127,12 +112,14 @@ namespace Rock.Storage.AssetStorage
 
         public override bool DeleteAsset( Asset asset )
         {
+            asset.Key = asset.Key.IsNullOrWhiteSpace() ? RootFolder + asset.Name : asset.Key;
+
             try
             {
                 DeleteObjectRequest request = new DeleteObjectRequest()
                 {
                     BucketName = this.Bucket,
-                    Key = asset.Name
+                    Key = asset.Key
                 };
 
                 DeleteObjectResponse response = Client.DeleteObject( request );
@@ -151,7 +138,32 @@ namespace Rock.Storage.AssetStorage
 
         public override bool RenameAsset( Asset asset, string newName )
         {
-            return true;
+            asset.Key = asset.Key.IsNullOrWhiteSpace() ? RootFolder + asset.Name : asset.Key;
+
+            try
+            {
+                CopyObjectRequest copyRequest = new CopyObjectRequest();
+                copyRequest.SourceBucket = Bucket;
+                copyRequest.DestinationBucket = Bucket;
+                copyRequest.SourceKey = asset.Key;
+                copyRequest.DestinationKey = GetPathFromKey( asset.Key ) + newName;
+                CopyObjectResponse copyResponse = Client.CopyObject( copyRequest );
+                if ( copyResponse.HttpStatusCode != System.Net.HttpStatusCode.OK )
+                {
+                    return false;
+                }
+
+                if ( DeleteAsset( asset ) )
+                {
+                    return true;
+                }
+            }
+            catch ( Exception ex )
+            {
+                ExceptionLogService.LogException( ex );
+            }
+
+            return false;
         }
         public override string CreateDownloadLink( Asset asset )
         {
@@ -160,7 +172,156 @@ namespace Rock.Storage.AssetStorage
 
         #endregion Override Methods
 
-        #region private Methods
+        #region Public Methods
+
+        /// <summary>
+        /// Gets the objects in folder without recursion. i.e. will get the list of files
+        /// and folders in the folder but not the contents of the subfolders.
+        /// </summary>
+        /// <param name="asset">The asset.</param>
+        /// <returns></returns>
+        public List<Asset> GetObjectsInFolder( Asset asset )
+        {
+            // First get the list of objects with recursion since that is what Amazon offers
+            //asset.Key = FixKey( asset );
+            //var assets = GetObjectsInFolderWithRecursion( asset );
+
+            //string s = asset.Key.Replace( "/", @"\/" ) + @"";
+            //var regex = new System.Text.RegularExpressions.Regex( $@"({s}.*\/.)");
+            //List<Asset> filteredAssets = assets.Where( a => !regex.IsMatch( a.Key ) ).ToList();
+
+            //return filteredAssets;
+            asset.Key = FixKey( asset );
+            try
+            {
+                ListObjectsRequest request = new ListObjectsRequest();
+                request.BucketName = this.Bucket;
+                request.Prefix = asset.Key == "/" ? this.RootFolder : asset.Key;
+                request.Delimiter = "/";
+
+                var assets = new List<Asset>();
+
+                ListObjectsResponse response = Client.ListObjects( request );
+                foreach ( S3Object s3Object in response.S3Objects )
+                {
+                    if ( s3Object.Key == null )
+                    {
+                        continue;
+                    }
+
+                    string name = GetNameFromKey( s3Object.Key );
+                    string uriKey = System.Web.HttpUtility.UrlPathEncode( name );
+
+                    var responseAsset = new Asset
+                    {
+                        Name = name,
+                        Key = s3Object.Key,
+                        Uri = $"https://{Client.Config.RegionEndpoint.SystemName}.s3.amazonaws.com/{Bucket}/{uriKey}",
+                        Type = GetAssetType( s3Object.Key ),
+                        IconCssClass = GetIconCssClass( s3Object.Key ),
+                        FileSize = s3Object.Size,
+                        LastModifiedDateTime = s3Object.LastModified,
+                        Description = s3Object.StorageClass.ToString()
+                    };
+
+                    assets.Add( responseAsset );
+                }
+
+                return assets;
+            }
+            catch ( Exception ex )
+            {
+                ExceptionLogService.LogException( ex );
+                throw;
+
+            }
+        }
+
+        public List<Asset> GetObjectsInFolderWithRecursion( Asset asset )
+        {
+            try
+            {
+                ListObjectsRequest request = new ListObjectsRequest();
+                request.BucketName = this.Bucket;
+                request.Prefix = asset.Key == "/" ? this.RootFolder : asset.Key;
+
+                var assets = new List<Asset>();
+
+                ListObjectsResponse response = Client.ListObjects( request );
+                foreach ( S3Object s3Object in response.S3Objects )
+                {
+                    if ( s3Object.Key == null )
+                    {
+                        continue;
+                    }
+
+                    string name = GetNameFromKey( s3Object.Key );
+                    string uriKey = System.Web.HttpUtility.UrlPathEncode( name );
+
+                    var responseAsset = new Asset
+                    {
+                        Name = name,
+                        Key = s3Object.Key,
+                        Uri = $"https://{Client.Config.RegionEndpoint.SystemName}.s3.amazonaws.com/{Bucket}/{uriKey}",
+                        Type = GetAssetType( s3Object.Key ),
+                        IconCssClass = GetIconCssClass( s3Object.Key ),
+                        FileSize = s3Object.Size,
+                        LastModifiedDateTime = s3Object.LastModified,
+                        Description = s3Object.StorageClass.ToString()
+                    };
+
+                    assets.Add( responseAsset );
+                }
+
+                return assets;
+            }
+            catch ( Exception ex )
+            {
+                ExceptionLogService.LogException( ex );
+                throw;
+            }
+        }
+
+        #endregion Public Methods
+
+        #region Private Methods
+
+        private void HasRequirementsFile( Asset asset )
+        {
+            if ( asset.Type == AssetType.Folder )
+            {
+                throw new Exception( "Asset Type is set to 'Folder' instead of 'File.'" );
+            }
+        }
+
+        private void HasRequirementsFolder( Asset asset )
+        {
+            if ( asset.Type == AssetType.File )
+            {
+                throw new Exception( "Asset Type is set to 'File' instead of 'Folder.'" );
+            }
+
+            if ( asset.Name.IsNullOrWhiteSpace() && asset.Key.IsNullOrWhiteSpace() )
+            {
+                throw new Exception( "Name and key cannot both be null or empty." );
+            }
+        }
+
+        private string FixKey( Asset asset )
+        {
+            if ( asset.Key.IsNullOrWhiteSpace() && asset.Name.IsNullOrWhiteSpace() )
+            {
+                asset.Key = "/";
+            }
+            else if ( asset.Key.IsNullOrWhiteSpace() && asset.Name.IsNotNullOrWhitespace() )
+            {
+                asset.Key = RootFolder + asset.Name;
+            }
+
+            asset.Key = asset.Key.EndsWith( "/" ) == true ? asset.Key : asset.Key += "/";
+
+            return asset.Key;
+        }
 
         private string GetNameFromKey( string key )
         {
@@ -170,7 +331,24 @@ namespace Rock.Storage.AssetStorage
             }
 
             string[] pathSegments = key.Split( '/' );
-            return pathSegments[pathSegments.Length - 1].TrimEnd( '/' );
+
+            if (key.EndsWith("/"))
+            {
+                return pathSegments[pathSegments.Length - 2];
+            }
+
+            return pathSegments[pathSegments.Length - 1];
+        }
+
+        private string GetPathFromKey( string key )
+        {
+            int i = key.LastIndexOf( '/' );
+            if ( i < 1)
+            {
+                return string.Empty;
+            }
+
+            return key.Substring( 0, i );
         }
 
         private AssetType GetAssetType( string name )
