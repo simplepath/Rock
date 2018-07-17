@@ -20,8 +20,8 @@ namespace Rock.Tests.Rock.StorageTests
 {
     public class AmazonSThreeComponentTests
     {
-        private string AWSAccessKey = "AKIAJF5GOG6JOR6IASVQ";
-        private string AWSSecretKey = @"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";
+        private string AWSAccessKey = "";
+        private string AWSSecretKey = @"";
         private RegionEndpoint AWSRegion = RegionEndpoint.USWest1;
         private string Bucket = "rockphotostest0";
         private string RootFolder = "UnitTestFolder/";
