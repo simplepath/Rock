@@ -15,6 +15,7 @@
 // </copyright>
 
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -87,6 +88,15 @@ namespace Rock.Storage.AssetStorage
         /// The description.
         /// </value>
         public string Description { get; set; }
+
+        /// <summary>
+        /// Gets or sets the asset stream. Use when downloading an object to associate the stream with the
+        /// file info.
+        /// </summary>
+        /// <value>
+        /// The asset stream.
+        /// </value>
+        public Stream AssetStream { get; set; }
     }
 
     public enum AssetType

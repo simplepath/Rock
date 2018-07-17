@@ -44,7 +44,7 @@ namespace Rock.Storage.AssetStorage
         /// <value>
         /// The root folder.
         /// </value>
-        public string RootFolder
+        public virtual string RootFolder
         {
             get
             {
@@ -67,7 +67,7 @@ namespace Rock.Storage.AssetStorage
             }
         }
 
-        private string _rootFolder;
+        protected string _rootFolder;
 
 
         #region Component Overrides
@@ -82,21 +82,80 @@ namespace Rock.Storage.AssetStorage
         #region Abstract Methods
 
         /// <summary>
-        /// Gets the objects from the current root folder.
+        /// Gets the object as an Asset.
         /// </summary>
+        /// <param name="asset">The asset.</param>
         /// <returns></returns>
-        public abstract List<Asset> GetObjects();
+        public abstract Asset GetObject( Asset asset );
 
         /// <summary>
-        /// Gets the objects. If Asset.Key is not provided then one is created using the RootFolder and AssetName.
+        /// Gets the objects.
+        /// </summary>
+        /// <param name="assets">The assets.</param>
+        /// <returns></returns>
+        //public abstract bool GetObjects( List<Asset> assets );
+
+        /// <summary>
+        /// Lists the objects from the current root folder.
+        /// </summary>
+        /// <returns></returns>
+        public abstract List<Asset> ListObjects();
+
+        /// <summary>
+        /// Lists the objects. If Asset.Key is not provided then one is created using the RootFolder and Asset.Name.
         /// If key and name are not provided then list all objects from the current RootFolder.
         /// If a key is provided it MUST use the full path, RootFolder is not used, and Name is not used.
         /// The last segment in Key is treated as a begins with search if it does not end in a '/'. e.g. to get all
-        /// files starting with 'my' in folder 'pictures/cats/' set key = 'pictures/cats/my'
+        /// files starting with 'mr' in folder 'pictures/cats/' set key = 'pictures/cats/mr' to get 'mr. whiskers'
+        /// and 'mrs. whiskers' but not 'fluffy' or 'carnage the attack cat'.
         /// </summary>
         /// <param name="folder">The folder.</param>
         /// <returns></returns>
-        public abstract List<Asset> GetObjects( Asset asset );
+        public abstract List<Asset> ListObjects( Asset asset );
+
+        /// <summary>
+        /// Lists the objects in folder. The asset key or name should be the folder.
+        /// If Asset.Key is not provided then one is created using the RootFolder and Asset.Name
+        /// If Key and Name are not provided then list all objects in the current RootFolder.
+        /// If a key is provided it MUST use the full path, RootFolder and Name are not used.
+        /// The last segment in key is the folder name.
+        /// </summary>
+        /// <param name="asset">The asset.</param>
+        /// <returns></returns>
+        public abstract List<Asset> ListObjectsInFolder( Asset asset );
+
+        /// <summary>
+        /// Lists the files in current root folder.
+        /// </summary>
+        /// <returns></returns>
+        public abstract List<Asset> ListFilesInFolder();
+
+        /// <summary>
+        /// Lists the files in folder. Asset.Key or Asset.Name is the folder.
+        /// If Asset.Key is not provided then one is created using the RootFolder and Asset.Name.
+        /// If Key and Name are not provided then list all files in the current RootFolder.
+        /// If a key is provided it MUST use the full path, RootFolder and Name are not used.
+        /// The last segment in the key is the folder name.
+        /// </summary>
+        /// <returns></returns>
+        public abstract List<Asset> ListFilesInFolder( Asset asset );
+
+        /// <summary>
+        /// Lists the folders in the current root folder.
+        /// </summary>
+        /// <returns></returns>
+        public abstract List<Asset> ListFoldersInFolder();
+
+        /// <summary>
+        /// Lists the folder in folder. Asset.Key or Asset.Name is the folder.
+        /// If Asset.Key is not provided then one is created using the RootFolder and Asset.Name.
+        /// If Key and Name are not provided the list then list all files in the current RootFolder.
+        /// If a key is provided it MUST use the full path, RootFolder and Name are not used.
+        /// The last segment in the key is the folder name.
+        /// </summary>
+        /// <param name="asset">The asset.</param>
+        /// <returns></returns>
+        public abstract List<Asset> ListFoldersInFolder( Asset asset );
 
         /// <summary>
         /// Uploads a file. If Asset.Key is not provided then one is created using the RootFolder and Asset.Name.
@@ -123,6 +182,12 @@ namespace Rock.Storage.AssetStorage
         /// <returns></returns>
         public abstract bool DeleteAsset( Asset asset );
 
+        /// <summary>
+        /// Renames the asset.
+        /// </summary>
+        /// <param name="asset">The asset.</param>
+        /// <param name="newName">The new name.</param>
+        /// <returns></returns>
         public abstract bool RenameAsset( Asset asset, string newName );
 
         /// <summary>

@@ -1307,6 +1307,7 @@
     <Compile Include="Storage\AssetStorage\Asset.cs" />
     <Compile Include="Storage\AssetStorage\AssetStorageComponent.cs" />
     <Compile Include="Storage\AssetStorage\AssetStorageContainer.cs" />
+    <Compile Include="Storage\AssetStorage\FileSystemComponent.cs" />
     <Compile Include="SystemGuid\Block.cs" />
     <Compile Include="SystemGuid\Communication.cs" />
     <Compile Include="SystemGuid\InteractionChannel.cs" />
