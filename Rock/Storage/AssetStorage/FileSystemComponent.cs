@@ -35,7 +35,7 @@ namespace Rock.Storage.AssetStorage
             }
         }
 
-        public System.Web.HttpContext fileSystemCompontHttpContext { get; set; }
+        public System.Web.HttpContext FileSystemCompontHttpContext { get; set; }
 
         #endregion Properties
 
@@ -46,21 +46,29 @@ namespace Rock.Storage.AssetStorage
         #region Abstract Methods
         public override string CreateDownloadLink( Asset asset )
         {
-            
-            string domainName = HttpContext.Current.Request.Url.GetLeftPart( UriPartial.Authority );
-            string uriKey = asset.Key;
-            return domainName + uriKey;
+            try
+            {
+                asset.Key = FixKey( asset );
+                string domainName = HttpContext.Current.Request.Url.GetLeftPart( UriPartial.Authority );
+                string uriKey = asset.Key.TrimStart( '~' );
+                return domainName + uriKey;
+            }
+            catch ( Exception ex )
+            {
+                ExceptionLogService.LogException( ex );
+                throw;
+            }
         }
 
         public override bool CreateFolder( Asset asset )
         {
             HasRequirementsFolder( asset );
             asset.Key = FixKey( asset );
-            string physicalFolder = fileSystemCompontHttpContext.Server.MapPath( asset.Key );
+            string physicalFolder = FileSystemCompontHttpContext.Server.MapPath( asset.Key );
 
             try
             {
-                Directory.CreateDirectory( asset.Key );
+                Directory.CreateDirectory( physicalFolder );
                 return true;
             }
             catch ( Exception ex )
@@ -75,20 +83,19 @@ namespace Rock.Storage.AssetStorage
             try
             {
                 asset.Key = FixKey( asset );
-                string physicalFolder = fileSystemCompontHttpContext.Server.MapPath( asset.Key );
+                string physicalPath = FileSystemCompontHttpContext.Server.MapPath( asset.Key );
 
                 if ( asset.Type == AssetType.File )
                 {
-                    File.Delete( Path.Combine( physicalFolder, asset.Key ) );
+                    File.Delete( Path.Combine( physicalPath ) );
                 }
                 else
                 {
-                    Directory.Delete( physicalFolder );
+                    Directory.Delete( physicalPath, true );
                 }
             }
             catch ( Exception ex )
             {
-                ExceptionLogService.LogException( ex );
                 throw;
             }
 
@@ -97,7 +104,20 @@ namespace Rock.Storage.AssetStorage
 
         public override Asset GetObject( Asset asset )
         {
-            throw new NotImplementedException();
+            try
+            {
+                asset.Key = FixKey( asset );
+                string physicalFile = FileSystemCompontHttpContext.Server.MapPath( asset.Key );
+                FileStream fs = new FileStream( physicalFile, FileMode.Open );
+                asset.AssetStream = fs;
+
+                return asset;
+            }
+            catch ( Exception ex )
+            {
+                ExceptionLogService.LogException( ex );
+                throw;
+            }
         }
 
         public override List<Asset> ListFilesInFolder()
@@ -110,7 +130,7 @@ namespace Rock.Storage.AssetStorage
         public override List<Asset> ListFilesInFolder( Asset asset )
         {
             asset.Key = FixKey( asset );
-            string physicalFolder = fileSystemCompontHttpContext.Server.MapPath( asset.Key );
+            string physicalFolder = FileSystemCompontHttpContext.Server.MapPath( asset.Key );
 
             return GetListOfObjects( physicalFolder, SearchOption.TopDirectoryOnly, AssetType.File );
         }
@@ -125,7 +145,7 @@ namespace Rock.Storage.AssetStorage
         public override List<Asset> ListFoldersInFolder( Asset asset )
         {
             asset.Key = FixKey( asset );
-            string physicalFolder = fileSystemCompontHttpContext.Server.MapPath( asset.Key );
+            string physicalFolder = FileSystemCompontHttpContext.Server.MapPath( asset.Key );
 
             return GetListOfObjects( physicalFolder, SearchOption.TopDirectoryOnly, AssetType.Folder );
         }
@@ -142,7 +162,7 @@ namespace Rock.Storage.AssetStorage
             asset.Key = FixKey( asset );
             var assets = new List<Asset>();
 
-            string physicalFolder = fileSystemCompontHttpContext.Server.MapPath( asset.Key );
+            string physicalFolder = FileSystemCompontHttpContext.Server.MapPath( asset.Key );
 
             assets.AddRange( GetListOfObjects( physicalFolder, SearchOption.AllDirectories, AssetType.Folder ) );
             assets.AddRange( GetListOfObjects( physicalFolder, SearchOption.AllDirectories, AssetType.File ) );
@@ -154,7 +174,7 @@ namespace Rock.Storage.AssetStorage
             asset.Key = FixKey( asset );
             var assets = new List<Asset>();
 
-            string physicalFolder = fileSystemCompontHttpContext.Server.MapPath( asset.Key );
+            string physicalFolder = FileSystemCompontHttpContext.Server.MapPath( asset.Key );
 
             assets.AddRange( GetListOfObjects( physicalFolder, SearchOption.TopDirectoryOnly, AssetType.Folder ) );
             assets.AddRange( GetListOfObjects( physicalFolder, SearchOption.TopDirectoryOnly, AssetType.File ) );
@@ -163,12 +183,45 @@ namespace Rock.Storage.AssetStorage
 
         public override bool RenameAsset( Asset asset, string newName )
         {
-            throw new NotImplementedException();
+            try
+            {
+                asset.Key = FixKey( asset );
+                string filePath = GetPathFromKey( asset.Key );
+                string physicalFolder = FileSystemCompontHttpContext.Server.MapPath( filePath );
+                string physicalFile = FileSystemCompontHttpContext.Server.MapPath( asset.Key );
+
+                File.Move( physicalFile, Path.Combine( physicalFolder, newName ) );
+
+                return true;
+            }
+            catch ( Exception )
+            {
+
+                throw;
+            }
         }
 
-        public override bool UploadObject( Asset asset, Stream file )
+        public override bool UploadObject( Asset asset )
         {
-            throw new NotImplementedException();
+            asset.Key = FixKey( asset );
+
+            try
+            {
+                string physicalPath = FileSystemCompontHttpContext.Server.MapPath( asset.Key );
+
+                using ( FileStream fs = new FileStream( physicalPath, FileMode.Create ) )
+                using ( asset.AssetStream )
+                {
+                    asset.AssetStream.CopyTo( fs );
+                }
+
+                return true;
+            }
+            catch ( Exception ex )
+            {
+                ExceptionLogService.LogException( ex );
+                throw;
+            }
         }
 
         #endregion Abstract Methods
@@ -246,15 +299,21 @@ namespace Rock.Storage.AssetStorage
             invalidChars.Add( '~' );
             invalidChars.Add( '/' );
 
-            if ( asset.Name.ToList().Any( c => invalidChars.Contains( c ) ) )
+            if ( asset.Name.IsNotNullOrWhitespace() )
             {
-                throw new Exception( "Invalid characters in Asset.Name" );
+                if ( asset.Name.ToList().Any( c => invalidChars.Contains( c ) ) )
+                {
+                    throw new Exception( "Invalid characters in Asset.Name" );
+                }
             }
 
-            invalidChars.Remove( '/' );
-            if ( asset.Key.ToList().Any( c => invalidChars.Contains( c ) ) )
+            if ( asset.Key.IsNotNullOrWhitespace() )
             {
-                throw new Exception( "Invalid characters in Asset.Key" );
+                invalidChars.Remove( '/' );
+                if ( asset.Key.ToList().Any( c => invalidChars.Contains( c ) ) )
+                {
+                    throw new Exception( "Invalid characters in Asset.Key" );
+                }
             }
 
         }
@@ -276,7 +335,7 @@ namespace Rock.Storage.AssetStorage
 
         private Asset CreateAssetFromFileInfo( FileInfo fileInfo )
         {
-            string relativePath = fileInfo.FullName.Replace( fileSystemCompontHttpContext.Server.MapPath( "~/" ), "~/" ).Replace( @"\", "/" );
+            string relativePath = fileInfo.FullName.Replace( FileSystemCompontHttpContext.Server.MapPath( "~/" ), "~/" ).Replace( @"\", "/" );
 
             return new Asset
             {
@@ -289,6 +348,34 @@ namespace Rock.Storage.AssetStorage
                 LastModifiedDateTime = fileInfo.LastWriteTime,
                 Description = string.Empty
             };
+        }
+
+        private string GetPathFromKey( string key )
+        {
+            int i = key.LastIndexOf( '/' );
+            if ( i < 1 )
+            {
+                return string.Empty;
+            }
+
+            return key.Substring( 0, i + 1 );
+        }
+
+        private string GetNameFromKey( string key )
+        {
+            if ( key.LastIndexOf( '/' ) < 1 )
+            {
+                return key;
+            }
+
+            string[] pathSegments = key.Split( '/' );
+
+            if ( key.EndsWith( "/" ) )
+            {
+                return pathSegments[pathSegments.Length - 2];
+            }
+
+            return pathSegments[pathSegments.Length - 1];
         }
 
         #endregion Private Methods
