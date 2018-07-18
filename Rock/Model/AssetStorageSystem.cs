@@ -13,7 +13,7 @@ using Rock.Storage.AssetStorage;
 namespace Rock.Model
 {
     [DataContract]
-    public partial class AssetStorageService : Model<AssetStorageService>, IHasActiveFlag
+    public partial class AssetStorageSystem : Model<AssetStorageSystem>, IHasActiveFlag
     {
         #region Entity Properties
 
@@ -48,7 +48,7 @@ namespace Rock.Model
 
         #region Constructors
 
-        public AssetStorageService()
+        public AssetStorageSystem()
         {
             _isActive = true;
         }
@@ -82,7 +82,7 @@ namespace Rock.Model
 
     #region Entity Configuration
 
-    public partial class AssetStorageServiceConfiguration : EntityTypeConfiguration<AssetStorageService>
+    public partial class AssetStorageServiceConfiguration : EntityTypeConfiguration<AssetStorageSystem>
     {
         public AssetStorageServiceConfiguration()
         {
