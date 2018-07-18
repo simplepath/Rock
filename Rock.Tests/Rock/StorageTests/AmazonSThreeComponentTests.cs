@@ -82,8 +82,9 @@ namespace Rock.Tests.Rock.StorageTests
 
             Asset asset = new Asset();
             asset.Name = ( "TestUploadObjectByName.jpg" );
+            asset.AssetStream = fs;
 
-            bool hasUploaded = s3Component.UploadObject( asset, fs );
+            bool hasUploaded = s3Component.UploadObject( asset );
             Assert.True( hasUploaded );
         }
 

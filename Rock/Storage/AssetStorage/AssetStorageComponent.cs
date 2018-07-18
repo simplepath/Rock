@@ -164,7 +164,7 @@ namespace Rock.Storage.AssetStorage
         /// <param name="asset">The asset.</param>
         /// <param name="file">The file.</param>
         /// <returns></returns>
-        public abstract bool UploadObject( Asset asset, Stream file );
+        public abstract bool UploadObject( Asset asset );
 
         /// <summary>
         /// Creates a folder. If Asset.Key is not provided then one is created using the RootFolder and Asset.Name.

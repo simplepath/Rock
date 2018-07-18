@@ -207,7 +207,7 @@ namespace Rock.Storage.AssetStorage
             try
             {
                 GetObjectResponse response = Client.GetObject( Bucket, asset.Key );
-                return CreateAssetFromGetObjectResponse( response );                
+                return CreateAssetFromGetObjectResponse( response );
                 
             }
             catch ( Exception ex )
@@ -217,7 +217,7 @@ namespace Rock.Storage.AssetStorage
             }
         }
 
-        public override bool UploadObject( Asset asset, Stream file )
+        public override bool UploadObject( Asset asset )
         {
             asset.Key = asset.Key.IsNullOrWhiteSpace() ? RootFolder + asset.Name : asset.Key;
 
@@ -226,7 +226,7 @@ namespace Rock.Storage.AssetStorage
                 PutObjectRequest request = new PutObjectRequest();
                 request.BucketName = this.Bucket;
                 request.Key = asset.Key;
-                request.InputStream = file;
+                request.InputStream = asset.AssetStream;
 
                 PutObjectResponse response = Client.PutObject( request );
                 if ( response.HttpStatusCode == System.Net.HttpStatusCode.OK )
