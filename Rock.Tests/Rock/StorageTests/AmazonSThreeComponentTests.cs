@@ -102,8 +102,9 @@ namespace Rock.Tests.Rock.StorageTests
 
             Asset asset = new Asset();
             asset.Key = ( "UnitTestFolder/SubFolder1/TestUploadObjectByKey.jpg" );
+            asset.AssetStream = fs;
 
-            bool hasUploaded = s3Component.UploadObject( asset, fs );
+            bool hasUploaded = s3Component.UploadObject( asset );
             Assert.True( hasUploaded );
         }
 
@@ -188,8 +189,8 @@ namespace Rock.Tests.Rock.StorageTests
             {
                 using ( fs = new FileStream( @"C:\temp\TextDoc.txt", FileMode.Open ) )
                 {
-                    Asset asset = new Asset { Name = $"TestFile-{i}.txt" };
-                    s3Component.UploadObject( asset, fs );
+                    Asset asset = new Asset { Name = $"TestFile-{i}.txt", AssetStream = fs };
+                    s3Component.UploadObject( asset );
                     i++;
                 }
             }
