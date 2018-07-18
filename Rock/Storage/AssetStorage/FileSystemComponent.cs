@@ -96,6 +96,7 @@ namespace Rock.Storage.AssetStorage
             }
             catch ( Exception ex )
             {
+                ExceptionLogService.LogException( ex );
                 throw;
             }
 
