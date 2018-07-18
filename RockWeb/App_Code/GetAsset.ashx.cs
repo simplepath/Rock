@@ -24,33 +24,35 @@ using Rock.Data;
 using Rock.Model;
 using Rock.Security;
 
-
-/// <summary>
-/// Summary description for GetAsset
-/// </summary>
-public class GetAsset : IHttpAsyncHandler
+namespace RockWeb
 {
-    public GetAsset()
+    /// <summary>
+    /// Summary description for GetAsset
+    /// </summary>
+    public class GetAsset : IHttpAsyncHandler
     {
-        //
-        // TODO: Add constructor logic here
-        //
-    }
+        public GetAsset()
+        {
+            //
+            // TODO: Add constructor logic here
+            //
+        }
 
-    public bool IsReusable => false;
+        public bool IsReusable => false;
 
-    public IAsyncResult BeginProcessRequest( HttpContext context, AsyncCallback cb, object extraData )
-    {
-        throw new NotImplementedException();
-    }
+        public IAsyncResult BeginProcessRequest( HttpContext context, AsyncCallback cb, object extraData )
+        {
+            throw new NotImplementedException();
+        }
 
-    public void EndProcessRequest( IAsyncResult result )
-    {
-        throw new NotImplementedException();
-    }
+        public void EndProcessRequest( IAsyncResult result )
+        {
+            throw new NotImplementedException();
+        }
 
-    public void ProcessRequest( HttpContext context )
-    {
-        throw new NotImplementedException();
+        public void ProcessRequest( HttpContext context )
+        {
+            throw new NotImplementedException();
+        }
     }
 }
