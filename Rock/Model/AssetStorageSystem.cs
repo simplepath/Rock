@@ -26,12 +26,7 @@ namespace Rock.Model
         public int? EntityTypeId { get; set; }
 
         [DataMember]
-        public bool IsActive
-        {
-            get { return _isActive; }
-            set { _isActive = value; }
-        }
-        private bool _isActive = true;
+        public bool IsActive { get; set; }
 
         #endregion Entity Properties
 
@@ -46,7 +41,7 @@ namespace Rock.Model
 
         public AssetStorageSystem()
         {
-            _isActive = true;
+            IsActive = true;
         }
 
         #endregion Constructors
