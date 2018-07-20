@@ -38,7 +38,13 @@ namespace RockWeb
             //
         }
 
-        public bool IsReusable => false;
+        public bool IsReusable
+        {
+            get
+            {
+                return false;
+            }
+        }
 
         public IAsyncResult BeginProcessRequest( HttpContext context, AsyncCallback cb, object extraData )
         {

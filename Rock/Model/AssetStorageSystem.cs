@@ -3,7 +3,7 @@ using System.Data.Entity.ModelConfiguration;
 using System.Runtime.Serialization;
 
 using Rock.Data;
-using Rock.Cache;
+using Rock.Web.Cache;
 using Rock.Storage.AssetStorage;
 
 namespace Rock.Model
@@ -51,7 +51,7 @@ namespace Rock.Model
         {
             if ( EntityTypeId.HasValue )
             {
-                var entityType = CacheEntityType.Get( EntityTypeId.Value );
+                var entityType = EntityTypeCache.Get( EntityTypeId.Value );
                 if ( entityType != null )
                 {
                     return AssetStorageContainer.GetComponent( entityType.Name );
