@@ -24,7 +24,7 @@ using System.Reflection;
 
 using Quartz;
 using Rock.Attribute;
-using Rock.Cache;
+using Rock.Web.Cache;
 using Rock.Data;
 using Rock.Field.Types;
 using Rock.Model;
@@ -225,6 +225,8 @@ namespace Rock.Jobs
                 personRockContext.SaveChanges();
             }
 
+            AddMissingAlternateIds();
+
             using ( var personRockContext = new Rock.Data.RockContext() )
             {
                 PersonService personService = new PersonService( personRockContext );
@@ -278,16 +280,16 @@ namespace Rock.Jobs
 
             //// Add any missing Implied/Known relationship groups
             // Known Relationship Group
-            AddMissingRelationshipGroups( CacheGroupType.Get( Rock.SystemGuid.GroupType.GROUPTYPE_KNOWN_RELATIONSHIPS ), Rock.SystemGuid.GroupRole.GROUPROLE_KNOWN_RELATIONSHIPS_OWNER.AsGuid() );
+            AddMissingRelationshipGroups( GroupTypeCache.Get( Rock.SystemGuid.GroupType.GROUPTYPE_KNOWN_RELATIONSHIPS ), Rock.SystemGuid.GroupRole.GROUPROLE_KNOWN_RELATIONSHIPS_OWNER.AsGuid() );
 
             // Implied Relationship Group
-            AddMissingRelationshipGroups( CacheGroupType.Get( Rock.SystemGuid.GroupType.GROUPTYPE_PEER_NETWORK ), Rock.SystemGuid.GroupRole.GROUPROLE_PEER_NETWORK_OWNER.AsGuid() );
+            AddMissingRelationshipGroups( GroupTypeCache.Get( Rock.SystemGuid.GroupType.GROUPTYPE_PEER_NETWORK ), Rock.SystemGuid.GroupRole.GROUPROLE_PEER_NETWORK_OWNER.AsGuid() );
 
             // Find family groups that have no members or that have only 'inactive' people (record status) and mark the groups inactive.
             using ( var familyRockContext = new Rock.Data.RockContext() )
             {
-                int familyGroupTypeId = CacheGroupType.GetFamilyGroupType().Id;
-                int recordStatusInactiveValueId = CacheDefinedValue.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_INACTIVE.AsGuid() ).Id;
+                int familyGroupTypeId = GroupTypeCache.GetFamilyGroupType().Id;
+                int recordStatusInactiveValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_INACTIVE.AsGuid() ).Id;
 
                 var activeFamilyWithNoActiveMembers = new GroupService( familyRockContext ).Queryable()
                     .Where( a => a.GroupTypeId == familyGroupTypeId && a.IsActive == true )
@@ -303,11 +305,69 @@ namespace Rock.Jobs
         }
 
         /// <summary>
+        /// Adds any missing person alternate ids; limited to 150k records per run
+        /// to avoid any possible memory issues. Processes about 150k records
+        /// in 52 seconds.
+        /// </summary>
+        private static void AddMissingAlternateIds()
+        {
+            using ( var personRockContext = new Rock.Data.RockContext() )
+            {
+                var personService = new PersonService( personRockContext );
+                int alternateValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_SEARCH_KEYS_ALTERNATE_ID.AsGuid() ).Id;
+                var personSearchKeyService = new PersonSearchKeyService( personRockContext );
+                var alternateKeyQuery = personSearchKeyService.Queryable().AsNoTracking().Where( a => a.SearchTypeValueId == alternateValueId );
+
+                IQueryable<Person> personQuery = personService.Queryable( includeDeceased: true ).AsNoTracking();
+
+                // Make a list of items that we're going to bulk insert.
+                var itemsToInsert = new List<PersonSearchKey>();
+
+                // Get all existing keys so we can keep track and quickly check them while we're bulk adding new ones.
+                var keys = new HashSet<string>( personSearchKeyService.Queryable().AsNoTracking()
+                    .Where( a => a.SearchTypeValueId == alternateValueId )
+                    .Select( a => a.SearchValue )
+                    .ToList() );
+
+                string alternateId = string.Empty;
+
+                // Find everyone who does not yet have an alternateKey.
+                foreach ( var person in personQuery = personQuery
+                    .Where( p => !alternateKeyQuery.Any( f => f.PersonAlias.PersonId == p.Id ) )
+                    .Take( 150000 ) )
+                {
+                    // Regenerate key if it already exists.
+                    do
+                    {
+                        alternateId = PersonSearchKeyService.GenerateRandomAlternateId();
+                    } while ( keys.Contains( alternateId ) );
+
+                    keys.Add( alternateId );
+
+                    itemsToInsert.Add(
+                        new PersonSearchKey()
+                        {
+                            PersonAliasId = person.PrimaryAliasId,
+                            SearchTypeValueId = alternateValueId,
+                            SearchValue = alternateId
+                        }
+                    );
+                }
+
+                if ( itemsToInsert.Count > 0 )
+                {
+                    // Now add them in one bulk insert.
+                    personRockContext.BulkInsert( itemsToInsert );
+                }
+            }
+        }
+
+        /// <summary>
         /// Adds the missing relationship groups.
         /// </summary>
         /// <param name="relationshipGroupType">Type of the relationship group.</param>
         /// <param name="ownerRoleGuid">The owner role unique identifier.</param>
-        private static void AddMissingRelationshipGroups( CacheGroupType relationshipGroupType, Guid ownerRoleGuid )
+        private static void AddMissingRelationshipGroups( GroupTypeCache relationshipGroupType, Guid ownerRoleGuid )
         {
             if ( relationshipGroupType != null )
             {
@@ -692,7 +752,7 @@ WHERE ic.ChannelId = @channelId
                 AttributeMatrixService attributeMatrixService = new AttributeMatrixService( rockContext );
                 AttributeMatrixItemService attributeMatrixItemService = new AttributeMatrixItemService( rockContext );
 
-                var matrixFieldTypeId = CacheFieldType.Get<MatrixFieldType>().Id;
+                var matrixFieldTypeId = FieldTypeCache.Get<MatrixFieldType>().Id;
                 // get a list of attribute Matrix Guids that are actually in use
                 var usedAttributeMatrices = new AttributeValueService( rockContext ).Queryable().Where( a => a.Attribute.FieldTypeId == matrixFieldTypeId ).Select( a => a.Value ).ToList().AsGuidList();
 
@@ -710,12 +770,12 @@ WHERE ic.ChannelId = @channelId
 
             // clean up other orphaned entity attributes
             Type rockContextType = typeof( Rock.Data.RockContext );
-            foreach ( var cachedType in CacheEntityType.All().Where( e => e.IsEntity ) )
+            foreach ( var cachedType in EntityTypeCache.All().Where( e => e.IsEntity ) )
             {
                 Type entityType = cachedType.GetEntityType();
                 if ( entityType != null &&
                     typeof( IEntity ).IsAssignableFrom( entityType ) &&
-                    typeof( Data.IHasAttributes ).IsAssignableFrom( entityType ) &&
+                    typeof( Attribute.IHasAttributes ).IsAssignableFrom( entityType ) &&
                     !entityType.Namespace.Equals( "Rock.Rest.Controllers" ) )
                 {
                     try
@@ -753,14 +813,14 @@ WHERE ic.ChannelId = @channelId
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        private int CleanupOrphanedAttributeValuesForEntityType<T>() where T : Rock.Data.Entity<T>,  Data.IHasAttributes, new()
+        private int CleanupOrphanedAttributeValuesForEntityType<T>() where T : Rock.Data.Entity<T>,  Attribute.IHasAttributes, new()
         {
             int recordsDeleted = 0;
 
             using ( RockContext rockContext = new RockContext() )
             {
                 var attributeValueService = new AttributeValueService( rockContext );
-                int? entityTypeId = CacheEntityType.GetId<T>();
+                int? entityTypeId = EntityTypeCache.GetId<T>();
                 var entityIdsQuery = new Service<T>( rockContext ).Queryable().Select( a => a.Id );
                 var orphanedAttributeValues = attributeValueService.Queryable().Where( a => a.EntityId.HasValue && a.Attribute.EntityTypeId == entityTypeId.Value && !entityIdsQuery.Contains( a.EntityId.Value ) ).ToList();
                 if ( orphanedAttributeValues.Any() )
@@ -905,8 +965,8 @@ WHERE ExpireDateTime IS NOT NULL
                 // if IO Exception thrown and this is not a retry attempt
                 if ( !isRetryAttempt )
                 {
-                    // have thread sleep for 10 ms and retry delete
-                    System.Threading.Thread.Sleep( 10 );
+                    // wait for 10 ms and retry delete
+                    System.Threading.Tasks.Task.Delay( 10 ).Wait();
                     DeleteDirectory( directoryPath, true );
                 }
             }
@@ -933,8 +993,8 @@ WHERE ExpireDateTime IS NOT NULL
                 // If an IO exception has occurred and this is not a retry attempt
                 if ( !isRetryAttempt )
                 {
-                    // have the thread sleep for 10 ms and retry delete.
-                    System.Threading.Thread.Sleep( 10 );
+                    // wait for 10 ms and retry delete.
+                    System.Threading.Tasks.Task.Delay( 10 ).Wait();
                     DeleteFile( filePath, true );
                 }
             }

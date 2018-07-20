@@ -4397,11 +4397,13 @@ namespace Rock.Migrations.Migrations {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to INSERT INTO [LavaShortCode]
+        ///   Looks up a localized string similar to IF ( SELECT COUNT(*) FROM [LavaShortCode] WHERE [Guid] = &apos;EA1335B7-158F-464F-8994-98C53D4E47FF&apos; ) = 0
+        ///BEGIN
+        ///INSERT INTO [LavaShortCode]
         ///	([Name], [Description], [Documentation], [IsSystem], [IsActive], [TagName], [Markup], [TagType], [EnabledLavaCommands], [Parameters], [Guid])
         ///	VALUES
         ///	(&apos;Vimeo&apos;,&apos;Creates a responsive Vimeo embed from just a simple video id.&apos;,&apos;&lt;p&gt;Embedding a Vimeo video is easy, right? Well what if you want it to be responsive (adjust with the size of the window)? Or what about 
-        ///control of what is shown in the player? The Vimeo shortcode helps to shorten (see what we did there) the time it tak [rest of string was truncated]&quot;;.
+        ///contro [rest of string was truncated]&quot;;.
         /// </summary>
         public static string _201804272301456_MergeFromV7_4_AddVimeoShortCode {
             get {
@@ -4970,25 +4972,63 @@ namespace Rock.Migrations.Migrations {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ALTER PROCEDURE [dbo].[spAnalytics_ETL_Attendance]
+        ///   Looks up a localized string similar to 
+        ///ALTER PROCEDURE [dbo].[spAnalytics_ETL_Attendance]
         ///AS
         ///BEGIN
         ///    DECLARE @MinDateTime DATETIME = DATEFROMPARTS(1900, 1, 1)
-        ///        ,@EtlDateTime DATETIME = SysDateTime();
+        ///    DECLARE @EtlDateTime DATETIME = SYSDATETIME();
         ///
         ///    -- insert records into [[AnalyticsSourceAttendance]] from the source [Attendance] table that haven&apos;t been added yet
         ///    INSERT INTO [dbo].[AnalyticsSourceAttendance] (
-        ///        [AttendanceId]
-        ///        ,[AttendanceDateKey]
-        ///        ,[AttendanceTypeId]
-        ///        ,[Count]
-        ///        ,[LocationId]
-        ///        ,[CampusId]
-        ///        ,[Schedu [rest of string was truncated]&quot;;.
+        ///          [AttendanceId]
+        ///        , [AttendanceDateKey]
+        ///        , [AttendanceTypeId]
+        ///        , [Count]
+        ///        , [LocationId]
+        ///        , [CampusId]
+        ///     [rest of string was truncated]&quot;;.
         /// </summary>
         public static string _201805171836577_Rollup_0517_spAnalytics_ETL_Attendance {
             get {
                 return ResourceManager.GetString("_201805171836577_Rollup_0517_spAnalytics_ETL_Attendance", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to /*
+        ///&lt;doc&gt;
+        ///	&lt;summary&gt;
+        /// 		This view returns distinct attendance dates for a person and group type
+        ///	&lt;/summary&gt;
+        ///
+        ///	&lt;returns&gt;
+        ///		* GroupTypeId
+        ///        * PersonId
+        ///		* SundayDate
+        ///	&lt;/returns&gt;
+        ///	&lt;remarks&gt;	
+        ///	&lt;/remarks&gt;
+        ///	&lt;code&gt;
+        ///		SELECT * FROM [vCheckin_Attendance] WHERE [PersonAliasId] = 4
+        ///	&lt;/code&gt;
+        ///&lt;/doc&gt;
+        ///*/
+        ///ALTER VIEW [dbo].[vCheckin_Attendance]
+        ///
+        ///AS
+        ///
+        ///SELECT A.[Id]
+        ///      ,O.[LocationId]
+        ///      ,O.[ScheduleId]
+        ///      ,O.[GroupId]
+        ///      ,A.[DeviceId]
+        ///      ,A.[SearchTypeValueId]
+        ///      ,A.[Attendan [rest of string was truncated]&quot;;.
+        /// </summary>
+        public static string _201805171836577_Rollup_0517_vCheckin_Attendance {
+            get {
+                return ResourceManager.GetString("_201805171836577_Rollup_0517_vCheckin_Attendance", resourceCulture);
             }
         }
         
@@ -5082,6 +5122,40 @@ namespace Rock.Migrations.Migrations {
         public static string _201806111950515_ContentChannelViewDetail {
             get {
                 return ResourceManager.GetString("_201806111950515_ContentChannelViewDetail", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to -- We have secured Person.ConnectionStatus and Person.RecordStatus on the bulk upate block to follow conventions on the person edit block.
+        ///-- Now we need to add those that currently have access so they don&apos;t lose anything.
+        ///
+        ///DECLARE @BlockEntityTypeId INT = (SELECT [Id] FROM [EntityType] WHERE [Guid] = &apos;D89555CA-9AE4-4D62-8AF1-E5E463C1EF65&apos;)
+        ///DECLARE @BulkUpdateBlockId INT = (SELECT [Id] FROM [Block] WHERE [Guid] = &apos;A610AB9D-7397-4D27-8614-F6A282B78B2C&apos;)
+        ///DECLARE @RockAdminGroupId INT = (SELECT [Id] FROM  [rest of string was truncated]&quot;;.
+        /// </summary>
+        public static string _201807191932379_Rollup_0719_Add_ConnectionStatus_and_RecordStatus_Security_Actions_to_Bulk_Update {
+            get {
+                return ResourceManager.GetString("_201807191932379_Rollup_0719_Add_ConnectionStatus_and_RecordStatus_Security_Actio" +
+                        "ns_to_Bulk_Update", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to UPDATE [LavaShortCode] 
+        ///SET [Markup] = &apos;{%- assign wrapperId = uniqueid -%}
+        ///{%- assign firstopen = firstopen | AsBoolean -%}
+        ///&lt;div class=&quot;panel-group&quot; id=&quot;accordion-{{ wrapperId }}&quot; role=&quot;tablist&quot; aria-multiselectable=&quot;true&quot;&gt;
+        ///  {%- for item in items -%}
+        ///      {%- assign isopen = &apos;&apos;&apos;&apos; -%}
+        ///      {%- if item.isopen and item.isopen !=&apos;&apos;&apos;&apos; -%}
+        ///        {%- assign isopen = item.isopen | AsBoolean -%}
+        ///      {%- else -%}
+        ///        {%- if forloop.index == 1 and firstopen -%}
+        ///            {%- assign isopen = tru [rest of string was truncated]&quot;;.
+        /// </summary>
+        public static string _201807191932379_Rollup_0719_Fix_Accordion_Bug {
+            get {
+                return ResourceManager.GetString("_201807191932379_Rollup_0719_Fix_Accordion_Bug", resourceCulture);
             }
         }
     }
