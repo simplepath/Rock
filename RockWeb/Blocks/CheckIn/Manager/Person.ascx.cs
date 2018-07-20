@@ -24,9 +24,11 @@ using System.Web.UI;
 using System.Web.UI.WebControls;
 using Rock;
 using Rock.Attribute;
+using Rock.Communication;
 using Rock.Data;
 using Rock.Model;
 using Rock.Security;
+using Rock.Web.Cache;
 
 namespace RockWeb.Blocks.CheckIn.Manager
 {
@@ -39,8 +41,13 @@ namespace RockWeb.Blocks.CheckIn.Manager
 
     [LinkedPage("Manager Page", "Page used to manage check-in locations", true, "", "", 0)]
     [BooleanField("Show Related People", "Should anyone who is allowed to check-in the current person also be displayed with the family members?", false, "", 1)]
+    [DefinedValueField(Rock.SystemGuid.DefinedType.COMMUNICATION_SMS_FROM, "Send SMS From", "The phone number SMS messages should be sent from", false, false, key: SMS_FROM_KEY )]
+
     public partial class Person : Rock.Web.UI.RockBlock
     {
+        private const string SMS_FROM_KEY = "SMSFrom";
+        private const string PERSON_GUID_PAGE_QUERY_KEY = "Person";
+
         #region Fields
 
         // used for private variables
@@ -86,7 +93,7 @@ namespace RockWeb.Blocks.CheckIn.Manager
             {
                 if ( IsUserAuthorized( Authorization.VIEW ) )
                 {
-                    Guid? personGuid = PageParameter( "Person" ).AsGuidOrNull();
+                    Guid? personGuid = PageParameter( PERSON_GUID_PAGE_QUERY_KEY ).AsGuidOrNull();
                     if ( personGuid.HasValue )
                     {
                         ShowDetail( personGuid.Value );
@@ -108,7 +115,7 @@ namespace RockWeb.Blocks.CheckIn.Manager
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void Block_BlockUpdated( object sender, EventArgs e )
         {
-
+            ShowDetail( PageParameter( PERSON_GUID_PAGE_QUERY_KEY ).AsGuid());
         }
 
         /// <summary>
@@ -162,7 +169,7 @@ namespace RockWeb.Blocks.CheckIn.Manager
                 }
             }
 
-            ShowDetail( PageParameter( "Person" ).AsGuid() );
+            ShowDetail( PageParameter( PERSON_GUID_PAGE_QUERY_KEY ).AsGuid() );
         }
 
         protected void rptrFamily_ItemDataBound( object sender, RepeaterItemEventArgs e )
@@ -203,6 +210,12 @@ namespace RockWeb.Blocks.CheckIn.Manager
                     lRelationshipsIcon.Text = "<i class='fa fa-male'></i>";
                 }
             }
+        }
+        
+        protected void btnSms_Click( object sender, EventArgs e )
+        {
+            btnSms.Visible = false;
+            tbSmsMessage.Visible = btnSmsCancel.Visible = btnSmsSend.Visible = true;
         }
 
         #endregion
@@ -250,6 +263,8 @@ namespace RockWeb.Blocks.CheckIn.Manager
                     
                     lEmail.Visible = !string.IsNullOrWhiteSpace( person.Email );
                     lEmail.Text = person.GetEmailTag( ResolveRockUrl( "/" ), "btn btn-default", "<i class='fa fa-envelope'></i>" );
+                    
+                    btnSms.Visible = GetAttributeValue( SMS_FROM_KEY ).IsNotNullOrWhitespace();
 
                     // Get all family member from all families ( including self )
                     var allFamilyMembers = personService.GetFamilyMembers( person.Id, true ).ToList();
@@ -433,5 +448,62 @@ namespace RockWeb.Blocks.CheckIn.Manager
 
         #endregion
 
+        protected void btnSend_Click( object sender, EventArgs e )
+        {
+            var definedValueGuid = GetAttributeValue( SMS_FROM_KEY ).AsGuidOrNull();
+            var message = tbSmsMessage.Value.Trim();
+            
+            if (message.IsNullOrWhiteSpace() || !definedValueGuid.HasValue)
+            {
+                ResetSms();
+                // TODO: Error display
+                return;
+            }
+
+            var smsFromNumber = DefinedValueCache.Get( definedValueGuid.Value );
+            if (smsFromNumber == null)
+            {
+                ResetSms();
+                // TODO: Error display
+                return;
+            }
+
+            var rockContext = new RockContext();
+            var person = new PersonService( rockContext ).Get(PageParameter( PERSON_GUID_PAGE_QUERY_KEY ).AsGuid() );
+            var phoneNumber = person.PhoneNumbers.FirstOrDefault();
+            if (phoneNumber == null)
+            {
+                ResetSms();
+                // TODO: Error display
+                return;
+            }
+
+            var smsMessage = new RockSMSMessage();
+            // NumberFormatted and NumberFormattedWithCountryCode do NOT work
+            smsMessage.AddRecipient( new RecipientData(  "+" + phoneNumber.CountryCode + phoneNumber.Number));
+            smsMessage.FromNumber = smsFromNumber;
+            smsMessage.Message = tbSmsMessage.Value;
+            var errorMessages = new List<string>();
+            smsMessage.Send(out errorMessages);
+
+            if (errorMessages.Any())
+            {
+                // TODO error display
+            }
+
+            ResetSms();
+        }
+
+        protected void btnSmsCancel_Click( object sender, EventArgs e )
+        {
+            ResetSms();
+        }
+
+        private void ResetSms()
+        {
+            btnSms.Visible = true;
+            tbSmsMessage.Visible = btnSmsCancel.Visible = btnSmsSend.Visible = false;
+            tbSmsMessage.Value = String.Empty;
+        }
     }
 }
