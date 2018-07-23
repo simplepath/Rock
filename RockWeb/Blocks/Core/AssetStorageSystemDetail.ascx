@@ -1,9 +1,10 @@
-﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="AssetStorageSystemDetail.ascx.cs" Inherits="Blocks_Core_AssetStorageSystemDetail" %>
+﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="AssetStorageSystemDetail.ascx.cs" Inherits="RockWeb.Blocks.Core.AssetStorageSystemDetail" %>
 <asp:UpdatePanel ID="pnlAssetStorageSystemUpdatePanel" runat="server">
     <ContentTemplate>
         <asp:Panel ID="pnlDetails" CssClass="panel panel-block" runat="server">
 
             <asp:HiddenField ID="hfAssetStorageSystemId" runat="server" />
+            <asp:HiddenField ID="hfAssetStorageEntityTypeId" runat="server" />
 
             <div class="panel-heading">
                 <h1 class="panel-title"><i class="fa fa-cloud-upload"></i> <asp:Literal ID="lActionTitle" runat="server" /></h1>
@@ -32,7 +33,7 @@
                     <asp:ValidationSummary ID="valAssetStorageSystemDetail" runat="server" HeaderText="Please Correct the Following" CssClass="alert alert-validation" />
 
 
-
+                    <Rock:DynamicPlaceHolder ID="phAttributes" runat="server" />
 
                     <div class="actions">
                         <asp:LinkButton ID="btnSave" runat="server" AccessKey="s" ToolTip="Alt+s" Text="Save" CssClass="btn btn-primary" OnClick="btnSave_Click" />
