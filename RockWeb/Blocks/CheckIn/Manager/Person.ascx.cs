@@ -29,6 +29,7 @@ using Rock.Data;
 using Rock.Model;
 using Rock.Security;
 using Rock.Web.Cache;
+using Rock.Web.UI.Controls;
 
 namespace RockWeb.Blocks.CheckIn.Manager
 {
@@ -211,11 +212,80 @@ namespace RockWeb.Blocks.CheckIn.Manager
                 }
             }
         }
-        
+
+        /// <summary>
+        /// Handles the Click event of the btnSms control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void btnSms_Click( object sender, EventArgs e )
         {
             btnSms.Visible = false;
             tbSmsMessage.Visible = btnSmsCancel.Visible = btnSmsSend.Visible = true;
+        }
+
+
+        /// <summary>
+        /// Handles the Click event of the btnSend control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
+        protected void btnSend_Click( object sender, EventArgs e )
+        {
+            var definedValueGuid = GetAttributeValue( SMS_FROM_KEY ).AsGuidOrNull();
+            var message = tbSmsMessage.Value.Trim();
+
+            if ( message.IsNullOrWhiteSpace() || !definedValueGuid.HasValue )
+            {
+                ResetSms();
+                DisplayResult( NotificationBoxType.Danger, "Error sending message. Please try again." );
+                return;
+            }
+
+            var smsFromNumber = DefinedValueCache.Get( definedValueGuid.Value );
+            if ( smsFromNumber == null )
+            {
+                ResetSms();
+                DisplayResult( NotificationBoxType.Danger, "Could not find a valid phone number to send from." );
+                return;
+            }
+
+            var rockContext = new RockContext();
+            var person = new PersonService( rockContext ).Get( PageParameter( PERSON_GUID_PAGE_QUERY_KEY ).AsGuid() );
+            var phoneNumber = person.PhoneNumbers.FirstOrDefault( n => n.IsMessagingEnabled );
+            if ( phoneNumber == null )
+            {
+                ResetSms();
+                DisplayResult( NotificationBoxType.Danger, "Could not find a valid number for this person." );
+                return;
+            }
+
+            var smsMessage = new RockSMSMessage();
+            // NumberFormatted and NumberFormattedWithCountryCode does NOT work (this pattern is repeated in Twilio.cs)
+            smsMessage.AddRecipient( new RecipientData( "+" + phoneNumber.CountryCode + phoneNumber.Number ) );
+            smsMessage.FromNumber = smsFromNumber;
+            smsMessage.Message = tbSmsMessage.Value;
+            var errorMessages = new List<string>();
+            smsMessage.Send( out errorMessages );
+
+            if ( errorMessages.Any() )
+            {
+                DisplayResult( NotificationBoxType.Danger, "Error sending message. Please try again." );
+            }
+
+            DisplayResult( NotificationBoxType.Success, "Message sent." );
+            ResetSms();
+        }
+
+        /// <summary>
+        /// Handles the Click event of the btnSmsCancel control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
+        protected void btnSmsCancel_Click( object sender, EventArgs e )
+        {
+            nbResult.Visible = false;
+            ResetSms();
         }
 
         #endregion
@@ -264,7 +334,7 @@ namespace RockWeb.Blocks.CheckIn.Manager
                     lEmail.Visible = !string.IsNullOrWhiteSpace( person.Email );
                     lEmail.Text = person.GetEmailTag( ResolveRockUrl( "/" ), "btn btn-default", "<i class='fa fa-envelope'></i>" );
                     
-                    btnSms.Visible = GetAttributeValue( SMS_FROM_KEY ).IsNotNullOrWhitespace();
+                    btnSms.Visible = GetAttributeValue( SMS_FROM_KEY ).IsNotNullOrWhitespace() && person.PhoneNumbers.Any(n => n.IsMessagingEnabled && n.Number.IsNotNullOrWhitespace());
 
                     // Get all family member from all families ( including self )
                     var allFamilyMembers = personService.GetFamilyMembers( person.Id, true ).ToList();
@@ -427,6 +497,29 @@ namespace RockWeb.Blocks.CheckIn.Manager
             }
         }
 
+        /// <summary>
+        /// Resets the SMS send feature to its default state
+        /// </summary>
+        private void ResetSms()
+        {
+            // If this method got called, we've already checked the person has a valid number
+            btnSms.Visible = true;
+            tbSmsMessage.Visible = btnSmsCancel.Visible = btnSmsSend.Visible = false;
+            tbSmsMessage.Value = String.Empty;
+        }
+
+        /// <summary>
+        /// Displays the result of an attempt to send a SMS.
+        /// </summary>
+        /// <param name="type">The NotificationBoxType.</param>
+        /// <param name="message">The message to display.</param>
+        private void DisplayResult( NotificationBoxType type, string message )
+        {
+            nbResult.NotificationBoxType = type;
+            nbResult.Text = message;
+            nbResult.Visible = true;
+        }
+
         #endregion
 
         #region Helper Classes
@@ -447,63 +540,5 @@ namespace RockWeb.Blocks.CheckIn.Manager
         }
 
         #endregion
-
-        protected void btnSend_Click( object sender, EventArgs e )
-        {
-            var definedValueGuid = GetAttributeValue( SMS_FROM_KEY ).AsGuidOrNull();
-            var message = tbSmsMessage.Value.Trim();
-            
-            if (message.IsNullOrWhiteSpace() || !definedValueGuid.HasValue)
-            {
-                ResetSms();
-                // TODO: Error display
-                return;
-            }
-
-            var smsFromNumber = DefinedValueCache.Get( definedValueGuid.Value );
-            if (smsFromNumber == null)
-            {
-                ResetSms();
-                // TODO: Error display
-                return;
-            }
-
-            var rockContext = new RockContext();
-            var person = new PersonService( rockContext ).Get(PageParameter( PERSON_GUID_PAGE_QUERY_KEY ).AsGuid() );
-            var phoneNumber = person.PhoneNumbers.FirstOrDefault();
-            if (phoneNumber == null)
-            {
-                ResetSms();
-                // TODO: Error display
-                return;
-            }
-
-            var smsMessage = new RockSMSMessage();
-            // NumberFormatted and NumberFormattedWithCountryCode do NOT work
-            smsMessage.AddRecipient( new RecipientData(  "+" + phoneNumber.CountryCode + phoneNumber.Number));
-            smsMessage.FromNumber = smsFromNumber;
-            smsMessage.Message = tbSmsMessage.Value;
-            var errorMessages = new List<string>();
-            smsMessage.Send(out errorMessages);
-
-            if (errorMessages.Any())
-            {
-                // TODO error display
-            }
-
-            ResetSms();
-        }
-
-        protected void btnSmsCancel_Click( object sender, EventArgs e )
-        {
-            ResetSms();
-        }
-
-        private void ResetSms()
-        {
-            btnSms.Visible = true;
-            tbSmsMessage.Visible = btnSmsCancel.Visible = btnSmsSend.Visible = false;
-            tbSmsMessage.Value = String.Empty;
-        }
     }
 }
