@@ -31,9 +31,9 @@ namespace Rock.Storage.AssetStorage
     {
 
         #region Constructors
-            public AssetStorageComponent() : base(false)
+        public AssetStorageComponent() : base(false)
         {
-            // TODO: See if we need to load attributes here or for each AssetStorageService instance
+            // Override default constructor of Component that loads attributes (not needed for asset storage components, needs to be done by each AssetStorageSystem)
         }
 
         #endregion Constructors
@@ -71,9 +71,64 @@ namespace Rock.Storage.AssetStorage
 
 
         #region Component Overrides
+        /// <summary>
+        /// Always returns 0.  
+        /// </summary>
+        /// <value></value>
+        public override int Order
+        {
+            get
+            {
+                return 0;
+            }
+        }
+
+        /// <summary>
+        /// Always returns true. 
+        /// </summary>
+        /// <value></value>
+        public override bool IsActive
+        {
+            get
+            {
+                return true;
+            }
+        }
+
+        /// <summary>
+        /// Use GetAttributeValue( AssetStorageSystem assetStorageSystem, string key ) instead.
+        /// </summary>
+        /// <param name="key">The key.</param>
+        /// <returns>Exception</returns>
+        /// <exception cref="Exception">Asset Storage attributes are saved for specific asset storage components. Use GetAttributeValue( AssetStorageSystem assetStorageSystem, string key ) instead.</exception>
+        public override string GetAttributeValue( string key )
+        {
+            throw new Exception( "Asset Storage attributes are saved for specific asset storage components. Use GetAttributeValue( AssetStorageSystem assetStorageSystem, string key ) instead." );
+        }
+
         #endregion Component Overrides
 
         #region Public Methods
+        public string GetettributeValue( AssetStorageSystem assetStorageSystem, string key )
+        {
+            if ( assetStorageSystem.AttributeValues == null )
+            {
+                assetStorageSystem.LoadAttributes();
+            }
+
+            var values = assetStorageSystem.AttributeValues;
+            if ( values != null && values.ContainsKey( key ) )
+            {
+                var keyValues = values[key];
+                if ( keyValues != null )
+                {
+                    return keyValues.Value;
+                }
+            }
+
+            return string.Empty;
+        }
+
         #endregion Public Methods
 
         #region Virtual Methods

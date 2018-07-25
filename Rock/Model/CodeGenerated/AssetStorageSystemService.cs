@@ -74,6 +74,7 @@ namespace Rock.Model
         public static void CopyPropertiesFrom( this AssetStorageSystem target, AssetStorageSystem source )
         {
             target.Id = source.Id;
+            target.Description = source.Description;
             target.EntityTypeId = source.EntityTypeId;
             target.ForeignGuid = source.ForeignGuid;
             target.ForeignKey = source.ForeignKey;

@@ -1,4 +1,4 @@
-﻿// <copyright>
+// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -38,6 +38,7 @@ namespace Rock.Migrations
                         Order = c.Int(nullable: false),
                         EntityTypeId = c.Int(nullable: false),
                         IsActive = c.Boolean(nullable: false),
+                        Description = c.String(),
                         CreatedDateTime = c.DateTime(),
                         ModifiedDateTime = c.DateTime(),
                         CreatedByPersonAliasId = c.Int(),

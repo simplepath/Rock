@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -7,9 +9,16 @@ using System.Threading.Tasks;
 using System.Web;
 
 using Rock.Model;
+using Rock.Attribute;
 
 namespace Rock.Storage.AssetStorage
 {
+    [Description( "Server File System" )]
+    [Export( typeof( AssetStorageComponent ) )]
+    [ExportMetadata( "ComponentName", "ServerFileSystem" )]
+
+    [TextField( name: "Root Folder", description: "", required: true, defaultValue: "~/", category: "", order: 0, key: "RootFolder" )]
+
     public class FileSystemComponent : AssetStorageComponent
     {
         #region Properties

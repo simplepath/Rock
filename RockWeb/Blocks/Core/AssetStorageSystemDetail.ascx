@@ -19,12 +19,12 @@
             <div class="panel-body">
 
 
-                <%-- View --%>
-                <div id="pnlViewDetails" runat="server">
+                <%-- View probably don't need this --%>
+                <%--<div id="pnlViewDetails" runat="server">
 
 
 
-                </div>
+                </div>--%>
 
 
                 <%-- Edit --%>
@@ -32,8 +32,35 @@
 
                     <asp:ValidationSummary ID="valAssetStorageSystemDetail" runat="server" HeaderText="Please Correct the Following" CssClass="alert alert-validation" />
 
+                    <div class="row">
+                        <div class="col-md-6">
+                            <Rock:DataTextBox ID="tbName" runat="server" SourceTypeName="Rock.Model.AssetStorageSystem, Rock" PropertyName="Name" />
+                        </div>
+                        <div class="col-md-6">
+                            <Rock:RockCheckBox ID="cbIsActive" runat="server" Label="Active" />
+                        </div>
+                    </div>
 
-                    <Rock:DynamicPlaceHolder ID="phAttributes" runat="server" />
+                    <div class="row">
+                        <div class="col-md-12">
+                            <Rock:DataTextBox ID="tbDescription" runat="server" SourceTypeName="Rock.Model.AssetStorageSystem, Rock" PropertyName="Description" TextMode="MultiLine" Rows="3" />
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6"> 
+                            <Rock:ComponentPicker ID="cpGatewayType" runat="server" Label="Gateway Type" Required="true" ContainerType="Rock.Storage.AssetStorage.AssetStorageContainer" AutoPostBack="true" OnSelectedIndexChanged="cpGatewayType_SelectedIndexChanged" />
+                        </div>
+                        <%--<div class="col-md-6">
+                            
+                        </div>--%>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <Rock:DynamicPlaceHolder ID="phAttributes" runat="server" />
+                        </div>
+                    </div>
 
                     <div class="actions">
                         <asp:LinkButton ID="btnSave" runat="server" AccessKey="s" ToolTip="Alt+s" Text="Save" CssClass="btn btn-primary" OnClick="btnSave_Click" />

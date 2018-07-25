@@ -28,6 +28,9 @@ namespace Rock.Model
         [DataMember]
         public bool IsActive { get; set; }
 
+        [DataMember]
+        public string Description { get; set; }
+
         #endregion Entity Properties
 
         #region Virtual Properties

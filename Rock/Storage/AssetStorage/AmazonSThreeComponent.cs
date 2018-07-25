@@ -12,9 +12,23 @@ using Amazon.S3.IO;
 using Amazon.S3.Model;
 
 using Rock.Model;
+using Rock.Attribute;
+using Rock.Data;
+using Rock.Web.Cache;
 
 namespace Rock.Storage.AssetStorage
 {
+    [Description( "Amazon S3 Storage Service" )]
+    [Export( typeof( AssetStorageComponent ) )]
+    [ExportMetadata( "ComponentName", "AmazonS3" )]
+
+    [TextField( name: "AWS Region", description: "", required: true, defaultValue: "", category: "", order: 0, key: "AWSRegion" )]
+    [TextField( name: "Bucket", description: "", required: true, defaultValue: "", category: "", order: 1, key: "Bucket" )]
+    [TextField( name: "Root Folder", description: "", required: true, defaultValue: "", category: "", order: 2, key: "RootFolder" )]
+    [TextField( name: "AWS Profile Name", description: "", required: true, defaultValue: "", category: "", order: 3, key: "AWSProfileName" )]
+    [TextField( name: "AWS Access Key", description: "", required: true, defaultValue: "", category: "", order: 4, key: "AWSAccessKey" )]
+    [TextField( name: "AWS Secret Key", description: "", required: true, defaultValue: "", category: "", order: 5, key: "AWSSecretKey" )]
+    
     public class AmazonSThreeComponent : AssetStorageComponent
     {
 
@@ -29,7 +43,7 @@ namespace Rock.Storage.AssetStorage
         public AmazonSThreeComponent() : base()
         {
             //TODO: get client the settings from attributes
-            Client = new AmazonS3Client();
+            //Client = new AmazonS3Client();
         }
 
         public AmazonSThreeComponent( AmazonS3Client amazonS3Client) : base()

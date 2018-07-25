@@ -35,6 +35,9 @@ namespace Rock.Client
         public int Id { get; set; }
 
         /// <summary />
+        public string Description { get; set; }
+
+        /// <summary />
         public int? EntityTypeId { get; set; }
 
         /// <summary />
@@ -90,6 +93,7 @@ namespace Rock.Client
         public void CopyPropertiesFrom( AssetStorageSystem source )
         {
             this.Id = source.Id;
+            this.Description = source.Description;
             this.EntityTypeId = source.EntityTypeId;
             this.ForeignGuid = source.ForeignGuid;
             this.ForeignKey = source.ForeignKey;
