@@ -22,29 +22,22 @@ namespace Rock.Storage.AssetStorage
     public class FileSystemComponent : AssetStorageComponent
     {
         #region Properties
-        public override string RootFolder
+        protected override string FixRootFolder( string rootFolder )
         {
-            get
+            if ( rootFolder.IsNullOrWhiteSpace() )
             {
-                return _rootFolder.IsNullOrWhiteSpace() ? "~/" : _rootFolder;
+                rootFolder = "~/";
             }
-            set
+            else
             {
-                _rootFolder = value;
+                rootFolder = rootFolder.EndsWith( "/" ) ? rootFolder : rootFolder += "/";
+                rootFolder = rootFolder.StartsWith( "~/" ) ? rootFolder : $"~/{rootFolder}";
+            }
 
-                if ( _rootFolder.IsNullOrWhiteSpace() )
-                {
-                    _rootFolder = "~/";
-                }
-                else
-                {
-                    _rootFolder = _rootFolder.EndsWith( "/" ) ? _rootFolder : _rootFolder += "/";
-                    _rootFolder = _rootFolder.StartsWith( "~/" ) ? _rootFolder : $"~/{_rootFolder}";
-                }
-            }
+            return rootFolder;
         }
 
-        public System.Web.HttpContext FileSystemCompontHttpContext { get; set; }
+        //public System.Web.HttpContext FileSystemCompontHttpContext { get; set; }
 
         #endregion Properties
 
@@ -53,11 +46,12 @@ namespace Rock.Storage.AssetStorage
         #endregion Constructors
 
         #region Abstract Methods
-        public override string CreateDownloadLink( Asset asset )
+        public override string CreateDownloadLink( AssetStorageSystem assetStorageSystem, Asset asset )
         {
             try
             {
-                asset.Key = FixKey( asset );
+                string rootFolder = FixRootFolder( GetAttributeValue( assetStorageSystem, "RootFolder" ) );
+                asset.Key = FixKey( asset, rootFolder );
                 string domainName = HttpContext.Current.Request.Url.GetLeftPart( UriPartial.Authority );
                 string uriKey = asset.Key.TrimStart( '~' );
                 return domainName + uriKey;
@@ -69,10 +63,12 @@ namespace Rock.Storage.AssetStorage
             }
         }
 
-        public override bool CreateFolder( Asset asset )
+        public override bool CreateFolder( AssetStorageSystem assetStorageSystem, Asset asset )
         {
+            string rootFolder = FixRootFolder( GetAttributeValue( assetStorageSystem, "RootFolder" ) );
+            asset.Key = FixKey( asset, rootFolder );
             HasRequirementsFolder( asset );
-            asset.Key = FixKey( asset );
+
             string physicalFolder = FileSystemCompontHttpContext.Server.MapPath( asset.Key );
 
             try
@@ -87,11 +83,12 @@ namespace Rock.Storage.AssetStorage
             }
         }
 
-        public override bool DeleteAsset( Asset asset )
+        public override bool DeleteAsset( AssetStorageSystem assetStorageSystem, Asset asset )
         {
             try
             {
-                asset.Key = FixKey( asset );
+                string rootFolder = FixRootFolder( GetAttributeValue( assetStorageSystem, "RootFolder" ) );
+                asset.Key = FixKey( asset, rootFolder );
                 string physicalPath = FileSystemCompontHttpContext.Server.MapPath( asset.Key );
 
                 if ( asset.Type == AssetType.File )
@@ -112,11 +109,13 @@ namespace Rock.Storage.AssetStorage
             return true;
         }
 
-        public override Asset GetObject( Asset asset )
+        public override Asset GetObject( AssetStorageSystem assetStorageSystem, Asset asset )
         {
             try
             {
-                asset.Key = FixKey( asset );
+                string rootFolder = FixRootFolder( GetAttributeValue( assetStorageSystem, "RootFolder" ) );
+
+                asset.Key = FixKey( asset, rootFolder );
                 string physicalFile = FileSystemCompontHttpContext.Server.MapPath( asset.Key );
                 FileStream fs = new FileStream( physicalFile, FileMode.Open );
                 asset.AssetStream = fs;
@@ -130,46 +129,51 @@ namespace Rock.Storage.AssetStorage
             }
         }
 
-        public override List<Asset> ListFilesInFolder()
+        public override List<Asset> ListFilesInFolder( AssetStorageSystem assetStorageSystem )
         {
             var asset = new Asset();
             asset.Type = AssetType.Folder;
-            return ListFilesInFolder( asset );
+            return ListFilesInFolder( assetStorageSystem, asset );
         }
 
-        public override List<Asset> ListFilesInFolder( Asset asset )
+        public override List<Asset> ListFilesInFolder( AssetStorageSystem assetStorageSystem, Asset asset )
         {
-            asset.Key = FixKey( asset );
+            string rootFolder = FixRootFolder( GetAttributeValue( assetStorageSystem, "RootFolder" ) );
+
+            asset.Key = FixKey( asset, rootFolder );
             string physicalFolder = FileSystemCompontHttpContext.Server.MapPath( asset.Key );
 
             return GetListOfObjects( physicalFolder, SearchOption.TopDirectoryOnly, AssetType.File );
         }
 
-        public override List<Asset> ListFoldersInFolder()
+        public override List<Asset> ListFoldersInFolder( AssetStorageSystem assetStorageSystem )
         {
             var asset = new Asset();
             asset.Type = AssetType.Folder;
-            return ListFoldersInFolder( asset );
+            return ListFoldersInFolder( assetStorageSystem, asset );
         }
 
-        public override List<Asset> ListFoldersInFolder( Asset asset )
+        public override List<Asset> ListFoldersInFolder( AssetStorageSystem assetStorageSystem, Asset asset )
         {
-            asset.Key = FixKey( asset );
+            string rootFolder = FixRootFolder( GetAttributeValue( assetStorageSystem, "RootFolder" ) );
+            asset.Key = FixKey( asset, rootFolder );
             string physicalFolder = FileSystemCompontHttpContext.Server.MapPath( asset.Key );
 
             return GetListOfObjects( physicalFolder, SearchOption.TopDirectoryOnly, AssetType.Folder );
         }
 
-        public override List<Asset> ListObjects()
+        public override List<Asset> ListObjects( AssetStorageSystem assetStorageSystem )
         {
             var asset = new Asset();
             asset.Type = AssetType.Folder;
-            return ListObjects( asset );
+            return ListObjects( assetStorageSystem, asset );
         }
 
-        public override List<Asset> ListObjects( Asset asset )
+        public override List<Asset> ListObjects( AssetStorageSystem assetStorageSystem, Asset asset )
         {
-            asset.Key = FixKey( asset );
+            string rootFolder = FixRootFolder( GetAttributeValue( assetStorageSystem, "RootFolder" ) );
+
+            asset.Key = FixKey( asset, rootFolder );
             var assets = new List<Asset>();
 
             string physicalFolder = FileSystemCompontHttpContext.Server.MapPath( asset.Key );
@@ -179,9 +183,11 @@ namespace Rock.Storage.AssetStorage
             return assets.OrderBy( a => a.Key ).ToList();
         }
 
-        public override List<Asset> ListObjectsInFolder( Asset asset )
+        public override List<Asset> ListObjectsInFolder( AssetStorageSystem assetStorageSystem, Asset asset )
         {
-            asset.Key = FixKey( asset );
+            string rootFolder = FixRootFolder( GetAttributeValue( assetStorageSystem, "RootFolder" ) );
+
+            asset.Key = FixKey( asset, rootFolder );
             var assets = new List<Asset>();
 
             string physicalFolder = FileSystemCompontHttpContext.Server.MapPath( asset.Key );
@@ -191,11 +197,13 @@ namespace Rock.Storage.AssetStorage
             return assets.OrderBy( a => a.Key ).ToList();
         }
 
-        public override bool RenameAsset( Asset asset, string newName )
+        public override bool RenameAsset( AssetStorageSystem assetStorageSystem, Asset asset, string newName )
         {
+            string rootFolder = FixRootFolder( GetAttributeValue( assetStorageSystem, "RootFolder" ) );
+
             try
             {
-                asset.Key = FixKey( asset );
+                asset.Key = FixKey( asset, rootFolder );
                 string filePath = GetPathFromKey( asset.Key );
                 string physicalFolder = FileSystemCompontHttpContext.Server.MapPath( filePath );
                 string physicalFile = FileSystemCompontHttpContext.Server.MapPath( asset.Key );
@@ -211,9 +219,11 @@ namespace Rock.Storage.AssetStorage
             }
         }
 
-        public override bool UploadObject( Asset asset )
+        public override bool UploadObject( AssetStorageSystem assetStorageSystem, Asset asset )
         {
-            asset.Key = FixKey( asset );
+            string rootFolder = FixRootFolder( GetAttributeValue( assetStorageSystem, "RootFolder" ) );
+
+            asset.Key = FixKey( asset, rootFolder );
 
             try
             {
@@ -267,15 +277,15 @@ namespace Rock.Storage.AssetStorage
             return assets;
         }
 
-        private string FixKey( Asset asset )
+        private string FixKey( Asset asset, string rootFolder )
         {
             if ( asset.Key.IsNullOrWhiteSpace() && asset.Name.IsNullOrWhiteSpace() )
             {
-                asset.Key = RootFolder;
+                asset.Key = rootFolder;
             }
             else if ( asset.Key.IsNullOrWhiteSpace() && asset.Name.IsNotNullOrWhitespace() )
             {
-                asset.Key = RootFolder + asset.Name;
+                asset.Key = rootFolder + asset.Name;
             }
 
             if ( asset.Type == AssetType.Folder )

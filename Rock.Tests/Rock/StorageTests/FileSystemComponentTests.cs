@@ -20,72 +20,86 @@ namespace Rock.Tests.Rock.StorageTests
     /// </summary>
     public class FileSystemComponentTests
     {
+        private AssetStorageSystem GetAssetStorageSystem()
+        {
+            var assetStorageService = new AssetStorageSystemService( new Data.RockContext() );
+            AssetStorageSystem assetStorageSystem = assetStorageService.Get( 3 );// need mock
+            assetStorageSystem.LoadAttributes();
+            assetStorageSystem.SetAttributeValue( "RootFolder", "TestFolder" );
+
+            return assetStorageSystem;
+        }
+
         [Fact( Skip = "Need to mock HttpContext.Current")]
         private void TestCreateFolder()
         {
-            FileSystemComponent fsc = new FileSystemComponent();
-            fsc.FileSystemCompontHttpContext = HttpContext.Current;
+            var assetStorageSystem = GetAssetStorageSystem();
+            var fileSystemComponent = assetStorageSystem.GetAssetStorageComponent();
+
+            fileSystemComponent.FileSystemCompontHttpContext = HttpContext.Current;
 
             Asset asset = new Asset();
             asset.Name = "TestFolder";
             asset.Type = AssetType.Folder;
 
-            Assert.True( fsc.CreateFolder( asset ) );
+            Assert.True( fileSystemComponent.CreateFolder( assetStorageSystem, asset ) );
         }
 
         [Fact( Skip = "Need to mock HttpContext.Current" )]
         private void TestCreateFoldersInTestFolder()
         {
-            FileSystemComponent fsc = new FileSystemComponent();
-            fsc.FileSystemCompontHttpContext = HttpContext.Current;
-            fsc.RootFolder = "TestFolder";
+            var assetStorageSystem = GetAssetStorageSystem();
+            var fileSystemComponent = assetStorageSystem.GetAssetStorageComponent();
+            fileSystemComponent.FileSystemCompontHttpContext = HttpContext.Current;
 
-            Assert.True( fsc.CreateFolder( new Asset { Name = "TestFolderA", Type = AssetType.Folder } ) );
-            Assert.True( fsc.CreateFolder( new Asset { Key = "TetFolder/TestFolderA/A1", Type = AssetType.Folder } ) );
-            Assert.True( fsc.CreateFolder( new Asset { Name = "TestFolderB", Type = AssetType.Folder } ) );
-            Assert.True( fsc.CreateFolder( new Asset { Name = "TestFolderC", Type = AssetType.Folder } ) );
-            Assert.True( fsc.CreateFolder( new Asset { Name = "TestFolderD", Type = AssetType.Folder } ) );
-            Assert.True( fsc.CreateFolder( new Asset { Key = "TestFolder/TestFolderE/E1/E1a", Type = AssetType.Folder } ) );
-            Assert.True( fsc.CreateFolder( new Asset { Key = "TestFolder/TestFolderE/E2/E2a", Type = AssetType.Folder } ) );
-            Assert.True( fsc.CreateFolder( new Asset { Key = "TestFolder/TestFolderE/E3/E3a", Type = AssetType.Folder } ) );
+            Assert.True( fileSystemComponent.CreateFolder( assetStorageSystem, new Asset { Name = "TestFolderA", Type = AssetType.Folder } ) );
+            Assert.True( fileSystemComponent.CreateFolder( assetStorageSystem, new Asset { Key = "TetFolder/TestFolderA/A1", Type = AssetType.Folder } ) );
+            Assert.True( fileSystemComponent.CreateFolder( assetStorageSystem, new Asset { Name = "TestFolderB", Type = AssetType.Folder } ) );
+            Assert.True( fileSystemComponent.CreateFolder( assetStorageSystem, new Asset { Name = "TestFolderC", Type = AssetType.Folder } ) );
+            Assert.True( fileSystemComponent.CreateFolder( assetStorageSystem, new Asset { Name = "TestFolderD", Type = AssetType.Folder } ) );
+            Assert.True( fileSystemComponent.CreateFolder( assetStorageSystem, new Asset { Key = "TestFolder/TestFolderE/E1/E1a", Type = AssetType.Folder } ) );
+            Assert.True( fileSystemComponent.CreateFolder( assetStorageSystem, new Asset { Key = "TestFolder/TestFolderE/E2/E2a", Type = AssetType.Folder } ) );
+            Assert.True( fileSystemComponent.CreateFolder( assetStorageSystem, new Asset { Key = "TestFolder/TestFolderE/E3/E3a", Type = AssetType.Folder } ) );
         }
 
         [Fact( Skip = "Need to mock HttpContext.Current" )]
         private void TestUploadObjectByKey()
         {
-            FileSystemComponent fsc = new FileSystemComponent();
-            fsc.FileSystemCompontHttpContext = HttpContext.Current;
+            var assetStorageSystem = GetAssetStorageSystem();
+            var fileSystemComponent = assetStorageSystem.GetAssetStorageComponent();
+            fileSystemComponent.FileSystemCompontHttpContext = HttpContext.Current;
 
             Asset asset = new Asset();
             asset.Type = AssetType.File;
             asset.Key = ( "TestFolder/TestFolderA/TestUploadObjectByKey.jpg" );
             asset.AssetStream = new FileStream( @"C:\temp\test.jpg", FileMode.Open );
 
-            Assert.True( fsc.UploadObject( asset ) );
+            Assert.True( fileSystemComponent.UploadObject( assetStorageSystem, asset ) );
         }
 
         [Fact( Skip = "Need to mock HttpContext.Current" )]
         private void TestUploadObjectByName()
         {
-            FileSystemComponent fsc = new FileSystemComponent();
-            fsc.FileSystemCompontHttpContext = HttpContext.Current;
-            fsc.RootFolder = "TestFolder/TestFolderA";
+            var assetStorageSystem = GetAssetStorageSystem();
+            var fileSystemComponent = assetStorageSystem.GetAssetStorageComponent();
+            fileSystemComponent.FileSystemCompontHttpContext = HttpContext.Current;
 
             Asset asset = new Asset();
             asset.Type = AssetType.File;
-            asset.Name = ( "TestUploadObjectByName.jpg" );
+            asset.Name = ( "TestFolderA/TestUploadObjectByName.jpg" );
             asset.AssetStream = new FileStream( @"C:\temp\test.jpg", FileMode.Open );
 
-            Assert.True( fsc.UploadObject( asset ) );
+            Assert.True( fileSystemComponent.UploadObject( assetStorageSystem, asset ) );
         }
 
         [Fact( Skip = "Need to mock HttpContext.Current" )]
         private void TestListFoldersInFolder()
         {
-            FileSystemComponent fsc = new FileSystemComponent();
-            fsc.FileSystemCompontHttpContext = HttpContext.Current;
+            var assetStorageSystem = GetAssetStorageSystem();
+            var fileSystemComponent = assetStorageSystem.GetAssetStorageComponent();
+            fileSystemComponent.FileSystemCompontHttpContext = HttpContext.Current;
 
-            var assets = fsc.ListFoldersInFolder( new Asset { Key = "~/TestFolder", Type = AssetType.Folder } );
+            var assets = fileSystemComponent.ListFoldersInFolder( assetStorageSystem, new Asset { Key = "~/TestFolder", Type = AssetType.Folder } );
 
             Assert.Contains( assets, a => a.Key == "TestFolderA" );
             Assert.Contains( assets, a => a.Name == "TestFolderB" );
@@ -100,11 +114,11 @@ namespace Rock.Tests.Rock.StorageTests
         [Fact( Skip = "Need to mock HttpContext.Current" )]
         private void TestListFilesInFolder()
         {
-            FileSystemComponent fsc = new FileSystemComponent();
-            fsc.FileSystemCompontHttpContext = HttpContext.Current;
-            fsc.RootFolder = "TestFolder/TestFolderA";
+            var assetStorageSystem = GetAssetStorageSystem();
+            var fileSystemComponent = assetStorageSystem.GetAssetStorageComponent();
+            fileSystemComponent.FileSystemCompontHttpContext = HttpContext.Current;
 
-            var assets = fsc.ListFilesInFolder( new Asset { Type = AssetType.Folder } );
+            var assets = fileSystemComponent.ListFilesInFolder( assetStorageSystem, new Asset { Key = "TestFolder/TestFolderA", Type = AssetType.Folder } );
 
             Assert.Contains( assets, a => a.Name == "TestUploadObjectByName.jpg" );
             Assert.Contains( assets, a => a.Name == "TestUploadObjectByKey.jpg" );
@@ -114,11 +128,11 @@ namespace Rock.Tests.Rock.StorageTests
         [Fact( Skip = "Need to mock HttpContext.Current" )]
         private void TestListObjects()
         {
-            FileSystemComponent fsc = new FileSystemComponent();
-            fsc.FileSystemCompontHttpContext = HttpContext.Current;
-            fsc.RootFolder = "TestFolder";
+            var assetStorageSystem = GetAssetStorageSystem();
+            var fileSystemComponent = assetStorageSystem.GetAssetStorageComponent();
+            fileSystemComponent.FileSystemCompontHttpContext = HttpContext.Current;
 
-            var assets = fsc.ListObjects();
+            var assets = fileSystemComponent.ListObjects( assetStorageSystem );
 
             Assert.Contains( assets, a => a.Name == "TestUploadObjectByName.jpg" );
             Assert.Contains( assets, a => a.Name == "TestUploadObjectByKey.jpg" );
@@ -139,10 +153,11 @@ namespace Rock.Tests.Rock.StorageTests
         [Fact( Skip = "Need to mock HttpContext.Current" )]
         private void TestListObjectsInFolder()
         {
-            FileSystemComponent fsc = new FileSystemComponent();
-            fsc.FileSystemCompontHttpContext = HttpContext.Current;
+            var assetStorageSystem = GetAssetStorageSystem();
+            var fileSystemComponent = assetStorageSystem.GetAssetStorageComponent();
+            fileSystemComponent.FileSystemCompontHttpContext = HttpContext.Current;
 
-            var assets = fsc.ListObjectsInFolder( new Asset { Key = "TestFolder/TestFolderA", Type = AssetType.Folder } );
+            var assets = fileSystemComponent.ListObjectsInFolder( assetStorageSystem, new Asset { Key = "TestFolder/TestFolderA", Type = AssetType.Folder } );
 
             Assert.Contains( assets, a => a.Name == "TestUploadObjectByName.jpg" );
             Assert.Contains( assets, a => a.Name == "TestUploadObjectByKey.jpg" );
@@ -152,27 +167,29 @@ namespace Rock.Tests.Rock.StorageTests
         [Fact( Skip = "Need to mock HttpContext.Current" )]
         private void TestRenameAsset()
         {
-            FileSystemComponent fsc = new FileSystemComponent();
-            fsc.FileSystemCompontHttpContext = HttpContext.Current;
+            var assetStorageSystem = GetAssetStorageSystem();
+            var fileSystemComponent = assetStorageSystem.GetAssetStorageComponent();
+            fileSystemComponent.FileSystemCompontHttpContext = HttpContext.Current;
 
             var asset = new Asset();
             asset.Type = AssetType.File;
             asset.Key = "TestFolder/TestFolderA/TestUploadObjectByKey.jpg";
 
-            Assert.True( fsc.RenameAsset( asset, "TestUploadObjectByKeyRenamed.jpg" ) );
+            Assert.True( fileSystemComponent.RenameAsset( assetStorageSystem, asset, "TestUploadObjectByKeyRenamed.jpg" ) );
         }
 
         [Fact( Skip = "Need to mock HttpContext.Current" )]
         private void TestGetObject()
         {
-            FileSystemComponent fsc = new FileSystemComponent();
-            fsc.FileSystemCompontHttpContext = HttpContext.Current;
+            var assetStorageSystem = GetAssetStorageSystem();
+            var fileSystemComponent = assetStorageSystem.GetAssetStorageComponent();
+            fileSystemComponent.FileSystemCompontHttpContext = HttpContext.Current;
 
             var asset = new Asset();
             asset.Type = AssetType.File;
             asset.Key = "TestFolder/TestFolderA/TestUploadObjectByKeyRenamed.jpg";
 
-            var downloadedAsset = fsc.GetObject( asset );
+            var downloadedAsset = fileSystemComponent.GetObject( assetStorageSystem, asset );
 
             using ( FileStream fs = new FileStream( @"C:\temp\TestGetObjectDownloaded.jpg", FileMode.Create ) )
             using ( downloadedAsset.AssetStream )
@@ -184,14 +201,15 @@ namespace Rock.Tests.Rock.StorageTests
         [Fact( Skip = "Need to mock HttpContext.Current" )]
         private void TestCreateDownloadLink()
         {
-            FileSystemComponent fsc = new FileSystemComponent();
-            fsc.FileSystemCompontHttpContext = HttpContext.Current;
+            var assetStorageSystem = GetAssetStorageSystem();
+            var fileSystemComponent = assetStorageSystem.GetAssetStorageComponent();
+            fileSystemComponent.FileSystemCompontHttpContext = HttpContext.Current;
 
             var asset = new Asset();
             asset.Type = AssetType.File;
             asset.Key = "TestFolder/TestFolderA/TestUploadObjectByKeyRenamed.jpg";
 
-            string link = fsc.CreateDownloadLink( asset );
+            string link = fileSystemComponent.CreateDownloadLink( assetStorageSystem, asset );
 
             Uri uri = null;
 
@@ -202,27 +220,29 @@ namespace Rock.Tests.Rock.StorageTests
         [Fact( Skip = "Need to mock HttpContext.Current" )]
         private void TestDeleteAssetFile()
         {
-            FileSystemComponent fsc = new FileSystemComponent();
-            fsc.FileSystemCompontHttpContext = HttpContext.Current;
+            var assetStorageSystem = GetAssetStorageSystem();
+            var fileSystemComponent = assetStorageSystem.GetAssetStorageComponent();
+            fileSystemComponent.FileSystemCompontHttpContext = HttpContext.Current;
 
             var asset = new Asset();
             asset.Type = AssetType.File;
             asset.Key = "TestFolder/TestFolderA/TestUploadObjectByKeyRenamed.jpg";
 
-            Assert.True( fsc.DeleteAsset( asset ) );
+            Assert.True( fileSystemComponent.DeleteAsset( assetStorageSystem, asset ) );
         }
 
         [Fact( Skip = "Need to mock HttpContext.Current" )]
         private void TestDeleteAssetFolder()
         {
-            FileSystemComponent fsc = new FileSystemComponent();
-            fsc.FileSystemCompontHttpContext = HttpContext.Current;
+            var assetStorageSystem = GetAssetStorageSystem();
+            var fileSystemComponent = assetStorageSystem.GetAssetStorageComponent();
+            fileSystemComponent.FileSystemCompontHttpContext = HttpContext.Current;
 
             var asset = new Asset();
             asset.Type = AssetType.Folder;
             asset.Key = "TestFolder";
 
-            Assert.True( fsc.DeleteAsset( asset ) );
+            Assert.True( fileSystemComponent.DeleteAsset( assetStorageSystem, asset ) );
         }
     }
 

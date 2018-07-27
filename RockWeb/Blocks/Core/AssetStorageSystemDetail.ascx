@@ -3,9 +3,6 @@
     <ContentTemplate>
         <asp:Panel ID="pnlDetails" CssClass="panel panel-block" runat="server">
 
-            <asp:HiddenField ID="hfAssetStorageSystemId" runat="server" />
-            <asp:HiddenField ID="hfAssetStorageEntityTypeId" runat="server" />
-
             <div class="panel-heading">
                 <h1 class="panel-title"><i class="fa fa-cloud-upload"></i> <asp:Literal ID="lActionTitle" runat="server" /></h1>
                 
@@ -18,20 +15,11 @@
 
             <div class="panel-body">
 
+                <asp:ValidationSummary ID="valAssetStorageSystemDetail" runat="server" HeaderText="Please Correct the Following" CssClass="alert alert-validation" />
+                <Rock:NotificationBox ID="nbEditModeMessage" runat="server" NotificationBoxType="Info" />
 
-                <%-- View probably don't need this --%>
-                <%--<div id="pnlViewDetails" runat="server">
-
-
-
-                </div>--%>
-
-
-                <%-- Edit --%>
                 <div id="pnlEditDetails" runat="server">
-
-                    <asp:ValidationSummary ID="valAssetStorageSystemDetail" runat="server" HeaderText="Please Correct the Following" CssClass="alert alert-validation" />
-
+                
                     <div class="row">
                         <div class="col-md-6">
                             <Rock:DataTextBox ID="tbName" runat="server" SourceTypeName="Rock.Model.AssetStorageSystem, Rock" PropertyName="Name" />
@@ -49,11 +37,8 @@
 
                     <div class="row">
                         <div class="col-md-6"> 
-                            <Rock:ComponentPicker ID="cpGatewayType" runat="server" Label="Gateway Type" Required="true" ContainerType="Rock.Storage.AssetStorage.AssetStorageContainer" AutoPostBack="true" OnSelectedIndexChanged="cpGatewayType_SelectedIndexChanged" />
+                            <Rock:ComponentPicker ID="cpAssetStorageType" runat="server" Label="Asset Storage Type" Required="true" ContainerType="Rock.Storage.AssetStorage.AssetStorageContainer" AutoPostBack="true" OnSelectedIndexChanged="cpAssetStorageType_SelectedIndexChanged" />
                         </div>
-                        <%--<div class="col-md-6">
-                            
-                        </div>--%>
                     </div>
 
                     <div class="row">
@@ -66,10 +51,10 @@
                         <asp:LinkButton ID="btnSave" runat="server" AccessKey="s" ToolTip="Alt+s" Text="Save" CssClass="btn btn-primary" OnClick="btnSave_Click" />
                         <asp:LinkButton ID="btnCancel" runat="server" AccessKey="c" ToolTip="Alt+c" Text="Cancel" CssClass="btn btn-link" CausesValidation="false" OnClick="btnCancel_Click" />
                     </div>
+
                 </div>
 
             </div>
-            <%-- Dialogs if needed go here --%>
 
 
         </asp:Panel>

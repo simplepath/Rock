@@ -7,6 +7,7 @@ using System.Web.UI.WebControls;
 
 using Rock;
 using Rock.Attribute;
+using Rock.Constants;
 using Rock.Data;
 using Rock.Model;
 using Rock.Web.Cache;
@@ -21,11 +22,23 @@ namespace RockWeb.Blocks.Core
     [Description( "Displays the details of the given asset storage system." )]
     public partial class AssetStorageSystemDetail : RockBlock, IDetailBlock
     {
+        public int AssetStorageSystemId
+        {
+            get { return ViewState["AssetStorageSystemId"] as int? ?? 0; }
+            set { ViewState["AssetStorageSystemId"] = value; }
+        }
+
+        public int? AssetStorageSystemEntityTypeId
+        {
+            get { return ViewState["AssetStorageSystemEntityTypeId"] as int?; }
+            set { ViewState["AssetStorageSystemEntityTypeId"] = value; }
+        }
+
         protected override void LoadViewState( object savedState )
         {
             base.LoadViewState( savedState );
 
-            var assetStorageSystem = new AssetStorageSystem { Id = PageParameter( "assetStorageSystemId" ).AsInteger(), EntityTypeId =  }; //TODO: start here!
+            var assetStorageSystem = new AssetStorageSystem { Id = AssetStorageSystemId, EntityTypeId = AssetStorageSystemEntityTypeId };
             BuildDynamicControls( assetStorageSystem, false );
         }
 
@@ -35,11 +48,8 @@ namespace RockWeb.Blocks.Core
 
             if ( !Page.IsPostBack )
             {
-                string assetStorageSystemId = PageParameter( "assetStorageSystemId" );
-
-                hfAssetStorageSystemId.Value = assetStorageSystemId;
-                ShowDetail( assetStorageSystemId.AsInteger() );
-                //hfAssetStorageSystemId.Value = Request.QueryString["assetStorageSystemId"];
+                AssetStorageSystemId = PageParameter( "assetStorageSystemId" ).AsInteger();
+                ShowDetail( AssetStorageSystemId );
             }
         }
 
@@ -48,12 +58,11 @@ namespace RockWeb.Blocks.Core
             using ( var rockContext = new RockContext() )
             {
                 AssetStorageSystem assetStorageSystem = null;
-                int assetStorageSystemId = hfAssetStorageSystemId.ValueAsInt();
-                var assetStorageSystemService = new Rock.Model.AssetStorageSystemService( rockContext );
+                var assetStorageSystemService = new AssetStorageSystemService( rockContext );
 
-                if ( assetStorageSystemId != 0 )
+                if ( AssetStorageSystemId != 0 )
                 {
-                    assetStorageSystem = assetStorageSystemService.Get( assetStorageSystemId );
+                    assetStorageSystem = assetStorageSystemService.Get( AssetStorageSystemId );
                 }
 
                 if ( assetStorageSystem == null )
@@ -65,7 +74,7 @@ namespace RockWeb.Blocks.Core
                 assetStorageSystem.Name = tbName.Text;
                 assetStorageSystem.IsActive = cbIsActive.Checked;
                 assetStorageSystem.Description = tbDescription.Text;
-                assetStorageSystem.EntityTypeId = cpGatewayType.SelectedEntityTypeId;
+                assetStorageSystem.EntityTypeId = cpAssetStorageType.SelectedEntityTypeId;
                 
                 rockContext.SaveChanges();
 
@@ -86,7 +95,7 @@ namespace RockWeb.Blocks.Core
         {
             if (! IsUserAuthorized( Authorization.VIEW) )
             {
-                // give an error
+                nbEditModeMessage.Text = EditModeMessage.NotAuthorizedToView( AssetStorageSystem.FriendlyTypeName );
                 return;
             }
 
@@ -96,50 +105,43 @@ namespace RockWeb.Blocks.Core
             if ( assetStoragesystemId == 0 )
             {
                 assetStorageSystem = new AssetStorageSystem();
+                pdAuditDetails.Visible = false;
             }
             else
             {
                 var assetStorageSystemService = new AssetStorageSystemService( rockContext );
                 assetStorageSystem = assetStorageSystemService.Get( assetStoragesystemId );
+                pdAuditDetails.SetEntity( assetStorageSystem, ResolveRockUrl( "~" ) );
 
                 if (assetStorageSystem == null )
                 {
                     assetStorageSystem = new AssetStorageSystem();
+                    pdAuditDetails.Visible = false;
                 }
             }
 
-            ShowDetail_Edit( assetStorageSystem );
+            if ( assetStorageSystem.Id == 0 )
+            {
+                lActionTitle.Text = ActionTitle.Add( FinancialGateway.FriendlyTypeName ).FormatAsHtmlTitle();
+            }
+            else
+            {
+                lActionTitle.Text = assetStorageSystem.Name.FormatAsHtmlTitle();
+            }
 
-            // show edit or view
-            //if ( IsUserAuthorized( Authorization.EDIT ) )
-            //{
-            //    ShowDetail_Edit( assetStorageSystem );
-            //}
-            //else
-            //{
-            //    ShowDetail_View( assetStorageSystem );
-            //}
-        }
+            hlInactive.Visible = !assetStorageSystem.IsActive;
 
-        protected void ShowDetail_Edit( AssetStorageSystem assetStorageSystem )
-        {
             tbName.Text = assetStorageSystem.Name;
             cbIsActive.Checked = assetStorageSystem.IsActive;
             tbDescription.Text = assetStorageSystem.Description;
-            cpGatewayType.SetValue( assetStorageSystem.EntityType != null ? assetStorageSystem.EntityType.Guid.ToString().ToUpper() : string.Empty );
+            cpAssetStorageType.SetValue( assetStorageSystem.EntityType != null ? assetStorageSystem.EntityType.Guid.ToString().ToUpper() : string.Empty );
 
             BuildDynamicControls( assetStorageSystem, true );
         }
 
-        //protected void ShowDetail_View( AssetStorageSystem assetStorageSystem )
-        //{
-
-        //}
-
-
         private void BuildDynamicControls( AssetStorageSystem assetStorageSystem, bool setValues )
         {
-            hfAssetStorageEntityTypeId.Value = assetStorageSystem.EntityTypeId.ToStringSafe();
+            AssetStorageSystemEntityTypeId = assetStorageSystem.EntityTypeId;
 
             if ( assetStorageSystem.EntityTypeId.HasValue )
             {
@@ -172,9 +174,9 @@ namespace RockWeb.Blocks.Core
             }
         }
 
-        protected void cpGatewayType_SelectedIndexChanged( object sender, EventArgs e )
+        protected void cpAssetStorageType_SelectedIndexChanged( object sender, EventArgs e )
         {
-            var assetStorageSystem = new AssetStorageSystem { Id = hfAssetStorageSystemId.ValueAsInt(), EntityTypeId = cpGatewayType.SelectedEntityTypeId };
+            var assetStorageSystem = new AssetStorageSystem { Id = AssetStorageSystemId, EntityTypeId = cpAssetStorageType.SelectedEntityTypeId };
             BuildDynamicControls( assetStorageSystem, true );
         }
     }

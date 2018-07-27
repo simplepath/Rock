@@ -44,31 +44,47 @@ namespace Rock.Storage.AssetStorage
         /// <value>
         /// The root folder.
         /// </value>
-        public virtual string RootFolder
+        //public virtual string RootFolder
+        //{
+        //    get
+        //    {
+        //        if ( _rootFolder == null )
+        //        {
+        //            return string.Empty;
+        //        }
+        //        else if ( _rootFolder.EndsWith( "/" ) )
+        //        {
+        //            return _rootFolder;
+        //        }
+        //        else
+        //        {
+        //            return _rootFolder + "/";
+        //        }
+        //    }
+        //    set
+        //    {
+        //        _rootFolder = value;
+        //    }
+        //}
+
+        //protected string _rootFolder;
+        public System.Web.HttpContext FileSystemCompontHttpContext { get; set; }
+
+        protected virtual string FixRootFolder( string rootFolder )
         {
-            get
+            if (rootFolder == null)
             {
-                if ( _rootFolder == null )
-                {
-                    return string.Empty;
-                }
-                else if ( _rootFolder.EndsWith( "/" ) )
-                {
-                    return _rootFolder;
-                }
-                else
-                {
-                    return _rootFolder + "/";
-                }
+                return string.Empty;
             }
-            set
+            else if ( rootFolder.EndsWith("/"))
             {
-                _rootFolder = value;
+                return rootFolder;
+            }
+            else
+            {
+                return rootFolder + "/";
             }
         }
-
-        protected string _rootFolder;
-
 
         #region Component Overrides
         /// <summary>
@@ -109,7 +125,7 @@ namespace Rock.Storage.AssetStorage
         #endregion Component Overrides
 
         #region Public Methods
-        public string GetettributeValue( AssetStorageSystem assetStorageSystem, string key )
+        public string GetAttributeValue( AssetStorageSystem assetStorageSystem, string key )
         {
             if ( assetStorageSystem.AttributeValues == null )
             {
@@ -141,7 +157,7 @@ namespace Rock.Storage.AssetStorage
         /// </summary>
         /// <param name="asset">The asset.</param>
         /// <returns></returns>
-        public abstract Asset GetObject( Asset asset );
+        public abstract Asset GetObject( AssetStorageSystem assetStorageSystem, Asset asset );
 
         /// <summary>
         /// Gets the objects.
@@ -154,7 +170,7 @@ namespace Rock.Storage.AssetStorage
         /// Lists the objects from the current root folder.
         /// </summary>
         /// <returns></returns>
-        public abstract List<Asset> ListObjects();
+        public abstract List<Asset> ListObjects( AssetStorageSystem assetStorageSystem );
 
         /// <summary>
         /// Lists the objects. If Asset.Key is not provided then one is created using the RootFolder and Asset.Name.
@@ -166,7 +182,7 @@ namespace Rock.Storage.AssetStorage
         /// </summary>
         /// <param name="folder">The folder.</param>
         /// <returns></returns>
-        public abstract List<Asset> ListObjects( Asset asset );
+        public abstract List<Asset> ListObjects( AssetStorageSystem assetStorageSystem, Asset asset );
 
         /// <summary>
         /// Lists the objects in folder. The asset key or name should be the folder.
@@ -177,13 +193,13 @@ namespace Rock.Storage.AssetStorage
         /// </summary>
         /// <param name="asset">The asset.</param>
         /// <returns></returns>
-        public abstract List<Asset> ListObjectsInFolder( Asset asset );
+        public abstract List<Asset> ListObjectsInFolder( AssetStorageSystem assetStorageSystem, Asset asset );
 
         /// <summary>
         /// Lists the files in current root folder.
         /// </summary>
         /// <returns></returns>
-        public abstract List<Asset> ListFilesInFolder();
+        public abstract List<Asset> ListFilesInFolder( AssetStorageSystem assetStorageSystem );
 
         /// <summary>
         /// Lists the files in folder. Asset.Key or Asset.Name is the folder.
@@ -193,13 +209,13 @@ namespace Rock.Storage.AssetStorage
         /// The last segment in the key is the folder name.
         /// </summary>
         /// <returns></returns>
-        public abstract List<Asset> ListFilesInFolder( Asset asset );
+        public abstract List<Asset> ListFilesInFolder( AssetStorageSystem assetStorageSystem, Asset asset );
 
         /// <summary>
         /// Lists the folders in the current root folder.
         /// </summary>
         /// <returns></returns>
-        public abstract List<Asset> ListFoldersInFolder();
+        public abstract List<Asset> ListFoldersInFolder( AssetStorageSystem assetStorageSystem );
 
         /// <summary>
         /// Lists the folder in folder. Asset.Key or Asset.Name is the folder.
@@ -210,7 +226,7 @@ namespace Rock.Storage.AssetStorage
         /// </summary>
         /// <param name="asset">The asset.</param>
         /// <returns></returns>
-        public abstract List<Asset> ListFoldersInFolder( Asset asset );
+        public abstract List<Asset> ListFoldersInFolder( AssetStorageSystem assetStorageSystem, Asset asset );
 
         /// <summary>
         /// Uploads a file. If Asset.Key is not provided then one is created using the RootFolder and Asset.Name.
@@ -219,7 +235,7 @@ namespace Rock.Storage.AssetStorage
         /// <param name="asset">The asset.</param>
         /// <param name="file">The file.</param>
         /// <returns></returns>
-        public abstract bool UploadObject( Asset asset );
+        public abstract bool UploadObject( AssetStorageSystem assetStorageSystem, Asset asset );
 
         /// <summary>
         /// Creates a folder. If Asset.Key is not provided then one is created using the RootFolder and Asset.Name.
@@ -227,7 +243,7 @@ namespace Rock.Storage.AssetStorage
         /// </summary>
         /// <param name="folderName">Name of the folder.</param>
         /// <returns></returns>
-        public abstract bool CreateFolder( Asset asset );
+        public abstract bool CreateFolder( AssetStorageSystem assetStorageSystem, Asset asset );
 
         /// <summary>
         /// Deletes the asset. If Asset.Key is not provided then one is created using the RootFolder and Asset.Name.
@@ -235,7 +251,7 @@ namespace Rock.Storage.AssetStorage
         /// </summary>
         /// <param name="asset">The asset.</param>
         /// <returns></returns>
-        public abstract bool DeleteAsset( Asset asset );
+        public abstract bool DeleteAsset( AssetStorageSystem assetStorageSystem, Asset asset );
 
         /// <summary>
         /// Renames the asset.
@@ -243,14 +259,14 @@ namespace Rock.Storage.AssetStorage
         /// <param name="asset">The asset.</param>
         /// <param name="newName">The new name.</param>
         /// <returns></returns>
-        public abstract bool RenameAsset( Asset asset, string newName );
+        public abstract bool RenameAsset( AssetStorageSystem assetStorageSystem, Asset asset, string newName );
 
         /// <summary>
         /// Creates the download link.
         /// </summary>
         /// <param name="asset">The asset.</param>
         /// <returns></returns>
-        public abstract string CreateDownloadLink( Asset asset );
+        public abstract string CreateDownloadLink( AssetStorageSystem assetStorageSystem, Asset asset );
 
         #endregion Abstract Methods
 

@@ -20,51 +20,59 @@ namespace Rock.Tests.Rock.StorageTests
 {
     public class AmazonSThreeComponentTests
     {
-        private string AWSAccessKey = "";
-        private string AWSSecretKey = @"";
-        private RegionEndpoint AWSRegion = RegionEndpoint.USWest1;
-        private string Bucket = "rockphotostest0";
-        private string RootFolder = "UnitTestFolder/";
+        //private string AWSAccessKey = "";
+        //private string AWSSecretKey = @"";
+        //private RegionEndpoint AWSRegion = RegionEndpoint.USWest1;
+        //private string Bucket = "rockphotostest0";
+        //private string UnitTestRootFolder = "UnitTestFolder";
+
+        private AssetStorageSystem GetAssetStorageSystem()
+        {
+            var assetStorageService = new AssetStorageSystemService( new Data.RockContext() );
+            AssetStorageSystem assetStorageSystem = assetStorageService.Get( 5 );// need mock
+            assetStorageSystem.LoadAttributes();
+            assetStorageSystem.SetAttributeValue( "RootFolder", "UnitTestFolder" );
+
+            return assetStorageSystem;
+        }
 
         /// <summary>
         /// Create a folder in the bucket using a key (the full name);
         /// This folder is used for other tests.
         /// </summary>
         [Fact]
-        public void TestAWSCreateFolderByKey()
+        public void TestAWSCreateRootFolderUsingKey()
         {
-            var s3Component = new AmazonSThreeComponent( AWSAccessKey, AWSSecretKey, AWSRegion );
-            s3Component.Bucket = this.Bucket;
-            s3Component.RootFolder = RootFolder;
+            var assetStorageSystem = GetAssetStorageSystem();
+            var s3Component = assetStorageSystem.GetAssetStorageComponent();
 
             var asset = new Asset();
-            asset.Key = RootFolder;
+            asset.Key = assetStorageSystem.GetAttributeValue( "RootFolder" );
             asset.Type = AssetType.Folder;
-                        
-            Assert.True( s3Component.CreateFolder( asset ) );
+
+            Assert.True( s3Component.CreateFolder( assetStorageSystem, asset ) );
         }
 
         /// <summary>
-        /// Create a folder by RootFolder and Asset.Name
-        /// This folder is used for other tests.
+        /// Create folders using RootFolder and Asset.Name
+        /// These folders are used for other tests.
         /// Requires TestAWSCreateFolderByKey
         /// </summary>
         [Fact]
         public void TestAWSCreateFolderByName()
         {
-            var s3Component = new AmazonSThreeComponent( AWSAccessKey, AWSSecretKey, AWSRegion );
-            s3Component.Bucket = this.Bucket;
-            s3Component.RootFolder = RootFolder;
+            var assetStorageSystem = GetAssetStorageSystem();
+            var s3Component = assetStorageSystem.GetAssetStorageComponent();
 
             var asset = new Asset();
             asset.Name = "SubFolder1/";
             asset.Type = AssetType.Folder;
-            Assert.True( s3Component.CreateFolder( asset ) );
+            Assert.True( s3Component.CreateFolder( assetStorageSystem, asset ) );
 
             asset = new Asset();
             asset.Name = "SubFolder1/SubFolder1a/";
             asset.Type = AssetType.Folder;
-            Assert.True( s3Component.CreateFolder( asset ) );
+            Assert.True( s3Component.CreateFolder( assetStorageSystem, asset ) );
         }
 
         /// <summary>
@@ -74,17 +82,14 @@ namespace Rock.Tests.Rock.StorageTests
         [Fact]
         public void TestUploadObjectByName()
         {
-            var s3Component = new AmazonSThreeComponent( AWSAccessKey, AWSSecretKey, AWSRegion );
-            s3Component.Bucket = this.Bucket;
-            s3Component.RootFolder = RootFolder + "SubFolder1/";
-
-            FileStream fs = new FileStream( @"C:\temp\test.jpg", FileMode.Open );
+            var assetStorageSystem = GetAssetStorageSystem();
+            var s3Component = assetStorageSystem.GetAssetStorageComponent();
 
             Asset asset = new Asset();
-            asset.Name = ( "TestUploadObjectByName.jpg" );
-            asset.AssetStream = fs;
+            asset.Name = ( "SubFolder1/TestUploadObjectByName.jpg" );
+            asset.AssetStream = new FileStream( @"C:\temp\test.jpg", FileMode.Open );
 
-            bool hasUploaded = s3Component.UploadObject( asset );
+            bool hasUploaded = s3Component.UploadObject( assetStorageSystem, asset );
             Assert.True( hasUploaded );
         }
 
@@ -95,16 +100,14 @@ namespace Rock.Tests.Rock.StorageTests
         [Fact]
         public void TestUploadObjectByKey()
         {
-            var s3Component = new AmazonSThreeComponent( AWSAccessKey, AWSSecretKey, AWSRegion );
-            s3Component.Bucket = this.Bucket;
-
-            FileStream fs = new FileStream( @"C:\temp\test.jpg", FileMode.Open );
+            var assetStorageSystem = GetAssetStorageSystem();
+            var s3Component = assetStorageSystem.GetAssetStorageComponent();
 
             Asset asset = new Asset();
             asset.Key = ( "UnitTestFolder/SubFolder1/TestUploadObjectByKey.jpg" );
-            asset.AssetStream = fs;
+            asset.AssetStream = new FileStream( @"C:\temp\test.jpg", FileMode.Open );
 
-            bool hasUploaded = s3Component.UploadObject( asset );
+            bool hasUploaded = s3Component.UploadObject( assetStorageSystem, asset );
             Assert.True( hasUploaded );
         }
 
@@ -114,14 +117,13 @@ namespace Rock.Tests.Rock.StorageTests
         [Fact]
         public void TestListObjectsByKey()
         {
-            var s3Component = new AmazonSThreeComponent( AWSAccessKey, AWSSecretKey, AWSRegion );
-            s3Component.Bucket = this.Bucket;
-            s3Component.RootFolder = RootFolder;
+            var assetStorageSystem = GetAssetStorageSystem();
+            var s3Component = assetStorageSystem.GetAssetStorageComponent();
 
             var asset = new Asset();
             asset.Key = ( "UnitTestFolder/" );
             
-            var assetList = s3Component.ListObjects( asset );
+            var assetList = s3Component.ListObjects( assetStorageSystem, asset );
             Assert.Contains( assetList, a => a.Name == "UnitTestFolder" );
             Assert.Contains( assetList, a => a.Name == "TestUploadObjectByName.jpg" );
             Assert.Contains( assetList, a => a.Name == "TestUploadObjectByKey.jpg" );
@@ -135,15 +137,14 @@ namespace Rock.Tests.Rock.StorageTests
         [Fact]
         public void TestListObjectsInFolder()
         {
-            string folderTestName = "SubFolder1/";
-            var s3Component = new AmazonSThreeComponent( AWSAccessKey, AWSSecretKey, AWSRegion );
-            s3Component.Bucket = this.Bucket;
-            s3Component.RootFolder = RootFolder + folderTestName;
+            var assetStorageSystem = GetAssetStorageSystem();
+            var s3Component = assetStorageSystem.GetAssetStorageComponent();
 
             var asset = new Asset();
+            asset.Key = "UnitTestFolder/SubFolder1/";
             asset.Type = AssetType.Folder;
 
-            var assetList = s3Component.ListObjectsInFolder( asset );
+            var assetList = s3Component.ListObjectsInFolder( assetStorageSystem, asset );
             Assert.Contains( assetList, a => a.Name == "TestUploadObjectByName.jpg" );
             Assert.Contains( assetList, a => a.Name == "TestUploadObjectByKey.jpg" );
             Assert.Contains( assetList, a => a.Name == "SubFolder1" );
@@ -156,30 +157,23 @@ namespace Rock.Tests.Rock.StorageTests
         [Fact]
         public void TestUpload2kObjects()
         {
-            string folderTestName = "TwoThousandObjects/";
-            var s3Component = new AmazonSThreeComponent( AWSAccessKey, AWSSecretKey, AWSRegion );
-            s3Component.Bucket = this.Bucket;
-            s3Component.RootFolder = RootFolder;
+            var assetStorageSystem = GetAssetStorageSystem();
+            var s3Component = assetStorageSystem.GetAssetStorageComponent();
+            
+            var subFolder = new Asset();
+            subFolder.Name = "TwoThousandObjects/";
+            subFolder.Type = AssetType.Folder;
 
-            var subFolder = new Asset
-            {
-                Name = folderTestName,
-                Type = AssetType.Folder
-            };
-
-            s3Component.CreateFolder( subFolder );
-            s3Component.RootFolder = RootFolder + folderTestName;
+            s3Component.CreateFolder( assetStorageSystem, subFolder );
 
             int i = 0;
             while ( i < 10 )
             {
-                subFolder = new Asset
-                {
-                    Name = $"TestFolder-{i}/",
-                    Type = AssetType.Folder
-                };
+                subFolder = new Asset();
+                subFolder.Name = $"TwoThousandObjects/TestFolder-{i}/";
+                subFolder.Type = AssetType.Folder;
 
-                s3Component.CreateFolder( subFolder );
+                s3Component.CreateFolder( assetStorageSystem, subFolder );
                 i++;
             }
 
@@ -189,8 +183,8 @@ namespace Rock.Tests.Rock.StorageTests
             {
                 using ( fs = new FileStream( @"C:\temp\TextDoc.txt", FileMode.Open ) )
                 {
-                    Asset asset = new Asset { Name = $"TestFile-{i}.txt", AssetStream = fs };
-                    s3Component.UploadObject( asset );
+                    Asset asset = new Asset { Name = $"TwoThousandObjects/TestFile-{i}.txt", AssetStream = fs };
+                    s3Component.UploadObject( assetStorageSystem, asset );
                     i++;
                 }
             }
@@ -202,15 +196,14 @@ namespace Rock.Tests.Rock.StorageTests
         [Fact]
         public void TestList2KObjectsInFolder()
         {
-            string folderTestName = "TwoThousandObjects/";
-            var s3Component = new AmazonSThreeComponent( AWSAccessKey, AWSSecretKey, AWSRegion );
-            s3Component.Bucket = this.Bucket;
-            s3Component.RootFolder = RootFolder + folderTestName;
+            var assetStorageSystem = GetAssetStorageSystem();
+            var s3Component = assetStorageSystem.GetAssetStorageComponent();
 
             var asset = new Asset();
+            asset.Key = "UnitTestFolder/TwoThousandObjects/";
             asset.Type = AssetType.Folder;
 
-            var assetList = s3Component.ListObjectsInFolder( asset );
+            var assetList = s3Component.ListObjectsInFolder( assetStorageSystem, asset );
             Assert.Contains( assetList, a => a.Name == "TestFile-0.txt" );
             Assert.Contains( assetList, a => a.Name == "TestFile-1368.txt" );
             Assert.Contains( assetList, a => a.Name == "TestFolder-0" );
@@ -223,14 +216,14 @@ namespace Rock.Tests.Rock.StorageTests
         [Fact]
         public void TestCreateDownloadLink()
         {
-            var s3Component = new AmazonSThreeComponent( AWSAccessKey, AWSSecretKey, AWSRegion );
-            s3Component.Bucket = this.Bucket;
+            var assetStorageSystem = GetAssetStorageSystem();
+            var s3Component = assetStorageSystem.GetAssetStorageComponent();
 
             Asset asset = new Asset();
             asset.Type = AssetType.File;
             asset.Key = "UnitTestFolder/SubFolder1/TestUploadObjectByName.jpg";
 
-            string url = s3Component.CreateDownloadLink( asset );
+            string url = s3Component.CreateDownloadLink( assetStorageSystem, asset );
             bool valid = false;
 
             try
@@ -255,20 +248,18 @@ namespace Rock.Tests.Rock.StorageTests
         [Fact]
         public void TestGetObject()
         {
-            string folderTestName = "SubFolder1/";
-            var s3Component = new AmazonSThreeComponent( AWSAccessKey, AWSSecretKey, AWSRegion );
-            s3Component.Bucket = this.Bucket;
-            s3Component.RootFolder = RootFolder + folderTestName;
+            var assetStorageSystem = GetAssetStorageSystem();
+            var s3Component = assetStorageSystem.GetAssetStorageComponent();
 
             var asset = new Asset();
             asset.Type = AssetType.File;
-            asset.Name = "TestUploadObjectByName.jpg";
+            asset.Key = "UnitTestFolder/SubFolder1/TestUploadObjectByName.jpg";
 
             bool valid = true;
 
             try
             {
-                var responseAsset = s3Component.GetObject( asset );
+                var responseAsset = s3Component.GetObject( assetStorageSystem, asset );
                 using ( responseAsset.AssetStream)
                 using ( FileStream fs = new FileStream( $@"C:\temp\{responseAsset.Name}", FileMode.Create ) )
                 {
@@ -289,15 +280,14 @@ namespace Rock.Tests.Rock.StorageTests
         [Fact]
         public void TestListFolders()
         {
-            string folderTestName = "TwoThousandObjects/";
-            var s3Component = new AmazonSThreeComponent( AWSAccessKey, AWSSecretKey, AWSRegion );
-            s3Component.Bucket = this.Bucket;
-            s3Component.RootFolder = RootFolder + folderTestName;
+            var assetStorageSystem = GetAssetStorageSystem();
+            var s3Component = assetStorageSystem.GetAssetStorageComponent();
 
             var asset = new Asset();
+            asset.Key = "UnitTestFolder/TwoThousandObjects/";
             asset.Type = AssetType.Folder;
 
-            var assetList = s3Component.ListFoldersInFolder( asset );
+            var assetList = s3Component.ListFoldersInFolder( GetAssetStorageSystem(), asset );
 
             Assert.Contains( assetList, a => a.Name == "TestFolder-0" );
             Assert.Contains( assetList, a => a.Name == "TestFolder-1" );
@@ -319,15 +309,14 @@ namespace Rock.Tests.Rock.StorageTests
         [Fact]
         public void TestListFiles()
         {
-            string folderTestName = "SubFolder1/";
-            var s3Component = new AmazonSThreeComponent( AWSAccessKey, AWSSecretKey, AWSRegion );
-            s3Component.Bucket = this.Bucket;
-            s3Component.RootFolder = RootFolder + folderTestName;
+            var assetStorageSystem = GetAssetStorageSystem();
+            var s3Component = assetStorageSystem.GetAssetStorageComponent();
 
             var asset = new Asset();
+            asset.Key = "UnitTestFolder/SubFolder1/";
             asset.Type = AssetType.Folder;
 
-            var assetList = s3Component.ListFilesInFolder( asset );
+            var assetList = s3Component.ListFilesInFolder( assetStorageSystem, asset );
 
             Assert.Contains( assetList, a => a.Name == "TestUploadObjectByKey.jpg" );
             Assert.Contains( assetList, a => a.Name == "TestUploadObjectByName.jpg" );
@@ -341,20 +330,20 @@ namespace Rock.Tests.Rock.StorageTests
         [Fact]
         public void TestRenameAsset()
         {
-            var s3Component = new AmazonSThreeComponent( AWSAccessKey, AWSSecretKey, AWSRegion );
-            s3Component.Bucket = this.Bucket;
+            var assetStorageSystem = GetAssetStorageSystem();
+            var s3Component = assetStorageSystem.GetAssetStorageComponent();
 
             Asset asset = new Asset();
             asset.Type = AssetType.File;
             asset.Key = "UnitTestFolder/SubFolder1/TestUploadObjectByKey.jpg";
 
-            Assert.True( s3Component.RenameAsset( asset, "TestUploadObjectByKeyRenamed.jpg" ) );
+            Assert.True( s3Component.RenameAsset( assetStorageSystem, asset, "TestUploadObjectByKeyRenamed.jpg" ) );
 
             asset = new Asset();
             asset.Type = AssetType.File;
             asset.Key = "UnitTestFolder/SubFolder1/TestUploadObjectByKey";
 
-            var assetList = s3Component.ListObjects( asset );
+            var assetList = s3Component.ListObjects( assetStorageSystem, asset );
             Assert.Contains( assetList, a => a.Name == "TestUploadObjectByKeyRenamed.jpg" );
             Assert.DoesNotContain( assetList, a => a.Name == "TestUploadObjectByKey.jpg" );
         }
@@ -365,17 +354,14 @@ namespace Rock.Tests.Rock.StorageTests
         [Fact]
         public void TestDeleteFile()
         {
-            string folderTestName = "SubFolder1/";
-
-            var s3Component = new AmazonSThreeComponent( AWSAccessKey, AWSSecretKey, AWSRegion );
-            s3Component.Bucket = this.Bucket;
-            s3Component.RootFolder = RootFolder + folderTestName;
+            var assetStorageSystem = GetAssetStorageSystem();
+            var s3Component = assetStorageSystem.GetAssetStorageComponent();
 
             Asset asset = new Asset();
-            asset.Key = ( $"{RootFolder + folderTestName}TestUploadObjectByName.jpg" );
+            asset.Key = "UnitTestFolder/SubFolder1/TestUploadObjectByName.jpg";
             asset.Type = AssetType.File;
 
-            bool hasDeleted = s3Component.DeleteAsset( asset );
+            bool hasDeleted = s3Component.DeleteAsset( assetStorageSystem, asset );
             Assert.True( hasDeleted );
         }
 
@@ -385,14 +371,14 @@ namespace Rock.Tests.Rock.StorageTests
         [Fact]
         public void TestDeleteFolder()
         {
-            var s3Component = new AmazonSThreeComponent( AWSAccessKey, AWSSecretKey, AWSRegion );
-            s3Component.Bucket = this.Bucket;
+            var assetStorageSystem = GetAssetStorageSystem();
+            var s3Component = assetStorageSystem.GetAssetStorageComponent();
 
             Asset asset = new Asset();
             asset.Key = ( "UnitTestFolder/" );
             asset.Type = AssetType.Folder;
 
-            bool hasDeleted = s3Component.DeleteAsset( asset );
+            bool hasDeleted = s3Component.DeleteAsset( assetStorageSystem, asset );
             Assert.True( hasDeleted );
         }
     }
