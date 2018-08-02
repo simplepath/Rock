@@ -40,10 +40,14 @@
         $('.js-folder-treeview .treeview').off('rockTree:selected');
         $('.js-folder-treeview .treeview').on('rockTree:selected', function (e, data) {
             var relativeFolderPath = data;
-            if (!e.currentTarget.hasClass("js-folder")) {
+
+            if (data.endsWith("/")) {
+                $('#<%=hfSelectedFolder.ClientID%>').val(data);
+            }
+            else { 
                 $('#<%=hfAssetStorageId.ClientID%>').val(data);
             }
-            $('#<%=hfSelectedFolder.ClientID%>').val(data);
+
             // use setTimeout so that the doPostBack happens later (to avoid javascript exception that occurs due to timing)
             setTimeout(function () {
                 var postbackArg = 'folder-selected:' + relativeFolderPath.replace(/\\/g, "/");
@@ -111,14 +115,15 @@
                     <asp:LinkButton ID="lbRefresh" runat="server" CssClass="btn btn-sm btn-primary" OnClick="lbRefresh_Click" CausesValidation="false" ToolTip="Refresh the file list"><i class="fa fa-sync"></i>Refresh</asp:LinkButton>
                 </div>
 
-                <Rock:NotificationBox ID="nbErrorMessage" runat="server" NotificationBoxType="Danger" Text="Error..." Visible="true" Title="Error" Dismissable="true" />
-
+                <br />
+                <Rock:NotificationBox ID="nbErrorMessage" runat="server" NotificationBoxType="Danger" Text="Error..." Visible="false" Title="Error" Dismissable="true" />
+                <br />
 
                 <%-- grid here bound to List<Asset> to dispaly cool info --%>
-                <Rock:Grid ID="gFileList" runat="server" AllowPaging="true" AllowSorting="true" >
+                <Rock:Grid ID="gFileList" runat="server" AllowPaging="true" AllowSorting="true" ShowActionRow="false" ShowActionsInHeader="false" >
                     <Columns>
                         <Rock:RockBoundField HeaderText="Name" DataField="Name"></Rock:RockBoundField>
-                        <Rock:DateTimeField HeaderText="Date Modified" DataField="DateModified"></Rock:DateTimeField>
+                        <Rock:DateTimeField HeaderText="Date Modified" DataField="LastModifiedDateTime"></Rock:DateTimeField>
                         <Rock:RockBoundField HeaderText="File Size" DataField="FileSize"></Rock:RockBoundField>
                     </Columns>
                 </Rock:Grid>

@@ -24,7 +24,7 @@ namespace Rock.Storage.AssetStorage
 
     [TextField( name: "AWS Region", description: "", required: true, defaultValue: "", category: "", order: 0, key: "AWSRegion" )]
     [TextField( name: "Bucket", description: "", required: true, defaultValue: "", category: "", order: 1, key: "Bucket" )]
-    [TextField( name: "Root Folder", description: "", required: true, defaultValue: "", category: "", order: 2, key: "RootFolder" )]
+    [TextField( name: "Root Folder", description: "", required: false, defaultValue: "", category: "", order: 2, key: "RootFolder" )]
     [TextField( name: "AWS Profile Name", description: "", required: true, defaultValue: "", category: "", order: 3, key: "AWSProfileName" )]
     [TextField( name: "AWS Access Key", description: "", required: true, defaultValue: "", category: "", order: 4, key: "AWSAccessKey" )]
     [TextField( name: "AWS Secret Key", description: "", required: true, defaultValue: "", category: "", order: 5, key: "AWSSecretKey" )]
@@ -112,7 +112,7 @@ namespace Rock.Storage.AssetStorage
 
                 ListObjectsV2Request request = new ListObjectsV2Request();
                 request.BucketName = GetAttributeValue( assetStorageSystem, "Bucket" );
-                request.Prefix = asset.Key == "/" ? rootFolder : asset.Key;
+                request.Prefix = asset.Key == "/" ? string.Empty : asset.Key;
                 request.Delimiter = "/";
 
                 var assets = new List<Asset>();

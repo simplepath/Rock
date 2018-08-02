@@ -51,7 +51,7 @@ namespace RockWeb.Blocks.Core
                     string eventParam = nameValue[0];
                     if ( eventParam.Equals( "folder-selected" ) )
                     {
-                        hfSelectedFolder.Value = nameValue[1];
+                        BuildFolderTreeView();
                         BindFileListGrid();
                     }
                 }
@@ -62,8 +62,65 @@ namespace RockWeb.Blocks.Core
 
         }
 
-
         private void BuildFolderTreeView()
+        {
+            var assetStorageService = new AssetStorageSystemService( new RockContext() );
+            var sb = new StringBuilder();
+
+
+            sb.AppendLine( "<ul id=\"treeview\">" );
+
+            foreach ( var assetStorageSystem in assetStorageService.GetActiveNoTracking() )
+            {
+                sb.AppendFormat( "<li data-expanded='false' data-id='{0}' ><span class=''> {1}</span> \n", assetStorageSystem.Id, assetStorageSystem.Name );
+
+                if ( hfAssetStorageId.Value.IsNullOrWhiteSpace() )
+                {
+                    continue;
+                }
+                else if (hfAssetStorageId.ValueAsInt() != assetStorageSystem.Id )
+                {
+                    continue;
+                }
+
+                // there is a selected storage provider and this is it, so get the folders
+                assetStorageSystem.LoadAttributes();
+                var component = assetStorageSystem.GetAssetStorageComponent();
+                var folders = component.ListFoldersInFolder( assetStorageSystem, new Asset { Key = hfSelectedFolder.Value, Type = AssetType.Folder } );
+
+                sb.AppendLine( "<ul>" );
+
+                foreach ( var folder in folders )
+                {
+                    CreateFolderNode( assetStorageSystem, component, folder );
+                }
+
+                sb.AppendLine( "</ul>" );
+            }
+
+            sb.AppendLine( "</li>" );
+            sb.AppendLine( "</ul>" );
+
+            lblFolders.Text = sb.ToString();
+            upnlFolders.Update();
+        }
+
+        private string CreateFolderNode( AssetStorageSystem assetStorageSystem, AssetStorageComponent component, Asset asset )
+        {
+            var sb = new StringBuilder();
+
+            bool dataExpanded = asset.Key.Contains( hfSelectedFolder.Value );
+            string selected = hfSelectedFolder.Value == asset.Key ? "selected" : string.Empty;
+
+            sb.AppendFormat( "<li data-expanded='{0}' data-id='{1}' ><span class='{2}'> {3}</span> \n", dataExpanded, asset.Key, selected, asset.Name );
+
+
+            return sb.ToString();
+        }
+
+
+
+        private void BuildFolderTreeViewOld()
         {
             var assetStorageService = new AssetStorageSystemService( new RockContext() );
             var sb = new StringBuilder();
@@ -77,30 +134,30 @@ namespace RockWeb.Blocks.Core
                 var component = assetStorageSystem.GetAssetStorageComponent();
                 var folders = component.ListFolderTree( assetStorageSystem, new Asset { Key = hfSelectedFolder.Value, Type = AssetType.Folder } );
 
+                sb.AppendLine( "<ul id=\"treeview\">" );
                 foreach ( var folder in folders )
                 {
                     bool dataExpanded = folder.Key.Contains( hfSelectedFolder.Value );
                     string selected = hfSelectedFolder.Value == folder.Key ? "selected" : string.Empty;
-
-                    sb.AppendLine( "<ul id=\"treeview\">" );
-                    sb.AppendFormat( "<li data-expanded='{0}' data-id='{1}'><span class='js-folder {2}'> {3}</span> \n", dataExpanded, folder.Key, selected, folder.Name );
-                    sb.AppendLine( "</ul>" );
+                    
+                    sb.AppendFormat( "<li data-expanded='{0}' data-id='{1}' ><span class='{2}'> {3}</span> \n", dataExpanded, folder.Key, selected, folder.Name );
                 }
+
+                sb.AppendLine( "</ul>" );
             }
             else
             {
-                var assetStorageSystems = assetStorageService.GetActiveNoTracking();
-                foreach( var assetStorageSystem in assetStorageSystems )
-                {
-                    
-                    sb.AppendLine( "<ul id=\"treeview\">" );
-                    sb.AppendFormat( "<li data-expanded='false' data-id='{0}'><span class=''> {1}</span> \n", assetStorageSystem.Id, assetStorageSystem.Name );
-                    sb.AppendLine( "</ul>" );
+                sb.AppendLine( "<ul id=\"treeview\">" );
 
-                    lblFolders.Text = sb.ToString();
-                    upnlFolders.Update();
-                    
+                foreach ( var assetStorageSystem in assetStorageService.GetActiveNoTracking() )
+                {
+                    sb.AppendFormat( "<li data-expanded='false' data-id='{0}' ><span class=''> {1}</span> \n", assetStorageSystem.Id, assetStorageSystem.Name );
                 }
+
+                sb.AppendLine( "</ul>" );
+
+                lblFolders.Text = sb.ToString();
+                upnlFolders.Update();
             }
         }
 

@@ -31,9 +31,18 @@ namespace Rock.Tests.Rock.StorageTests
             var assetStorageService = new AssetStorageSystemService( new Data.RockContext() );
             AssetStorageSystem assetStorageSystem = assetStorageService.Get( 5 );// need mock
             assetStorageSystem.LoadAttributes();
-            assetStorageSystem.SetAttributeValue( "RootFolder", "UnitTestFolder" );
+            //assetStorageSystem.SetAttributeValue( "RootFolder", "UnitTestFolder" );
 
             return assetStorageSystem;
+        }
+
+        [Fact]
+        public void TestListRootBucket()
+        {
+            var assetStorageSystem = GetAssetStorageSystem();
+            var s3Component = assetStorageSystem.GetAssetStorageComponent();
+
+            s3Component.ListFilesInFolder( assetStorageSystem );
         }
 
         /// <summary>
