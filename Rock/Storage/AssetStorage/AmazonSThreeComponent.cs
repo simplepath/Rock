@@ -181,7 +181,7 @@ namespace Rock.Storage.AssetStorage
 
                     foreach ( string subFolder in response.CommonPrefixes )
                     {
-                        if ( subFolder.IsNotNullOrWhitespace() )
+                        if ( subFolder.IsNotNullOrWhiteSpace() )
                         {
                             subFolders.Add( subFolder );
                         }
@@ -199,6 +199,26 @@ namespace Rock.Storage.AssetStorage
                 }
 
                 return assets;
+            }
+            catch ( Exception ex )
+            {
+                ExceptionLogService.LogException( ex );
+                throw;
+            }
+        }
+
+        public override List<Asset> ListFolderTree( AssetStorageSystem assetStorageSystem )
+        {
+            return ( ListFolderTree( assetStorageSystem, new Asset { Type = AssetType.Folder } ) );
+        }
+
+        public override List<Asset> ListFolderTree( AssetStorageSystem assetStorageSystem, Asset asset )
+        {
+            try
+            {
+                // First get the list of objects with recursion since that is what Amazon offers
+                var assets = ListObjects( assetStorageSystem, asset );
+                return assets.Where( a => a.Type == AssetType.Folder ).OrderBy( a => a.Key ).ToList();
             }
             catch ( Exception ex )
             {
@@ -443,7 +463,7 @@ namespace Rock.Storage.AssetStorage
                     // So we need to inspect response.CommonPrefixes to get the prefixes inside the folder.
                     foreach ( string subFolder in response.CommonPrefixes )
                     {
-                        if ( subFolder.IsNotNullOrWhitespace() )
+                        if ( subFolder.IsNotNullOrWhiteSpace() )
                         {
                             subFolders.Add( subFolder );
                         }
@@ -555,7 +575,7 @@ namespace Rock.Storage.AssetStorage
             {
                 asset.Key = "/";
             }
-            else if ( asset.Key.IsNullOrWhiteSpace() && asset.Name.IsNotNullOrWhitespace() )
+            else if ( asset.Key.IsNullOrWhiteSpace() && asset.Name.IsNotNullOrWhiteSpace() )
             {
                 asset.Key = rootFolder + asset.Name;
             }

@@ -36,6 +36,9 @@ namespace Rock.Rest.Controllers
 {
     public partial class AssetStorageSystemsController
     {
+
+
+
         [Authenticate, Secured]
         [HttpGet]
         [System.Web.Http.Route( "api/AssetStorageSystems/GetFolders" )]

@@ -38,36 +38,6 @@ namespace Rock.Storage.AssetStorage
 
         #endregion Constructors
 
-        /// <summary>
-        /// Gets or sets the root folder of the storage component.
-        /// </summary>
-        /// <value>
-        /// The root folder.
-        /// </value>
-        //public virtual string RootFolder
-        //{
-        //    get
-        //    {
-        //        if ( _rootFolder == null )
-        //        {
-        //            return string.Empty;
-        //        }
-        //        else if ( _rootFolder.EndsWith( "/" ) )
-        //        {
-        //            return _rootFolder;
-        //        }
-        //        else
-        //        {
-        //            return _rootFolder + "/";
-        //        }
-        //    }
-        //    set
-        //    {
-        //        _rootFolder = value;
-        //    }
-        //}
-
-        //protected string _rootFolder;
         public System.Web.HttpContext FileSystemCompontHttpContext { get; set; }
 
         protected virtual string FixRootFolder( string rootFolder )
@@ -196,7 +166,7 @@ namespace Rock.Storage.AssetStorage
         public abstract List<Asset> ListObjectsInFolder( AssetStorageSystem assetStorageSystem, Asset asset );
 
         /// <summary>
-        /// Lists the files in current root folder.
+        /// Lists the files in AssetStorageSystem.RootFolder.
         /// </summary>
         /// <returns></returns>
         public abstract List<Asset> ListFilesInFolder( AssetStorageSystem assetStorageSystem );
@@ -212,7 +182,7 @@ namespace Rock.Storage.AssetStorage
         public abstract List<Asset> ListFilesInFolder( AssetStorageSystem assetStorageSystem, Asset asset );
 
         /// <summary>
-        /// Lists the folders in the current root folder.
+        /// Lists the folders in AssetStorageSystem.Rootfolder.
         /// </summary>
         /// <returns></returns>
         public abstract List<Asset> ListFoldersInFolder( AssetStorageSystem assetStorageSystem );
@@ -227,6 +197,25 @@ namespace Rock.Storage.AssetStorage
         /// <param name="asset">The asset.</param>
         /// <returns></returns>
         public abstract List<Asset> ListFoldersInFolder( AssetStorageSystem assetStorageSystem, Asset asset );
+
+        /// <summary>
+        /// Lists the folders from AssetStorageSystem.RootFolder.
+        /// </summary>
+        /// <param name="assetStorageSystem">The asset storage system.</param>
+        /// <returns></returns>
+        public abstract List<Asset> ListFolderTree( AssetStorageSystem assetStorageSystem );
+
+        /// <summary>
+        /// Lists the folder tree starting from the folder specified in Asset.Key.
+        /// If Asset.Key is not provided then one is created using the RootFolder and Asset.Name
+        /// If Key and Name are not provided then list all folders from the RootFolder defined in the AssetStorageSystem
+        /// If Asset.key is provided it MUST use the full path, RootFolder and Name are not used.
+        /// The last segment in the key is a folder name.
+        /// </summary>
+        /// <param name="assetStorageSystem">The asset storage system.</param>
+        /// <param name="asset">The asset.</param>
+        /// <returns></returns>
+        public abstract List<Asset> ListFolderTree( AssetStorageSystem assetStorageSystem, Asset asset );
 
         /// <summary>
         /// Uploads a file. If Asset.Key is not provided then one is created using the RootFolder and Asset.Name.
