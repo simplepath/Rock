@@ -166,7 +166,7 @@ namespace Rock.Storage.AssetStorage
 
                 ListObjectsV2Request request = new ListObjectsV2Request();
                 request.BucketName = bucketName;
-                request.Prefix = asset.Key == "/" ? rootFolder : asset.Key;
+                request.Prefix = asset.Key == "/" ? string.Empty : asset.Key;
                 request.Delimiter = "/";
 
                 var assets = new List<Asset>();
@@ -197,6 +197,11 @@ namespace Rock.Storage.AssetStorage
                     var subFolderAsset = CreateAssetFromCommonPrefix( subFolder, Client.Config.RegionEndpoint.SystemName, bucketName );
                     assets.Add( subFolderAsset );
                 }
+
+                //if ( asset.Key != "/" || asset.Key != string.Empty )
+                //{
+                //    assets.RemoveAt( 0 );
+                //}
 
                 return assets;
             }

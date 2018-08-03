@@ -73,6 +73,13 @@ namespace Rock.Storage.AssetStorage
         /// </value>
         public long FileSize { get; set; }
 
+        public string FormattedFileSize
+        {
+            get
+            {
+                return FileSize.FormatAsMemorySize();
+            }
+        }
         /// <summary>
         /// Gets or sets the last modified date time.
         /// </summary>

@@ -258,6 +258,13 @@ namespace Rock.Storage.AssetStorage
 
         #region Private Methods
 
+        private string ReverseMapPath( string path )
+        {
+            string appPath = HttpContext.Current.Server.MapPath( "~" );
+            string res = string.Format( "~/{0}", path.Replace( appPath, "" ).Replace( "\\", "/" ) );
+            return res;
+        }
+
         private List<Asset> GetListOfObjects( string directoryName, SearchOption searchOption, AssetType assetType )
         {
             List<Asset> assets = new List<Asset>();
@@ -293,7 +300,7 @@ namespace Rock.Storage.AssetStorage
             {
                 asset.Key = rootFolder;
             }
-            else if ( asset.Key.IsNullOrWhiteSpace() && asset.Name.IsNotNullOrWhitespace() )
+            else if ( asset.Key.IsNullOrWhiteSpace() && asset.Name.IsNotNullOrWhiteSpace() )
             {
                 asset.Key = rootFolder + asset.Name;
             }
@@ -329,7 +336,7 @@ namespace Rock.Storage.AssetStorage
             invalidChars.Add( '~' );
             invalidChars.Add( '/' );
 
-            if ( asset.Name.IsNotNullOrWhitespace() )
+            if ( asset.Name.IsNotNullOrWhiteSpace() )
             {
                 if ( asset.Name.ToList().Any( c => invalidChars.Contains( c ) ) )
                 {
@@ -337,7 +344,7 @@ namespace Rock.Storage.AssetStorage
                 }
             }
 
-            if ( asset.Key.IsNotNullOrWhitespace() )
+            if ( asset.Key.IsNotNullOrWhiteSpace() )
             {
                 invalidChars.Remove( '/' );
                 if ( asset.Key.ToList().Any( c => invalidChars.Contains( c ) ) )
@@ -353,7 +360,7 @@ namespace Rock.Storage.AssetStorage
             return new Asset
             {
                 Name = directoryInfo.Name,
-                Key = directoryInfo.FullName,
+                Key = ReverseMapPath( directoryInfo.FullName ) +"/",
                 Uri = string.Empty,
                 Type = AssetType.Folder,
                 IconCssClass = "fa fa-folder",

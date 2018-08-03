@@ -40,22 +40,29 @@
         $('.js-folder-treeview .treeview').off('rockTree:selected');
         $('.js-folder-treeview .treeview').on('rockTree:selected', function (e, data) {
             var relativeFolderPath = data;
+            var postbackArg;
+            var previousStorageId = $('#<%=hfAssetStorageId.ClientID %>').val();
 
             if (data.endsWith("/")) {
                 $('#<%=hfSelectedFolder.ClientID%>').val(data);
+                postbackArg = 'folder-selected:' + relativeFolderPath.replace(/\\/g, "/")  + ',previous-asset:' + previousStorageId;
             }
             else { 
                 $('#<%=hfAssetStorageId.ClientID%>').val(data);
+                $('#<%=hfSelectedFolder.ClientID%>').val('');
+                postbackArg = 'asset-selected:' + data  + ',previous-asset:' + previousStorageId;
             }
 
             // use setTimeout so that the doPostBack happens later (to avoid javascript exception that occurs due to timing)
             setTimeout(function () {
-                var postbackArg = 'folder-selected:' + relativeFolderPath.replace(/\\/g, "/");
                 window.location = "javascript:__doPostBack('<%=upnlFiles.ClientID %>', '" + postbackArg + "')";
             });
         });
 
+        $('js-renameclick').on(function () {
 
+
+        });
 
 
     });
@@ -110,7 +117,7 @@
                 <div class="actions">
                     <asp:LinkButton ID="lbUpload" runat="server" CssClass="btn btn-sm btn-primary" OnClick="lbUpload_Click" CausesValidation="false" ToolTip="Upload a file to the selected location"><i class="fa fa-upload"></i>Upload</asp:LinkButton>
                     <asp:LinkButton ID="lbDownload" runat="server" CssClass="btn btn-sm btn-primary" OnClick="lbDownload_Click" CausesValidation="false" ToolTip="Download the selected files"><i class="fa fa-download"></i>Download</asp:LinkButton>
-                    <asp:LinkButton ID="lbRename" runat="server" CssClass="btn btn-sm btn-primary" OnClick="lbRename_Click" CausesValidation="false" ToolTip="Rename the selected file"><i class="fa fa-exchange"></i>Rename</asp:LinkButton>
+                    <%--<asp:LinkButton ID="lbRename" runat="server" CssClass="btn btn-sm btn-primary" OnClick="lbRename_Click" CausesValidation="false" ToolTip="Rename the selected file"><i class="fa fa-exchange"></i>Rename</asp:LinkButton>--%>
                     <asp:LinkButton ID="lbDelete" runat="server"  CssClass="btn btn-sm btn-primary" OnClick="lbDelete_Click" CausesValidation="false" ToolTip="Delete the selected file" OnClientClick="Rock.dialogs.confirmDelete(event, 'Are you sure you want to delete this file?')"><i class="fa fa-trash-alt"></i>Delete</asp:LinkButton>
                     <asp:LinkButton ID="lbRefresh" runat="server" CssClass="btn btn-sm btn-primary" OnClick="lbRefresh_Click" CausesValidation="false" ToolTip="Refresh the file list"><i class="fa fa-sync"></i>Refresh</asp:LinkButton>
                 </div>
@@ -120,11 +127,26 @@
                 <br />
 
                 <%-- grid here bound to List<Asset> to dispaly cool info --%>
-                <Rock:Grid ID="gFileList" runat="server" AllowPaging="true" AllowSorting="true" ShowActionRow="false" ShowActionsInHeader="false" >
+                <Rock:Grid ID="gFileList" runat="server" AllowPaging="true" AllowSorting="true" ShowActionRow="false" ShowActionsInHeader="false" DataSourceID="Key" >
                     <Columns>
-                        <Rock:RockBoundField HeaderText="Name" DataField="Name"></Rock:RockBoundField>
+                        <asp:TemplateField>
+                            <ItemTemplate>
+
+                            </ItemTemplate>
+                            <EditItemTemplate>
+                                <Rock:RockTextBox ID="tbEditName" runat="server"></Rock:RockTextBox>
+                            </EditItemTemplate>
+                        </asp:TemplateField>
+                        <Rock:RockBoundField HeaderText="Name" DataField="Name" ></Rock:RockBoundField>
+                        <Rock:RockBoundField DataField="Key" Visible="false" ></Rock:RockBoundField>
+                        <Rock:RockBoundField DataField="Uri" Visible="false" ></Rock:RockBoundField>
+                        <Rock:RockBoundField DataField="IconCssClass" Visible="false" ></Rock:RockBoundField>
                         <Rock:DateTimeField HeaderText="Date Modified" DataField="LastModifiedDateTime"></Rock:DateTimeField>
-                        <Rock:RockBoundField HeaderText="File Size" DataField="FileSize"></Rock:RockBoundField>
+                        <Rock:RockBoundField HeaderText="File Size" DataField="FormattedFileSize"></Rock:RockBoundField>
+                        <Rock:RockBoundField DataField="Description" Visible="false" ></Rock:RockBoundField>
+                        <Rock:DeleteField OnClick="gFileListDelete_Click"></Rock:DeleteField>
+                        <%--<Rock:LinkButtonField ToolTip="Rename this file." Text="<i class='fa fa-exchange'></i>" CssClass="js-renameclick btn btn-default btn-sm btn-square" OnClick="lbRename_Click" HeaderStyle-HorizontalAlign="Center" ItemStyle-HorizontalAlign="Center" ></Rock:LinkButtonField>--%>
+                        <asp:ButtonField 
                     </Columns>
                 </Rock:Grid>
             </ContentTemplate>

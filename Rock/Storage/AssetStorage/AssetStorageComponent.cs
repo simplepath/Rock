@@ -38,7 +38,20 @@ namespace Rock.Storage.AssetStorage
 
         #endregion Constructors
 
-        public System.Web.HttpContext FileSystemCompontHttpContext { get; set; }
+        public System.Web.HttpContext FileSystemCompontHttpContext
+        {
+            get
+            {
+                return _fileSystemCompontHttpContext ?? System.Web.HttpContext.Current;
+            }
+
+            set
+            {
+                _fileSystemCompontHttpContext = value;
+            }
+        }
+
+        private System.Web.HttpContext _fileSystemCompontHttpContext;
 
         protected virtual string FixRootFolder( string rootFolder )
         {

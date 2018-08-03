@@ -42,7 +42,12 @@ namespace Rock.Tests.Rock.StorageTests
             var assetStorageSystem = GetAssetStorageSystem();
             var s3Component = assetStorageSystem.GetAssetStorageComponent();
 
-            s3Component.ListFilesInFolder( assetStorageSystem );
+            var asset = new Asset {
+                Key = "UnitTestFolder/",
+                Type = AssetType.Folder
+            };
+            
+            var assets = s3Component.ListFoldersInFolder( assetStorageSystem, asset );
         }
 
         /// <summary>
