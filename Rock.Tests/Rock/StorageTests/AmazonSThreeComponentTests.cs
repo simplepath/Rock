@@ -318,35 +318,6 @@ namespace Rock.Tests.Rock.StorageTests
         }
 
         /// <summary>
-        /// List only the folders.
-        /// </summary>
-        [Fact]
-        public void TestListFoldersFromRoot()
-        {
-            var assetStorageSystem = GetAssetStorageSystem();
-            var s3Component = assetStorageSystem.GetAssetStorageComponent();
-
-            var assetList = s3Component.ListFolderTree( assetStorageSystem );
-
-            Assert.Contains( assetList, a => a.Name == "UnitTestFolder" );
-            Assert.Contains( assetList, a => a.Name == "SubFolder1" );
-            Assert.Contains( assetList, a => a.Name == "SubFolder1a" );
-            Assert.Contains( assetList, a => a.Name == "TwoThousandObjects" );
-            Assert.Contains( assetList, a => a.Name == "TestFolder-0" );
-            Assert.Contains( assetList, a => a.Name == "TestFolder-1" );
-            Assert.Contains( assetList, a => a.Name == "TestFolder-2" );
-            Assert.Contains( assetList, a => a.Name == "TestFolder-3" );
-            Assert.Contains( assetList, a => a.Name == "TestFolder-4" );
-            Assert.Contains( assetList, a => a.Name == "TestFolder-5" );
-            Assert.Contains( assetList, a => a.Name == "TestFolder-6" );
-            Assert.Contains( assetList, a => a.Name == "TestFolder-7" );
-            Assert.Contains( assetList, a => a.Name == "TestFolder-8" );
-            Assert.Contains( assetList, a => a.Name == "TestFolder-9" );
-            Assert.DoesNotContain( assetList, a => a.Name == "TestFile-0.txt" );
-            Assert.DoesNotContain( assetList, a => a.Name == "TestFile-1368.txt" );
-        }
-
-        /// <summary>
         /// List only the files.
         /// </summary>
         [Fact]

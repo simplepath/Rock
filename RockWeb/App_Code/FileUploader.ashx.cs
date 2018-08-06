@@ -104,7 +104,14 @@ namespace RockWeb
                     }
                     else
                     {
-                        ProcessContentFile( context, uploadedFile );
+                        if ( context.Request.Form["IsAssetStorageSystemAsset"].AsBoolean() )
+                        {
+                            ProcessAssetStorageSystemAsset( context, uploadedFile );
+                        }
+                        else
+                        {
+                            ProcessContentFile( context, uploadedFile );
+                        }
                     }
                 }
             }
@@ -121,6 +128,29 @@ namespace RockWeb
                 context.Response.StatusCode = ( int ) System.Net.HttpStatusCode.InternalServerError;
                 context.Response.Write( "error: " + ex.Message );
             }
+        }
+
+        private void ProcessAssetStorageSystemAsset( HttpContext context, HttpPostedFile uploadedFile )
+        {
+            int? assetStorageId = context.Request.Form["StorageId"].AsIntegerOrNull();
+            string assetKey = context.Request.Form["Key"];
+
+            if ( assetStorageId == null || assetKey.IsNullOrWhiteSpace() )
+            {
+                throw new Rock.Web.FileUploadException( "Insufficient info to upload a file of this type.", System.Net.HttpStatusCode.Forbidden );
+            }
+
+            var assetStorageService = new AssetStorageSystemService( new RockContext() );
+            AssetStorageSystem assetStorageSystem = assetStorageService.Get( (int)assetStorageId );
+            assetStorageSystem.LoadAttributes();
+            var component = assetStorageSystem.GetAssetStorageComponent();
+
+            var asset = new Rock.Storage.AssetStorage.Asset();
+            asset.Key = assetKey;
+            asset.Type = Rock.Storage.AssetStorage.AssetType.File;
+            asset.AssetStream = uploadedFile.InputStream;
+
+            component.UploadObject( assetStorageSystem, asset );
         }
 
         /// <summary>

@@ -162,16 +162,6 @@ namespace Rock.Storage.AssetStorage
             return GetListOfObjects( physicalFolder, SearchOption.TopDirectoryOnly, AssetType.Folder );
         }
 
-        public override List<Asset> ListFolderTree( AssetStorageSystem assetStorageSystem )
-        {
-            return ( ListFolderTree( assetStorageSystem, new Asset { Type = AssetType.Folder } ) );
-        }
-
-        public override List<Asset> ListFolderTree( AssetStorageSystem assetStorageSystem, Asset asset )
-        {
-            return null;
-        }
-
         public override List<Asset> ListObjects( AssetStorageSystem assetStorageSystem )
         {
             var asset = new Asset();

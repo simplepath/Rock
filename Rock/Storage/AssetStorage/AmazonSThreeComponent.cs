@@ -198,32 +198,7 @@ namespace Rock.Storage.AssetStorage
                     assets.Add( subFolderAsset );
                 }
 
-                //if ( asset.Key != "/" || asset.Key != string.Empty )
-                //{
-                //    assets.RemoveAt( 0 );
-                //}
-
                 return assets;
-            }
-            catch ( Exception ex )
-            {
-                ExceptionLogService.LogException( ex );
-                throw;
-            }
-        }
-
-        public override List<Asset> ListFolderTree( AssetStorageSystem assetStorageSystem )
-        {
-            return ( ListFolderTree( assetStorageSystem, new Asset { Type = AssetType.Folder } ) );
-        }
-
-        public override List<Asset> ListFolderTree( AssetStorageSystem assetStorageSystem, Asset asset )
-        {
-            try
-            {
-                // First get the list of objects with recursion since that is what Amazon offers
-                var assets = ListObjects( assetStorageSystem, asset );
-                return assets.Where( a => a.Type == AssetType.Folder ).OrderBy( a => a.Key ).ToList();
             }
             catch ( Exception ex )
             {

@@ -212,25 +212,6 @@ namespace Rock.Storage.AssetStorage
         public abstract List<Asset> ListFoldersInFolder( AssetStorageSystem assetStorageSystem, Asset asset );
 
         /// <summary>
-        /// Lists the folders from AssetStorageSystem.RootFolder.
-        /// </summary>
-        /// <param name="assetStorageSystem">The asset storage system.</param>
-        /// <returns></returns>
-        public abstract List<Asset> ListFolderTree( AssetStorageSystem assetStorageSystem );
-
-        /// <summary>
-        /// Lists the folder tree starting from the folder specified in Asset.Key.
-        /// If Asset.Key is not provided then one is created using the RootFolder and Asset.Name
-        /// If Key and Name are not provided then list all folders from the RootFolder defined in the AssetStorageSystem
-        /// If Asset.key is provided it MUST use the full path, RootFolder and Name are not used.
-        /// The last segment in the key is a folder name.
-        /// </summary>
-        /// <param name="assetStorageSystem">The asset storage system.</param>
-        /// <param name="asset">The asset.</param>
-        /// <returns></returns>
-        public abstract List<Asset> ListFolderTree( AssetStorageSystem assetStorageSystem, Asset asset );
-
-        /// <summary>
         /// Uploads a file. If Asset.Key is not provided then one is created using the RootFolder and Asset.Name.
         /// If a key is provided it MUST use the full path, RootFolder is not used.
         /// </summary>
