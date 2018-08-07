@@ -36,7 +36,7 @@ namespace RockWeb.Blocks.Core
             string submitScriptFormat = @"// include in the post to ~/FileUploader.ashx
     var assetKey = $('#{0}').val();
     var storageId = $('#{1}').val();
-    data.formData = {{ StorageId: storageId, Key: assetKey, isAssetStorageSystemAsset: true }};
+    data.formData = {{ StorageId: storageId, Key: assetKey, IsAssetStorageSystemAsset: true }};
 ";
 
             // setup javascript for when a file is submitted

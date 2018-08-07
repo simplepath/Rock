@@ -124,7 +124,7 @@
                 <%--<asp:FileUpload ID="fuUpload" runat="server" />--%>
                 <div class="actions">
                     <%--<asp:LinkButton ID="lbUpload" runat="server" CssClass="btn btn-sm btn-primary" OnClick="lbUpload_Click" CausesValidation="false" ToolTip="Upload a file to the selected location"><i class="fa fa-upload"></i>Upload</asp:LinkButton>--%>
-                    <Rock:FileUploader ID="fupUpload" runat="server" CssClass="btn btn-sm btn-primary" CausesValidation="false" ToolTip="Upload a file to the selected location" IsBinaryFile="false" />
+                    <Rock:FileUploader ID="fupUpload" runat="server" CssClass="btn btn-sm btn-primary" CausesValidation="false" ToolTip="Upload a file to the selected location" IsBinaryFile="false" DisplayMode="Button" />
                     <asp:LinkButton ID="lbDownload" runat="server" CssClass="btn btn-sm btn-primary js-singleselect" OnClick="lbDownload_Click" CausesValidation="false" ToolTip="Download the selected files"><i class="fa fa-download"></i>Download</asp:LinkButton>
                     <asp:LinkButton ID="lbRename" runat="server" CssClass="btn btn-sm btn-primary js-singleselect" OnClick="lbRename_Click" CausesValidation="false" ToolTip="Rename the selected file"><i class="fa fa-exchange"></i>Rename</asp:LinkButton>
                     <asp:LinkButton ID="lbDelete" runat="server"  CssClass="btn btn-sm btn-primary" OnClick="lbDelete_Click" CausesValidation="false" ToolTip="Delete the selected files" OnClientClick="Rock.dialogs.confirmDelete(event, ' file?')"><i class="fa fa-trash-alt"></i>Delete</asp:LinkButton>
