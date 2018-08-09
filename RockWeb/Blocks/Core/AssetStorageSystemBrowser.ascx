@@ -92,8 +92,8 @@
     <div class="picker-folders">
         <asp:UpdatePanel ID="upnlFolders" runat="server" UpdateMode="Conditional" ChildrenAsTriggers="false">
             <ContentTemplate>
-                <asp:LinkButton ID="lbCreateFolder" runat="server" CssClass="btn btn-sm btn-primary" OnClick="lbCreateFolder_Click" CausesValidation="false" ToolTip="New Folder"><i class="fa fa-plus"></i>Add Folder</asp:LinkButton>
-                <asp:LinkButton ID="lbDeleteFolder" runat="server" CssClass="btn btn-sm btn-primary" OnClientClick="if ($(this).attr('disabled') == 'disabled') { return false; } Rock.dialogs.confirmDelete(event, 'folder and all its contents');" OnClick="lbDeleteFolder_Click" CausesValidation="false" ToolTip="Delete Folder"><i class="fa fa-times"></i>Delete Folder</asp:LinkButton>
+                <asp:LinkButton ID="lbCreateFolder" runat="server" CssClass="btn btn-xs btn-default" OnClick="lbCreateFolder_Click" CausesValidation="false" ToolTip="New Folder"><i class="fa fa-plus"></i>Add Folder</asp:LinkButton>
+                <asp:LinkButton ID="lbDeleteFolder" runat="server" CssClass="btn btn-xs btn-default" OnClientClick="if ($(this).attr('disabled') == 'disabled') { return false; } Rock.dialogs.confirmDelete(event, 'folder and all its contents');" OnClick="lbDeleteFolder_Click" CausesValidation="false" ToolTip="Delete Folder"><i class="fa fa-trash-alt"></i>Delete Folder</asp:LinkButton>
 
                 <Rock:NotificationBox ID="nbWarning" runat="server" NotificationBoxType="Warning" Text="Folder not found" Visible="false" />
 
@@ -121,14 +121,14 @@
     <div class="picker-files">
         <asp:UpdatePanel ID="upnlFiles" runat="server">
             <ContentTemplate>
-                <%--<asp:FileUpload ID="fuUpload" runat="server" />--%>
-                <div class="actions">
-                    <%--<asp:LinkButton ID="lbUpload" runat="server" CssClass="btn btn-sm btn-primary" OnClick="lbUpload_Click" CausesValidation="false" ToolTip="Upload a file to the selected location"><i class="fa fa-upload"></i>Upload</asp:LinkButton>--%>
-                    <Rock:FileUploader ID="fupUpload" runat="server" CssClass="btn btn-sm btn-primary" CausesValidation="false" ToolTip="Upload a file to the selected location" IsBinaryFile="false" DisplayMode="Button" />
-                    <asp:LinkButton ID="lbDownload" runat="server" CssClass="btn btn-sm btn-primary js-singleselect" OnClick="lbDownload_Click" CausesValidation="false" ToolTip="Download the selected files"><i class="fa fa-download"></i>Download</asp:LinkButton>
-                    <asp:LinkButton ID="lbRename" runat="server" CssClass="btn btn-sm btn-primary js-singleselect" OnClick="lbRename_Click" CausesValidation="false" ToolTip="Rename the selected file"><i class="fa fa-exchange"></i>Rename</asp:LinkButton>
-                    <asp:LinkButton ID="lbDelete" runat="server"  CssClass="btn btn-sm btn-primary" OnClick="lbDelete_Click" CausesValidation="false" ToolTip="Delete the selected files" OnClientClick="Rock.dialogs.confirmDelete(event, ' file?')"><i class="fa fa-trash-alt"></i>Delete</asp:LinkButton>
-                    <asp:LinkButton ID="lbRefresh" runat="server" CssClass="btn btn-sm btn-primary" OnClick="lbRefresh_Click" CausesValidation="false" ToolTip="Refresh the file list"><i class="fa fa-sync"></i>Refresh</asp:LinkButton>
+
+                <div class="actions row">
+                    <div class="col-md-2"><Rock:FileUploader ID="fupUpload" runat="server" CssClass="btn btn-xs btn-default" CausesValidation="false" ToolTip="Upload a file to the selected location" IsBinaryFile="false" DisplayMode="Button" /></div>
+                    <div class="col-md-2"><asp:LinkButton ID="lbDownload" runat="server" CssClass="btn btn-xs btn-default js-singleselect" OnClick="lbDownload_Click" CausesValidation="false" ToolTip="Download the selected files"><i class="fa fa-download"></i>Download</asp:LinkButton></div>
+                    <div class="col-md-2"><asp:LinkButton ID="lbRename" runat="server" CssClass="btn btn-xs btn-default js-singleselect" OnClick="lbRename_Click" CausesValidation="false" ToolTip="Rename the selected file"><i class="fa fa-exchange"></i>Rename</asp:LinkButton></div>
+                    <div class="col-md-2"><asp:LinkButton ID="lbDelete" runat="server"  CssClass="btn btn-xs btn-default" OnClick="lbDelete_Click" CausesValidation="false" ToolTip="Delete the selected files" OnClientClick="Rock.dialogs.confirmDelete(event, ' file?')"><i class="fa fa-trash-alt"></i>Delete</asp:LinkButton></div>
+                    <div class="col-md-2"><asp:LinkButton ID="lbRefresh" runat="server" CssClass="btn btn-xs btn-default" OnClick="lbRefresh_Click" CausesValidation="false" ToolTip="Refresh the file list"><i class="fa fa-sync"></i>Refresh</asp:LinkButton></div>
+                    <div class="col-md-2"></div>
                 </div>
 
                 <br />
@@ -141,7 +141,7 @@
                         <div class="row">
                             <div class="col-md-1"><Rock:RockCheckBox ID="cbSelected" runat="server" CssClass="js-checkbox" /></div>
                             <div class="col-md-1"><i class='<%# Eval("IconCssClass") %>'></i></div>
-                            <div class="col-md-4"><div class="col-md-4"><asp:Label ID="lbName" runat="server" Text='<%# Eval("Name") %>'></asp:Label></div></div>
+                            <div class="col-md-4"><asp:Label ID="lbName" runat="server" Text='<%# Eval("Name") %>'></asp:Label></div>
                             <div class="col-md-4"><asp:Label ID="lbLastModified" runat="server" Text='<%# Eval("LastModifiedDateTime") %>'></asp:Label></div>
                             <div class="col-md-2"><asp:Label ID="lbFileSize" runat="server" Text='<%# Eval("FormattedFileSize") %>'></asp:Label></div>
                             <asp:HiddenField ID="hfKey" runat="server" Value='<%# Eval("Key") %>' />
