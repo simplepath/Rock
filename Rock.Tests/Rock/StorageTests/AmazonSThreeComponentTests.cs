@@ -31,24 +31,24 @@ namespace Rock.Tests.Rock.StorageTests
             var assetStorageService = new AssetStorageSystemService( new Data.RockContext() );
             AssetStorageSystem assetStorageSystem = assetStorageService.Get( 5 );// need mock
             assetStorageSystem.LoadAttributes();
-            //assetStorageSystem.SetAttributeValue( "RootFolder", "UnitTestFolder" );
+            assetStorageSystem.SetAttributeValue( "RootFolder", "UnitTestFolder" );
 
             return assetStorageSystem;
         }
 
-        [Fact]
-        public void TestListRootBucket()
-        {
-            var assetStorageSystem = GetAssetStorageSystem();
-            var s3Component = assetStorageSystem.GetAssetStorageComponent();
+        //[Fact]
+        //public void TestListRootBucket()
+        //{
+        //    var assetStorageSystem = GetAssetStorageSystem();
+        //    var s3Component = assetStorageSystem.GetAssetStorageComponent();
 
-            var asset = new Asset {
-                Key = "UnitTestFolder/",
-                Type = AssetType.Folder
-            };
+        //    var asset = new Asset {
+        //        Key = "UnitTestFolder/",
+        //        Type = AssetType.Folder
+        //    };
             
-            var assets = s3Component.ListFoldersInFolder( assetStorageSystem, asset );
-        }
+        //    var assets = s3Component.ListFoldersInFolder( assetStorageSystem, asset );
+        //}
 
         /// <summary>
         /// Create a folder in the bucket using a key (the full name);

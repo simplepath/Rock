@@ -133,7 +133,7 @@ namespace RockWeb
         private void ProcessAssetStorageSystemAsset( HttpContext context, HttpPostedFile uploadedFile )
         {
             int? assetStorageId = context.Request.Form["StorageId"].AsIntegerOrNull();
-            string assetKey = context.Request.Form["Key"];
+            string assetKey = context.Request.Form["Key"] + uploadedFile.FileName;
 
             if ( assetStorageId == null || assetKey.IsNullOrWhiteSpace() )
             {
@@ -150,7 +150,14 @@ namespace RockWeb
             asset.Type = Rock.Storage.AssetStorage.AssetType.File;
             asset.AssetStream = uploadedFile.InputStream;
 
-            component.UploadObject( assetStorageSystem, asset );
+            if ( component.UploadObject( assetStorageSystem, asset ) )
+            {
+                context.Response.Write( new { Id = string.Empty, FileName = assetKey }.ToJson() );
+            }
+            else
+            {
+                throw new Rock.Web.FileUploadException( "Unable to upload file", System.Net.HttpStatusCode.BadRequest );
+            }
         }
 
         /// <summary>

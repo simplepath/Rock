@@ -42,17 +42,18 @@ namespace RockWeb.Blocks.Core
             // setup javascript for when a file is submitted
             fupUpload.SubmitFunctionClientScript = string.Format( submitScriptFormat, hfSelectedFolder.ClientID, hfAssetStorageId.ClientID );
 
-//            string doneScriptFormat = @"
-//    // reselect the node to refresh the list of files
-//    var selectedFolderPath = $('#{0}').val();
-//    var foldersTree = $('.js-folder-treeview .treeview').data('rockTree');
-//    foldersTree.$el.trigger('rockTree:selected', selectedFolderPath);
-//";
+            string doneScriptFormat = @"// reselect the node to refresh the list of files
+    var selectedFolderPath = $('#{0}').val();
+    var foldersTree = $('.js-folder-treeview .treeview').data('rockTree');
+    foldersTree.$el.trigger('rockTree:selected', selectedFolderPath);
+";
 
-            // setup javascript for when a file is done uploading
-            //fupUpload.DoneFunctionClientScript = string.Format( doneScriptFormat, hfSelectedFolder.ClientID );
+            //setup javascript for when a file is done uploading
+            fupUpload.DoneFunctionClientScript = string.Format( doneScriptFormat, hfSelectedFolder.ClientID );
 
+            string createFolderClientScript = @"";
 
+            lbCreateFolder.OnClientClick = string.Format(createFolderClientScript );
         }
 
         protected override void OnLoad( EventArgs e )
@@ -61,12 +62,8 @@ namespace RockWeb.Blocks.Core
 
             if ( !this.IsPostBack )
             {
-
-                pnlModalHeader.Visible = PageParameter( "ModalMode" ).AsBoolean();
-                pnlModalFooterActions.Visible = PageParameter( "ModalMode" ).AsBoolean();
-                lTitle.Text = PageParameter( "Title" );
-
                 BuildFolderTreeView();
+                return;
             }
 
             // handle custom postback events
@@ -80,7 +77,7 @@ namespace RockWeb.Blocks.Core
                 string[] args = postbackArgs.Split( new char[] { ',' } );
                 foreach( string arg in args )
                 {
-                    string[] nameValue = postbackArgs.Split( new char[] { ':' } );
+                    string[] nameValue = arg.Split( new char[] { ':' } );
                     string eventParam = nameValue[0];
 
                     switch ( eventParam )
@@ -283,7 +280,10 @@ namespace RockWeb.Blocks.Core
         {
             AssetStorageSystem assetStorageSystem = GetAssetStorageSystem();
             var component = assetStorageSystem.GetAssetStorageComponent();
+            component.DeleteAsset( assetStorageSystem, new Asset { Key = hfSelectedFolder.Value, Type = AssetType.Folder } );
 
+            BuildFolderTreeView();
+            // TODO: select the parent of the folder just deleted and list the files
         }
 
         /// <summary>

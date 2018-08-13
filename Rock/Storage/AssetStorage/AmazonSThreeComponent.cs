@@ -15,6 +15,7 @@ using Rock.Model;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Web.Cache;
+using System.Threading.Tasks;
 
 namespace Rock.Storage.AssetStorage
 {
@@ -294,7 +295,7 @@ namespace Rock.Storage.AssetStorage
         {
             string rootFolder = FixRootFolder( GetAttributeValue( assetStorageSystem, "RootFolder" ) );
             asset.Key = FixKey( asset, rootFolder );
-            AmazonS3Client Client = GetAmazonS3Client( assetStorageSystem );
+            AmazonS3Client client = GetAmazonS3Client( assetStorageSystem );
 
             if ( asset.Type == AssetType.File )
             {
@@ -306,7 +307,7 @@ namespace Rock.Storage.AssetStorage
                         Key = asset.Key
                     };
 
-                    DeleteObjectResponse response = Client.DeleteObject( request );
+                    DeleteObjectResponse response = client.DeleteObject( request );
                     return true;
                 }
                 catch ( Exception ex )
@@ -319,9 +320,7 @@ namespace Rock.Storage.AssetStorage
             {
                 try
                 {
-                    S3DirectoryInfo s3DirectoryInfo = new S3DirectoryInfo( Client, GetAttributeValue( assetStorageSystem, "Bucket" ), asset.Key );
-                    s3DirectoryInfo.Delete( true );
-                    return true;
+                    return MultipleObjectDelete( client, assetStorageSystem, asset );
                 }
                 catch (Exception ex )
                 {
@@ -472,6 +471,48 @@ namespace Rock.Storage.AssetStorage
         #endregion Override Methods
 
         #region Private Methods
+
+        private bool MultipleObjectDelete( AmazonS3Client client, AssetStorageSystem assetStorageSystem, Asset asset )
+        {
+            // The list of keys that will be passed into the multiple delete request
+            List<KeyVersion> keys = new List<KeyVersion>();
+
+            // Amazon only accepts 1000 keys per request, use this to keep track of how many already sent
+            int keyIndex = 0;
+
+            try
+            {
+                // Get a list of objest with prefix
+                var assetDeleteList = ListObjects( assetStorageSystem, asset );
+
+                // Create the list of keys
+                foreach ( var assetDelete in assetDeleteList )
+                {
+                    keys.Add( new KeyVersion { Key = assetDelete.Key } );
+                }
+
+                while ( keyIndex < keys.Count() )
+                {
+                    int range = keys.Count() - keyIndex < 1000 ? keys.Count() - keyIndex : 1000;
+                    var deleteObjectsRequest = new DeleteObjectsRequest
+                    {
+                        BucketName = GetAttributeValue( assetStorageSystem, "Bucket" ),
+                        Objects = keys.GetRange( keyIndex, range )
+                    };
+
+                    DeleteObjectsResponse response = client.DeleteObjects( deleteObjectsRequest );
+                    keyIndex += range;
+                }
+
+                return true;
+            }
+            catch ( Exception ex )
+            {
+                ExceptionLogService.LogException( ex );
+                throw;
+            }
+            
+        }
 
         private Asset CreateAssetFromS3Object( S3Object s3Object, string regionEndpoint )
         {

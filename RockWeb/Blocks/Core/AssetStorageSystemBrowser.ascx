@@ -16,7 +16,7 @@
 
             // init scroll bars for folder divs
             <%=pnlTreeViewPort.ClientID%>IScroll = new IScroll('#<%=pnlTreeViewPort.ClientID%>', {
-                mouseWheel: false,
+                mouseWheel: true,
                 indicators: {
                     el: '#<%=pnlTreeTrack.ClientID%>',
                     interactive: true,
@@ -71,31 +71,38 @@
             }
         });
 
+        //
+
 
     });
 
+    //create folder button client actions
+    function createFolder() {
+
+    }
 
 </script>
 <asp:HiddenField ID="hfAssetStorageId" runat="server" />
 <asp:HiddenField ID="hfSelectedFolder" runat="server" />
-
-<asp:Panel ID="pnlModalHeader" runat="server" Visible="false">
-    <h3 class="modal-title">
-        <asp:Literal ID="lTitle" runat="server"></asp:Literal>
-        <span class="js-cancel-file-button cursor-pointer pull-right" style="opacity: .5">&times;</span>
-    </h3>
-
-</asp:Panel>
 
 <div class="picker-wrapper clearfix">
 
     <div class="picker-folders">
         <asp:UpdatePanel ID="upnlFolders" runat="server" UpdateMode="Conditional" ChildrenAsTriggers="false">
             <ContentTemplate>
-                <asp:LinkButton ID="lbCreateFolder" runat="server" CssClass="btn btn-xs btn-default" OnClick="lbCreateFolder_Click" CausesValidation="false" ToolTip="New Folder"><i class="fa fa-plus"></i>Add Folder</asp:LinkButton>
-                <asp:LinkButton ID="lbDeleteFolder" runat="server" CssClass="btn btn-xs btn-default" OnClientClick="if ($(this).attr('disabled') == 'disabled') { return false; } Rock.dialogs.confirmDelete(event, 'folder and all its contents');" OnClick="lbDeleteFolder_Click" CausesValidation="false" ToolTip="Delete Folder"><i class="fa fa-trash-alt"></i>Delete Folder</asp:LinkButton>
 
+                <div class="actions row">
+                    <div class="col-md-6"><asp:LinkButton ID="lbCreateFolder" runat="server" CssClass="btn btn-xs btn-default" OnClick="lbCreateFolder_Click" CausesValidation="false" ToolTip="New Folder"><i class="fa fa-plus"></i>Add Folder</asp:LinkButton></div>
+                    <div class="col-md-6"><asp:LinkButton ID="lbDeleteFolder" runat="server" CssClass="btn btn-xs btn-default" OnClientClick="if ($(this).attr('disabled') == 'disabled') { return false; } Rock.dialogs.confirmDelete(event, 'folder and all its contents');" OnClick="lbDeleteFolder_Click" CausesValidation="false" ToolTip="Delete Folder"><i class="fa fa-trash-alt"></i>Delete Folder</asp:LinkButton></div>
+                </div>
+                <div class="actions row" runat="server" id="divCreateFolder">
+                    <div class="col-md-4"><Rock:RockTextBox ID="tbCreateFolder" runat="server"></Rock:RockTextBox></div>
+                    <div class="col-md-4"><asp:LinkButton ID="lbCreateFolderAccept" runat="server" CssClass="btn btn-xs btn-default"></asp:LinkButton></div>
+                    <div class="col-md-4"><asp:LinkButton ID="lbCreateFolderCancel" runat="server" CssClass="btn btn-xs btn-default"></asp:LinkButton></div>
+                </div>
+                <br />
                 <Rock:NotificationBox ID="nbWarning" runat="server" NotificationBoxType="Warning" Text="Folder not found" Visible="false" />
+                <br />
 
                 <div>
                     <div class="scroll-container scroll-container-vertical scroll-container-picker js-folder-treeview">
@@ -156,11 +163,3 @@
 
 </div>
 
-<asp:Panel ID="pnlModalFooterActions" CssClass="modal-footer" runat="server" Visible="false">
-    <div class="row">
-        <div class="actions">
-            <a class="btn btn-primary js-select-file-button">OK</a>
-            <a class="btn btn-link js-cancel-file-button">Cancel</a>
-        </div>
-    </div>
-</asp:Panel>
