@@ -257,20 +257,20 @@ namespace RockWeb.Blocks.Security.BackgroundCheck
             }
             else
             {
-                if ( HaveWorkflowAction( CheckrSystemGuid.CHECKR_WORKFLOW_TYPE ) )
-                {
-                    btnDefault.Visible = false;
-                }
-                else
-                {
-                    btnDefault.Visible = true;
-                }
-
                 tbAccessToken.Text = accessToken;
                 lViewColumnLeft.Text = new DescriptionList()
                     .Add( "Access Token", accessToken )
                     .Html;
                 DisplayPackages();
+            }
+
+            if ( HaveWorkflowAction( CheckrSystemGuid.CHECKR_WORKFLOW_TYPE ) )
+            {
+                btnDefault.Visible = false;
+            }
+            else
+            {
+                btnDefault.Visible = true;
             }
         }
 
