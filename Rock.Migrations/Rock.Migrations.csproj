@@ -70,10 +70,6 @@
     <Compile Include="Migrations\201807200941565_Rollup_PreAlphaRelease_0719.Designer.cs">
       <DependentUpon>201807200941565_Rollup_PreAlphaRelease_0719.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201807251810450_AssetStorageSystem.cs" />
-    <Compile Include="Migrations\201807251810450_AssetStorageSystem.Designer.cs">
-      <DependentUpon>201807251810450_AssetStorageSystem.cs</DependentUpon>
-    </Compile>
     <Compile Include="Migrations\Version 8.0\Version 1.8.0\201806251757250_BackgroundCheckWarnOfRecent.cs" />
     <Compile Include="Migrations\Version 8.0\Version 1.8.0\201806251757250_BackgroundCheckWarnOfRecent.Designer.cs">
       <DependentUpon>201806251757250_BackgroundCheckWarnOfRecent.cs</DependentUpon>
@@ -2917,9 +2913,6 @@
   <ItemGroup>
     <EmbeddedResource Include="Migrations\201807200941565_Rollup_PreAlphaRelease_0719.resx">
       <DependentUpon>201807200941565_Rollup_PreAlphaRelease_0719.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201807251810450_AssetStorageSystem.resx">
-      <DependentUpon>201807251810450_AssetStorageSystem.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\Version 8.0\Version 1.8.0\201806251757250_BackgroundCheckWarnOfRecent.resx">
       <DependentUpon>201806251757250_BackgroundCheckWarnOfRecent.cs</DependentUpon>
