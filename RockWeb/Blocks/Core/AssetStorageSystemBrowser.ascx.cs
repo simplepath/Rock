@@ -51,9 +51,25 @@ namespace RockWeb.Blocks.Core
             //setup javascript for when a file is done uploading
             fupUpload.DoneFunctionClientScript = string.Format( doneScriptFormat, hfSelectedFolder.ClientID );
 
-            string createFolderClientScript = @"";
+            string createFolderClientScript = string.Format(@"
+//create folder button client actions
+function createFolder() {{
+    $('#{0}').fadeToggle();
+    $('#{1}').val('');
+}}
+",
+                divCreateFolder.ClientID, tbCreateFolder.ClientID );
+            ScriptManager.RegisterStartupScript( lbCreateFolder, lbCreateFolder.GetType(), "create-folder", createFolderClientScript, true );
 
-            lbCreateFolder.OnClientClick = string.Format(createFolderClientScript );
+//            string renameFileClientScript = string.Format( @"
+////rename file button action
+//function renameFile() {{
+//    $('#{0}').fadeToggle();
+//    $('#{1}').val('');
+//}}
+//",
+//                divRenameFile.ClientID, tbRenameFile.ClientID );
+//            ScriptManager.RegisterStartupScript( this.Page, this.Page.GetType(), "rename-file", renameFileClientScript, true );
         }
 
         protected override void OnLoad( EventArgs e )
@@ -225,14 +241,6 @@ namespace RockWeb.Blocks.Core
             ListFiles();
         }
 
-        protected void lbRename_Click( object sender, EventArgs e )
-        {
-            AssetStorageSystem assetStorageSystem = GetAssetStorageSystem();
-            var component = assetStorageSystem.GetAssetStorageComponent();
-
-
-
-        }
 
         /// <summary>
         /// Handles the Click event of the lbDelete control.
@@ -269,11 +277,17 @@ namespace RockWeb.Blocks.Core
             ListFiles();
         }
 
-        protected void lbCreateFolder_Click( object sender, EventArgs e )
+        protected void lbCreateFolderAccept_Click( object sender, EventArgs e )
         {
             AssetStorageSystem assetStorageSystem = GetAssetStorageSystem();
             var component = assetStorageSystem.GetAssetStorageComponent();
 
+            //TODO: put validation on the textbox, rename will need to use it as well
+            string key = hfSelectedFolder.Value + tbCreateFolder.Text + "/";
+            component.CreateFolder( assetStorageSystem, new Asset { Key = key, Type = AssetType.Folder } );
+
+            BuildFolderTreeView();
+            //TODO: select the new folder
         }
 
         protected void lbDeleteFolder_Click( object sender, EventArgs e )
@@ -282,6 +296,7 @@ namespace RockWeb.Blocks.Core
             var component = assetStorageSystem.GetAssetStorageComponent();
             component.DeleteAsset( assetStorageSystem, new Asset { Key = hfSelectedFolder.Value, Type = AssetType.Folder } );
 
+            hfSelectedFolder.Value = string.Empty;
             BuildFolderTreeView();
             // TODO: select the parent of the folder just deleted and list the files
         }
@@ -307,6 +322,25 @@ namespace RockWeb.Blocks.Core
 
         protected void fupUpload_FileUploaded( object sender, EventArgs e )
         {
+            ListFiles();
+        }
+
+        protected void lbRenameFileAccept_Click( object sender, EventArgs e )
+        {
+            AssetStorageSystem assetStorageSystem = GetAssetStorageSystem();
+            var component = assetStorageSystem.GetAssetStorageComponent();
+
+            foreach ( RepeaterItem file in rptFiles.Items )
+            {
+                var cbEvent = file.FindControl( "cbSelected" ) as RockCheckBox;
+                if ( cbEvent.Checked == true )
+                {
+                    var keyControl = file.FindControl( "hfKey" ) as HiddenField;
+                    string key = keyControl.Value;
+                    component.RenameAsset( assetStorageSystem, new Asset { Key = key, Type = AssetType.File }, tbRenameFile.Text );
+                }
+            }
+
             ListFiles();
         }
     }
