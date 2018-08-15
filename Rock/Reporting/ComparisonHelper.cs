@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Web.UI.WebControls;
+using Rock.Data;
 using Rock.Model;
 using Rock.Web.UI.Controls;
 
@@ -124,6 +125,10 @@ namespace Rock.Reporting
                     {
                         comparisonExpression = upperComparisonExpression;
                     }
+                    else
+                    {
+                        return new NoAttributeFilterExpression();
+                    }
                 }
             }
             else if ( comparisonType == ComparisonType.IsBlank )
@@ -213,6 +218,15 @@ namespace Rock.Reporting
 
             return ddl;
         }
+
+        /// <summary>
+        /// Gets the comparison types typically used simple comparisons of: equal, not equal, blank or not blank.
+        /// </summary>
+        internal const ComparisonType EqualOrBlankFilterComparisonTypes =
+                        ComparisonType.EqualTo |
+                        ComparisonType.IsBlank |
+                        ComparisonType.IsNotBlank |
+                        ComparisonType.NotEqualTo;
 
         /// <summary>
         /// Gets the comparison types typically used for string fields

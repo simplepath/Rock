@@ -252,6 +252,15 @@ namespace Rock.Model
         }
 
         /// <summary>
+        /// Gets or sets the note attachments.
+        /// </summary>
+        /// <value>
+        /// The note attachments.
+        /// </value>
+        [DataMember]
+        public virtual ICollection<NoteAttachment> Attachments { get; set; } = new Collection<NoteAttachment>();
+
+        /// <summary>
         /// Gets the created by person photo URL.
         /// </summary>
         /// <value>
@@ -491,6 +500,19 @@ namespace Rock.Model
                 }
 
                 return false;
+            }
+            else if ( action.Equals( Rock.Security.Authorization.EDIT, StringComparison.OrdinalIgnoreCase ) )
+            {
+                // If this note was created by the logged person, they should be be able to EDIT their own note,
+                // otherwise EDIT (and DELETE) of other people's notes require ADMINISTRATE
+                if ( CreatedByPersonAlias?.PersonId == person?.Id )
+                {
+                    return true;
+                }
+                else 
+                {
+                    return base.IsAuthorized( Rock.Security.Authorization.ADMINISTRATE, person );
+                }
             }
             else
             {
