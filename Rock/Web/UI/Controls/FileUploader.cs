@@ -556,9 +556,14 @@ namespace Rock.Web.UI.Controls
             DropZone,
 
             /// <summary>
-            /// As a button
+            /// As a primary button
             /// </summary>
-            Button
+            Button,
+
+            /// <summary>
+            /// As a default button
+            /// </summary>
+            DefaultButton
         }
 
         /// <summary>
@@ -701,6 +706,10 @@ namespace Rock.Web.UI.Controls
                 if (this.DisplayMode == UploaderDisplayMode.Button)
                 {
                     writer.AddAttribute(HtmlTextWriterAttribute.Class, "fileupload-button");
+                }
+                else if ( this.DisplayMode == UploaderDisplayMode.DefaultButton )
+                {
+                    writer.AddAttribute( HtmlTextWriterAttribute.Class, "fileuploaddefault-button" );
                 }
                 else
                 {

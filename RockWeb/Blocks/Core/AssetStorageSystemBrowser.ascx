@@ -4,6 +4,10 @@
 <script type="text/javascript">
     Sys.Application.add_load(function () {
 
+        if ($('.js-folder-treeview .treeview').length == 0) {
+            return;
+        }
+
         var folderTreeData = $('.js-folder-treeview .treeview').data('rockTree');
 
         // init the folder list treeview if it hasn't been created already
@@ -59,22 +63,15 @@
             });
         });
 
-         //Some buttons need to be disabled if more than one file is selected.
+         //Some buttons are only active is one file is selected.
         $('.js-checkbox').on('click', function () {
             var n = $('.js-checkbox:checked').length;
-            debugger
-            if (n > 1) {
+            if (n != 1) {
                 $('.js-singleselect').attr('disabled', true);
             }
             else {
                 $('.js-singleselect').attr('disabled', false);
             }
-        });
-
-        //rename file button action
-        $('#btnRename').on('click', function () {
-            $('#renamediv').fadeToggle();
-            $('.js-renameTextbox').val('');
         });
 
     });
@@ -97,7 +94,7 @@
                 <div class="actions row" runat="server" id="divCreateFolder" style="display: none;">
                     <div class="col-md-4"><Rock:RockTextBox ID="tbCreateFolder" runat="server"></Rock:RockTextBox></div>
                     <div class="col-md-2"><asp:LinkButton ID="lbCreateFolderAccept" runat="server" CssClass="btn btn-xs btn-default" OnClick="lbCreateFolderAccept_Click" ><i class="fa fa-check"></i>Create Folder</asp:LinkButton></div>
-                    <div class="col-md-2"><asp:LinkButton ID="lbCreateFolderCancel" runat="server" CssClass="btn btn-xs btn-default"><i class="fa fa-times"></i>Cancel</asp:LinkButton></div>
+                    <div class="col-md-2"><asp:LinkButton ID="lbCreateFolderCancel" runat="server" CssClass="btn btn-xs btn-default" OnClientClick="createFolder()"><i class="fa fa-times"></i>Cancel</asp:LinkButton></div>
                     <div class="col-md-4"></div>
                 </div>
                 <br />
@@ -130,20 +127,20 @@
             <ContentTemplate>
 
                 <div class="actions row">
-                    <div class="col-md-2"><Rock:FileUploader ID="fupUpload" runat="server" CssClass="btn btn-xs btn-default" CausesValidation="false" ToolTip="Upload a file to the selected location" IsBinaryFile="false" DisplayMode="Button" /></div>
+                    <div class="col-md-2"><Rock:FileUploader ID="fupUpload" runat="server" CssClass="btn btn-xs btn-default" CausesValidation="false" ToolTip="Upload a file to the selected location" IsBinaryFile="false" DisplayMode="DefaultButton" /></div>
                     <div class="col-md-2"><asp:LinkButton ID="lbDownload" runat="server" CssClass="btn btn-xs btn-default js-singleselect" OnClick="lbDownload_Click" CausesValidation="false" ToolTip="Download the selected files"><i class="fa fa-download"></i>Download</asp:LinkButton></div>
-                    <div class="col-md-2"><button id="btnRename" class="btn btn-xs btn-default js-singleselect" data-toggle="collapse" data-target="#renamediv" title="Rename the selected file"><i class="fa fa-exchange"></i>Rename</button></div>
+                    <div class="col-md-2"><asp:LinkButton ID="lbRename" runat="server" CssClass="btn btn-xs btn-default" OnClientClick="renameFile(); return false;" CausesValidation="false" ToolTip="Rename the selected file"><i class="fa fa-exchange"></i>Rename</asp:LinkButton></div>
                     <div class="col-md-2"><asp:LinkButton ID="lbDelete" runat="server"  CssClass="btn btn-xs btn-default" OnClick="lbDelete_Click" CausesValidation="false" ToolTip="Delete the selected files" OnClientClick="Rock.dialogs.confirmDelete(event, ' file?')"><i class="fa fa-trash-alt"></i>Delete</asp:LinkButton></div>
                     <div class="col-md-2"><asp:LinkButton ID="lbRefresh" runat="server" CssClass="btn btn-xs btn-default" OnClick="lbRefresh_Click" CausesValidation="false" ToolTip="Refresh the file list"><i class="fa fa-sync"></i>Refresh</asp:LinkButton></div>
                     <div class="col-md-2"></div>
                 </div>
 
-                <div class="actions row collapse collapsed" id="renamediv">
+                <div class="actions row" runat="server" id="divRenameFile" style="display: none;">
                     <div class="col-md-2"></div>
                     <div class="col-md-2"></div>
                     <div class="col-md-4"><Rock:RockTextBox ID="tbRenameFile" runat="server" CssClass="js-renameTextbox"></Rock:RockTextBox></div>
                     <div class="col-md-2"><asp:LinkButton ID="lbRenameFileAccept" runat="server" CssClass="btn btn-xs btn-default" OnClick="lbRenameFileAccept_Click" ><i class="fa fa-check"></i>Rename File</asp:LinkButton></div>
-                    <div class="col-md-2"><asp:LinkButton ID="lbRenameFileCancel" runat="server" CssClass="btn btn-xs btn-default" Text="Cancel"><i class="fa fa-times"></i>Cancel</asp:LinkButton></div>
+                    <div class="col-md-2"><asp:LinkButton ID="lbRenameFileCancel" runat="server" CssClass="btn btn-xs btn-default" OnClientClick="renameFile()" Text="Cancel"><i class="fa fa-times"></i>Cancel</asp:LinkButton></div>
                 </div>
                 <br />
                 <Rock:NotificationBox ID="nbErrorMessage" runat="server" NotificationBoxType="Danger" Text="Error..." Visible="false" Title="Error" Dismissable="true" />

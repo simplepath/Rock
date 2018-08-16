@@ -20,13 +20,53 @@ namespace RockWeb.Blocks.Core
     [DisplayName( "Asset Storage System File Browser" )]
     [Category( "Core" )]
     [Description( "Manage files stored on a remote server or 3rd party cloud storage" )]
-    public partial class AssetStorageSystemBrowser : RockBlock
+    public partial class AssetStorageSystemBrowser : RockBlock, IPickerBlock
     {
+        #region IPicker Implementation
+        public string SelectedValue
+        {
+            get
+            {
+                AssetStorageSystem assetStorageSystem = GetAssetStorageSystem();
+                var component = assetStorageSystem.GetAssetStorageComponent();
+
+                foreach ( RepeaterItem repeaterItem in rptFiles.Items )
+                {
+                    var cbEvent = repeaterItem.FindControl( "cbSelected" ) as RockCheckBox;
+                    if ( cbEvent.Checked == true )
+                    {
+                        var keyControl = repeaterItem.FindControl( "hfKey" ) as HiddenField;
+                        return keyControl.Value;
+                    }
+                }
+
+                return string.Empty;
+            }
+
+            set
+            {
+                // don't want to do this.
+            }
+        }
+
+        public Dictionary<string, string> PickerSettings
+        {
+            get { return new Dictionary<string, string>() { { "key", "value" } }; }
+        }
+
+        public event EventHandler SelectItem;
+
+        public string GetSelectedText( string selectedValue )
+        {
+            return SelectedValue;
+        }
+
+        #endregion IPicker Implementation
+
+
         protected override void OnInit( EventArgs e )
         {
             base.OnInit( e );
-
-            // if needed create js here
 
             ScriptManager scriptManager = ScriptManager.GetCurrent( Page );
             scriptManager.RegisterPostBackControl( lbDownload );
@@ -51,6 +91,7 @@ namespace RockWeb.Blocks.Core
             //setup javascript for when a file is done uploading
             fupUpload.DoneFunctionClientScript = string.Format( doneScriptFormat, hfSelectedFolder.ClientID );
 
+            //show new folder tb and buttons
             string createFolderClientScript = string.Format(@"
 //create folder button client actions
 function createFolder() {{
@@ -61,15 +102,17 @@ function createFolder() {{
                 divCreateFolder.ClientID, tbCreateFolder.ClientID );
             ScriptManager.RegisterStartupScript( lbCreateFolder, lbCreateFolder.GetType(), "create-folder", createFolderClientScript, true );
 
-//            string renameFileClientScript = string.Format( @"
-////rename file button action
-//function renameFile() {{
-//    $('#{0}').fadeToggle();
-//    $('#{1}').val('');
-//}}
-//",
-//                divRenameFile.ClientID, tbRenameFile.ClientID );
-//            ScriptManager.RegisterStartupScript( this.Page, this.Page.GetType(), "rename-file", renameFileClientScript, true );
+            // Show rename tb and buttons
+            string renameFileClientScript = string.Format( @"
+//rename file button action
+function renameFile() {{
+    $('#{0}').fadeToggle();
+    $('#{1}').val('');
+}}
+",
+                divRenameFile.ClientID, tbRenameFile.ClientID );
+            ScriptManager.RegisterStartupScript( lbRename, lbRename.GetType(), "rename-file", renameFileClientScript, true );
+
         }
 
         protected override void OnLoad( EventArgs e )
@@ -120,10 +163,6 @@ function createFolder() {{
 
                 ListFiles();
             }
-
-            // ajax post if needed
-
-
         }
 
         /// <summary>
@@ -330,12 +369,12 @@ function createFolder() {{
             AssetStorageSystem assetStorageSystem = GetAssetStorageSystem();
             var component = assetStorageSystem.GetAssetStorageComponent();
 
-            foreach ( RepeaterItem file in rptFiles.Items )
+            foreach ( RepeaterItem repeaterItem in rptFiles.Items )
             {
-                var cbEvent = file.FindControl( "cbSelected" ) as RockCheckBox;
+                var cbEvent = repeaterItem.FindControl( "cbSelected" ) as RockCheckBox;
                 if ( cbEvent.Checked == true )
                 {
-                    var keyControl = file.FindControl( "hfKey" ) as HiddenField;
+                    var keyControl = repeaterItem.FindControl( "hfKey" ) as HiddenField;
                     string key = keyControl.Value;
                     component.RenameAsset( assetStorageSystem, new Asset { Key = key, Type = AssetType.File }, tbRenameFile.Text );
                 }
@@ -343,5 +382,7 @@ function createFolder() {{
 
             ListFiles();
         }
+
+
     }
 }

@@ -39,6 +39,12 @@ namespace Rock.Rest.Controllers
 
 
 
+        /// <summary>
+        /// Gets the folders.
+        /// </summary>
+        /// <param name="assetStorageSystemId">The asset storage system identifier.</param>
+        /// <param name="path">The path.</param>
+        /// <returns></returns>
         [Authenticate, Secured]
         [HttpGet]
         [System.Web.Http.Route( "api/AssetStorageSystems/GetFolders" )]
@@ -59,6 +65,12 @@ namespace Rock.Rest.Controllers
             return groupNameList.AsQueryable();
         }
 
+        /// <summary>
+        /// Gets the files.
+        /// </summary>
+        /// <param name="assetStorageSystemId">The asset storage system identifier.</param>
+        /// <param name="path">The path.</param>
+        /// <returns></returns>
         [Authenticate, Secured]
         [HttpGet]
         [System.Web.Http.Route("api/AssetStorageSystems/GetFiles")]
@@ -79,6 +91,13 @@ namespace Rock.Rest.Controllers
             return assets;
         }
 
+        /// <summary>
+        /// Gets the children.
+        /// </summary>
+        /// <param name="assetStorageSystemId">The asset storage system identifier.</param>
+        /// <param name="path">The path.</param>
+        /// <param name="isStorageSystem">if set to <c>true</c> [is storage system].</param>
+        /// <returns></returns>
         [Authenticate, Secured]
         [HttpGet]
         [System.Web.Http.Route("api/AssetStoragesystems/GetChildren")]
