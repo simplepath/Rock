@@ -92,41 +92,41 @@ namespace RockWeb.Blocks.Core
             fupUpload.DoneFunctionClientScript = string.Format( doneScriptFormat, hfSelectedFolder.ClientID );
 
             //show new folder tb and buttons
-            string createFolderClientScript = string.Format(@"
-//create folder button client actions
-function createFolder() {{
-    $('#{0}').fadeToggle();
-    $('#{1}').val('');
-}}
-",
-                divCreateFolder.ClientID, tbCreateFolder.ClientID );
-            ScriptManager.RegisterStartupScript( lbCreateFolder, lbCreateFolder.GetType(), "create-folder", createFolderClientScript, true );
+//            string createFolderClientScript = string.Format(@"
+////create folder button client actions
+//function createFolder() {{
+//    $('#{0}').fadeToggle();
+//    $('#{1}').val('');
+//}}
+//",
+//                divCreateFolder.ClientID, tbCreateFolder.ClientID );
+//            ScriptManager.RegisterStartupScript( lbCreateFolder, lbCreateFolder.GetType(), "create-folder", createFolderClientScript, true );
 
             // Show rename tb and buttons
-            string renameFileClientScript = string.Format( @"
-//rename file button action
-function renameFile() {{
-    $('#{0}').fadeToggle();
-    $('#{1}').val('');
-}}
-",
-                divRenameFile.ClientID, tbRenameFile.ClientID );
-            ScriptManager.RegisterStartupScript( lbRename, lbRename.GetType(), "rename-file", renameFileClientScript, true );
+//            string renameFileClientScript = string.Format( @"
+////rename file button action
+//function renameFile( e ) {{
+//        $('#{0}').fadeToggle();
+//        $('#{1}').val('');
+//}}
+//",
+//                divRenameFile.ClientID, tbRenameFile.ClientID );
+//            ScriptManager.RegisterStartupScript( lbRename, lbRename.GetType(), "rename-file", renameFileClientScript, true );
 
         }
 
         protected override void OnLoad( EventArgs e )
         {
             base.OnLoad( e );
+            string postbackArgs = Request.Params["__EVENTARGUMENT"];
 
-            if ( !this.IsPostBack )
+            if ( !this.IsPostBack || postbackArgs == string.Empty )
             {
                 BuildFolderTreeView();
                 return;
             }
 
             // handle custom postback events
-            string postbackArgs = Request.Params["__EVENTARGUMENT"];
             if ( !string.IsNullOrWhiteSpace( postbackArgs ) )
             {
                 string folderSelected = string.Empty;
@@ -240,6 +240,11 @@ function renameFile() {{
         {
             AssetStorageSystem assetStorageSystem = GetAssetStorageSystem();
             var component = assetStorageSystem.GetAssetStorageComponent();
+
+            if ( component == null )
+            {
+                return;
+            }
 
             var files = component.ListFilesInFolder( assetStorageSystem, new Asset { Key = hfSelectedFolder.Value, Type = AssetType.Folder } );
 

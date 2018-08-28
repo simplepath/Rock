@@ -4,12 +4,12 @@
     <ContentTemplate>
         <Rock:RockLiteral ID="lModalPickedResult" runat="server" />
 
-        <h1>Picker in Modal</h1>
+        <%--<h1>Picker in Modal</h1>
         button container stuff begin
         <Rock:ItemFromBlockPicker Id="pModalExample" runat="server" BlockTypePath="~/Blocks/Utility/PickSomething.ascx" SelectedValue="Cheese" OnSelectItem="pModalExample_SelectItem" CssClass="btn btn-xs btn-default" ShowInModal="true" ModalSaveButtonText="Select"  >
            Button Text is {{ SelectedText }}
         </Rock:ItemFromBlockPicker>
-        button container stuff end
+        button container stuff end--%>
 
         <h1>Asset Storage System Browser Picker</h1>
         <Rock:ItemFromBlockPicker ID="pAssetBrowser" runat="server" BlockTypePath="~/Blocks/Core/AssetStorageSystemBrowser.ascx" OnSelectItem="pAssetBrowser_SelectItem" CssClass="btn btn-xs btn-default" ShowInModal="true" ModalSaveButtonText="Modal Save">Browse</Rock:ItemFromBlockPicker>

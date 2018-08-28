@@ -21,37 +21,38 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web.UI;
 using Rock.Data;
+using Rock.Web.UI.Controls;
 
 namespace Rock.Field.Types
 {
     class AssetFieldType : FieldType
     {
 
-        public override List<string> ConfigurationKeys()
-        {
-            return null;
-        }
-
-        public override List<Control> ConfigurationControls()
-        {
-            return null;
-        }
-
         // this will be the assetstoragesystembrowser block inside Mikes block picker
         public override Control EditControl( Dictionary<string, ConfigurationValue> configurationValues, string id )
         {
-            return null;
+            return new ItemFromBlockPicker { ID = id, BlockTypePath = "~/Blocks/Core/AssetStorageSystemBrowser.ascx", ShowInModal = true, CssClass = "btn btn-xs btn-default", ModalSaveButtonText = "Select", ButtonTextTemplate = "Browse",  };
         }
 
         //
-        public override string GetEditValue( Control control, Dictionary<string, ConfigurationValue> configurationValues )
-        {
-            return null;
-        }
+        //public override string GetEditValue( Control control, Dictionary<string, ConfigurationValue> configurationValues )
+        //{
+        //    var picker = ( ItemFromBlockPicker ) control;
+        //    if( picker != null )
+        //    {
 
-        public override void SetEditValue( Control control, Dictionary<string, ConfigurationValue> configurationValues, string value )
-        {
+        //    }
+            
+        //    return null;
+        //}
 
-        }
+        //public override void SetEditValue( Control control, Dictionary<string, ConfigurationValue> configurationValues, string value )
+        //{
+        //    var picker = ( ItemFromBlockPicker ) control;
+        //    if ( picker != null )
+        //    {
+
+        //    }
+        //}
     }
 }

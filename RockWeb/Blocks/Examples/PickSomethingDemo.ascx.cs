@@ -46,7 +46,7 @@ namespace RockWeb.Blocks.Examples
             base.OnInit( e );
 
             //pExample.BlockTypePath = "~/Blocks/Utility/PickSomething.ascx";
-            pModalExample.PickerBlock.PickerSettings["HeaderText"] = "Hello World 1234";
+            //pModalExample.PickerBlock.PickerSettings["HeaderText"] = "Hello World 1234";
 
             //pPickFromFileBrowser.PickerBlock.PickerSettings["RootFolder"] = "~/Content";
         }
@@ -56,22 +56,11 @@ namespace RockWeb.Blocks.Examples
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
-        protected void pModalExample_SelectItem( object sender, EventArgs e )
-        {
-            lModalPickedResult.Text = "You Picked: " + pModalExample.SelectedValue;
-        }
+        //protected void pModalExample_SelectItem( object sender, EventArgs e )
+        //{
+        //    lModalPickedResult.Text = "You Picked: " + pModalExample.SelectedValue;
+        //}
 
-
-
-        /// <summary>
-        /// Handles the SelectItem event of the pInlineExample control.
-        /// </summary>
-        /// <param name="sender">The source of the event.</param>
-        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
-        protected void pInlineExample_SelectItem( object sender, EventArgs e )
-        {
-
-        }
 
         protected void pPickFromFileBrowser_SelectItem( object sender, EventArgs e )
         {

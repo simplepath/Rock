@@ -438,11 +438,9 @@ namespace Rock.Web.UI.Controls
 
             if ( BlockTypePath.IsNotNullOrWhiteSpace() )
             {
-                _pickerBlock = TemplateControl.LoadControl( BlockTypePath ) as UserControl;
-
-
                 var rockPage = System.Web.HttpContext.Current.Handler as RockPage;
-
+                _pickerBlock = rockPage.TemplateControl.LoadControl( BlockTypePath ) as UserControl;
+                
                 var pageCache = PageCache.Get( rockPage.PageId );
                 ( _pickerBlock as RockBlock )?.SetBlock( pageCache, null, false, false );
 

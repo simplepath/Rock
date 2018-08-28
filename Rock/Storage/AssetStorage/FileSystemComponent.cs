@@ -52,7 +52,7 @@ namespace Rock.Storage.AssetStorage
             {
                 string rootFolder = FixRootFolder( GetAttributeValue( assetStorageSystem, "RootFolder" ) );
                 asset.Key = FixKey( asset, rootFolder );
-                string domainName = HttpContext.Current.Request.Url.GetLeftPart( UriPartial.Authority );
+                string domainName = FileSystemCompontHttpContext.Request.Url.GetLeftPart( UriPartial.Authority );
                 string uriKey = asset.Key.TrimStart( '~' );
                 return domainName + uriKey;
             }
@@ -117,10 +117,13 @@ namespace Rock.Storage.AssetStorage
 
                 asset.Key = FixKey( asset, rootFolder );
                 string physicalFile = FileSystemCompontHttpContext.Server.MapPath( asset.Key );
-                FileStream fs = new FileStream( physicalFile, FileMode.Open );
-                asset.AssetStream = fs;
+                FileInfo fileInfo = new FileInfo( physicalFile );
 
-                return asset;
+                var objAsset = CreateAssetFromFileInfo( fileInfo );
+                FileStream fs = new FileStream( physicalFile, FileMode.Open );
+                objAsset.AssetStream = fs;
+
+                return objAsset;
             }
             catch ( Exception ex )
             {
@@ -362,13 +365,13 @@ namespace Rock.Storage.AssetStorage
 
         private Asset CreateAssetFromFileInfo( FileInfo fileInfo )
         {
-            string relativePath = fileInfo.FullName.Replace( FileSystemCompontHttpContext.Server.MapPath( "~/" ), "~/" ).Replace( @"\", "/" );
+            string relativePath = ReverseMapPath( fileInfo.FullName );
 
             return new Asset
             {
                 Name = fileInfo.Name,
-                Key = fileInfo.FullName,
-                Uri = relativePath,
+                Key = relativePath,
+                Uri = $"{FileSystemCompontHttpContext.Request.Url.GetLeftPart( UriPartial.Authority )}/{relativePath.TrimStart( '~' )}",
                 Type = AssetType.File,
                 IconCssClass = $"~/Assets/Icons/FileTypes/{fileInfo.Extension}.png",
                 FileSize = fileInfo.Length,
