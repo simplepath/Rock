@@ -91,28 +91,77 @@ namespace RockWeb.Blocks.Core
             //setup javascript for when a file is done uploading
             fupUpload.DoneFunctionClientScript = string.Format( doneScriptFormat, hfSelectedFolder.ClientID );
 
-            //show new folder tb and buttons
-//            string createFolderClientScript = string.Format(@"
-////create folder button client actions
-//function createFolder() {{
-//    $('#{0}').fadeToggle();
-//    $('#{1}').val('');
-//}}
-//",
-//                divCreateFolder.ClientID, tbCreateFolder.ClientID );
-//            ScriptManager.RegisterStartupScript( lbCreateFolder, lbCreateFolder.GetType(), "create-folder", createFolderClientScript, true );
+            string folderTreeScript = string.Format( @"
+Sys.Application.add_load(function () {{
+    if ($('.js-folder-treeview .treeview').length == 0) {{
+        return;
+    }}
 
-            // Show rename tb and buttons
-//            string renameFileClientScript = string.Format( @"
-////rename file button action
-//function renameFile( e ) {{
-//        $('#{0}').fadeToggle();
-//        $('#{1}').val('');
-//}}
-//",
-//                divRenameFile.ClientID, tbRenameFile.ClientID );
-//            ScriptManager.RegisterStartupScript( lbRename, lbRename.GetType(), "rename-file", renameFileClientScript, true );
+    var folderTreeData = $('.js-folder-treeview .treeview').data('rockTree');
 
+    if (!folderTreeData) {{
+        var selectedFolders = $('#{0}').val().split(',');
+        $('.js-folder-treeview .treeview').rockTree({{
+            selectedIds: selectedFolders
+        }});
+
+        {1}IScroll = new IScroll('#{1}', {{
+            mouseWheel: true,
+            indicators: {{
+                el: '#{2}',
+                interactive: true,
+                resize: false,
+                listenY: true,
+                listenX: false
+            }},
+            click: false,
+            preventDefaultException: {{ tagName: /.*/ }}
+        }});
+
+        $('.js-folder-treeview .treeview').on('rockTree:expand rockTree:collapse rockTree:dataBound rockTree:rendered', function (evt) {{
+            if ({1}IScroll) {{
+                {1}IScroll.refresh();
+            }}
+        }});
+    }}
+
+    $('.js-folder-treeview .treeview').off('rockTree:selected');
+    $('.js-folder-treeview .treeview').on('rockTree:selected', function (e, data) {{
+        var relativeFolderPath = data;
+        var postbackArg;
+        var previousStorageId = $('#{3}').val();
+debugger
+        if (data.endsWith("" / "")) {{
+            $( '#{0}' ).val( data );
+            postbackArg = 'folder-selected:' + relativeFolderPath.replace(/\\/g, "" / "" ) + ',previous-asset:' + previousStorageId;
+        }}
+        else {{
+            $('#{3}').val( data);
+            $('#{0}').val('');
+            postbackArg = 'asset-selected:' + data + ',previous-asset:' + previousStorageId;
+        }}
+
+        setTimeout( function () {{
+            __doPostBack( '{4}', postbackArg );
+        }});
+    }});
+
+    //Some buttons are only active is one file is selected.
+    $('.js-checkbox').on('click', function () {{
+        var n = $( '.js-checkbox:checked' ).length;
+        if ( n != 1 ) {{
+            $( '.js-singleselect' ).addClass( 'aspNetDisabled' );
+        }}
+        else {{
+            $( '.js-singleselect' ).removeClass( 'aspNetDisabled' );
+        }}
+    }});
+}});
+",
+
+        hfSelectedFolder.ClientID, pnlTreeViewPort.ClientID, pnlTreeTrack.ClientID, hfAssetStorageId.ClientID, upnlFiles.ClientID );
+
+            ScriptManager.RegisterStartupScript( this, this.GetType(), "folder-treeview", folderTreeScript, true );
         }
 
         protected override void OnLoad( EventArgs e )
@@ -122,7 +171,7 @@ namespace RockWeb.Blocks.Core
 
             if ( !this.IsPostBack || postbackArgs == string.Empty )
             {
-                BuildFolderTreeView();
+                BuildFolderTreeView( string.Empty );
                 return;
             }
 
@@ -156,9 +205,9 @@ namespace RockWeb.Blocks.Core
                 }
 
                 // if this is not set then a folder was not selected but an asset storage system was. So we need to build the tree.
-                if ( folderSelected.IsNullOrWhiteSpace() && previousAssetSelected != hfAssetStorageId.Value )
+                if ( folderSelected.IsNullOrWhiteSpace() && previousAssetSelected != assetSelected )
                 {
-                    BuildFolderTreeView();
+                    BuildFolderTreeView( assetSelected );
                 }
 
                 ListFiles();
@@ -168,7 +217,7 @@ namespace RockWeb.Blocks.Core
         /// <summary>
         /// Builds the folder TreeView for the selected asset storage system.
         /// </summary>
-        private void BuildFolderTreeView()
+        private void BuildFolderTreeView( string assetStorageId )
         {
             var assetStorageService = new AssetStorageSystemService( new RockContext() );
             var sb = new StringBuilder();
@@ -180,7 +229,7 @@ namespace RockWeb.Blocks.Core
             {
                 //sb.AppendFormat( "<li data-expanded='false' data-id='{0}' ><span class=''> {1}</span> \n", assetStorageSystem.Id, assetStorageSystem.Name );
 
-                if ( hfAssetStorageId.Value.IsNullOrWhiteSpace() || ( hfAssetStorageId.ValueAsInt() != assetStorageSystem.Id ) )
+                if ( assetStorageId.IsNullOrWhiteSpace() || ( assetStorageId.AsIntegerOrNull() != assetStorageSystem.Id ) )
                 {
                     sb.AppendFormat( "<li data-expanded='false' data-id='{0}' ><span class=''> {1}</span> \n", assetStorageSystem.Id, assetStorageSystem.Name );
                     continue;
@@ -330,7 +379,7 @@ namespace RockWeb.Blocks.Core
             string key = hfSelectedFolder.Value + tbCreateFolder.Text + "/";
             component.CreateFolder( assetStorageSystem, new Asset { Key = key, Type = AssetType.Folder } );
 
-            BuildFolderTreeView();
+            BuildFolderTreeView( assetStorageSystem.Id.ToStringSafe() );
             //TODO: select the new folder
         }
 
@@ -341,7 +390,7 @@ namespace RockWeb.Blocks.Core
             component.DeleteAsset( assetStorageSystem, new Asset { Key = hfSelectedFolder.Value, Type = AssetType.Folder } );
 
             hfSelectedFolder.Value = string.Empty;
-            BuildFolderTreeView();
+            BuildFolderTreeView( assetStorageSystem.Id.ToStringSafe() );
             // TODO: select the parent of the folder just deleted and list the files
         }
 

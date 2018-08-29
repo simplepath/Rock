@@ -2,81 +2,7 @@
 
 
 <script type="text/javascript">
-    Sys.Application.add_load(function () {
-
-        if ($('.js-folder-treeview .treeview').length == 0) {
-            return;
-        }
-
-        var folderTreeData = $('.js-folder-treeview .treeview').data('rockTree');
-
-        // init the folder list treeview if it hasn't been created already
-        if (!folderTreeData) {
-            var selectedFolders = $('#<%=hfSelectedFolder.ClientID%>').val().split(',');
-            // init rockTree on folder (no url option since we are generating off static html)
-            $('.js-folder-treeview .treeview').rockTree({
-                selectedIds: selectedFolders
-            });
-
-            // init scroll bars for folder divs
-            <%=pnlTreeViewPort.ClientID%>IScroll = new IScroll('#<%=pnlTreeViewPort.ClientID%>', {
-                mouseWheel: true,
-                indicators: {
-                    el: '#<%=pnlTreeTrack.ClientID%>',
-                    interactive: true,
-                    resize: false,
-                    listenY: true,
-                    listenX: false,
-                },
-                click: false,
-                preventDefaultException: { tagName: /.*/ }
-            });
-
-            $('.js-folder-treeview .treeview').on('rockTree:expand rockTree:collapse rockTree:dataBound rockTree:rendered', function (evt) {
-                // update the folder treeview scroll bar
-                if (<%=pnlTreeViewPort.ClientID%>IScroll) {
-                        <%=pnlTreeViewPort.ClientID%>IScroll.refresh();
-                }
-            });
-        }
-
-        // js for when a folder is selected
-        $('.js-folder-treeview .treeview').off('rockTree:selected');
-        $('.js-folder-treeview .treeview').on('rockTree:selected', function (e, data) {
-            var relativeFolderPath = data;
-            var postbackArg;
-            var previousStorageId = $('#<%=hfAssetStorageId.ClientID %>').val();
-
-            if (data.endsWith("/")) {
-                $('#<%=hfSelectedFolder.ClientID%>').val(data);
-                postbackArg = 'folder-selected:' + relativeFolderPath.replace(/\\/g, "/")  + ',previous-asset:' + previousStorageId;
-            }
-            else { 
-                $('#<%=hfAssetStorageId.ClientID%>').val(data);
-                $('#<%=hfSelectedFolder.ClientID%>').val('');
-                postbackArg = 'asset-selected:' + data  + ',previous-asset:' + previousStorageId;
-            }
-
-            // use setTimeout so that the doPostBack happens later (to avoid javascript exception that occurs due to timing)
-            setTimeout(function () {
-                window.location = "javascript:__doPostBack('<%=upnlFiles.ClientID %>', '" + postbackArg + "')";
-            });
-        });
-
-         //Some buttons are only active is one file is selected.
-        $('.js-checkbox').on('click', function () {
-            var n = $('.js-checkbox:checked').length;
-            if (n != 1) {
-                $('.js-singleselect').addClass('aspNetDisabled');
-            }
-            else {
-                $('.js-singleselect').removeClass('aspNetDisabled');
-            }
-        });
-
-
-    });
-
+    
     //rename file button action
     function renameFile() {
         $('#divRenameFile').fadeToggle();
@@ -90,8 +16,13 @@
     }
 
 </script>
-<asp:HiddenField ID="hfAssetStorageId" runat="server" />
-<asp:HiddenField ID="hfSelectedFolder" runat="server" />
+
+<asp:UpdatePanel ID="upnHiddenFields" runat="server" UpdateMode="Always">
+    <ContentTemplate>
+            <asp:HiddenField ID="hfAssetStorageId" runat="server" />
+            <asp:HiddenField ID="hfSelectedFolder" runat="server" />
+    </ContentTemplate>
+</asp:UpdatePanel>
 
 <div class="picker-wrapper clearfix">
 
@@ -107,7 +38,6 @@
                     <div class="col-md-4"><Rock:RockTextBox ID="tbCreateFolder" runat="server"></Rock:RockTextBox></div>
                     <div class="col-md-2"><asp:LinkButton ID="lbCreateFolderAccept" runat="server" CssClass="btn btn-xs btn-default" OnClick="lbCreateFolderAccept_Click" ><i class="fa fa-check"></i>Create Folder</asp:LinkButton></div>
                     <div class="col-md-2"><linkbutton ID="lbCreateFolderCancel" class="btn btn-xs btn-default" onclick="createFolder()"><i class="fa fa-times"></i>Cancel</linkbutton></div>
-                    <%--<div class="col-md-2"><asp:LinkButton ID="lbCreateFolderCancel" runat="server" CssClass="btn btn-xs btn-default" OnClientClick="createFolder()"><i class="fa fa-times"></i>Cancel</asp:LinkButton></div>--%>
                     <div class="col-md-4"></div>
                 </div>
                 <br />
@@ -154,7 +84,6 @@
                     <div class="col-md-4"><Rock:RockTextBox ID="tbRenameFile" runat="server" CssClass="js-renameTextbox"></Rock:RockTextBox></div>
                     <div class="col-md-2"><asp:LinkButton ID="lbRenameFileAccept" runat="server" CssClass="btn btn-xs btn-default" OnClick="lbRenameFileAccept_Click" ><i class="fa fa-check"></i>Rename File</asp:LinkButton></div>
                     <div class="col-md-2"><linkbutton id="lbRenameFileCancel" class="btn btn-xs btn-default" onclick="renameFile()" Text="Cancel"><i class="fa fa-times"></i>Cancel</linkbutton></div>
-                    <%--<div class="col-md-2"><asp:LinkButton ID="lbRenameFileCancel" runat="server" CssClass="btn btn-xs btn-default" OnClientClick="renameFile()" Text="Cancel"><i class="fa fa-times"></i>Cancel</asp:LinkButton></div>--%>
                 </div>
                 <br />
                 <Rock:NotificationBox ID="nbErrorMessage" runat="server" NotificationBoxType="Danger" Text="Error..." Visible="false" Title="Error" Dismissable="true" />

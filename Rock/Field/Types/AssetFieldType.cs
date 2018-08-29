@@ -27,32 +27,50 @@ namespace Rock.Field.Types
 {
     class AssetFieldType : FieldType
     {
+        private string _pickerButtonTemplate = @"<div class=""imageupload-thumbnail-image"" style=""height:100px; width:100px; background-image:url(/Assets/Images/no-picture.svg); background-size:cover; background-position:50%""></div>
+                <div class=""imageupload-group imageupload-dropzone""><span><i class=""fa fa-globe-americas""></i>{0}</span></div>";
 
-        // this will be the assetstoragesystembrowser block inside Mikes block picker
         public override Control EditControl( Dictionary<string, ConfigurationValue> configurationValues, string id )
         {
-            return new ItemFromBlockPicker { ID = id, BlockTypePath = "~/Blocks/Core/AssetStorageSystemBrowser.ascx", ShowInModal = true, CssClass = "btn btn-xs btn-default", ModalSaveButtonText = "Select", ButtonTextTemplate = "Browse",  };
+            var pickerControl = new ItemFromBlockPicker {
+                ID = id,
+                BlockTypePath = "~/Blocks/Core/AssetStorageSystemBrowser.ascx",
+                ShowInModal = true,
+                CssClass = "btn btn-xs btn-default",
+                ModalSaveButtonText = "Select",
+                ButtonTextTemplate = "Browse",
+                PickerButtonTemplate = string.Format( _pickerButtonTemplate, "Browse" )
+            };
+
+            pickerControl.SelectItem += AssetBrowser_SelectItem;
+
+            return pickerControl;
         }
 
-        //
-        //public override string GetEditValue( Control control, Dictionary<string, ConfigurationValue> configurationValues )
-        //{
-        //    var picker = ( ItemFromBlockPicker ) control;
-        //    if( picker != null )
-        //    {
+        public override string GetEditValue( Control control, Dictionary<string, ConfigurationValue> configurationValues )
+        {
+            var picker = ( ItemFromBlockPicker ) control;
+            if ( picker != null )
+            {
+                return picker.SelectedValue;
+            }
 
-        //    }
-            
-        //    return null;
-        //}
+            return string.Empty;
+        }
 
-        //public override void SetEditValue( Control control, Dictionary<string, ConfigurationValue> configurationValues, string value )
-        //{
-        //    var picker = ( ItemFromBlockPicker ) control;
-        //    if ( picker != null )
-        //    {
+        public override void SetEditValue( Control control, Dictionary<string, ConfigurationValue> configurationValues, string value )
+        {
+            var picker = ( ItemFromBlockPicker ) control;
+            if ( picker != null )
+            {
+                picker.SelectedValue = value;
+            }
+        }
 
-        //    }
-        //}
+        protected void AssetBrowser_SelectItem( object sender, EventArgs e)
+        {
+            //var picker = ( ItemFromBlockPicker) sender;
+            //picker.PickerButtonTemplate = string.Format( _pickerButtonTemplate, picker.SelectedValue );
+        }
     }
 }
