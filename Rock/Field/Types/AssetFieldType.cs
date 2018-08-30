@@ -35,7 +35,8 @@ namespace Rock.Field.Types
 
         public override Control EditControl( Dictionary<string, ConfigurationValue> configurationValues, string id )
         {
-            var pickerControl = new ItemFromBlockPicker {
+            var pickerControl = new ItemFromBlockPicker
+            {
                 ID = id,
                 BlockTypePath = "~/Blocks/Core/AssetStorageSystemBrowser.ascx",
                 ShowInModal = true,
@@ -81,6 +82,11 @@ namespace Rock.Field.Types
         /// <returns></returns>
         public override string FormatValue( Control parentControl, string value, Dictionary<string, ConfigurationValue> configurationValues, bool condensed )
         {
+            if ( value.IsNullOrWhiteSpace() )
+            {
+                return string.Empty;
+            }
+
             var asset = JsonConvert.DeserializeObject<Storage.AssetStorage.Asset>( value );
             asset.Type = Storage.AssetStorage.AssetType.File;
 
@@ -101,7 +107,7 @@ namespace Rock.Field.Types
             return uri;
         }
 
-        protected void AssetBrowser_SelectItem( object sender, EventArgs e)
+        protected void AssetBrowser_SelectItem( object sender, EventArgs e )
         {
             //var picker = ( ItemFromBlockPicker) sender;
             //picker.PickerButtonTemplate = string.Format( _pickerButtonTemplate, picker.SelectedValue );
