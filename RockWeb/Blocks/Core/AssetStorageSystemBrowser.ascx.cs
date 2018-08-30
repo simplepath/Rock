@@ -147,6 +147,8 @@ namespace RockWeb.Blocks.Core
 
             string folderTreeScript = string.Format( @"
 Sys.Application.add_load(function () {{
+debugger
+
     if ($('.js-folder-treeview .treeview').length == 0) {{
         return;
     }}

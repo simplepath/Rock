@@ -89,7 +89,6 @@
                 <Rock:NotificationBox ID="nbErrorMessage" runat="server" NotificationBoxType="Danger" Text="Error..." Visible="false" Title="Error" Dismissable="true" />
                 <br />
 
-                <div class="panel panel-block">
                     <asp:Repeater ID="rptFiles" runat="server">
                         <ItemTemplate>
                             <div class="row">
@@ -102,7 +101,6 @@
                             </div>
                         </ItemTemplate>
                     </asp:Repeater>
-                </div>
 
             </ContentTemplate>
         </asp:UpdatePanel>
