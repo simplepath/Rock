@@ -21,10 +21,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using Newtonsoft.Json;
+
 namespace Rock.Storage.AssetStorage
 {
     public class Asset
     {
+        [JsonProperty( "AssetStorageSystemId" )]
+        public int AssetStorageSystemId { get; set; }
+
         /// <summary>
         /// The name of the asset as it should appear to the end user. The name should be the last segment of the key.
         /// </summary>
@@ -39,6 +44,7 @@ namespace Rock.Storage.AssetStorage
         /// <value>
         /// The key.
         /// </value>
+        [JsonProperty( "Key" )]
         public string Key { get; set; }
 
         /// <summary>

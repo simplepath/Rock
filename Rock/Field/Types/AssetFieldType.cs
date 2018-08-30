@@ -20,8 +20,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web.UI;
+
 using Rock.Data;
 using Rock.Web.UI.Controls;
+using Newtonsoft.Json;
+using Rock.Model;
 
 namespace Rock.Field.Types
 {
@@ -65,6 +68,37 @@ namespace Rock.Field.Types
             {
                 picker.SelectedValue = value;
             }
+        }
+
+        /// <summary>
+        /// Overridden to take JSON input of AssetStorageID and Key and create a URL. If the asset is using Amazon then a presigned URL is
+        /// created.
+        /// </summary>
+        /// <param name="parentControl">The parent control.</param>
+        /// <param name="value">Information about the value</param>
+        /// <param name="configurationValues">The configuration values.</param>
+        /// <param name="condensed">Flag indicating if the value should be condensed (i.e. for use in a grid column)</param>
+        /// <returns></returns>
+        public override string FormatValue( Control parentControl, string value, Dictionary<string, ConfigurationValue> configurationValues, bool condensed )
+        {
+            var asset = JsonConvert.DeserializeObject<Storage.AssetStorage.Asset>( value );
+            asset.Type = Storage.AssetStorage.AssetType.File;
+
+            AssetStorageSystem assetStorageSystem = new AssetStorageSystem();
+            int? assetStorageId = asset.AssetStorageSystemId;
+
+            if ( assetStorageId != null )
+            {
+                var assetStorageService = new AssetStorageSystemService( new RockContext() );
+                assetStorageSystem = assetStorageService.Get( assetStorageId.Value );
+                assetStorageSystem.LoadAttributes();
+            }
+
+            var component = assetStorageSystem.GetAssetStorageComponent();
+
+            string uri = component.CreateDownloadLink( assetStorageSystem, asset );
+
+            return uri;
         }
 
         protected void AssetBrowser_SelectItem( object sender, EventArgs e)

@@ -18,7 +18,7 @@ using Xunit;
 
 namespace Rock.Tests.Rock.StorageTests
 {
-    public class AmazonSThreeComponentTests
+    public class AmazonS3ComponentTests
     {
         //private string AWSAccessKey = "";
         //private string AWSSecretKey = @"";
@@ -29,7 +29,7 @@ namespace Rock.Tests.Rock.StorageTests
         private AssetStorageSystem GetAssetStorageSystem()
         {
             var assetStorageService = new AssetStorageSystemService( new Data.RockContext() );
-            AssetStorageSystem assetStorageSystem = assetStorageService.Get( 5 );// need mock
+            AssetStorageSystem assetStorageSystem = assetStorageService.Get( 1 );// need mock
             assetStorageSystem.LoadAttributes();
             assetStorageSystem.SetAttributeValue( "RootFolder", "UnitTestFolder" );
 

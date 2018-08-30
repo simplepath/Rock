@@ -23,14 +23,15 @@ namespace Rock.Storage.AssetStorage
     [Export( typeof( AssetStorageComponent ) )]
     [ExportMetadata( "ComponentName", "AmazonS3" )]
 
-    [TextField( name: "AWS Region", description: "", required: true, defaultValue: "", category: "", order: 0, key: "AWSRegion" )]
-    [TextField( name: "Bucket", description: "", required: true, defaultValue: "", category: "", order: 1, key: "Bucket" )]
-    [TextField( name: "Root Folder", description: "", required: false, defaultValue: "", category: "", order: 2, key: "RootFolder" )]
-    [TextField( name: "AWS Profile Name", description: "", required: true, defaultValue: "", category: "", order: 3, key: "AWSProfileName" )]
-    [TextField( name: "AWS Access Key", description: "", required: true, defaultValue: "", category: "", order: 4, key: "AWSAccessKey" )]
-    [TextField( name: "AWS Secret Key", description: "", required: true, defaultValue: "", category: "", order: 5, key: "AWSSecretKey" )]
+    [TextField( name: "AWS Region", description: "The AWS S3 Region in which the bucket is located. e.g. us-east-1", required: true, defaultValue: "", category: "", order: 0, key: "AWSRegion" )]
+    [TextField( name: "Bucket", description: "The name of the AWS S3 bucket where the files are stored.", required: true, defaultValue: "", category: "", order: 1, key: "Bucket" )]
+    [TextField( name: "Root Folder", description: "Optional root folder. Must be the full path to the root folder starting from the first after the bucket name.", required: false, defaultValue: "", category: "", order: 2, key: "RootFolder" )]
+    [IntegerField( name: "Expiration", description: "The time in minutes that the created public URL is available before being expired.", required: false, defaultValue: 525600, category: "", order: 3, key: "Expiration" )]
+    [TextField( name: "AWS Profile Name", description: "Should be an AWS IAM user.", required: true, defaultValue: "", category: "", order: 4, key: "AWSProfileName" )]
+    [TextField( name: "AWS Access Key", description: "The access key for the user.", required: true, defaultValue: "", category: "", order: 5, key: "AWSAccessKey" )]
+    [TextField( name: "AWS Secret Key", description: "The seceret key for the user. Amazon only gives this when the user is created. If lost then a new user will need to be created.", required: true, defaultValue: "", category: "", order: 6, key: "AWSSecretKey" )]
     
-    public class AmazonSThreeComponent : AssetStorageComponent
+    public class AmazonS3Component : AssetStorageComponent
     {
 
         #region Properties
@@ -40,7 +41,7 @@ namespace Rock.Storage.AssetStorage
         #endregion Properties
 
         #region Contstructors
-        public AmazonSThreeComponent() : base()
+        public AmazonS3Component() : base()
         {
         }
 
@@ -382,7 +383,7 @@ namespace Rock.Storage.AssetStorage
                 {
                     BucketName = GetAttributeValue( assetStorageSystem, "Bucket" ),
                     Key = asset.Key,
-                    Expires = DateTime.Now.AddYears( 3 )
+                    Expires = DateTime.Now.AddMinutes( GetAttributeValue( assetStorageSystem, "Expiration" ).AsDouble() )
                 };
 
                 return Client.GetPreSignedURL( request );
@@ -523,7 +524,7 @@ namespace Rock.Storage.AssetStorage
             {
                 Name = name,
                 Key = s3Object.Key,
-                Uri = $"https://{regionEndpoint}.s3.amazonaws.com/{s3Object.BucketName}/{uriKey}",
+                Uri = $"https://{s3Object.BucketName}.s3.{regionEndpoint}.amazonaws.com/{uriKey}",
                 Type = GetAssetType( s3Object.Key ),
                 IconCssClass = GetIconCssClass( s3Object.Key ),
                 FileSize = s3Object.Size,
@@ -541,7 +542,7 @@ namespace Rock.Storage.AssetStorage
             {
                 Name = name,
                 Key = response.Key,
-                Uri = $"https://{regionEndpoint}.s3.amazonaws.com/{response.BucketName}/{uriKey}",
+                Uri = $"https://{response.BucketName}.s3.{regionEndpoint}.amazonaws.com/{uriKey}",
                 Type = GetAssetType( response.Key ),
                 IconCssClass = GetIconCssClass( response.Key ),
                 FileSize = response.ResponseStream.Length,
@@ -560,7 +561,7 @@ namespace Rock.Storage.AssetStorage
             {
                 Name = name,
                 Key = commonPrefix,
-                Uri = $"https://{regionEndpoint}.s3.amazonaws.com/{bucketName}/{uriKey}",
+                Uri = $"https://{bucketName}.s3.{regionEndpoint}.amazonaws.com/{uriKey}",
                 Type = AssetType.Folder,
                 IconCssClass = GetIconCssClass( commonPrefix ),
                 FileSize = 0,
