@@ -75,7 +75,7 @@
           else {
             $assetStorageId.text(data);
             $selectFolder.text('');
-            postbackArg = 'asset-selected:' + data + ',previous-asset:' + previousStorageId;
+            postbackArg = 'asset-selected:' + data + ',previous-asset:' + previousStorageId + ',folder-selected:';
           }
 
           var jsPostback = "javascript:__doPostBack('" + options.filesUpdatePanelId + "','" +  postbackArg+ "');"
