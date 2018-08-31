@@ -141,82 +141,26 @@ namespace RockWeb.Blocks.Core
     var foldersTree = $('.js-folder-treeview .treeview').data('rockTree');
     foldersTree.$el.trigger('rockTree:selected', selectedFolderPath);
 ";
-
             //setup javascript for when a file is done uploading
             fupUpload.DoneFunctionClientScript = string.Format( doneScriptFormat, lbSelectFolder.ClientID );
 
-            string folderTreeScript = string.Format( @"
+            var folderTreeScript = string.Format( @"
 Sys.Application.add_load(function () {{
-debugger
-
-    if ($('.js-folder-treeview .treeview').length == 0) {{
-        return;
-    }}
-
-    var folderTreeData = $('.js-folder-treeview .treeview').data('rockTree');
-
-    if (!folderTreeData) {{
-        var selectedFolders = $('#{0}').text().split(',');
-        $('.js-folder-treeview .treeview').rockTree({{
-            selectedIds: selectedFolders
-        }});
-
-        {1}IScroll = new IScroll('#{1}', {{
-            mouseWheel: true,
-            indicators: {{
-                el: '#{2}',
-                interactive: true,
-                resize: false,
-                listenY: true,
-                listenX: false
-            }},
-            click: false,
-            preventDefaultException: {{ tagName: /.*/ }}
-        }});
-
-        $('.js-folder-treeview .treeview').on('rockTree:expand rockTree:collapse rockTree:dataBound rockTree:rendered', function (evt) {{
-            if ({1}IScroll) {{
-                {1}IScroll.refresh();
-            }}
-        }});
-    }}
-
-    $('.js-folder-treeview .treeview').off('rockTree:selected');
-    $('.js-folder-treeview .treeview').on('rockTree:selected', function (e, data) {{
-        var relativeFolderPath = data;
-        var postbackArg;
-        var previousStorageId = $('#{3}').text();
-        if (data.endsWith(""/"")) {{
-            $( '#{0}' ).text( data );
-            postbackArg = 'folder-selected:' + relativeFolderPath.replace(/\\/g, ""/"" ) + ',previous-asset:' + previousStorageId;
-        }}
-        else {{
-            $('#{3}').text( data);
-            $('#{0}').text('');
-            postbackArg = 'asset-selected:' + data + ',previous-asset:' + previousStorageId;
-        }}
-
-        setTimeout( function () {{
-            __doPostBack( '{4}', postbackArg );
-        }});
-    }});
-
-    //Some buttons are only active if one file is selected.
-    $('.js-checkbox').on('click', function () {{
-        var n = $( '.js-checkbox:checked' ).length;
-        if ( n != 1 ) {{
-            $( '.js-singleselect' ).addClass( 'aspNetDisabled' );
-        }}
-        else {{
-            $( '.js-singleselect' ).removeClass( 'aspNetDisabled' );
-        }}
+    Rock.controls.assetStorageSystemBrowser.initialize({{
+        controlId: '{0}',
+        filesUpdatePanelId: '{1}'
     }});
 }});
-",
+", pnlAssetStorageSystemBrowser.ClientID, upnlFiles.ClientID );
 
-        lbSelectFolder.ClientID, pnlTreeViewPort.ClientID, pnlTreeTrack.ClientID, lbAssetStorageId.ClientID, upnlFiles.ClientID );
+            var scriptInitialized = this.Request.Params[hfScriptInitialized.UniqueID].AsBoolean();
 
-            ScriptManager.RegisterStartupScript( this, this.GetType(), "folder-treeview", folderTreeScript, true );
+            if ( !scriptInitialized )
+            {
+                ScriptManager.RegisterStartupScript( this, this.GetType(), "folder-treeview-init", folderTreeScript, true );
+                hfScriptInitialized.Value = true.ToString();
+                upnlFolders.Update();
+            }
         }
 
         protected override void OnLoad( EventArgs e )
