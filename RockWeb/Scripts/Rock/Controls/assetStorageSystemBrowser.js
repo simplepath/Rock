@@ -36,7 +36,6 @@
         }
 
         var folderTreeData = $folderTreeView.data('rockTree');
-        debugger
 
         if (!folderTreeData) {
           var selectedFolders = $selectFolder.text().split(',');
@@ -46,11 +45,11 @@
             selectedIds: selectedFolders,
             expandedIds: expandedFolders
           });
-          debugger
+
           var treePortIScroll = new IScroll($treePort[0], {
             mouseWheel: true,
             indicators: {
-              el: $treeTrack,
+              el: '#' + $treeTrack.attr('id'),
               interactive: true,
               resize: false,
               listenY: true,
