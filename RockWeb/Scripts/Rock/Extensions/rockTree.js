@@ -185,7 +185,7 @@
                             self.renderError(jqXHR.responseJSON ? jqXHR.responseJSON.ExceptionMessage : errorThrown);
                         });
                 };
-          debugger
+          
           if (this.options.restUrl) {
               debugger
                 if (this.options.expandedIds && typeof this.options.expandedIds.length === 'number') {
@@ -526,7 +526,7 @@
             this.$el.on('click', '.rocktree-folder > .rocktree-icon', function (e) {
                 e.preventDefault();
                 e.stopPropagation();
-              debugger
+              
                 var $icon = $(this),
 					$ul = $icon.siblings('ul'),
 					id = $icon.parent('li').attr('data-id'),
