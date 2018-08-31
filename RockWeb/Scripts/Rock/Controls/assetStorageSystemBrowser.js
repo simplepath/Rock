@@ -13,8 +13,10 @@
         var $assetBrowser = $('#'+ options.controlId);
         var $folderTreeView = $assetBrowser.find('.js-folder-treeview .treeview');
         var $selectFolder = $assetBrowser.find('.js-selectfolder');
+        var $expandedFolders = $assetBrowser.find('.js-expandedFolders');
         var $assetStorageId = $assetBrowser.find('.js-assetstorage-id');
         var $treePort = $assetBrowser.find('.js-treeviewport');
+        var $treeTrack = $assetBrowser.find('.js-treetrack');
 
         var $createFolder = $assetBrowser.find('.js-createfolder');
         var $createFolderDiv = $assetBrowser.find('.js-createfolder-div');
@@ -38,15 +40,17 @@
 
         if (!folderTreeData) {
           var selectedFolders = $selectFolder.text().split(',');
+          var expandedFolders = $expandedFolders.text().split('||');
 
           $folderTreeView.rockTree({
-            selectedIds: selectedFolders
+            selectedIds: selectedFolders,
+            expandedIds: expandedFolders
           });
-
+          debugger
           var treePortIScroll = new IScroll($treePort[0], {
             mouseWheel: true,
             indicators: {
-              el: '.js-treetrack',
+              el: $treeTrack,
               interactive: true,
               resize: false,
               listenY: true,
@@ -56,26 +60,44 @@
             preventDefaultException: { tagName: /.*/ }
           });
 
-          $folderTreeView.on('rockTree:expand rockTree:collapse rockTree:dataBound rockTree:rendered', function (evt) {
+          $folderTreeView.on('rockTree:dataBound rockTree:rendered', function (evt) {
             if (treePortIScroll) {
               treePortIScroll.refresh();
             }
           });
+
+          $folderTreeView.on('rockTree:expand rockTree:collapse', function (evt, data) {
+            if (treePortIScroll) {
+              treePortIScroll.refresh();
+            }
+
+            // get the data-id values of rock-tree items that are showing visible children (in other words, Expanded Nodes)
+            var expandedDataIds = $(evt.currentTarget).find('.rocktree-children').filter(":visible").closest('.rocktree-item').map(function () {
+              var dataId = $(this).attr('data-id');
+              if (dataId != data) {
+                return dataId;
+              }
+            }).get().join('||');
+
+            $expandedFolders.text(expandedDataIds);
+          });
         }
 
-        $folderTreeView.off('rockTree:selected');
-        $folderTreeView.on('rockTree:selected', function (e, data) {
+        $folderTreeView.off('rockTree:selected').on('rockTree:selected', function (e, data) {
           var relativeFolderPath = data;
           var postbackArg;
           var previousStorageId = $assetStorageId.text();
+          var expandedFolders = $expandedFolders.text();
+          
           if (data.endsWith("/")) {
             $selectFolder.text(data);
-            postbackArg = 'folder-selected:' + relativeFolderPath.replace(/\\/g, "/") + ',previous-asset:' + previousStorageId;
+            postbackArg = 'asset-selected:' + $assetStorageId.text() + ',folder-selected:' + relativeFolderPath.replace(/\\/g, "/") + ',previous-asset:' + previousStorageId + ',expanded-folders:' + expandedFolders;
           }
           else {
             $assetStorageId.text(data);
             $selectFolder.text('');
-            postbackArg = 'asset-selected:' + data + ',previous-asset:' + previousStorageId + ',folder-selected:';
+            $expandedFolders.text('');
+            postbackArg = 'asset-selected:' + data + ',previous-asset:' + previousStorageId + ',folder-selected:,expanded-folders:';
           }
 
           var jsPostback = "javascript:__doPostBack('" + options.filesUpdatePanelId + "','" +  postbackArg+ "');"

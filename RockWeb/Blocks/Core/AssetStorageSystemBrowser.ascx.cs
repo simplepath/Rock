@@ -203,17 +203,21 @@ Sys.Application.add_load(function () {{
                         case "previous-asset":
                             previousAssetSelected = nameValue[1];
                             break;
+                        case "expanded-folders":
+                            lbExpandedFolders.Text = nameValue[1];
+                            break;
                         default:
                             break;
                     }
                 }
-                
-                // if this is not set then a folder was not selected but an asset storage system was. So we need to build the tree.
-                if ( folderSelected.IsNullOrWhiteSpace() && previousAssetSelected != assetSelected )
-                {
-                    BuildFolderTreeView( assetSelected );
-                }
 
+                // TODO: For now we have to rebuild the tree when a post back occurs because when in a modal we were losing expanded state.
+                // if this is not set then a folder was not selected but an asset storage system was. So we need to build the tree.
+                //if ( folderSelected.IsNullOrWhiteSpace() && previousAssetSelected != assetSelected )
+                //{
+                //    BuildFolderTreeView( assetSelected );
+                //}
+                BuildFolderTreeView( assetSelected );
                 ListFiles();
             }
         }
@@ -267,7 +271,8 @@ Sys.Application.add_load(function () {{
 
         private string CreateFolderNode( AssetStorageSystem assetStorageSystem, AssetStorageComponent component, Asset asset )
         {
-            bool dataExpanded = asset.Key.Contains( lbSelectFolder.Text );
+            //string dataExpanded = lbExpandedFolders.Text != string.Empty ? asset.Key.Contains( lbExpandedFolders.Text ).ToTrueFalse().ToLower() : "false";
+            string dataExpanded = lbExpandedFolders.Text != string.Empty ? lbExpandedFolders.Text.Contains( asset.Key ).ToTrueFalse().ToLower() : "false";
             string selected = lbSelectFolder.Text == asset.Key ? "selected" : string.Empty;
 
             var sb = new StringBuilder();

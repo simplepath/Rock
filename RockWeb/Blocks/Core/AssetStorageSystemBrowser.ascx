@@ -4,8 +4,10 @@
 
     <asp:UpdatePanel ID="upnlHiddenValues" runat="server" UpdateMode="Always">
         <ContentTemplate>
-            <asp:Label ID="lbAssetStorageId" CssClass="js-assetstorage-id" runat="server"></asp:Label>
-            <asp:Label ID="lbSelectFolder" CssClass="js-selectfolder" runat="server"></asp:Label>
+            <asp:Label ID="lbAssetStorageId" CssClass="js-assetstorage-id" runat="server"></asp:Label><br />
+            <asp:Label ID="lbSelectFolder" CssClass="js-selectfolder" runat="server"></asp:Label><br />
+            <asp:Label ID="lbExpandedFolders" CssClass="js-expandedFolders" runat="server"></asp:Label>
+
         </ContentTemplate>
     </asp:UpdatePanel>
 
