@@ -235,28 +235,29 @@ Sys.Application.add_load(function () {{
 
             foreach ( var assetStorageSystem in assetStorageService.GetActiveNoTracking() )
             {
-                string storageIconClass = string.Empty;
-                switch ( assetStorageSystem.EntityType.FriendlyName )
-                {
-                    case "Amazon S3 Component":
-                        storageIconClass = "fa fa-aws";
-                        break;
-                    default:
-                        storageIconClass = "fa fa-server";
-                        break;
-                }
+                var component = assetStorageSystem.GetAssetStorageComponent();
+
+                //string storageIconClass = string.Empty;
+                //switch ( assetStorageSystem.EntityType.FriendlyName )
+                //{
+                //    case "Amazon S3 Component":
+                //        storageIconClass = "fa fa-aws";
+                //        break;
+                //    default:
+                //        storageIconClass = "fa fa-server";
+                //        break;
+                //}
 
                 if ( assetStorageId.IsNullOrWhiteSpace() || ( assetStorageId.AsIntegerOrNull() != assetStorageSystem.Id ) )
                 {
-                    sb.AppendFormat( "<li data-expanded='false' data-id='{0}' ><span class=''><i class='{1}'></i> {2}</span> \n", assetStorageSystem.Id, storageIconClass, assetStorageSystem.Name );
+                    sb.AppendFormat( "<li data-expanded='false' data-id='{0}' ><span class=''><img src='{1}' style='width: 24px; height: 24px;'></img> {2}</span> \n", assetStorageSystem.Id, component.ComponentIconPath, assetStorageSystem.Name );
                     continue;
                 }
 
-                sb.AppendFormat( "<li data-expanded='true' data-id='{0}' ><span class=''><i class='{1}'></i> {2}</span> \n", assetStorageSystem.Id, storageIconClass, assetStorageSystem.Name );
+                sb.AppendFormat( "<li data-expanded='true' data-id='{0}' ><span class=''><img src='{1}'  style='width: 24px; height: 24px;'></img> {2}</span> \n", assetStorageSystem.Id, component.ComponentIconPath, assetStorageSystem.Name );
 
                 // there is a selected storage provider and this is it, so get the folders
                 assetStorageSystem.LoadAttributes();
-                var component = assetStorageSystem.GetAssetStorageComponent();
                 Asset asset = new Asset { Key = string.Empty, Type = AssetType.Folder };
 
                 sb.Append( CreateFolderNode( assetStorageSystem, component, asset ) );

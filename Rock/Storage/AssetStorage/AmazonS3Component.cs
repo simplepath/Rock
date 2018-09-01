@@ -36,7 +36,13 @@ namespace Rock.Storage.AssetStorage
 
         #region Properties
 
-        //public string Bucket { get; set; }
+        public override string ComponentIconPath
+        {
+            get
+            {
+                return "/Assets/Icons/aws.png";
+            }
+        }
 
         #endregion Properties
 

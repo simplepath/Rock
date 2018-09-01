@@ -69,6 +69,27 @@ namespace Rock.Storage.AssetStorage
             }
         }
 
+        /// <summary>
+        /// Specify the icon for the AssetStorageComponent here. It will display in the folder tree.
+        /// Default is server.png.
+        /// </summary>
+        /// <value>
+        /// The component icon path.
+        /// </value>
+        public virtual string ComponentIconPath
+        {
+            get
+            {
+                return "/Assets/Icons/server.png";
+            }
+            set
+            {
+                _componentIconPath = value;
+            }
+        }
+
+        private string _componentIconPath;
+
         #region Component Overrides
         /// <summary>
         /// Always returns 0.  
@@ -129,10 +150,7 @@ namespace Rock.Storage.AssetStorage
         }
 
         #endregion Public Methods
-
-        #region Virtual Methods
-        #endregion Virtual Methods
-
+                
         #region Abstract Methods
 
         /// <summary>
