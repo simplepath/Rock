@@ -295,7 +295,7 @@ namespace Rock.Web.UI.Controls
         /// </value>
         public string ButtonTextTemplate
         {
-            get => ViewState["ButtonTextTemplate"] as string ?? "Click Me";
+            get => ViewState["ButtonTextTemplate"] as string ?? "Select";
             set => ViewState["ButtonTextTemplate"] = value;
         }
 
@@ -422,10 +422,12 @@ namespace Rock.Web.UI.Controls
             base.CreateChildControls();
 
             _lbShowPicker = new LinkButton();
+            _lbShowPicker.ID = this.ID + "_lbShowPicker";
             _lbShowPicker.Click += _lbShowPicker_Click;
             this.Controls.Add( _lbShowPicker );
 
             _pickerDialog = new ModalDialog();
+            _pickerDialog.ID = this.ID + "_pickerDialog";
             _pickerDialog.SaveClick += _pickerDialog_SaveClick;
             this.Controls.Add( _pickerDialog );
 
@@ -483,7 +485,7 @@ namespace Rock.Web.UI.Controls
             // if the picker was in a modal dialog, track the SelectValue and SelectedText in viewstate when saved 
             ViewState["SelectedValue"] = ( _pickerBlock as IPickerBlock )?.SelectedValue;
 
-            SelectItem?.Invoke( sender, e );
+            SelectItem?.Invoke( this, e );
         }
 
         /// <summary>
@@ -503,7 +505,7 @@ namespace Rock.Web.UI.Controls
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         private void PickerBlock_SelectItem( object sender, EventArgs e )
         {
-            SelectItem?.Invoke( sender, e );
+            SelectItem?.Invoke( this, e );
         }
 
         /// <summary>
