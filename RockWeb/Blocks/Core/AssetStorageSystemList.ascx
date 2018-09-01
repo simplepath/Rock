@@ -5,12 +5,15 @@
         <Rock:ModalAlert ID="mdGridWarning" runat="server" />
         <div class="panel panel-block">
             <div class="panel-heading">
-                <h1 class="panel-title"><i class="fa fa-cloud-upload"></i> Asset Storage List</h1>
+                <h1 class="panel-title">
+                    <i class="fa fa-cloud-upload"></i>
+                    Asset Storage List
+                </h1>
             </div>
             <div class="panel-body">
 
                 <div class="grid grid-panel">
-                    <Rock:Grid ID="rGridAssetStorageSystem" runat="server"  RowItemText="AssetStorageSystem" OnRowSelected="rGridAssetStorageSystem_RowSelected" TooltipField="Description" AllowSorting="true">
+                    <Rock:Grid ID="rGridAssetStorageSystem" runat="server" RowItemText="Asset Storage System" OnRowSelected="rGridAssetStorageSystem_RowSelected" TooltipField="Description" AllowSorting="true">
                         <Columns>
                             <Rock:RockBoundField DataField="Name" HeaderText="Name" SortExpression="Name" />
                             <asp:TemplateField HeaderText="Asset Storage Type" SortExpression="EntityType.Name">

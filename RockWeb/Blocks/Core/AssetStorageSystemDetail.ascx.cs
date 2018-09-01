@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data.Entity;
-using System.Linq;
 using System.Web.UI.WebControls;
 
 using Rock;
@@ -10,10 +8,9 @@ using Rock.Attribute;
 using Rock.Constants;
 using Rock.Data;
 using Rock.Model;
-using Rock.Web.Cache;
 using Rock.Security;
+using Rock.Web.Cache;
 using Rock.Web.UI;
-using Rock.Web.UI.Controls;
 
 namespace RockWeb.Blocks.Core
 {
@@ -22,18 +19,48 @@ namespace RockWeb.Blocks.Core
     [Description( "Displays the details of the given asset storage system." )]
     public partial class AssetStorageSystemDetail : RockBlock, IDetailBlock
     {
+        /// <summary>
+        /// Gets or sets the asset storage system identifier.
+        /// </summary>
+        /// <value>
+        /// The asset storage system identifier.
+        /// </value>
         public int AssetStorageSystemId
         {
-            get { return ViewState["AssetStorageSystemId"] as int? ?? 0; }
-            set { ViewState["AssetStorageSystemId"] = value; }
+            get
+            {
+                return ViewState["AssetStorageSystemId"] as int? ?? 0;
+            }
+
+            set
+            {
+                ViewState["AssetStorageSystemId"] = value;
+            }
         }
 
+        /// <summary>
+        /// Gets or sets the asset storage system entity type identifier.
+        /// </summary>
+        /// <value>
+        /// The asset storage system entity type identifier.
+        /// </value>
         public int? AssetStorageSystemEntityTypeId
         {
-            get { return ViewState["AssetStorageSystemEntityTypeId"] as int?; }
-            set { ViewState["AssetStorageSystemEntityTypeId"] = value; }
+            get
+            {
+                return ViewState["AssetStorageSystemEntityTypeId"] as int?;
+            }
+
+            set
+            {
+                ViewState["AssetStorageSystemEntityTypeId"] = value;
+            }
         }
 
+        /// <summary>
+        /// Restores the view-state information from a previous user control request that was saved by the <see cref="M:System.Web.UI.UserControl.SaveViewState" /> method.
+        /// </summary>
+        /// <param name="savedState">An <see cref="T:System.Object" /> that represents the user control state to be restored.</param>
         protected override void LoadViewState( object savedState )
         {
             base.LoadViewState( savedState );
@@ -42,6 +69,10 @@ namespace RockWeb.Blocks.Core
             BuildDynamicControls( assetStorageSystem, false );
         }
 
+        /// <summary>
+        /// Raises the <see cref="E:System.Web.UI.Control.Load" /> event.
+        /// </summary>
+        /// <param name="e">The <see cref="T:System.EventArgs" /> object that contains the event data.</param>
         protected override void OnLoad( EventArgs e )
         {
             base.OnLoad( e );
@@ -53,6 +84,11 @@ namespace RockWeb.Blocks.Core
             }
         }
 
+        /// <summary>
+        /// Handles the Click event of the btnSave control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void btnSave_Click( object sender, EventArgs e )
         {
             using ( var rockContext = new RockContext() )
@@ -75,7 +111,7 @@ namespace RockWeb.Blocks.Core
                 assetStorageSystem.IsActive = cbIsActive.Checked;
                 assetStorageSystem.Description = tbDescription.Text;
                 assetStorageSystem.EntityTypeId = cpAssetStorageType.SelectedEntityTypeId;
-                
+
                 rockContext.SaveChanges();
 
                 assetStorageSystem.LoadAttributes( rockContext );
@@ -86,14 +122,23 @@ namespace RockWeb.Blocks.Core
             NavigateToParentPage();
         }
 
+        /// <summary>
+        /// Handles the Click event of the btnCancel control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void btnCancel_Click( object sender, EventArgs e )
         {
             NavigateToParentPage();
         }
 
+        /// <summary>
+        /// Shows the detail.
+        /// </summary>
+        /// <param name="assetStoragesystemId">The asset storagesystem identifier.</param>
         public void ShowDetail( int assetStoragesystemId )
         {
-            if (! IsUserAuthorized( Authorization.VIEW) )
+            if ( !IsUserAuthorized( Authorization.VIEW ) )
             {
                 nbEditModeMessage.Text = EditModeMessage.NotAuthorizedToView( AssetStorageSystem.FriendlyTypeName );
                 return;
@@ -113,7 +158,7 @@ namespace RockWeb.Blocks.Core
                 assetStorageSystem = assetStorageSystemService.Get( assetStoragesystemId );
                 pdAuditDetails.SetEntity( assetStorageSystem, ResolveRockUrl( "~" ) );
 
-                if (assetStorageSystem == null )
+                if ( assetStorageSystem == null )
                 {
                     assetStorageSystem = new AssetStorageSystem();
                     pdAuditDetails.Visible = false;
@@ -122,7 +167,7 @@ namespace RockWeb.Blocks.Core
 
             if ( assetStorageSystem.Id == 0 )
             {
-                lActionTitle.Text = ActionTitle.Add( FinancialGateway.FriendlyTypeName ).FormatAsHtmlTitle();
+                lActionTitle.Text = ActionTitle.Add( AssetStorageSystem.FriendlyTypeName ).FormatAsHtmlTitle();
             }
             else
             {
@@ -139,6 +184,11 @@ namespace RockWeb.Blocks.Core
             BuildDynamicControls( assetStorageSystem, true );
         }
 
+        /// <summary>
+        /// Builds the dynamic controls.
+        /// </summary>
+        /// <param name="assetStorageSystem">The asset storage system.</param>
+        /// <param name="setValues">if set to <c>true</c> [set values].</param>
         private void BuildDynamicControls( AssetStorageSystem assetStorageSystem, bool setValues )
         {
             AssetStorageSystemEntityTypeId = assetStorageSystem.EntityTypeId;
@@ -146,7 +196,7 @@ namespace RockWeb.Blocks.Core
             if ( assetStorageSystem.EntityTypeId.HasValue )
             {
                 var assetStorageSystemComponentEntityType = EntityTypeCache.Get( assetStorageSystem.EntityTypeId.Value );
-                var assetStorageSystemEntityType = EntityTypeCache.Get( "Rock.Model.AssetStorageSystem " );
+                var assetStorageSystemEntityType = EntityTypeCache.Get<Rock.Model.AssetStorageSystem>();
 
                 if ( assetStorageSystemComponentEntityType != null && assetStorageSystemEntityType != null )
                 {
@@ -174,6 +224,11 @@ namespace RockWeb.Blocks.Core
             }
         }
 
+        /// <summary>
+        /// Handles the SelectedIndexChanged event of the cpAssetStorageType control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void cpAssetStorageType_SelectedIndexChanged( object sender, EventArgs e )
         {
             var assetStorageSystem = new AssetStorageSystem { Id = AssetStorageSystemId, EntityTypeId = cpAssetStorageType.SelectedEntityTypeId };
