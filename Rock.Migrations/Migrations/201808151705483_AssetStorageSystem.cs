@@ -63,8 +63,7 @@ namespace Rock.Migrations
             RockMigrationHelper.UpdateBlockType( "Asset Storage System List", "Block for viewing list of asset storage systems.", "~/Blocks/Core/AssetStorageSystemList.ascx", "Core", "A3B77D14-6351-48EE-AA17-019FE0104A1C" );
             RockMigrationHelper.UpdateBlockType( "Asset Storage System Detail", "Displays the details of the given asset storage system.", "~/Blocks/Core/AssetStorageSystemDetail.ascx", "Core", "48819481-5930-4A54-B235-8351A5F8396C" );
             RockMigrationHelper.UpdateBlockType( "Asset Storage System File Browser", "Manage files stored on a remote server or 3rd party cloud storage", "~/Blocks/Core/AssetStorageSystemBrowser.ascx", "Core", "B41B631C-9CF2-4BE5-ADC7-39C3F9D5AA74" );
-            RockMigrationHelper.UpdateBlockType( "Pick Something Demo", "Demonstrates using the Rock:ItemFromBlockPicker", "~/Blocks/Examples/PickSomethingDemo.ascx", "Examples", "86D35327-0C07-4C1F-B1AA-B0D5BCF1A511" );
-            RockMigrationHelper.UpdateBlockType( "Utility > Pick Something", "", "~/Blocks/Utility/PickSomething.ascx", "", "E2FF3015-8A2A-44D7-B50C-64D34FE63DF6" );
+            
             // Add Block to Page: Asset Storage Systems, Site: Rock RMS
             RockMigrationHelper.AddBlock( true, "7E83D0E3-97EF-4C1C-A351-1349D17401D3", "", "A3B77D14-6351-48EE-AA17-019FE0104A1C", "Asset Storage System List", "Main", @"", @"", 0, "7DA622EE-0491-4425-B45F-58BAA1CEC243" );
             // Add Block to Page: Asset Storage Detail, Site: Rock RMS
@@ -114,8 +113,6 @@ namespace Rock.Migrations
             RockMigrationHelper.DeleteBlock( "C7A19897-7A7D-4D2F-842E-5AA69EC98141" );
             // Remove Block: Asset Storage System List, from Page: Asset Storage Systems, Site: Rock RMS
             RockMigrationHelper.DeleteBlock( "7DA622EE-0491-4425-B45F-58BAA1CEC243" );
-            RockMigrationHelper.DeleteBlockType( "E2FF3015-8A2A-44D7-B50C-64D34FE63DF6" ); // Utility > Pick Something
-            RockMigrationHelper.DeleteBlockType( "86D35327-0C07-4C1F-B1AA-B0D5BCF1A511" ); // Pick Something Demo
             RockMigrationHelper.DeleteBlockType( "B41B631C-9CF2-4BE5-ADC7-39C3F9D5AA74" ); // Asset Storage System File Browser
             RockMigrationHelper.DeleteBlockType( "48819481-5930-4A54-B235-8351A5F8396C" ); // Asset Storage System Detail
             RockMigrationHelper.DeleteBlockType( "A3B77D14-6351-48EE-AA17-019FE0104A1C" ); // Asset Storage System List
