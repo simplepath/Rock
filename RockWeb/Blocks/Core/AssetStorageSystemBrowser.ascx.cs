@@ -61,6 +61,12 @@ namespace RockWeb.Blocks.Core
             }
         }
 
+        /// <summary>
+        /// Any Picker Settings that be configured. There are no settings for this block.
+        /// </summary>
+        /// <value>
+        /// The picker settings.
+        /// </value>
         public Dictionary<string, string> PickerSettings
         {
             get
@@ -69,8 +75,17 @@ namespace RockWeb.Blocks.Core
             }
         }
 
+        /// <summary>
+        /// Occurs when [select item].
+        /// </summary>
         public event EventHandler SelectItem;
 
+        /// <summary>
+        /// Gets or sets the selected text.
+        /// </summary>
+        /// <value>
+        /// The selected text.
+        /// </value>
         public string SelectedText
         {
             get
@@ -163,6 +178,10 @@ Sys.Application.add_load(function () {{
             }
         }
 
+        /// <summary>
+        /// Raises the <see cref="E:System.Web.UI.Control.Load" /> event.
+        /// </summary>
+        /// <param name="e">The <see cref="T:System.EventArgs" /> object that contains the event data.</param>
         protected override void OnLoad( EventArgs e )
         {
             base.OnLoad( e );
@@ -206,9 +225,6 @@ Sys.Application.add_load(function () {{
                             break;
                     }
                 }
-
-                // If this is blank then we need to set it to the root of the assetstorage folder.
-                //lbSelectFolder.Text = lbSelectFolder.Text.IsNullOrWhiteSpace() == true ? lbAssetStorageId.Text : lbSelectFolder.Text;
 
                 // TODO: For now we have to rebuild the tree when a post back occurs because when in a modal we were losing expanded state.
                 BuildFolderTreeView( lbAssetStorageId.Text );
@@ -254,6 +270,13 @@ Sys.Application.add_load(function () {{
             upnlFolders.Update();
         }
 
+        /// <summary>
+        /// Creates the folder node.
+        /// </summary>
+        /// <param name="assetStorageSystem">The asset storage system.</param>
+        /// <param name="component">The component.</param>
+        /// <param name="asset">The asset.</param>
+        /// <returns></returns>
         private string CreateFolderNode( AssetStorageSystem assetStorageSystem, AssetStorageComponent component, Asset asset )
         {
             //string dataExpanded = lbExpandedFolders.Text != string.Empty ? asset.Key.Contains( lbExpandedFolders.Text ).ToTrueFalse().ToLower() : "false";
@@ -286,6 +309,9 @@ Sys.Application.add_load(function () {{
             return sb.ToString();
         }
 
+        /// <summary>
+        /// Lists the files for the selected folder.
+        /// </summary>
         protected void ListFiles()
         {
             AssetStorageSystem assetStorageSystem = GetAssetStorageSystem();
@@ -377,6 +403,11 @@ Sys.Application.add_load(function () {{
             ListFiles();
         }
 
+        /// <summary>
+        /// Handles the Click event of the lbCreateFolderAccept control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void lbCreateFolderAccept_Click( object sender, EventArgs e )
         {
             AssetStorageSystem assetStorageSystem = GetAssetStorageSystem();
@@ -389,6 +420,11 @@ Sys.Application.add_load(function () {{
             BuildFolderTreeView( assetStorageSystem.Id.ToStringSafe() );
         }
 
+        /// <summary>
+        /// Handles the Click event of the lbDeleteFolder control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void lbDeleteFolder_Click( object sender, EventArgs e )
         {
             AssetStorageSystem assetStorageSystem = GetAssetStorageSystem();
@@ -419,11 +455,21 @@ Sys.Application.add_load(function () {{
             return assetStorageSystem;
         }
 
+        /// <summary>
+        /// Handles the FileUploaded event of the fupUpload control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void fupUpload_FileUploaded( object sender, EventArgs e )
         {
             ListFiles();
         }
 
+        /// <summary>
+        /// Handles the Click event of the lbRenameFileAccept control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void lbRenameFileAccept_Click( object sender, EventArgs e )
         {
             AssetStorageSystem assetStorageSystem = GetAssetStorageSystem();
