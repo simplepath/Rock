@@ -697,9 +697,12 @@ namespace Rock.Web.UI.Controls
                     writer.RenderEndTag();
                 }
 
-                writer.Write( @"
-                    <div class='js-upload-progress upload-progress' style='display:none;'>
-                        <i class='fa fa-refresh fa-3x fa-spin'></i>
+                string uploadClass = this.DisplayMode == UploaderDisplayMode.DefaultButton ? "upload-progress-sm" : "upload-progress";
+                string spinnerSize = this.DisplayMode == UploaderDisplayMode.DefaultButton ? "fa-lg" : "fa-3x";
+
+                writer.Write( $@"
+                    <div class='js-upload-progress {uploadClass}' style='display:none;'>
+                        <i class='fa fa-refresh {spinnerSize} fa-spin'></i>
                         <div class='js-upload-progress-percent'></div>
                     </div>" );
 

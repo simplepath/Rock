@@ -17,13 +17,13 @@
                 <asp:HiddenField ID="hfScriptInitialized" runat="server" />
                 
                 <div class="actions row">
-                    <div class="col-md-6">
+                    <div class="col-md-3">
                         <a href="#" class="btn btn-xs btn-default js-createfolder" title="Create a new folder in the selected folder">
                             <i class="fa fa-folder"></i>
                             Add Folder
                         </a>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-3">
                         <asp:LinkButton ID="lbDeleteFolder" runat="server" CssClass="btn btn-xs btn-default js-deletefolder" OnClick="lbDeleteFolder_Click" CausesValidation="false" ToolTip="Delete the selected folder">
                             <i class="fa fa-trash-alt"></i>
                             Delete Folder
@@ -79,7 +79,7 @@
             <ContentTemplate>
                 <asp:Panel ID="pnlFiles" runat="server" CssClass="js-files">
                     <div class="actions row">
-                        <div class="col-md-2"><Rock:FileUploader ID="fupUpload" runat="server" CssClass="btn btn-xs btn-default" CausesValidation="false" ToolTip="Upload a file to the selected location" IsBinaryFile="false" DisplayMode="DefaultButton" /></div>
+                        <div class="col-md-2"><Rock:FileUploader ID="fupUpload" runat="server" CausesValidation="false" ToolTip="Upload a file to the selected location" IsBinaryFile="false" DisplayMode="DefaultButton"  /></div>
                         <div class="col-md-2"><asp:LinkButton ID="lbDownload" runat="server" CssClass="btn btn-xs btn-default js-singleselect aspNetDisabled" OnClick="lbDownload_Click" CausesValidation="false" ToolTip="Download the selected files" ><i class="fa fa-download"></i>Download</asp:LinkButton></div>
                         <div class="col-md-2">
                             <asp:LinkButton ID="lbRename" runat="server" CssClass="btn btn-xs btn-default js-singleselect js-renamefile" CausesValidation="false" ToolTip="Rename the selected file" Enabled="false">
@@ -116,13 +116,25 @@
                     <br />
 
                         <asp:Repeater ID="rptFiles" runat="server">
+                            <AlternatingItemTemplate>
+                                <div class="row" style="background-color:#f2f2f2; display: flex; align-items: center;">
+                                    <div class="col-md-1" ><Rock:RockCheckBox ID="cbSelected" runat="server" CssClass="js-checkbox" /></div>
+                                    <%--<div class="col-md-1"><i class='<%# Eval("IconCssClass") %>'></i></div>--%>
+                                    <div class="col-md-1" ><img src='<%# Eval("IconPath") %>' style='width: 24px; height: 24px;'></img></div>
+                                    <div class="col-md-4" ><asp:Label ID="lbName" runat="server" Text='<%# Eval("Name") %>'></asp:Label></div>
+                                    <div class="col-md-4" ><asp:Label ID="lbLastModified" runat="server" Text='<%# Eval("LastModifiedDateTime") %>'></asp:Label></div>
+                                    <div class="col-md-2" ><asp:Label ID="lbFileSize" runat="server" Text='<%# Eval("FormattedFileSize") %>'></asp:Label></div>
+                                    <asp:Label ID="lbKey" runat="server" Text='<%# Eval("Key") %>' Visible="false"></asp:Label>
+                                </div>
+                            </AlternatingItemTemplate>
                             <ItemTemplate>
-                                <div class="row">
-                                    <div class="col-md-1"><Rock:RockCheckBox ID="cbSelected" runat="server" CssClass="js-checkbox" /></div>
-                                    <div class="col-md-1"><i class='<%# Eval("IconCssClass") %>'></i></div>
-                                    <div class="col-md-4"><asp:Label ID="lbName" runat="server" Text='<%# Eval("Name") %>'></asp:Label></div>
-                                    <div class="col-md-4"><asp:Label ID="lbLastModified" runat="server" Text='<%# Eval("LastModifiedDateTime") %>'></asp:Label></div>
-                                    <div class="col-md-2"><asp:Label ID="lbFileSize" runat="server" Text='<%# Eval("FormattedFileSize") %>'></asp:Label></div>
+                                <div class="row" style="display: flex; align-items: center;">
+                                    <div class="col-md-1" ><Rock:RockCheckBox ID="cbSelected" runat="server" CssClass="js-checkbox" /></div>
+                                    <%--<div class="col-md-1"><i class='<%# Eval("IconCssClass") %>'></i></div>--%>
+                                    <div class="col-md-1" ><img src='<%# Eval("IconPath") %>' style='width: 24px; height: 24px;'></img></div>
+                                    <div class="col-md-4" ><asp:Label ID="lbName" runat="server" Text='<%# Eval("Name") %>'></asp:Label></div>
+                                    <div class="col-md-4" ><asp:Label ID="lbLastModified" runat="server" Text='<%# Eval("LastModifiedDateTime") %>'></asp:Label></div>
+                                    <div class="col-md-2" ><asp:Label ID="lbFileSize" runat="server" Text='<%# Eval("FormattedFileSize") %>'></asp:Label></div>
                                     <asp:Label ID="lbKey" runat="server" Text='<%# Eval("Key") %>' Visible="false"></asp:Label>
                                 </div>
                             </ItemTemplate>

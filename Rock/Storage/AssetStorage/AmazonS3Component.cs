@@ -532,7 +532,7 @@ namespace Rock.Storage.AssetStorage
                 Key = s3Object.Key,
                 Uri = $"https://{s3Object.BucketName}.s3.{regionEndpoint}.amazonaws.com/{uriKey}",
                 Type = GetAssetType( s3Object.Key ),
-                IconCssClass = GetIconCssClass( s3Object.Key ),
+                IconPath = GetFileTypeIcon( s3Object.Key ),
                 FileSize = s3Object.Size,
                 LastModifiedDateTime = s3Object.LastModified,
                 Description = s3Object.StorageClass == null ? string.Empty : s3Object.StorageClass.ToString(),
@@ -550,7 +550,7 @@ namespace Rock.Storage.AssetStorage
                 Key = response.Key,
                 Uri = $"https://{response.BucketName}.s3.{regionEndpoint}.amazonaws.com/{uriKey}",
                 Type = GetAssetType( response.Key ),
-                IconCssClass = GetIconCssClass( response.Key ),
+                IconPath = GetFileTypeIcon( response.Key ),
                 FileSize = response.ResponseStream.Length,
                 LastModifiedDateTime = response.LastModified,
                 Description = response.StorageClass == null ? string.Empty : response.StorageClass.ToString(),
@@ -569,7 +569,7 @@ namespace Rock.Storage.AssetStorage
                 Key = commonPrefix,
                 Uri = $"https://{bucketName}.s3.{regionEndpoint}.amazonaws.com/{uriKey}",
                 Type = AssetType.Folder,
-                IconCssClass = GetIconCssClass( commonPrefix ),
+                IconPath = GetFileTypeIcon( commonPrefix ),
                 FileSize = 0,
                 LastModifiedDateTime = null,
                 Description = string.Empty
@@ -654,23 +654,23 @@ namespace Rock.Storage.AssetStorage
             return AssetType.File;
         }
 
-        private string GetIconCssClass( string name )
-        {
-            if ( name.EndsWith( "/" ) )
-            {
-                return "fa fa-folder";
-            }
-            else if ( name.EndsWith( ".jpg" ) || name.EndsWith(".jpeg" ) || name.EndsWith( ".gif" ) || name.EndsWith( ".png" ) || name.EndsWith( ".bmp" ) || name.EndsWith( ".svg" ) )
-            {
-                return "fa fa-image";
-            }
-            else if ( name.EndsWith(".txt"))
-            {
-                return "fa fa-file-alt";
-            }
+        //private string GetIconCssClass( string name )
+        //{
+        //    if ( name.EndsWith( "/" ) )
+        //    {
+        //        return "fa fa-folder";
+        //    }
+        //    else if ( name.EndsWith( ".jpg" ) || name.EndsWith(".jpeg" ) || name.EndsWith( ".gif" ) || name.EndsWith( ".png" ) || name.EndsWith( ".bmp" ) || name.EndsWith( ".svg" ) )
+        //    {
+        //        return "fa fa-image";
+        //    }
+        //    else if ( name.EndsWith(".txt"))
+        //    {
+        //        return "fa fa-file-alt";
+        //    }
 
-            return "fa fa-file";
-        }
+        //    return "fa fa-file";
+        //}
 
         private AmazonS3Client GetAmazonS3Client( AssetStorageSystem assetStorageSystem )
         {

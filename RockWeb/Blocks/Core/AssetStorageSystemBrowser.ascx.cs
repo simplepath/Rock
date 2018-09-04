@@ -137,12 +137,12 @@ namespace RockWeb.Blocks.Core
             fupUpload.SubmitFunctionClientScript = string.Format( submitScriptFormat, lbSelectFolder.ClientID, lbAssetStorageId.ClientID );
 
             string doneScriptFormat = @"// reselect the node to refresh the list of files
-    var selectedFolderPath = $('#{0}').text();
+    var selectedFolderPath = $('#{0}').text() != '' ? $('#{0}').text() : $('#{1}').text();
     var foldersTree = $('.js-folder-treeview .treeview').data('rockTree');
     foldersTree.$el.trigger('rockTree:selected', selectedFolderPath);
 ";
             //setup javascript for when a file is done uploading
-            fupUpload.DoneFunctionClientScript = string.Format( doneScriptFormat, lbSelectFolder.ClientID );
+            fupUpload.DoneFunctionClientScript = string.Format( doneScriptFormat, lbSelectFolder.ClientID, lbAssetStorageId.ClientID );
 
             var folderTreeScript = string.Format( @"
 Sys.Application.add_load(function () {{
@@ -180,8 +180,6 @@ Sys.Application.add_load(function () {{
             // handle custom postback events
             if ( !string.IsNullOrWhiteSpace( postbackArgs ) )
             {
-                string folderSelected = string.Empty;
-                string assetSelected = string.Empty;
                 string previousAssetSelected = string.Empty;
 
                 string[] args = postbackArgs.Split( new char[] { ',' } );
@@ -193,11 +191,9 @@ Sys.Application.add_load(function () {{
                     switch ( eventParam )
                     {
                         case "folder-selected":
-                            folderSelected = nameValue[1];
                             lbSelectFolder.Text = nameValue[1];
                             break;
                         case "asset-selected":
-                            assetSelected = nameValue[1];
                             lbAssetStorageId.Text = nameValue[1];
                             break;
                         case "previous-asset":
@@ -211,13 +207,11 @@ Sys.Application.add_load(function () {{
                     }
                 }
 
+                // If this is blank then we need to set it to the root of the assetstorage folder.
+                //lbSelectFolder.Text = lbSelectFolder.Text.IsNullOrWhiteSpace() == true ? lbAssetStorageId.Text : lbSelectFolder.Text;
+
                 // TODO: For now we have to rebuild the tree when a post back occurs because when in a modal we were losing expanded state.
-                // if this is not set then a folder was not selected but an asset storage system was. So we need to build the tree.
-                //if ( folderSelected.IsNullOrWhiteSpace() && previousAssetSelected != assetSelected )
-                //{
-                //    BuildFolderTreeView( assetSelected );
-                //}
-                BuildFolderTreeView( assetSelected );
+                BuildFolderTreeView( lbAssetStorageId.Text );
                 ListFiles();
             }
         }
@@ -237,24 +231,14 @@ Sys.Application.add_load(function () {{
             {
                 var component = assetStorageSystem.GetAssetStorageComponent();
 
-                //string storageIconClass = string.Empty;
-                //switch ( assetStorageSystem.EntityType.FriendlyName )
-                //{
-                //    case "Amazon S3 Component":
-                //        storageIconClass = "fa fa-aws";
-                //        break;
-                //    default:
-                //        storageIconClass = "fa fa-server";
-                //        break;
-                //}
-
                 if ( assetStorageId.IsNullOrWhiteSpace() || ( assetStorageId.AsIntegerOrNull() != assetStorageSystem.Id ) )
                 {
                     sb.AppendFormat( "<li data-expanded='false' data-id='{0}' ><span class=''><img src='{1}' style='width: 24px; height: 24px;'></img> {2}</span> \n", assetStorageSystem.Id, component.ComponentIconPath, assetStorageSystem.Name );
                     continue;
                 }
 
-                sb.AppendFormat( "<li data-expanded='true' data-id='{0}' ><span class=''><img src='{1}'  style='width: 24px; height: 24px;'></img> {2}</span> \n", assetStorageSystem.Id, component.ComponentIconPath, assetStorageSystem.Name );
+                string selected = lbSelectFolder.Text.IsNullOrWhiteSpace() == true ? "selected" : string.Empty;
+                sb.AppendFormat( "<li data-expanded='true' data-id='{0}' ><span class='{1}'><img src='{2}'  style='width: 24px; height: 24px;'></img> {3}</span> \n", assetStorageSystem.Id, selected, component.ComponentIconPath, assetStorageSystem.Name );
 
                 // there is a selected storage provider and this is it, so get the folders
                 assetStorageSystem.LoadAttributes();
@@ -399,7 +383,7 @@ Sys.Application.add_load(function () {{
             var component = assetStorageSystem.GetAssetStorageComponent();
 
             //TODO: put validation on the textbox, rename will need to use it as well
-            string key = ViewState["SelectedFolder"].ToStringSafe() + tbCreateFolder.Text + "/";
+            string key = lbSelectFolder.Text + tbCreateFolder.Text + "/";
             component.CreateFolder( assetStorageSystem, new Asset { Key = key, Type = AssetType.Folder } );
 
             BuildFolderTreeView( assetStorageSystem.Id.ToStringSafe() );
@@ -417,7 +401,7 @@ Sys.Application.add_load(function () {{
         }
 
         /// <summary>
-        /// Gets the asset storage system using the ID stored in the ViewState, otherwise returns a new AssetStorageSystem.
+        /// Gets the asset storage system using the ID stored in the hidden field, otherwise returns a new AssetStorageSystem.
         /// </summary>
         /// <returns></returns>
         private AssetStorageSystem GetAssetStorageSystem()

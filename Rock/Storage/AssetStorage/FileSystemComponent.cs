@@ -37,8 +37,6 @@ namespace Rock.Storage.AssetStorage
             return rootFolder;
         }
 
-        //public System.Web.HttpContext FileSystemCompontHttpContext { get; set; }
-
         #endregion Properties
 
         #region Constructors
@@ -66,9 +64,9 @@ namespace Rock.Storage.AssetStorage
         public override bool CreateFolder( AssetStorageSystem assetStorageSystem, Asset asset )
         {
             string rootFolder = FixRootFolder( GetAttributeValue( assetStorageSystem, "RootFolder" ) );
-            asset.Key = FixKey( asset, rootFolder );
             HasRequirementsFolder( asset );
-
+            asset.Key = FixKey( asset, rootFolder );
+            
             string physicalFolder = FileSystemCompontHttpContext.Server.MapPath( asset.Key );
 
             try
@@ -356,7 +354,7 @@ namespace Rock.Storage.AssetStorage
                 Key = ReverseMapPath( directoryInfo.FullName ) +"/",
                 Uri = string.Empty,
                 Type = AssetType.Folder,
-                IconCssClass = "fa fa-folder",
+                IconPath = "fa fa-folder",
                 FileSize = 0,
                 LastModifiedDateTime = directoryInfo.LastWriteTime,
                 Description = string.Empty
@@ -373,7 +371,7 @@ namespace Rock.Storage.AssetStorage
                 Key = relativePath,
                 Uri = $"{FileSystemCompontHttpContext.Request.Url.GetLeftPart( UriPartial.Authority )}/{relativePath.TrimStart( '~' )}",
                 Type = AssetType.File,
-                IconCssClass = $"~/Assets/Icons/FileTypes/{fileInfo.Extension}.png",
+                IconPath = GetFileTypeIcon( fileInfo.Name ),
                 FileSize = fileInfo.Length,
                 LastModifiedDateTime = fileInfo.LastWriteTime,
                 Description = string.Empty

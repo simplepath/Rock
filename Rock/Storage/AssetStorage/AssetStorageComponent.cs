@@ -31,6 +31,9 @@ namespace Rock.Storage.AssetStorage
     {
 
         #region Constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AssetStorageComponent"/> class.
+        /// </summary>
         public AssetStorageComponent() : base(false)
         {
             // Override default constructor of Component that loads attributes (not needed for asset storage components, needs to be done by each AssetStorageSystem)
@@ -38,6 +41,12 @@ namespace Rock.Storage.AssetStorage
 
         #endregion Constructors
 
+        /// <summary>
+        /// Gets or sets the file system compont HTTP context.
+        /// </summary>
+        /// <value>
+        /// The file system compont HTTP context.
+        /// </value>
         public System.Web.HttpContext FileSystemCompontHttpContext
         {
             get
@@ -53,6 +62,11 @@ namespace Rock.Storage.AssetStorage
 
         private System.Web.HttpContext _fileSystemCompontHttpContext;
 
+        /// <summary>
+        /// Fixes the root folder syntax if it was entered incorrectly.
+        /// </summary>
+        /// <param name="rootFolder">The root folder.</param>
+        /// <returns></returns>
         protected virtual string FixRootFolder( string rootFolder )
         {
             if (rootFolder == null)
@@ -67,6 +81,26 @@ namespace Rock.Storage.AssetStorage
             {
                 return rootFolder + "/";
             }
+        }
+
+        /// <summary>
+        /// Gets the icon for the file type based on the extension of the provided file name.
+        /// </summary>
+        /// <param name="fileName">Name of the file.</param>
+        /// <returns></returns>
+        protected virtual string GetFileTypeIcon( string fileName )
+        {
+            string fileExtension = Path.GetExtension( fileName ).TrimStart( '.' );
+            string virtualThumbnailFilePath = string.Format( "/Assets/Icons/FileTypes/{0}.png", fileExtension );
+            string thumbnailFilePath = FileSystemCompontHttpContext.Request.MapPath( virtualThumbnailFilePath );
+
+            if ( !File.Exists( thumbnailFilePath ) )
+            {
+                virtualThumbnailFilePath = "/Assets/Icons/FileTypes/other.png";
+                thumbnailFilePath = FileSystemCompontHttpContext.Request.MapPath( virtualThumbnailFilePath );
+            }
+
+            return virtualThumbnailFilePath;
         }
 
         /// <summary>
@@ -159,13 +193,6 @@ namespace Rock.Storage.AssetStorage
         /// <param name="asset">The asset.</param>
         /// <returns></returns>
         public abstract Asset GetObject( AssetStorageSystem assetStorageSystem, Asset asset );
-
-        /// <summary>
-        /// Gets the objects.
-        /// </summary>
-        /// <param name="assets">The assets.</param>
-        /// <returns></returns>
-        //public abstract bool GetObjects( List<Asset> assets );
 
         /// <summary>
         /// Lists the objects from the current root folder.

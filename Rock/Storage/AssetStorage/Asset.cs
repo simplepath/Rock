@@ -64,12 +64,12 @@ namespace Rock.Storage.AssetStorage
         public AssetType Type { get; set; }
 
         /// <summary>
-        /// The Font Awesom class to represent the file
+        /// The path to the file type icon
         /// </summary>
         /// <value>
         /// The icon CSS class.
         /// </value>
-        public string IconCssClass { get; set; }
+        public string IconPath { get; set; }
 
         /// <summary>
         /// File size in bytes
