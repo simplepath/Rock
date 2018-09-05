@@ -172,7 +172,7 @@ Sys.Application.add_load(function () {{
 
             if ( !scriptInitialized )
             {
-                ScriptManager.RegisterStartupScript( this, this.GetType(), "folder-treeview-init", folderTreeScript, true );
+                ScriptManager.RegisterStartupScript( this, this.GetType(), string.Format( "AssetStorageSystemBrowser_js_init_{0}", this.ClientID), folderTreeScript, true );
                 hfScriptInitialized.Value = true.ToString();
                 upnlFolders.Update();
             }
