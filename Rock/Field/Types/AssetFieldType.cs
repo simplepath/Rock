@@ -49,20 +49,27 @@ namespace Rock.Field.Types
             string fileRemoveHtml = null;
             if ( fileName.IsNotNullOrWhiteSpace() )
             {
-                fileLinkInfo = $"<span class='file-link'>{fileName}</span>";
-                fileRemoveHtml = $"<div class='fileupload-remove>#TODO#<i class='fa fa-times'></i></div>";
+                fileLinkInfo = $"<span class=\"file-link\"><p style=\"width: 95px; overflow: hidden\" title=\"{fileName}\">{fileName}</p></span>";
+                fileRemoveHtml = @"<div>
+  <asp:LinkButton
+    ID=""lbRemoveFile""
+    class=""btn btn-xs btn-danger""
+    OnClick=""javascript:__doPostBack('remove');""
+    ToolTip =""Remove this file"">
+      <i class=""fa fa-times""></i>
+  </asp:LinkButton>
+</div>";
             }
 
             return $@"
 <div class='imageupload-group'>
     <div class='imageupload-thumbnail-image' style='height:100px; width:100px; background-image:url({imageIconUrl}); background-size:cover; background-position:50%'>
       {fileLinkInfo}
-      {fileRemoveHtml}
     </div>
+    {fileRemoveHtml}
     <div class='imageupload-dropzone'>
         <span>
-            <i class=""fa fa-globe-americas""></i>
-            Browse
+            Choose File
         </span>
     </div>
 </div>
@@ -86,7 +93,7 @@ namespace Rock.Field.Types
                 ShowInModal = true,
                 CssClass = "btn btn-xs btn-default",
                 ModalSaveButtonText = "Select",
-                ButtonTextTemplate = "Browse",
+                ButtonTextTemplate = "Choose File",
                 PickerButtonTemplate = GetPickerButtonTemplate( imageIconUrlNoPicture, null )
             };
 

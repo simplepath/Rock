@@ -221,6 +221,9 @@ Sys.Application.add_load(function () {{
                         case "expanded-folders":
                             lbExpandedFolders.Text = nameValue[1];
                             break;
+                        case "remove":
+                            ClearSelectedValue();
+                            break;
                         default:
                             break;
                     }
@@ -229,6 +232,18 @@ Sys.Application.add_load(function () {{
                 // TODO: For now we have to rebuild the tree when a post back occurs because when in a modal we were losing expanded state.
                 BuildFolderTreeView( lbAssetStorageId.Text );
                 ListFiles();
+            }
+        }
+
+        private void ClearSelectedValue()
+        {
+            foreach ( RepeaterItem repeaterItem in rptFiles.Items )
+            {
+                var cbEvent = repeaterItem.FindControl( "cbSelected" ) as RockCheckBox;
+                if ( cbEvent.Checked == true )
+                {
+                    cbEvent.Checked = false;
+                }
             }
         }
 
