@@ -35,9 +35,7 @@ namespace RockWeb.Blocks.Core
         {
             get
             {
-                var assetStorageSystemId = lbAssetStorageId.Text;
-
-                if ( assetStorageSystemId.IsNullOrWhiteSpace())
+                if ( lbAssetStorageId.Text.IsNullOrWhiteSpace())
                 {
                     return string.Empty;
                 }
@@ -48,7 +46,7 @@ namespace RockWeb.Blocks.Core
                     if ( cbEvent.Checked == true )
                     {
                         var keyControl = repeaterItem.FindControl( "lbKey" ) as Label;
-                        return string.Format("{{ \"AssetStorageSystemId\": \"{0}\", \"Key\": \"{1}\" }}", assetStorageSystemId, keyControl.Text );
+                        return string.Format("{{ \"AssetStorageSystemId\": \"{0}\", \"Key\": \"{1}\" }}", lbAssetStorageId.Text, keyControl.Text );
                     }
                 }
 
@@ -57,7 +55,6 @@ namespace RockWeb.Blocks.Core
 
             set
             {
-                // don't want to do this.
             }
         }
 
@@ -105,10 +102,8 @@ namespace RockWeb.Blocks.Core
 
             set
             {
-                // don't want to do this.
             }
         }
-
 
         /// <summary>
         /// Gets the text representing the selected item.
@@ -237,14 +232,16 @@ Sys.Application.add_load(function () {{
 
         private void ClearSelectedValue()
         {
-            foreach ( RepeaterItem repeaterItem in rptFiles.Items )
-            {
-                var cbEvent = repeaterItem.FindControl( "cbSelected" ) as RockCheckBox;
-                if ( cbEvent.Checked == true )
-                {
-                    cbEvent.Checked = false;
-                }
-            }
+            //_selectedText = string.Empty;
+            //_selectedValue = string.Empty;
+            //foreach ( RepeaterItem repeaterItem in rptFiles.Items )
+            //{
+            //    var cbEvent = repeaterItem.FindControl( "cbSelected" ) as RockCheckBox;
+            //    if ( cbEvent.Checked == true )
+            //    {
+            //        cbEvent.Checked = false;
+            //    }
+            //}
         }
 
         /// <summary>
@@ -264,21 +261,21 @@ Sys.Application.add_load(function () {{
 
                 if ( assetStorageId.IsNullOrWhiteSpace() || ( assetStorageId.AsIntegerOrNull() != assetStorageSystem.Id ) )
                 {
-                    sb.AppendFormat( "<li data-expanded='false' data-id='{0}' ><span class=''><img src='{1}' style='width: 24px; height: 24px;'></img> {2}</span> \n", assetStorageSystem.Id, component.ComponentIconPath, assetStorageSystem.Name );
+                    sb.AppendFormat( "<li data-expanded='false' data-id='{0}' data-top='true'><span class=''><i class='{1}'></i> {2}</span></li> \n", assetStorageSystem.Id, component.IconCssClass, assetStorageSystem.Name );
                     continue;
                 }
 
                 string selected = lbSelectFolder.Text.IsNullOrWhiteSpace() == true ? "selected" : string.Empty;
-                sb.AppendFormat( "<li data-expanded='true' data-id='{0}' ><span class='{1}'><img src='{2}'  style='width: 24px; height: 24px;'></img> {3}</span> \n", assetStorageSystem.Id, selected, component.ComponentIconPath, assetStorageSystem.Name );
+                sb.AppendFormat( "<li data-expanded='true' data-id='{0}' ><span class='{1}'><i class='{2}'></i> {3}</span> \n", assetStorageSystem.Id, selected, component.IconCssClass, assetStorageSystem.Name );
 
                 // there is a selected storage provider and this is it, so get the folders
                 assetStorageSystem.LoadAttributes();
                 Asset asset = new Asset { Key = string.Empty, Type = AssetType.Folder };
 
                 sb.Append( CreateFolderNode( assetStorageSystem, component, asset ) );
+                sb.AppendLine( "</li>" );
             }
-
-            sb.AppendLine( "</li>" );
+            
             sb.AppendLine( "</ul>" );
 
             lblFolders.Text = sb.ToString();
@@ -294,7 +291,6 @@ Sys.Application.add_load(function () {{
         /// <returns></returns>
         private string CreateFolderNode( AssetStorageSystem assetStorageSystem, AssetStorageComponent component, Asset asset )
         {
-            //string dataExpanded = lbExpandedFolders.Text != string.Empty ? asset.Key.Contains( lbExpandedFolders.Text ).ToTrueFalse().ToLower() : "false";
             string dataExpanded = lbExpandedFolders.Text != string.Empty ? lbExpandedFolders.Text.Contains( asset.Key ).ToTrueFalse().ToLower() : "false";
             string selected = lbSelectFolder.Text == asset.Key ? "selected" : string.Empty;
 

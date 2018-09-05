@@ -75,7 +75,8 @@
                         id: $li.attr('data-id'),
                         name: $li.children('span').first().html(),
                         hasChildren: $li.children('ul').length > 0,
-                        isOpen: $li.attr('data-expanded') === 'true'
+                        isOpen: $li.attr('data-expanded') === 'true',
+                        isTop: $li.attr('data-top') === 'true'
                     };
                 
                 if (attrs && typeof attrs.length === 'number') {
@@ -383,12 +384,12 @@
 				    var $li = $('<li/>'),
 						$childUl,
 						includeAttrs = self.options.mapping.include,
-				        folderCssClass = hasChildren ? ( node.isOpen ? self.options.iconClasses.branchOpen : self.options.iconClasses.branchClosed ) : "",
-				        leafCssClass = node.iconCssClass || self.options.iconClasses.leaf;
-
+                    folderCssClass = hasChildren || node.isTop ? ( node.isOpen ? self.options.iconClasses.branchOpen : self.options.iconClasses.branchClosed ) : "",
+                    leafCssClass = node.iconCssClass || self.options.iconClasses.leaf;
+                  
 				    $li.addClass('rocktree-item')
-						.addClass(hasChildren ? 'rocktree-folder' : 'rocktree-leaf')
-                        .addClass( ( !node.hasOwnProperty('isActive') || node.isActive )? '' : 'is-inactive')
+						.addClass(hasChildren || node.isTop ? 'rocktree-folder' : 'rocktree-leaf')
+            .addClass( ( !node.hasOwnProperty('isActive') || node.isActive )? '' : 'is-inactive')
 						.attr('data-id', node.id)
 						.attr('data-parent-id', node.parentId);
 
@@ -416,8 +417,8 @@
 				            break;
 				        }
 				    }
-
-				    if (hasChildren) {
+                  
+            if (hasChildren || node.isTop) {
 				        $li.prepend('<i class="rocktree-icon icon-fw ' + folderCssClass + '"></i>');
 
 				        if (node.iconCssClass) {
