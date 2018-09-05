@@ -36,11 +36,11 @@ namespace Rock.Storage.AssetStorage
 
         #region Properties
 
-        public override string ComponentIconPath
+        public override string IconCssClass
         {
             get
             {
-                return "/Assets/Icons/aws.png";
+                return "fa fa-aws";
             }
         }
 
@@ -55,11 +55,27 @@ namespace Rock.Storage.AssetStorage
 
         #region Override Methods
 
+        /// <summary>
+        /// Lists the objects from the current root folder.
+        /// </summary>
+        /// <param name="assetStorageSystem"></param>
+        /// <returns></returns>
         public override List<Asset> ListObjects( AssetStorageSystem assetStorageSystem )
         {
             return ListObjects( assetStorageSystem, new Asset { Type = AssetType.Folder } );
         }
 
+        /// <summary>
+        /// Lists the objects. If Asset.Key is not provided then one is created using the RootFolder and Asset.Name.
+        /// If key and name are not provided then list all objects from the current RootFolder.
+        /// If a key is provided it MUST use the full path, RootFolder is not used, and Name is not used.
+        /// The last segment in Key is treated as a begins with search if it does not end in a '/'. e.g. to get all
+        /// files starting with 'mr' in folder 'pictures/cats/' set key = 'pictures/cats/mr' to get 'mr. whiskers'
+        /// and 'mrs. whiskers' but not 'fluffy' or 'carnage the attack cat'.
+        /// </summary>
+        /// <param name="assetStorageSystem"></param>
+        /// <param name="asset"></param>
+        /// <returns></returns>
         public override List<Asset> ListObjects( AssetStorageSystem assetStorageSystem, Asset asset )
         {
             string rootFolder = FixRootFolder( GetAttributeValue( assetStorageSystem, "RootFolder" ) );
@@ -103,11 +119,26 @@ namespace Rock.Storage.AssetStorage
             }
         }
 
+        /// <summary>
+        /// Lists the files in AssetStorageSystem.RootFolder.
+        /// </summary>
+        /// <param name="assetStorageSystem"></param>
+        /// <returns></returns>
         public override List<Asset> ListFilesInFolder( AssetStorageSystem assetStorageSystem )
         {
             return ListFilesInFolder( assetStorageSystem, new Asset { Type = AssetType.Folder } );
         }
 
+        /// <summary>
+        /// Lists the files in folder. Asset.Key or Asset.Name is the folder.
+        /// If Asset.Key is not provided then one is created using the RootFolder and Asset.Name.
+        /// If Key and Name are not provided then list all files in the current RootFolder.
+        /// If a key is provided it MUST use the full path, RootFolder and Name are not used.
+        /// The last segment in the key is the folder name.
+        /// </summary>
+        /// <param name="assetStorageSystem"></param>
+        /// <param name="asset"></param>
+        /// <returns></returns>
         public override List<Asset> ListFilesInFolder( AssetStorageSystem assetStorageSystem, Asset asset )
         {
             string rootFolder = FixRootFolder( GetAttributeValue( assetStorageSystem, "RootFolder" ) );
@@ -155,11 +186,26 @@ namespace Rock.Storage.AssetStorage
             }
         }
 
+        /// <summary>
+        /// Lists the folders in AssetStorageSystem.Rootfolder.
+        /// </summary>
+        /// <param name="assetStorageSystem"></param>
+        /// <returns></returns>
         public override List<Asset> ListFoldersInFolder( AssetStorageSystem assetStorageSystem )
         {
             return ListFoldersInFolder( assetStorageSystem, new Asset { Type = AssetType.Folder } );
         }
 
+        /// <summary>
+        /// Lists the folder in folder. Asset.Key or Asset.Name is the folder.
+        /// If Asset.Key is not provided then one is created using the RootFolder and Asset.Name.
+        /// If Key and Name are not provided the list then list all files in the current RootFolder.
+        /// If a key is provided it MUST use the full path, RootFolder and Name are not used.
+        /// The last segment in the key is the folder name.
+        /// </summary>
+        /// <param name="assetStorageSystem"></param>
+        /// <param name="asset">The asset.</param>
+        /// <returns></returns>
         public override List<Asset> ListFoldersInFolder( AssetStorageSystem assetStorageSystem, Asset asset )
         {
             string rootFolder = FixRootFolder( GetAttributeValue( assetStorageSystem, "RootFolder" ) );
@@ -241,6 +287,13 @@ namespace Rock.Storage.AssetStorage
             }
         }
 
+        /// <summary>
+        /// Uploads a file. If Asset.Key is not provided then one is created using the RootFolder and Asset.Name.
+        /// If a key is provided it MUST use the full path, RootFolder is not used.
+        /// </summary>
+        /// <param name="assetStorageSystem"></param>
+        /// <param name="asset">The asset.</param>
+        /// <returns></returns>
         public override bool UploadObject( AssetStorageSystem assetStorageSystem, Asset asset )
         {
             string rootFolder = FixRootFolder( GetAttributeValue( assetStorageSystem, "RootFolder" ) );
@@ -270,6 +323,13 @@ namespace Rock.Storage.AssetStorage
             return false;
         }
 
+        /// <summary>
+        /// Creates a folder. If Asset.Key is not provided then one is created using the RootFolder and Asset.Name.
+        /// If Key is provided it MUST use the full path, RootFolder is not used.
+        /// </summary>
+        /// <param name="assetStorageSystem"></param>
+        /// <param name="asset"></param>
+        /// <returns></returns>
         public override bool CreateFolder( AssetStorageSystem assetStorageSystem, Asset asset )
         {
             string rootFolder = FixRootFolder( GetAttributeValue( assetStorageSystem, "RootFolder" ) );
@@ -298,6 +358,13 @@ namespace Rock.Storage.AssetStorage
             return false;
         }
 
+        /// <summary>
+        /// Deletes the asset. If Asset.Key is not provided then one is created using the RootFolder and Asset.Name.
+        /// If Key is provided then it MUST use the full path, RootFolder is not used.
+        /// </summary>
+        /// <param name="assetStorageSystem"></param>
+        /// <param name="asset">The asset.</param>
+        /// <returns></returns>
         public override bool DeleteAsset( AssetStorageSystem assetStorageSystem, Asset asset )
         {
             string rootFolder = FixRootFolder( GetAttributeValue( assetStorageSystem, "RootFolder" ) );
@@ -337,6 +404,13 @@ namespace Rock.Storage.AssetStorage
             }
         }
 
+        /// <summary>
+        /// Renames the asset.
+        /// </summary>
+        /// <param name="assetStorageSystem"></param>
+        /// <param name="asset">The asset.</param>
+        /// <param name="newName">The new name.</param>
+        /// <returns></returns>
         public override bool RenameAsset( AssetStorageSystem assetStorageSystem, Asset asset, string newName )
         {
             string rootFolder = FixRootFolder( GetAttributeValue( assetStorageSystem, "RootFolder" ) );
@@ -479,6 +553,13 @@ namespace Rock.Storage.AssetStorage
 
         #region Private Methods
 
+        /// <summary>
+        /// Deletes all of the S3Objects in the provided folder asset.
+        /// </summary>
+        /// <param name="client">The client.</param>
+        /// <param name="assetStorageSystem">The asset storage system.</param>
+        /// <param name="asset">The asset.</param>
+        /// <returns></returns>
         private bool MultipleObjectDelete( AmazonS3Client client, AssetStorageSystem assetStorageSystem, Asset asset )
         {
             // The list of keys that will be passed into the multiple delete request
@@ -521,6 +602,12 @@ namespace Rock.Storage.AssetStorage
             
         }
 
+        /// <summary>
+        /// Creates the asset from the AWS S3Object.
+        /// </summary>
+        /// <param name="s3Object">The s3 object.</param>
+        /// <param name="regionEndpoint">The region endpoint.</param>
+        /// <returns></returns>
         private Asset CreateAssetFromS3Object( S3Object s3Object, string regionEndpoint )
         {
             string name = GetNameFromKey( s3Object.Key );
@@ -539,6 +626,12 @@ namespace Rock.Storage.AssetStorage
             };
         }
 
+        /// <summary>
+        /// Creates the asset from AWS S3 Client GetObjectResponse.
+        /// </summary>
+        /// <param name="response">The response.</param>
+        /// <param name="regionEndpoint">The region endpoint.</param>
+        /// <returns></returns>
         private Asset CreateAssetFromGetObjectResponse( GetObjectResponse response, string regionEndpoint )
         {
             string name = GetNameFromKey( response.Key );
@@ -558,6 +651,13 @@ namespace Rock.Storage.AssetStorage
             };
         }
 
+        /// <summary>
+        /// Creates a folder asset using a commonPrefix from AWS.
+        /// </summary>
+        /// <param name="commonPrefix">The common prefix.</param>
+        /// <param name="regionEndpoint">The region endpoint.</param>
+        /// <param name="bucketName">Name of the bucket.</param>
+        /// <returns></returns>
         private Asset CreateAssetFromCommonPrefix( string commonPrefix, string regionEndpoint, string bucketName )
         {
             string uriKey = System.Web.HttpUtility.UrlPathEncode( commonPrefix );
@@ -576,6 +676,11 @@ namespace Rock.Storage.AssetStorage
             };
         }
 
+        /// <summary>
+        /// Determines whether Asset has the required elements for an AWS file.
+        /// </summary>
+        /// <param name="asset">The asset.</param>
+        /// <exception cref="Exception">Asset Type is set to 'Folder' instead of 'File.'</exception>
         private void HasRequirementsFile( Asset asset )
         {
             if ( asset.Type == AssetType.Folder )
@@ -584,6 +689,15 @@ namespace Rock.Storage.AssetStorage
             }
         }
 
+        /// <summary>
+        /// Determines whether the Asset has the required elements for a AWS folder.
+        /// </summary>
+        /// <param name="asset">The asset.</param>
+        /// <exception cref="Exception">
+        /// Asset Type is set to 'File' instead of 'Folder.'
+        /// or
+        /// Name and key cannot both be null or empty.
+        /// </exception>
         private void HasRequirementsFolder( Asset asset )
         {
             if ( asset.Type == AssetType.File )
@@ -597,6 +711,12 @@ namespace Rock.Storage.AssetStorage
             }
         }
 
+        /// <summary>
+        /// Makes adjustments to the Key string based on the root folder, the name, and the AssetType.
+        /// </summary>
+        /// <param name="asset">The asset.</param>
+        /// <param name="rootFolder">The root folder.</param>
+        /// <returns></returns>
         private string FixKey( Asset asset, string rootFolder )
         {
             if ( asset.Key.IsNullOrWhiteSpace() && asset.Name.IsNullOrWhiteSpace() )
@@ -616,6 +736,11 @@ namespace Rock.Storage.AssetStorage
             return asset.Key;
         }
 
+        /// <summary>
+        /// Gets the name from key.
+        /// </summary>
+        /// <param name="key">The key.</param>
+        /// <returns></returns>
         private string GetNameFromKey( string key )
         {
             if ( key.LastIndexOf('/') < 1)
@@ -633,6 +758,11 @@ namespace Rock.Storage.AssetStorage
             return pathSegments[pathSegments.Length - 1];
         }
 
+        /// <summary>
+        /// Gets the path from key.
+        /// </summary>
+        /// <param name="key">The key.</param>
+        /// <returns>The file prefix used by AWS to mimic a folder structure.</returns>
         private string GetPathFromKey( string key )
         {
             int i = key.LastIndexOf( '/' );
@@ -644,6 +774,11 @@ namespace Rock.Storage.AssetStorage
             return key.Substring( 0, i + 1 );
         }
 
+        /// <summary>
+        /// Determine the correct AssetType based on the provided name.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <returns></returns>
         private AssetType GetAssetType( string name )
         {
             if ( name.EndsWith("/"))
@@ -654,24 +789,11 @@ namespace Rock.Storage.AssetStorage
             return AssetType.File;
         }
 
-        //private string GetIconCssClass( string name )
-        //{
-        //    if ( name.EndsWith( "/" ) )
-        //    {
-        //        return "fa fa-folder";
-        //    }
-        //    else if ( name.EndsWith( ".jpg" ) || name.EndsWith(".jpeg" ) || name.EndsWith( ".gif" ) || name.EndsWith( ".png" ) || name.EndsWith( ".bmp" ) || name.EndsWith( ".svg" ) )
-        //    {
-        //        return "fa fa-image";
-        //    }
-        //    else if ( name.EndsWith(".txt"))
-        //    {
-        //        return "fa fa-file-alt";
-        //    }
-
-        //    return "fa fa-file";
-        //}
-
+        /// <summary>
+        /// Returns an Amazon S3 Client obj using the settings in the provided AssetStorageSystem obj.
+        /// </summary>
+        /// <param name="assetStorageSystem">The asset storage system.</param>
+        /// <returns></returns>
         private AmazonS3Client GetAmazonS3Client( AssetStorageSystem assetStorageSystem )
         {
 

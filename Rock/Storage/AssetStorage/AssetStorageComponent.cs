@@ -103,6 +103,25 @@ namespace Rock.Storage.AssetStorage
             return virtualThumbnailFilePath;
         }
 
+        //// #TODO: We are going to want to flesh this out more and use it instead of the Icon files in the Assets folder.
+        ////protected string GetIconCssClass( string name )
+        ////{
+        ////    if ( name.EndsWith( "/" ) )
+        ////    {
+        ////        return "fa fa-folder";
+        ////    }
+        ////    else if ( name.EndsWith( ".jpg" ) || name.EndsWith(".jpeg" ) || name.EndsWith( ".gif" ) || name.EndsWith( ".png" ) || name.EndsWith( ".bmp" ) || name.EndsWith( ".svg" ) )
+        ////    {
+        ////        return "fa fa-image";
+        ////    }
+        ////    else if ( name.EndsWith(".txt"))
+        ////    {
+        ////        return "fa fa-file-alt";
+        ////    }
+
+        ////    return "fa fa-file";
+        ////}
+
         /// <summary>
         /// Specify the icon for the AssetStorageComponent here. It will display in the folder tree.
         /// Default is server.png.
@@ -110,11 +129,11 @@ namespace Rock.Storage.AssetStorage
         /// <value>
         /// The component icon path.
         /// </value>
-        public virtual string ComponentIconPath
+        public virtual string IconCssClass
         {
             get
             {
-                return "/Assets/Icons/server.png";
+                return "fa fa-server";
             }
             set
             {
@@ -163,6 +182,13 @@ namespace Rock.Storage.AssetStorage
         #endregion Component Overrides
 
         #region Public Methods
+
+        /// <summary>
+        /// Gets the attribute value for the provided AssetStorageSystem and Key.
+        /// </summary>
+        /// <param name="assetStorageSystem">The asset storage system.</param>
+        /// <param name="key">The key.</param>
+        /// <returns></returns>
         public string GetAttributeValue( AssetStorageSystem assetStorageSystem, string key )
         {
             if ( assetStorageSystem.AttributeValues == null )
