@@ -257,6 +257,7 @@ namespace Rock.Web.UI.Controls
 
         private Panel _pickerPanel;
         private LinkButton _lbShowPicker;
+        private LinkButton _btnSelectNone;
         private ModalDialog _pickerDialog;
         private UserControl _pickerBlock;
 
@@ -421,10 +422,22 @@ namespace Rock.Web.UI.Controls
         {
             base.CreateChildControls();
 
+            var pnlRolloverContainer = new Panel { CssClass = "rollover-container " };
+            this.Controls.Add( pnlRolloverContainer );
+
             _lbShowPicker = new LinkButton();
+            _lbShowPicker.CausesValidation = false;
             _lbShowPicker.ID = this.ID + "_lbShowPicker";
             _lbShowPicker.Click += _lbShowPicker_Click;
-            this.Controls.Add( _lbShowPicker );
+            pnlRolloverContainer.Controls.Add( _lbShowPicker );
+
+            _btnSelectNone = new LinkButton();
+            _btnSelectNone.ID = this.ID + "_btnSelectNone";
+            _btnSelectNone.CssClass = "picker-select-none rollover-item";
+            _btnSelectNone.Text = "<i class='fa fa-times'></i>";
+            _btnSelectNone.CausesValidation = false;
+            _btnSelectNone.Click += _lbClearPicker_Click;
+            pnlRolloverContainer.Controls.Add( _btnSelectNone );
 
             _pickerDialog = new ModalDialog();
             _pickerDialog.ID = this.ID + "_pickerDialog";
@@ -499,6 +512,17 @@ namespace Rock.Web.UI.Controls
         }
 
         /// <summary>
+        /// Handles the Click event of the _lbClearPicker control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
+        private void _lbClearPicker_Click( object sender, EventArgs e )
+        {
+            this.SelectedValue = null;
+            SelectItem?.Invoke( this, e );
+        }
+
+        /// <summary>
         /// Handles the SelectItem event of the PickerBlock control.
         /// </summary>
         /// <param name="sender">The source of the event.</param>
@@ -529,9 +553,11 @@ namespace Rock.Web.UI.Controls
         {
             var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( this.RockBlock().RockPage, null, new Rock.Lava.CommonMergeFieldsOptions { GetLegacyGlobalMergeFields = false } );
             mergeFields.Add( "SelectedText", SelectedText );
-            mergeFields.Add( "SelectedValue", SelectedValue );
+            mergeFields.Add( "SelectedValue", SelectedValue ?? string.Empty );
 
             _lbShowPicker.Text = this.PickerButtonTemplate.ResolveMergeFields( mergeFields );
+            _btnSelectNone.Visible = SelectedValue.IsNotNullOrWhiteSpace() && _lbShowPicker.Visible;
+
             if ( this.ShowInModal )
             {
                 _lbShowPicker.CssClass = this.CssClass;

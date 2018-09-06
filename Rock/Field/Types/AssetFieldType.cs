@@ -14,9 +14,7 @@
 // limitations under the License.
 // </copyright>
 
-using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Web.UI;
 using Newtonsoft.Json;
 
@@ -33,48 +31,26 @@ namespace Rock.Field.Types
     public class AssetFieldType : FieldType
     {
         /// <summary>
-        /// The image icon URL no picture
-        /// </summary>
-        private string imageIconUrlNoPicture = "/Assets/Images/no-picture.svg";
-
-        /// <summary>
         /// The picker button template
         /// </summary>
-        /// <param name="imageIconUrl">The image icon URL.</param>
-        /// <param name="fileName">Name of the file.</param>
         /// <returns></returns>
-        private string GetPickerButtonTemplate( string imageIconUrl, string fileName )
-        {
-            string fileLinkInfo = null;
-            string fileRemoveHtml = null;
-            if ( fileName.IsNotNullOrWhiteSpace() )
-            {
-                fileLinkInfo = $"<span class=\"file-link\"><p style=\"width: 95px; overflow: hidden\" title=\"{fileName}\">{fileName}</p></span>";
-                fileRemoveHtml = @"<div>
-  <asp:LinkButton
-    ID=""lbRemoveFile""
-    class=""btn btn-xs btn-danger""
-    OnClick=""javascript:__doPostBack('remove');""
-    ToolTip =""Remove this file"">
-      <i class=""fa fa-times""></i>
-  </asp:LinkButton>
-</div>";
-            }
+        private readonly string PickerButtonTemplate = @"
+{% assign imageTypeUrl = '/Assets/Images/no-picture.svg' %}
+{% assign selectedFileName = SelectedValue | FromJSON | Property:'Key' | Escape %}
+{% if selectedFileName != '' %}
+  {% assign imageType = selectedFileName | Split:'.' | Last | Trim %}
+  {% capture imageTypeUrl %}/Assets/Icons/FileTypes/{{ imageType }}.png{% endcapture %}
+{% endif %}
 
-            return $@"
-<div class='imageupload-group'>
-    <div class='imageupload-thumbnail-image' style='height:100px; width:100px; background-image:url({imageIconUrl}); background-size:cover; background-position:50%'>
-      {fileLinkInfo}
-    </div>
-    {fileRemoveHtml}
-    <div class='imageupload-dropzone'>
-        <span>
-            Choose File
-        </span>
-    </div>
+<div class='imageupload-thumbnail-image' style='height:100px; width:100px; background-image:url({{ imageTypeUrl }}); background-size:cover; background-position:50%'>
+    <span class='file-link'><p style='width: 95px; overflow: hidden' title='{{ selectedFileName }}'>{{ selectedFileName }}</p></span>
 </div>
-";
-        }
+<div class='imageupload-dropzone'>
+    <span>
+        Choose File
+    </span>
+</div>";
+
 
         /// <summary>
         /// Creates the control(s) necessary for prompting user for a new value
@@ -91,13 +67,11 @@ namespace Rock.Field.Types
                 ID = id,
                 BlockTypePath = "~/Blocks/Core/AssetStorageSystemBrowser.ascx",
                 ShowInModal = true,
-                CssClass = "btn btn-xs btn-default",
+                CssClass = "btn btn-xs btn-default imageupload-group",
                 ModalSaveButtonText = "Select",
                 ButtonTextTemplate = "Choose File",
-                PickerButtonTemplate = GetPickerButtonTemplate( imageIconUrlNoPicture, null )
+                PickerButtonTemplate = PickerButtonTemplate
             };
-
-            pickerControl.SelectItem += AssetBrowser_SelectItem;
 
             return pickerControl;
         }
@@ -131,7 +105,6 @@ namespace Rock.Field.Types
             if ( picker != null )
             {
                 picker.SelectedValue = value;
-                UpdatePickerHtml( picker );
             }
         }
 
@@ -186,37 +159,6 @@ namespace Rock.Field.Types
             }
 
             return asset;
-        }
-
-        /// <summary>
-        /// Handles the SelectItem event of the AssetBrowser control.
-        /// </summary>
-        /// <param name="sender">The source of the event.</param>
-        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
-        protected void AssetBrowser_SelectItem( object sender, EventArgs e )
-        {
-            var picker = ( ItemFromBlockPicker ) sender;
-            UpdatePickerHtml( picker );
-        }
-
-        /// <summary>
-        /// Updates the picker HTML.
-        /// </summary>
-        /// <param name="picker">The picker.</param>
-        private void UpdatePickerHtml( ItemFromBlockPicker picker )
-        {
-            Storage.AssetStorage.Asset asset = GetAssetInfoFromValue( picker.SelectedValue );
-            if ( asset != null )
-            {
-                var fileName = Path.GetFileName( asset.Key );
-                var fileTypeExtension = System.IO.Path.GetExtension( asset.Key ).Replace( ".", string.Empty );
-                var imageIconUrl = $"/Assets/Icons/FileTypes/{fileTypeExtension}.png";
-                picker.PickerButtonTemplate = GetPickerButtonTemplate( imageIconUrl, fileName );
-            }
-            else
-            {
-                picker.PickerButtonTemplate = GetPickerButtonTemplate( imageIconUrlNoPicture, null );
-            }
         }
     }
 }
