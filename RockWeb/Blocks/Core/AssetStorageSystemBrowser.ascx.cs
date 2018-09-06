@@ -218,9 +218,6 @@ Sys.Application.add_load(function () {{
                         case "expanded-folders":
                             lbExpandedFolders.Text = nameValue[1];
                             break;
-                        case "remove":
-                            ClearSelectedValue();
-                            break;
                         default:
                             break;
                     }
@@ -230,20 +227,6 @@ Sys.Application.add_load(function () {{
                 BuildFolderTreeView( lbAssetStorageId.Text );
                 ListFiles();
             }
-        }
-
-        private void ClearSelectedValue()
-        {
-            //_selectedText = string.Empty;
-            //_selectedValue = string.Empty;
-            //foreach ( RepeaterItem repeaterItem in rptFiles.Items )
-            //{
-            //    var cbEvent = repeaterItem.FindControl( "cbSelected" ) as RockCheckBox;
-            //    if ( cbEvent.Checked == true )
-            //    {
-            //        cbEvent.Checked = false;
-            //    }
-            //}
         }
 
         /// <summary>
