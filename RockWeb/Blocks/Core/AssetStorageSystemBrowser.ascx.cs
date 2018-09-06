@@ -191,6 +191,8 @@ Sys.Application.add_load(function () {{
                 return;
             }
 
+            fupUpload.Enabled = true;
+
             // handle custom postback events
             if ( !string.IsNullOrWhiteSpace( postbackArgs ) )
             {

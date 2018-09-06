@@ -30,9 +30,20 @@
         var $renameFileDiv = $assetBrowser.find('.js-renamefile-div');
         var $renameFileInput = $assetBrowser.find('.js-renamefile-input');
         var $renameFileCancel = $assetBrowser.find('.js-renamefile-cancel');
-
+        
         if ($folderTreeView.length == 0) {
           return;
+        }
+        debugger
+        // Some buttons need an asset selected in order to work
+        var temp1 = $assetStorageId.text();
+        if ($assetStorageId.text() == "-1") {
+          $('.js-assetselect').addClass('aspNetDisabled');
+        }
+        var temp2 = $selectFolder.text();
+        // Some buttons need a folder selected in order to work
+        if ($selectFolder.text() == "") {
+          $('.js-folderselect').addClass('aspNetDisabled');
         }
 
         var folderTreeData = $folderTreeView.data('rockTree');
@@ -87,7 +98,10 @@
           var postbackArg;
           var previousStorageId = $assetStorageId.text();
           var expandedFolders = $expandedFolders.text();
-          
+
+          // Some buttons are only active if at least one folder is selected once the tree has been selected then a folder is always selected.
+          $('.js-folderselect').removeClass('aspNetDisabled');
+
           if (data.endsWith("/")) {
             $selectFolder.text(data);
             postbackArg = 'asset-selected:' + $assetStorageId.text() + ',folder-selected:' + relativeFolderPath.replace(/\\/g, "/") + ',previous-asset:' + previousStorageId + ',expanded-folders:' + expandedFolders;
@@ -106,12 +120,19 @@
 
         // Some buttons are only active if one file is selected.
         $fileCheckboxes.off('click').on('click', function () {
-          var n = $fileCheckboxes.filter(':checked').length;
-          if (n != 1) {
+          var numberChecked = $fileCheckboxes.filter(':checked').length;
+
+          if (numberChecked == 0) {
             $('.js-singleselect').addClass('aspNetDisabled');
+            $('.js-minselect').addClass('aspNetDisabled');
+          }
+          else if (numberChecked == 1) {
+            $('.js-singleselect').removeClass('aspNetDisabled');
+            $('.js-minselect').removeClass('aspNetDisabled');
           }
           else {
-            $('.js-singleselect').removeClass('aspNetDisabled');
+            $('.js-singleselect').addClass('aspNetDisabled');
+            $('.js-minselect').removeClass('aspNetDisabled');
           }
         });
 

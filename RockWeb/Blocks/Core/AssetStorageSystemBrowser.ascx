@@ -17,13 +17,13 @@
                 
                 <div class="actions row justify-content-center" style="display: flex; vertical-align:top;">
                     <div class="col-md-4">
-                        <a href="#" class="btn btn-xs btn-default js-createfolder" title="Create a new folder in the selected folder" style="width:125px">
+                        <a href="#" class="btn btn-xs btn-default js-createfolder js-folderselect" title="Create a new folder in the selected folder" style="width:125px">
                             <i class="fa fa-folder"></i>
                             Add Folder
                         </a>
                     </div>
                     <div class="col-md-4">
-                        <asp:LinkButton ID="lbDeleteFolder" runat="server" CssClass="btn btn-xs btn-default js-deletefolder" OnClick="lbDeleteFolder_Click" CausesValidation="false" ToolTip="Delete the selected folder" Width="125px">
+                        <asp:LinkButton ID="lbDeleteFolder" runat="server" CssClass="btn btn-xs btn-default js-deletefolder js-folderselect" OnClick="lbDeleteFolder_Click" CausesValidation="false" ToolTip="Delete the selected folder" Width="125px">
                             <i class="fa fa-trash-alt"></i>
                             Delete Folder
                         </asp:LinkButton>
@@ -78,16 +78,16 @@
             <ContentTemplate>
                 <asp:Panel ID="pnlFiles" runat="server" CssClass="js-files">
                     <div class="actions row justify-content-center" style="display: flex; vertical-align:top;">
-                        <div class="col-md-2"><Rock:FileUploader ID="fupUpload" runat="server" CausesValidation="false" ToolTip="Upload a file to the selected location" IsBinaryFile="false" DisplayMode="DefaultButton"  /></div>
+                        <div class="col-md-2"><Rock:FileUploader ID="fupUpload" runat="server" CausesValidation="false" ToolTip="Upload a file to the selected location" IsBinaryFile="false" DisplayMode="DefaultButton" Enabled="false"/></div>
                         <div class="col-md-2"><asp:LinkButton ID="lbDownload" runat="server" CssClass="btn btn-xs btn-default js-singleselect aspNetDisabled" OnClick="lbDownload_Click" CausesValidation="false" ToolTip="Download the selected files" Width="100px" ><i class="fa fa-download"></i>Download</asp:LinkButton></div>
                         <div class="col-md-2">
-                            <asp:LinkButton ID="lbRename" runat="server" CssClass="btn btn-xs btn-default js-singleselect js-renamefile" CausesValidation="false" ToolTip="Rename the selected file" Enabled="false" Width="100px">
+                            <asp:LinkButton ID="lbRename" runat="server" CssClass="btn btn-xs btn-default js-singleselect js-renamefile aspNetDisabled" CausesValidation="false" ToolTip="Rename the selected file" Width="100px">
                                 <i class="fa fa-exchange"></i>
                                 Rename
                             </asp:LinkButton>
                         </div>
-                        <div class="col-md-2"><asp:LinkButton ID="lbDelete" runat="server"  CssClass="btn btn-xs btn-default" OnClick="lbDelete_Click" CausesValidation="false" ToolTip="Delete the selected files" OnClientClick="Rock.dialogs.confirmDelete(event, ' file')" Width="100px"><i class="fa fa-trash-alt"></i>Delete</asp:LinkButton></div>
-                        <div class="col-md-2"><asp:LinkButton ID="lbRefresh" runat="server" CssClass="btn btn-xs btn-default" OnClick="lbRefresh_Click" CausesValidation="false" ToolTip="Refresh the file list" Width="100px"><i class="fa fa-sync"></i>Refresh</asp:LinkButton></div>
+                        <div class="col-md-2"><asp:LinkButton ID="lbDelete" runat="server"  CssClass="btn btn-xs btn-default js-minselect aspNetDisabled" OnClick="lbDelete_Click" CausesValidation="false" ToolTip="Delete the selected files" OnClientClick="Rock.dialogs.confirmDelete(event, ' file')" Width="100px"><i class="fa fa-trash-alt"></i>Delete</asp:LinkButton></div>
+                        <div class="col-md-2"><asp:LinkButton ID="lbRefresh" runat="server" CssClass="btn btn-xs btn-default js-assetselect" OnClick="lbRefresh_Click" CausesValidation="false" ToolTip="Refresh the file list" Width="100px"><i class="fa fa-sync"></i>Refresh</asp:LinkButton></div>
 
                     </div>
 
