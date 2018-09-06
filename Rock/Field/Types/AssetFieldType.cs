@@ -34,7 +34,7 @@ namespace Rock.Field.Types
         /// The picker button template
         /// </summary>
         /// <returns></returns>
-        private readonly string PickerButtonTemplate = @"
+        private readonly string pickerButtonTemplate = @"
 {% assign imageTypeUrl = '/Assets/Images/no-picture.svg' %}
 {% assign selectedFileName = SelectedValue | FromJSON | Property:'Key' | Escape %}
 {% if selectedFileName != '' %}
@@ -50,7 +50,6 @@ namespace Rock.Field.Types
         Choose File
     </span>
 </div>";
-
 
         /// <summary>
         /// Creates the control(s) necessary for prompting user for a new value
@@ -70,7 +69,8 @@ namespace Rock.Field.Types
                 CssClass = "btn btn-xs btn-default imageupload-group",
                 ModalSaveButtonText = "Select",
                 ButtonTextTemplate = "Choose File",
-                PickerButtonTemplate = PickerButtonTemplate
+                PickerButtonTemplate = pickerButtonTemplate,
+                ModalTitle = "Asset Manager"
             };
 
             return pickerControl;

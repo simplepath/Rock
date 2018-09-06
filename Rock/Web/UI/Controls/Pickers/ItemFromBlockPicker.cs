@@ -382,6 +382,25 @@ namespace Rock.Web.UI.Controls
         }
 
         /// <summary>
+        /// Gets or sets the modal title.
+        /// </summary>
+        /// <value>
+        /// The modal title.
+        /// </value>
+        public string ModalTitle {
+            get
+            {
+                EnsureChildControls();
+                return _pickerDialog.Title;
+            }
+            set
+            {
+                EnsureChildControls();
+                _pickerDialog.Title = value;
+            }
+        }
+
+        /// <summary>
         /// Shows the modal.
         /// </summary>
         public void ShowModal()
