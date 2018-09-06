@@ -82,10 +82,6 @@
     <Compile Include="Migrations\201808091807164_ServiceJobHistory.Designer.cs">
       <DependentUpon>201808091807164_ServiceJobHistory.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201808151705483_AssetStorageSystem.cs" />
-    <Compile Include="Migrations\201808151705483_AssetStorageSystem.Designer.cs">
-      <DependentUpon>201808151705483_AssetStorageSystem.cs</DependentUpon>
-    </Compile>
     <Compile Include="Migrations\CreateDatabase\201311251734059_CreateDatabase.cs" />
     <Compile Include="Migrations\CreateDatabase\201311251734059_CreateDatabase.Designer.cs">
       <DependentUpon>201311251734059_CreateDatabase.cs</DependentUpon>
@@ -383,9 +379,6 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201808091807164_ServiceJobHistory.resx">
       <DependentUpon>201808091807164_ServiceJobHistory.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201808151705483_AssetStorageSystem.resx">
-      <DependentUpon>201808151705483_AssetStorageSystem.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\CreateDatabase\201311251734059_CreateDatabase.resx">
       <DependentUpon>201311251734059_CreateDatabase.cs</DependentUpon>
