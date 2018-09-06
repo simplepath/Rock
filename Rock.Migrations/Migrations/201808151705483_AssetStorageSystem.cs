@@ -58,20 +58,18 @@ namespace Rock.Migrations
                 .Index(t => t.Guid, unique: true);
 
             RockMigrationHelper.AddPage( true, "C831428A-6ACD-4D49-9B2D-046D399E3123", "D65F783D-87A9-4CC9-8110-E83466A0EADB", "Asset Storage Systems", "", "7E83D0E3-97EF-4C1C-A351-1349D17401D3", "fa fa-cloud-upload" ); // Site:Rock RMS
-            RockMigrationHelper.AddPage( true, "7E83D0E3-97EF-4C1C-A351-1349D17401D3", "D65F783D-87A9-4CC9-8110-E83466A0EADB", "Asset Storage Detail", "", "8E07FBD3-3A3D-43A0-BACF-9EE6BA09EA7B", "fa fa-cloud-upload" ); // Site:Rock RMS
-            RockMigrationHelper.AddPage( true, "B4A24AB7-9369-4055-883F-4F4892C39AE3", "D65F783D-87A9-4CC9-8110-E83466A0EADB", "Asset Storage System Browser", "Manage files stored locally or in the cloud.", "22D51536-3292-453B-91FA-11254886058E", "fa fa-cloud" ); // Site:Rock RMS
+            RockMigrationHelper.AddPage( true, "7E83D0E3-97EF-4C1C-A351-1349D17401D3", "D65F783D-87A9-4CC9-8110-E83466A0EADB", "Asset Storage System Detail", "", "8E07FBD3-3A3D-43A0-BACF-9EE6BA09EA7B", "fa fa-cloud-upload" ); // Site:Rock RMS
+            RockMigrationHelper.AddPage( true, "B4A24AB7-9369-4055-883F-4F4892C39AE3", "D65F783D-87A9-4CC9-8110-E83466A0EADB", "Asset Manager", "", "22D51536-3292-453B-91FA-11254886058E", "fa fa-cloud" ); // Site:Rock RMS
             RockMigrationHelper.UpdateBlockType( "Asset Storage System List", "Block for viewing list of asset storage systems.", "~/Blocks/Core/AssetStorageSystemList.ascx", "Core", "A3B77D14-6351-48EE-AA17-019FE0104A1C" );
             RockMigrationHelper.UpdateBlockType( "Asset Storage System Detail", "Displays the details of the given asset storage system.", "~/Blocks/Core/AssetStorageSystemDetail.ascx", "Core", "48819481-5930-4A54-B235-8351A5F8396C" );
-            RockMigrationHelper.UpdateBlockType( "Asset Storage System File Browser", "Manage files stored on a remote server or 3rd party cloud storage", "~/Blocks/Core/AssetStorageSystemBrowser.ascx", "Core", "B41B631C-9CF2-4BE5-ADC7-39C3F9D5AA74" );
+            RockMigrationHelper.UpdateBlockType( "Asset Manager", "Manage files stored on a remote server or 3rd party cloud storage", "~/Blocks/Core/AssetStorageSystemBrowser.ascx", "Core", "B41B631C-9CF2-4BE5-ADC7-39C3F9D5AA74" );
             
             // Add Block to Page: Asset Storage Systems, Site: Rock RMS
             RockMigrationHelper.AddBlock( true, "7E83D0E3-97EF-4C1C-A351-1349D17401D3", "", "A3B77D14-6351-48EE-AA17-019FE0104A1C", "Asset Storage System List", "Main", @"", @"", 0, "7DA622EE-0491-4425-B45F-58BAA1CEC243" );
             // Add Block to Page: Asset Storage Detail, Site: Rock RMS
             RockMigrationHelper.AddBlock( true, "8E07FBD3-3A3D-43A0-BACF-9EE6BA09EA7B", "", "48819481-5930-4A54-B235-8351A5F8396C", "Asset Storage System Detail", "Main", @"", @"", 0, "C7A19897-7A7D-4D2F-842E-5AA69EC98141" );
             // Add Block to Page: Asset Storage System Browser, Site: Rock RMS
-            RockMigrationHelper.AddBlock( true, "22D51536-3292-453B-91FA-11254886058E", "", "B41B631C-9CF2-4BE5-ADC7-39C3F9D5AA74", "Asset Storage System File Browser", "Main", @"", @"", 0, "700DC78A-70F7-4653-9C5D-6921760AB38F" );
-            // Add Block to Page: PickSomething, Site: External Website
-            RockMigrationHelper.AddBlock( true, "607D0ABA-4AA3-4DD0-B18B-5ECAB67B2652", "", "86D35327-0C07-4C1F-B1AA-B0D5BCF1A511", "Pick Something Demo", "Main", @"", @"", 0, "2C776A5E-50D0-445C-A2F1-58FAEE56C2F6" );
+            RockMigrationHelper.AddBlock( true, "22D51536-3292-453B-91FA-11254886058E", "", "B41B631C-9CF2-4BE5-ADC7-39C3F9D5AA74", "Asset Manager", "Main", @"", @"", 0, "700DC78A-70F7-4653-9C5D-6921760AB38F" );
             // Attrib for BlockType: Asset Storage System List:core.CustomGridColumnsConfig
             RockMigrationHelper.UpdateBlockTypeAttribute( "A3B77D14-6351-48EE-AA17-019FE0104A1C", "9C204CD0-1233-41C5-818A-C5DA439445AA", "core.CustomGridColumnsConfig", "core.CustomGridColumnsConfig", "", @"", 0, @"", "1CCD6B98-5F4F-4BF4-8E30-B7E88E185A63" );
             // Attrib for BlockType: Asset Storage System List:core.CustomGridEnableStickyHeaders
@@ -105,8 +103,6 @@ namespace Rock.Migrations
             RockMigrationHelper.DeleteAttribute( "1CCD6B98-5F4F-4BF4-8E30-B7E88E185A63" );
             // Attrib for BlockType: Asset Storage System List:Detail Page
             RockMigrationHelper.DeleteAttribute( "7E223F26-070F-46B0-9133-D24502416CBE" );
-            // Remove Block: Pick Something Demo, from Page: PickSomething, Site: External Website
-            RockMigrationHelper.DeleteBlock( "2C776A5E-50D0-445C-A2F1-58FAEE56C2F6" );
             // Remove Block: Asset Storage System File Browser, from Page: Asset Storage System Browser, Site: Rock RMS
             RockMigrationHelper.DeleteBlock( "700DC78A-70F7-4653-9C5D-6921760AB38F" );
             // Remove Block: Asset Storage System Detail, from Page: Asset Storage Detail, Site: Rock RMS
