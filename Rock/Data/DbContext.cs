@@ -91,6 +91,20 @@ namespace Rock.Data
                     }
                     finally
                     {
+                        // whether the transaction was Commmited or Rolledback, ensure any Cacheable items are flushed just in case they were updated incorrectly or loaded (with the old data) between the Save and Commit
+                        if ( _cacheableItemsToFlushOnCommit?.Any() == true )
+                        {
+                            foreach ( var item in _cacheableItemsToFlushOnCommit )
+                            {
+                                if ( item.Entity is ICacheable )
+                                {
+                                    ( item.Entity as ICacheable ).UpdateCache( item.PreSaveState, this );
+                                }
+                            }
+                        }
+
+                        _cacheableItemsToFlushOnCommit = null;
+
                         _transactionInProgress = false;
                     }
                 }
@@ -322,6 +336,8 @@ namespace Rock.Data
             return updatedItems;
         }
 
+        private List<ContextItem> _cacheableItemsToFlushOnCommit;
+
         /// <summary>
         /// Creates audit logs and/or triggers workflows for items that were changed
         /// </summary>
@@ -349,6 +365,12 @@ namespace Rock.Data
             }
 
             List<ITransaction> indexTransactions = new List<ITransaction>();
+
+            if ( _transactionInProgress )
+            {
+                _cacheableItemsToFlushOnCommit = _cacheableItemsToFlushOnCommit ?? new List<ContextItem>();
+            }
+
             foreach ( var item in updatedItems )
             {
                 if ( item.State == EntityState.Detached || item.State == EntityState.Deleted )
@@ -396,6 +418,12 @@ namespace Rock.Data
                 if ( item.Entity is ICacheable )
                 {
                     ( item.Entity as ICacheable ).UpdateCache( item.PreSaveState, this );
+
+                    if ( _transactionInProgress )
+                    {
+                        // if we are in a WrapTransaction, make sure the cacheable items are also flushed after the commit (just in case the cacheditem was reloaded between the Save and Commit )
+                        _cacheableItemsToFlushOnCommit.Add( item );
+                    }
                 }
             }
 
