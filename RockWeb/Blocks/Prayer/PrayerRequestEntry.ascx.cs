@@ -19,13 +19,11 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
-using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 
 using Rock;
 using Rock.Attribute;
-using Rock.Constants;
 using Rock.Data;
 using Rock.Model;
 using Rock.Security;
@@ -38,13 +36,35 @@ namespace RockWeb.Blocks.Prayer
     [DisplayName( "Prayer Request Entry" )]
     [Category( "Prayer" )]
     [Description( "Allows prayer requests to be added via visitors on the website." )]
+    [RockSystemGuid( Rock.SystemGuid.BlockType.PRAYER_REQUEST_ENTRY )]
+
+    #region Block Attributes
 
     // Category Selection
-    [CategoryField( "Category Selection", "A top level category. This controls which categories the person can choose from when entering their prayer request.", false, "Rock.Model.PrayerRequest", "", "", false, "", "Category Selection", 1, "GroupCategoryId" )]
-    [CategoryField( "Default Category", "If categories are not being shown, choose a default category to use for all new prayer requests.", false, "Rock.Model.PrayerRequest", "", "", false, "4B2D88F5-6E45-4B4B-8776-11118C8E8269", "Category Selection", 2, "DefaultCategory" )]
+    [CategoryField(
+        "Category Selection",
+        Key = AttributeKey.CategorySelection,
+        Description = "A top level category. This controls which categories the person can choose from when entering their prayer request.",
+        EntityTypeName = "Rock.Model.PrayerRequest",
+        Order = 1 )]
+
+    [CategoryField(
+        "Default Category",
+        Key = AttributeKey.DefaultCategory,
+        Description = "If categories are not being shown, choose a default category to use for all new prayer requests.",
+        EntityTypeName = "Rock.Model.PrayerRequest",
+        DefaultValue = "4B2D88F5-6E45-4B4B-8776-11118C8E8269",
+        Category = "Category Selection",
+        Order = 2 )]
 
     // Features
-    [BooleanField( "Enable Auto Approve", "If enabled, prayer requests are automatically approved; otherwise they must be approved by an admin before they can be seen by the prayer team.", true, "Features", 3 )]
+    [BooleanField( "Enable Auto Approve",
+        Key = AttributeKey.EnableAutoApprove,
+        Description = "If enabled, prayer requests are automatically approved; otherwise they must be approved by an admin before they can be seen by the prayer team.",
+        DefaultValue = true,
+        Category = "Features",
+        Order = 3 )]
+
     [IntegerField( "Expires After (Days)", "Number of days until the request will expire (only applies when auto-approved is enabled).", false, 14, "Features", 4, "ExpireDays" )]
     [BooleanField( "Default Allow Comments Setting", "This is the default setting for the 'Allow Comments' on prayer requests. If you enable the 'Comments Flag' below, the requestor can override this default setting.", true, "Features", 5 )]
     [BooleanField( "Enable Urgent Flag", "If enabled, requestors will be able to flag prayer requests as urgent.", false, "Features", 6 )]
@@ -64,9 +84,36 @@ namespace RockWeb.Blocks.Prayer
     [CodeEditorField( "Save Success Text", "Text to display upon successful save. (Only applies if not navigating to parent page on save.) <span class='tip tip-lava'></span><span class='tip tip-html'></span>", CodeEditorMode.Html, CodeEditorTheme.Rock, 200, false, "<p>Thank you for allowing us to pray for you.</p>", "On Save Behavior", 16 )]
     [WorkflowTypeField( "Workflow", "An optional workflow to start when prayer request is created. The PrayerRequest will be set as the workflow 'Entity' attribute when processing is started.", false, false, "", "On Save Behavior", 17 )]
 
-    [ContextAware(typeof(Rock.Model.Person))]
+    [ContextAware( typeof( Rock.Model.Person ) )]
+
+    #endregion Block Attributes
     public partial class PrayerRequestEntry : RockBlock
     {
+        #region Attribute Keys
+
+        /// <summary>
+        /// Keys to use for Block Attributes
+        /// </summary>
+        protected static class AttributeKey
+        {
+            /// <summary>
+            /// This controls which categories the person can choose from when entering their prayer request.
+            /// </summary>
+            public const string CategorySelection = "GroupCategoryId";
+
+            /// <summary>
+            /// If categories are not being shown, use this default category to use for all new prayer requests.
+            /// </summary>
+            public const string DefaultCategory = "DefaultCategory";
+
+            /// <summary>
+            /// If enabled, prayer requests are automatically approved; otherwise they must be approved by an admin before they can be seen by the prayer team.
+            /// </summary>
+            public const string EnableAutoApprove = "EnableAutoApprove";
+        }
+
+        #endregion
+
         #region Properties
         public int? PrayerRequestEntityTypeId { get; private set; }
 
@@ -110,7 +157,7 @@ namespace RockWeb.Blocks.Prayer
             }
 
             var categoryGuid = GetAttributeValue( "GroupCategoryId" );
-            if ( ! string.IsNullOrEmpty( categoryGuid ) )
+            if ( !string.IsNullOrEmpty( categoryGuid ) )
             {
                 BindCategories( categoryGuid );
 
@@ -150,7 +197,7 @@ namespace RockWeb.Blocks.Prayer
     $(document).ready(function () {{ SetCharacterLimit(); }});
     Sys.WebForms.PageRequestManager.getInstance().add_endRequest(SetCharacterLimit);
 ";
-                string script = string.Format(scriptFormat , dtbRequest.ClientID, charLimit, lblCount.ClientID, lbSave.ClientID );
+                string script = string.Format( scriptFormat, dtbRequest.ClientID, charLimit, lblCount.ClientID, lbSave.ClientID );
                 ScriptManager.RegisterStartupScript( this.Page, this.GetType(), string.Format( "limit-{0}", this.ClientID ), script, true );
             }
         }
@@ -175,7 +222,7 @@ namespace RockWeb.Blocks.Prayer
         {
             base.OnLoad( e );
 
-            if ( ! Page.IsPostBack )
+            if ( !Page.IsPostBack )
             {
                 if ( CurrentPerson != null )
                 {
@@ -212,7 +259,7 @@ namespace RockWeb.Blocks.Prayer
         /// <param name="e">The <see cref="EventArgs" /> instance containing the event data.</param>
         protected void btnSave_Click( object sender, EventArgs e )
         {
-            if ( ! IsValid() )
+            if ( !IsValid() )
             {
                 return;
             }
@@ -373,9 +420,9 @@ namespace RockWeb.Blocks.Prayer
             {
                 NavigateToParentPage();
             }
-            else if (GetAttributeValue( "RefreshPageOnSave" ).AsBoolean() )
+            else if ( GetAttributeValue( "RefreshPageOnSave" ).AsBoolean() )
             {
-                NavigateToCurrentPage( this.PageParameters().Where(a => a.Value is string).ToDictionary( k => k.Key, v => v.Value.ToString()) );
+                NavigateToCurrentPage( this.PageParameters().Where( a => a.Value is string ).ToDictionary( k => k.Key, v => v.Value.ToString() ) );
             }
             else
             {
@@ -437,7 +484,7 @@ namespace RockWeb.Blocks.Prayer
 
             // Check length in case the client side js didn't
             int charLimit = GetAttributeValue( "CharacterLimit" ).AsInteger();
-            if ( charLimit > 0  && dtbRequest.Text.Length > charLimit )
+            if ( charLimit > 0 && dtbRequest.Text.Length > charLimit )
             {
                 errors = errors.Concat( new[] { string.Format( "Whoops. Would you mind reducing the length of your prayer request to {0} characters?", charLimit ) } );
             }

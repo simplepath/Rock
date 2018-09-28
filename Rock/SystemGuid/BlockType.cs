@@ -24,7 +24,7 @@ namespace Rock.SystemGuid
     public class BlockType
     {
         /// <summary>
-        /// Gets the Plugin Manager guid
+        /// Gets the Plugin Manager Guid
         /// </summary>
         public const string PLUGIN_MANAGER  = "F80268E6-2625-4565-AA2E-790C5E40A119";
 
@@ -77,6 +77,11 @@ namespace Rock.SystemGuid
         /// The PowerBI Account Registration Block Type Guid
         /// </summary>
         public const string POWERBI_ACCOUNT_REGISTRATION = "EA20D87E-ED46-3DAA-4C4D-4156C399B1C2";
+
+        /// <summary>
+        /// Prayer Request Entry Guid
+        /// </summary>
+        public const string PRAYER_REQUEST_ENTRY = "4C32F2CD-5A88-4C3A-ADEA-CF94E85D20A6";
 
         #region Finance Block Types
 

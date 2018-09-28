@@ -42,6 +42,19 @@ namespace Rock.Attribute
         {
         }
 
+        public new bool DefaultValue
+        {
+            get
+            {
+                return base.DefaultValue.AsBoolean();
+            }
+
+            set
+            {
+                base.DefaultValue = value.ToString();
+            }
+        }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="BooleanFieldAttribute"/> class.
         /// </summary>

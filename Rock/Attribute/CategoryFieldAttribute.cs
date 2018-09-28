@@ -15,7 +15,6 @@
 // </copyright>
 //
 using Rock.Field.Types;
-using Rock.Web.Cache;
 
 namespace Rock.Attribute
 {
@@ -52,5 +51,20 @@ namespace Rock.Attribute
             FieldConfigurationValues.Add( QUALIFIER_COLUMN_KEY, new Field.ConfigurationValue( entityTypeQualifierColumn ) );
             FieldConfigurationValues.Add( QUALIFIER_VALUE_KEY, new Field.ConfigurationValue( entityTypeQualifierValue ) );
         }
+        
+
+        public string EntityTypeName
+        {
+            get
+            {
+                return FieldConfigurationValues.GetValueOrNull( ENTITY_TYPE_NAME_KEY );
+            }
+
+            set
+            {
+                FieldConfigurationValues.AddOrReplace( ENTITY_TYPE_NAME_KEY, new Field.ConfigurationValue( value ) );
+            }
+        }
+
     }
 }

@@ -32,6 +32,12 @@ namespace Rock.Attribute
     [AttributeUsage( AttributeTargets.Class, AllowMultiple = true )]
     public abstract class FieldAttribute : System.Attribute
     {
+        public FieldAttribute( string name )
+        {
+            Key = name.RemoveSpaces();
+            Name = name;
+        }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="FieldAttribute" /> class.
         /// </summary>
@@ -55,7 +61,7 @@ namespace Rock.Attribute
             {
                 Key = key;
             }
-            
+
             if ( string.IsNullOrWhiteSpace( fieldTypeClass ) )
             {
                 fieldTypeClass = typeof( Rock.Field.Types.TextFieldType ).FullName;
@@ -126,6 +132,15 @@ namespace Rock.Attribute
         /// The key.
         /// </value>
         public virtual string Key { get; set; }
+
+        /// <summary>
+        /// Gets or sets the Attribute.Guid that is stored in the database for this blocktype attribute
+        /// NOTE: Use Rock.SystemGuid.BlockType.{BlockTypeName}
+        /// </summary>
+        /// <value>
+        /// The unique identifier.
+        /// </value>
+        public virtual Guid Guid { get; set; }
 
         /// <summary>
         /// Gets or sets the assembly name of the <see cref="Rock.Field.IFieldType"/> to be used for the attribute
