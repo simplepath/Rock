@@ -13,15 +13,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // </copyright>
-//
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Text.RegularExpressions;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Web;
 using System.Web.UI.HtmlControls;
-
 using Rock;
 using Rock.Attribute;
 using Rock.CheckIn;
@@ -29,22 +26,29 @@ using Rock.Web.Cache;
 
 namespace RockWeb.Blocks.CheckIn
 {
-    [DisplayName("Search")]
-    [Category("Check-in")]
-    [Description("Displays keypad for searching on phone numbers.")]
+    /// <summary>
+    /// Search Block for Checkin
+    /// </summary>
+    /// <seealso cref="Rock.CheckIn.CheckInBlock" />
+    [DisplayName( "Search" )]
+    [Category( "Check-in" )]
+    [Description( "Searches by name or phone number depending on settings." )]
 
     [TextField( "Title", "Title to display. Use {0} for search type.", false, "Search By {0}", "Text", 5 )]
     [TextField( "No Option Message", "", false, "There were not any families that match the search criteria.", "Text", 6 )]
-
     public partial class Search : CheckInBlock
     {
+        /// <summary>
+        /// Raises the <see cref="E:System.Web.UI.Control.Init" /> event.
+        /// </summary>
+        /// <param name="e">An <see cref="T:System.EventArgs" /> object that contains the event data.</param>
         protected override void OnInit( EventArgs e )
         {
             base.OnInit( e );
 
             RockPage.AddScriptLink( "~/Scripts/CheckinClient/checkin-core.js" );
 
-            if (!KioskCurrentlyActive)
+            if ( !KioskCurrentlyActive )
             {
                 NavigateToHomePage();
             }
@@ -56,6 +60,10 @@ namespace RockWeb.Blocks.CheckIn
             }
         }
 
+        /// <summary>
+        /// Raises the <see cref="E:System.Web.UI.Control.Load" /> event.
+        /// </summary>
+        /// <param name="e">The <see cref="T:System.EventArgs" /> object that contains the event data.</param>
         protected override void OnLoad( EventArgs e )
         {
             base.OnLoad( e );
@@ -89,10 +97,16 @@ namespace RockWeb.Blocks.CheckIn
                     txtName.Label = "Name or Phone";
                     searchType = "Name or Phone";
                 }
+
                 lPageTitle.Text = string.Format( GetAttributeValue( "Title" ), searchType );
             }
         }
 
+        /// <summary>
+        /// Handles the Click event of the lbSearch control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void lbSearch_Click( object sender, EventArgs e )
         {
             if ( KioskCurrentlyActive )
@@ -122,6 +136,9 @@ namespace RockWeb.Blocks.CheckIn
             }
         }
 
+        /// <summary>
+        /// Searches for the Family/Individual by Name
+        /// </summary>
         private void SearchByName()
         {
             CurrentCheckInState.CheckIn.UserEnteredSearch = true;
@@ -132,6 +149,9 @@ namespace RockWeb.Blocks.CheckIn
             ProcessSelection();
         }
 
+        /// <summary>
+        /// Searches for the Family/Individual by Phone Number
+        /// </summary>
         private void SearchByPhone()
         {
             // TODO: Validate text entered
@@ -194,11 +214,21 @@ namespace RockWeb.Blocks.CheckIn
             Response.Cookies.Set( phoneCookie );
         }
 
+        /// <summary>
+        /// Handles the Click event of the lbBack control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void lbBack_Click( object sender, EventArgs e )
         {
             CancelCheckin();
         }
 
+        /// <summary>
+        /// Handles the Click event of the lbCancel control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void lbCancel_Click( object sender, EventArgs e )
         {
             CancelCheckin();

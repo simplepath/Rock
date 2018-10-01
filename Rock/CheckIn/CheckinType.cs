@@ -15,10 +15,6 @@
 // </copyright>
 //
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Rock.Web.Cache;
 
 namespace Rock.CheckIn
@@ -36,7 +32,7 @@ namespace Rock.CheckIn
         /// <value>
         /// The type of checkin.
         /// </value>
-        public TypeOfCheckin TypeOfCheckin { get { return GetSetting( "core_checkin_CheckInType" ) == "1" ? TypeOfCheckin.Family : TypeOfCheckin.Individual; } }
+        public TypeOfCheckin TypeOfCheckin => GetSetting( "core_checkin_CheckInType" ) == "1" ? TypeOfCheckin.Family : TypeOfCheckin.Individual;
 
         /// <summary>
         /// Gets a value indicating whether [enable manager option].
@@ -44,7 +40,7 @@ namespace Rock.CheckIn
         /// <value>
         ///   <c>true</c> if [enable manager option]; otherwise, <c>false</c>.
         /// </value>
-        public bool EnableManagerOption { get { return GetSetting( "core_checkin_EnableManagerOption" ).AsBoolean( true ); } }
+        public bool EnableManagerOption => GetSetting( "core_checkin_EnableManagerOption" ).AsBoolean( true );
 
         /// <summary>
         /// Gets a value indicating whether [enable override].
@@ -52,7 +48,7 @@ namespace Rock.CheckIn
         /// <value>
         ///   <c>true</c> if [enable override]; otherwise, <c>false</c>.
         /// </value>
-        public bool EnableOverride { get { return GetSetting( "core_checkin_EnableOverride" ).AsBoolean( true ); } }
+        public bool EnableOverride => GetSetting( "core_checkin_EnableOverride" ).AsBoolean( true );
 
         /// <summary>
         /// Gets the length of the security code.
@@ -60,8 +56,8 @@ namespace Rock.CheckIn
         /// <value>
         /// The length of the security code.
         /// </value>
-        [Obsolete("Use SecurityCodeAlphaNumericLength instead.")]
-        public int SecurityCodeLength { get { return GetSetting( "core_checkin_SecurityCodeLength" ).AsIntegerOrNull() ?? 3; } }
+        [Obsolete( "Use SecurityCodeAlphaNumericLength instead." )]
+        public int SecurityCodeLength => GetSetting( "core_checkin_SecurityCodeLength" ).AsIntegerOrNull() ?? 3;
 
         /// <summary>
         /// Gets the length of the security code alpha numeric.
@@ -69,7 +65,7 @@ namespace Rock.CheckIn
         /// <value>
         /// The length of the security code alpha numeric.
         /// </value>
-        public int SecurityCodeAlphaNumericLength { get { return GetSetting( "core_checkin_SecurityCodeLength" ).AsIntegerOrNull() ?? 3; } }
+        public int SecurityCodeAlphaNumericLength => GetSetting( "core_checkin_SecurityCodeLength" ).AsIntegerOrNull() ?? 3;
 
         /// <summary>
         /// Gets the length of the security code alpha.
@@ -77,7 +73,7 @@ namespace Rock.CheckIn
         /// <value>
         /// The length of the security code alpha.
         /// </value>
-        public int SecurityCodeAlphaLength { get { return GetSetting( "core_checkin_SecurityCodeAlphaLength" ).AsIntegerOrNull() ?? 0; } }
+        public int SecurityCodeAlphaLength => GetSetting( "core_checkin_SecurityCodeAlphaLength" ).AsIntegerOrNull() ?? 0;
 
         /// <summary>
         /// Gets the length of the security code numeric.
@@ -85,7 +81,7 @@ namespace Rock.CheckIn
         /// <value>
         /// The length of the security code numeric.
         /// </value>
-        public int SecurityCodeNumericLength { get { return GetSetting( "core_checkin_SecurityCodeNumericLength" ).AsIntegerOrNull() ?? 0; } }
+        public int SecurityCodeNumericLength => GetSetting( "core_checkin_SecurityCodeNumericLength" ).AsIntegerOrNull() ?? 0;
 
         /// <summary>
         /// Gets a value indicating whether [security code numeric random].
@@ -93,7 +89,7 @@ namespace Rock.CheckIn
         /// <value>
         /// <c>true</c> if [security code numeric random]; otherwise, <c>false</c>.
         /// </value>
-        public bool SecurityCodeNumericRandom { get { return GetSetting( "core_checkin_SecurityCodeNumericRandom" ).AsBooleanOrNull() ?? true; } }
+        public bool SecurityCodeNumericRandom => GetSetting( "core_checkin_SecurityCodeNumericRandom" ).AsBooleanOrNull() ?? true;
 
         /// <summary>
         /// Gets a value indicating whether [reuse same code].
@@ -101,7 +97,7 @@ namespace Rock.CheckIn
         /// <value>
         ///   <c>true</c> if [reuse same code]; otherwise, <c>false</c>.
         /// </value>
-        public bool ReuseSameCode { get { return GetSetting( "core_checkin_ReuseSameCode" ).AsBoolean( false ); } }
+        public bool ReuseSameCode => GetSetting( "core_checkin_ReuseSameCode" ).AsBoolean( false );
 
         /// <summary>
         /// Gets a value indicating whether [allow checkout].
@@ -109,7 +105,7 @@ namespace Rock.CheckIn
         /// <value>
         ///   <c>true</c> if [allow checkout]; otherwise, <c>false</c>.
         /// </value>
-        public bool AllowCheckout { get { return GetSetting( "core_checkin_AllowCheckout" ).AsBoolean( false ); } }
+        public bool AllowCheckout => GetSetting( "core_checkin_AllowCheckout" ).AsBoolean( false );
 
         /// <summary>
         /// Gets a value indicating whether [use same options].
@@ -117,7 +113,7 @@ namespace Rock.CheckIn
         /// <value>
         ///   <c>true</c> if [use same options]; otherwise, <c>false</c>.
         /// </value>
-        public bool UseSameOptions { get { return GetSetting( "core_checkin_UseSameOptions" ).AsBoolean( false ); } }
+        public bool UseSameOptions => GetSetting( "core_checkin_UseSameOptions" ).AsBoolean( false );
 
         /// <summary>
         /// Gets the type of the search.
@@ -125,7 +121,7 @@ namespace Rock.CheckIn
         /// <value>
         /// The type of the search.
         /// </value>
-        public DefinedValueCache SearchType { get { return DefinedValueCache.Get( GetSetting( "core_checkin_SearchType" ).AsGuid() ); } }
+        public DefinedValueCache SearchType => DefinedValueCache.Get( GetSetting( "core_checkin_SearchType" ).AsGuid() );
 
         /// <summary>
         /// Gets the regular expression filter.
@@ -133,7 +129,7 @@ namespace Rock.CheckIn
         /// <value>
         /// The regular expression filter.
         /// </value>
-        public string RegularExpressionFilter { get { return GetSetting( "core_checkin_RegularExpressionFilter" ); } }
+        public string RegularExpressionFilter => GetSetting( "core_checkin_RegularExpressionFilter" );
 
         /// <summary>
         /// Gets the maximum search results.
@@ -141,7 +137,7 @@ namespace Rock.CheckIn
         /// <value>
         /// The maximum search results.
         /// </value>
-        public int MaxSearchResults { get { return GetSetting( "core_checkin_MaxSearchResults" ).AsIntegerOrNull() ?? 100; } }
+        public int MaxSearchResults => GetSetting( "core_checkin_MaxSearchResults" ).AsIntegerOrNull() ?? 100;
 
         /// <summary>
         /// Gets the minimum length of the phone search.
@@ -149,7 +145,7 @@ namespace Rock.CheckIn
         /// <value>
         /// The minimum length of the phone search.
         /// </value>
-        public int MinimumPhoneSearchLength { get { return GetSetting( "core_checkin_MinimumPhoneSearchLength" ).AsIntegerOrNull() ?? 4; } }
+        public int MinimumPhoneSearchLength => GetSetting( "core_checkin_MinimumPhoneSearchLength" ).AsIntegerOrNull() ?? 4;
 
         /// <summary>
         /// Gets the maximum length of the phone search.
@@ -157,7 +153,7 @@ namespace Rock.CheckIn
         /// <value>
         /// The maximum length of the phone search.
         /// </value>
-        public int MaximumPhoneSearchLength { get { return GetSetting( "core_checkin_MaximumPhoneSearchLength" ).AsIntegerOrNull() ?? 10; } }
+        public int MaximumPhoneSearchLength => GetSetting( "core_checkin_MaximumPhoneSearchLength" ).AsIntegerOrNull() ?? 10;
 
         /// <summary>
         /// Gets the type of the phone search.
@@ -165,7 +161,7 @@ namespace Rock.CheckIn
         /// <value>
         /// The type of the phone search.
         /// </value>
-        public PhoneSearchType PhoneSearchType { get { return GetSetting( "core_checkin_PhoneSearchType" ) == "0" ? PhoneSearchType.Contains : PhoneSearchType.EndsWith; } }
+        public PhoneSearchType PhoneSearchType => GetSetting( "core_checkin_PhoneSearchType" ) == "0" ? PhoneSearchType.Contains : PhoneSearchType.EndsWith;
 
         /// <summary>
         /// Gets the refresh interval.
@@ -173,7 +169,7 @@ namespace Rock.CheckIn
         /// <value>
         /// The refresh interval.
         /// </value>
-        public int RefreshInterval { get { return GetSetting( "core_checkin_RefreshInterval" ).AsIntegerOrNull() ?? 10; } }
+        public int RefreshInterval => GetSetting( "core_checkin_RefreshInterval" ).AsIntegerOrNull() ?? 10;
 
         /// <summary>
         /// Gets a value indicating whether [age required].
@@ -181,7 +177,7 @@ namespace Rock.CheckIn
         /// <value>
         ///   <c>true</c> if [age required]; otherwise, <c>false</c>.
         /// </value>
-        public bool AgeRequired { get { return GetSetting( "core_checkin_AgeRequired" ).AsBoolean( true ); } }
+        public bool AgeRequired => GetSetting( "core_checkin_AgeRequired" ).AsBoolean( true );
 
         /// <summary>
         /// Gets a value indicating whether [grade is required].
@@ -189,7 +185,7 @@ namespace Rock.CheckIn
         /// <value>
         ///   <c>true</c> if [age required]; otherwise, <c>false</c>.
         /// </value>
-        public bool GradeRequired { get { return GetSetting( "core_checkin_GradeRequired" ).AsBoolean( true ); } }
+        public bool GradeRequired => GetSetting( "core_checkin_GradeRequired" ).AsBoolean( true );
 
         /// <summary>
         /// Gets a value indicating whether [hide photos].
@@ -197,7 +193,7 @@ namespace Rock.CheckIn
         /// <value>
         ///   <c>true</c> if [hide photos]; otherwise, <c>false</c>.
         /// </value>
-        public bool HidePhotos { get { return GetSetting( "core_checkin_HidePhotos" ).AsBoolean( false ); } }
+        public bool HidePhotos => GetSetting( "core_checkin_HidePhotos" ).AsBoolean( false );
 
         /// <summary>
         /// Gets a value indicating whether [prevent duplicate checkin].
@@ -205,8 +201,8 @@ namespace Rock.CheckIn
         /// <value>
         /// <c>true</c> if [prevent duplicate checkin]; otherwise, <c>false</c>.
         /// </value>
-        public bool PreventDuplicateCheckin { get { return GetSetting( "core_checkin_PreventDuplicateCheckin" ).AsBoolean( false ); } }
-        
+        public bool PreventDuplicateCheckin => GetSetting( "core_checkin_PreventDuplicateCheckin" ).AsBoolean( false );
+
         /// <summary>
         /// Gets a value indicating whether [prevent inactive people]. Obsolete as of 1.7.0.
         /// </summary>
@@ -214,7 +210,7 @@ namespace Rock.CheckIn
         /// <c>true</c> if [prevent inactive people]; otherwise, <c>false</c>.
         /// </value>
         [Obsolete( "Use PreventInactivePeople instead.", true )]
-        public bool PreventInactivePeopele { get { return GetSetting( "core_checkin_PreventInactivePeople" ).AsBoolean( false ); } }
+        public bool PreventInactivePeopele => GetSetting( "core_checkin_PreventInactivePeople" ).AsBoolean( false );
 
         /// <summary>
         /// Gets a value indicating whether [prevent inactive people].
@@ -222,7 +218,7 @@ namespace Rock.CheckIn
         /// <value>
         /// <c>true</c> if [prevent inactive people]; otherwise, <c>false</c>.
         /// </value>
-        public bool PreventInactivePeople { get { return GetSetting( "core_checkin_PreventInactivePeople" ).AsBoolean( false ); } }
+        public bool PreventInactivePeople => GetSetting( "core_checkin_PreventInactivePeople" ).AsBoolean( false );
 
         /// <summary>
         /// Gets a value indicating whether [display location count].
@@ -230,7 +226,7 @@ namespace Rock.CheckIn
         /// <value>
         /// <c>true</c> if [display location count]; otherwise, <c>false</c>.
         /// </value>
-        public bool DisplayLocationCount { get { return GetSetting( "core_checkin_DisplayLocationCount" ).AsBoolean( true ); } }
+        public bool DisplayLocationCount => GetSetting( "core_checkin_DisplayLocationCount" ).AsBoolean( true );
 
         /// <summary>
         /// Gets the automatic select days back.
@@ -238,7 +234,7 @@ namespace Rock.CheckIn
         /// <value>
         /// The automatic select days back.
         /// </value>
-        public int AutoSelectDaysBack { get { return GetSetting( "core_checkin_AutoSelectDaysBack" ).AsIntegerOrNull() ?? 10; } }
+        public int AutoSelectDaysBack => GetSetting( "core_checkin_AutoSelectDaysBack" ).AsIntegerOrNull() ?? 10;
 
         /// <summary>
         /// Gets or sets the automatic select options.
@@ -246,7 +242,7 @@ namespace Rock.CheckIn
         /// <value>
         /// The automatic select options.
         /// </value>
-        public int? AutoSelectOptions { get { return GetSetting( "core_checkin_AutoSelectOptions" ).AsIntegerOrNull();  } }
+        public int? AutoSelectOptions => GetSetting( "core_checkin_AutoSelectOptions" ).AsIntegerOrNull();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CheckinType"/> class.
@@ -268,6 +264,7 @@ namespace Rock.CheckIn
             {
                 return _checkinType.GetAttributeValue( key );
             }
+
             return string.Empty;
         }
     }
