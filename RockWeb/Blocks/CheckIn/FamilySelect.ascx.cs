@@ -13,7 +13,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // </copyright>
-//
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -36,9 +35,12 @@ namespace RockWeb.Blocks.CheckIn
     [TextField( "Title", "Title to display.", false, "Families", "Text", 5 )]
     [TextField( "Caption", "", false, "Select Your Family", "Text", 6 )]
     [TextField( "No Option Message", "", false, "Sorry, no one in your family is eligible to check-in at this location.", "Text", 7 )]
-
     public partial class FamilySelect : CheckInBlock
     {
+        /// <summary>
+        /// Raises the <see cref="E:System.Web.UI.Control.Load" /> event.
+        /// </summary>
+        /// <param name="e">The <see cref="T:System.EventArgs" /> object that contains the event data.</param>
         protected override void OnLoad( EventArgs e )
         {
             base.OnLoad( e );
@@ -107,12 +109,17 @@ namespace RockWeb.Blocks.CheckIn
             }
         }
 
+        /// <summary>
+        /// Handles the ItemCommand event of the rSelection control.
+        /// </summary>
+        /// <param name="source">The source of the event.</param>
+        /// <param name="e">The <see cref="RepeaterCommandEventArgs"/> instance containing the event data.</param>
         protected void rSelection_ItemCommand( object source, RepeaterCommandEventArgs e )
         {
             if ( KioskCurrentlyActive )
             {
-                int id = Int32.Parse( e.CommandArgument.ToString() );
-                var family = CurrentCheckInState.CheckIn.Families.Where( f => f.Group.Id == id ).FirstOrDefault();
+                int groupId = e.CommandArgument.ToString().AsInteger();
+                var family = CurrentCheckInState.CheckIn.Families.Where( f => f.Group.Id == groupId ).FirstOrDefault();
                 if ( family != null )
                 {
                     family.Selected = true;
@@ -121,11 +128,21 @@ namespace RockWeb.Blocks.CheckIn
             }
         }
 
+        /// <summary>
+        /// Handles the Click event of the lbBack control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void lbBack_Click( object sender, EventArgs e )
         {
             GoBack();
         }
 
+        /// <summary>
+        /// Handles the Click event of the lbCancel control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void lbCancel_Click( object sender, EventArgs e )
         {
             CancelCheckin();
@@ -155,14 +172,18 @@ namespace RockWeb.Blocks.CheckIn
             }
         }
 
+        /// <summary>
+        /// Processes the selection.
+        /// </summary>
         private void ProcessSelection()
         {
-            if ( !ProcessSelection( maWarning, () =>
-                ( 
-                    CurrentCheckInState.CheckIn.Families.All( f => f.People.Count == 0 ) && 
+            if ( !ProcessSelection(
+                maWarning,
+                () => (
+                    CurrentCheckInState.CheckIn.Families.All( f => f.People.Count == 0 ) &&
                     CurrentCheckInState.CheckIn.Families.All( f => f.Action == CheckinAction.CheckIn )
                 ),
-                string.Format( "<p>{0}</p>", GetAttributeValue( "NoOptionMessage" ) ) ) )            
+                string.Format( "<p>{0}</p>", GetAttributeValue( "NoOptionMessage" ) ) ) )
             {
                 ClearSelection();
             }
