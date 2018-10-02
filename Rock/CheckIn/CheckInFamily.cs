@@ -26,7 +26,7 @@ namespace Rock.CheckIn
     /// A family option for the current check-in
     /// </summary>
     [DataContract]
-    public class CheckInFamily
+    public class CheckInFamily : DotLiquid.Drop
     {
         /// <summary>
         /// Gets or sets the group.
@@ -36,6 +36,15 @@ namespace Rock.CheckIn
         /// </value>
         [DataMember]
         public Group Group { get; set; }
+
+        /// <summary>
+        /// Gets or sets the group members
+        /// </summary>
+        /// <value>
+        /// The group members.
+        /// </value>
+        [DataMember]
+        public List<GroupMember> GroupMembers { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether this <see cref="CheckInFamily" /> is selected for check-in
@@ -101,6 +110,15 @@ namespace Rock.CheckIn
         /// </value>
         [DataMember]
         public string SubCaption { get; set; }
+
+        /// <summary>
+        /// Gets or sets the first names of the people in the Family
+        /// </summary>
+        /// <value>
+        /// The first names.
+        /// </value>
+        [DataMember]
+        public List<string> FirstNames { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CheckInFamily" /> class.

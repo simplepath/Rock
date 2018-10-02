@@ -44,6 +44,8 @@
         <div class="checkin-actions">
             <asp:LinkButton CssClass="btn btn-default btn-back" ID="lbBack" runat="server" OnClick="lbBack_Click" Text="Back" />
             <asp:LinkButton CssClass="btn btn-default btn-cancel" ID="lbCancel" runat="server" OnClick="lbCancel_Click" Text="Cancel" />
+
+            <asp:LinkButton CssClass="btn btn-default pull-right" ID="lbEditFamily" runat="server" OnClick="lbEditFamily_Click" Text="Edit Family" />
         </div>
     </div>
 

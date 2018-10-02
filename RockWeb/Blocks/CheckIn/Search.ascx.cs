@@ -78,24 +78,35 @@ namespace RockWeb.Blocks.CheckIn
                     tbPhone.Text = Request.Cookies[CheckInCookie.PHONENUMBER].Value;
                 }
 
-                if ( CurrentCheckInType == null || CurrentCheckInType.SearchType.Guid == Rock.SystemGuid.DefinedValue.CHECKIN_SEARCH_TYPE_PHONE_NUMBER.AsGuid() )
+                if ( this.CurrentCheckInState.Kiosk.RegistrationModeEnabled )
                 {
-                    pnlSearchName.Visible = false;
-                    pnlSearchPhone.Visible = true;
-                    searchType = "Phone";
-                }
-                else if ( CurrentCheckInType.SearchType.Guid == Rock.SystemGuid.DefinedValue.CHECKIN_SEARCH_TYPE_NAME.AsGuid() )
-                {
-                    pnlSearchName.Visible = true;
-                    pnlSearchPhone.Visible = false;
-                    searchType = "Name";
-                }
-                else
-                {
+                    // If RegistrationMode is enabled for this device, override any SearchType settings and search by Name or Phone
                     pnlSearchName.Visible = true;
                     pnlSearchPhone.Visible = false;
                     txtName.Label = "Name or Phone";
                     searchType = "Name or Phone";
+                }
+                else
+                {
+                    if ( CurrentCheckInType == null || CurrentCheckInType.SearchType.Guid == Rock.SystemGuid.DefinedValue.CHECKIN_SEARCH_TYPE_PHONE_NUMBER.AsGuid() )
+                    {
+                        pnlSearchName.Visible = false;
+                        pnlSearchPhone.Visible = true;
+                        searchType = "Phone";
+                    }
+                    else if ( CurrentCheckInType.SearchType.Guid == Rock.SystemGuid.DefinedValue.CHECKIN_SEARCH_TYPE_NAME.AsGuid() )
+                    {
+                        pnlSearchName.Visible = true;
+                        pnlSearchPhone.Visible = false;
+                        searchType = "Name";
+                    }
+                    else
+                    {
+                        pnlSearchName.Visible = true;
+                        pnlSearchPhone.Visible = false;
+                        txtName.Label = "Name or Phone";
+                        searchType = "Name or Phone";
+                    }
                 }
 
                 lPageTitle.Text = string.Format( GetAttributeValue( "Title" ), searchType );
@@ -111,12 +122,23 @@ namespace RockWeb.Blocks.CheckIn
         {
             if ( KioskCurrentlyActive )
             {
+                Guid searchTypeGuid = Rock.SystemGuid.DefinedValue.CHECKIN_SEARCH_TYPE_PHONE_NUMBER.AsGuid();
+                if ( ( this.CurrentCheckInState != null ) && this.CurrentCheckInState.Kiosk.RegistrationModeEnabled )
+                {
+                    // If RegistrationMode is enabled for this device, override any SearchType settings and search by Name or Phone
+                    searchTypeGuid = Rock.SystemGuid.DefinedValue.CHECKIN_SEARCH_TYPE_NAME_AND_PHONE.AsGuid();
+                }
+                else if ( CurrentCheckInType != null )
+                {
+                    searchTypeGuid = CurrentCheckInType.SearchType.Guid;
+                }
+
                 // check search type
-                if ( CurrentCheckInType == null || CurrentCheckInType.SearchType.Guid == Rock.SystemGuid.DefinedValue.CHECKIN_SEARCH_TYPE_PHONE_NUMBER.AsGuid() )
+                if ( searchTypeGuid == Rock.SystemGuid.DefinedValue.CHECKIN_SEARCH_TYPE_PHONE_NUMBER.AsGuid() )
                 {
                     SearchByPhone();
                 }
-                else if ( CurrentCheckInType.SearchType.Guid == Rock.SystemGuid.DefinedValue.CHECKIN_SEARCH_TYPE_NAME.AsGuid() )
+                else if ( searchTypeGuid == Rock.SystemGuid.DefinedValue.CHECKIN_SEARCH_TYPE_NAME.AsGuid() )
                 {
                     SearchByName();
                 }

@@ -35,6 +35,22 @@ namespace RockWeb.Blocks.CheckIn
     [TextField( "Title", "Title to display.", false, "Families", "Text", 5 )]
     [TextField( "Caption", "", false, "Select Your Family", "Text", 6 )]
     [TextField( "No Option Message", "", false, "Sorry, no one in your family is eligible to check-in at this location.", "Text", 7 )]
+
+    [CodeEditorField(
+        "Family Select Template",
+        "The Lava Template to use when rendering the Family Select button for each family.",
+        Rock.Web.UI.Controls.CodeEditorMode.Lava,
+        IsRequired = false,
+        DefaultValue = @"
+<a class='btn btn-primary btn-large btn-block btn-checkin-select'>
+{% if RegistrationModeEnabled == true %}
+    {{ Family.Group.Name }}<span class='checkin-sub-title'>{{ Family.FirstNames }}</span>
+{% else %}
+    {{ Family.Group.Name }}<span class='checkin-sub-title'>{{ Family.FirstNames }}</span>
+{% endif %}
+</a>
+",
+        Order = 8)]
     public partial class FamilySelect : CheckInBlock
     {
         /// <summary>
@@ -92,6 +108,13 @@ namespace RockWeb.Blocks.CheckIn
                         rSelection.DataBind();
                     }
                 }
+                else
+                {
+                    if ( this.Request.Params["__EVENTTARGET"] == rSelection.UniqueID )
+                    {
+                        HandleRepeaterPostback( this.Request.Params["__EVENTARGUMENT"] );
+                    }
+                }
             }
         }
 
@@ -110,15 +133,43 @@ namespace RockWeb.Blocks.CheckIn
         }
 
         /// <summary>
-        /// Handles the ItemCommand event of the rSelection control.
+        /// Handles the ItemDataBound event of the rSelection control.
         /// </summary>
-        /// <param name="source">The source of the event.</param>
-        /// <param name="e">The <see cref="RepeaterCommandEventArgs"/> instance containing the event data.</param>
-        protected void rSelection_ItemCommand( object source, RepeaterCommandEventArgs e )
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="RepeaterItemEventArgs"/> instance containing the event data.</param>
+        protected void rSelection_ItemDataBound( object sender, RepeaterItemEventArgs e )
+        {
+            if ( e.Item == null )
+            {
+                return;
+            }
+
+            CheckInFamily checkInFamily = e.Item.DataItem as CheckInFamily;
+            if ( checkInFamily == null )
+            {
+                return;
+            }
+
+            Panel pnlSelectFamilyPostback = e.Item.FindControl( "pnlSelectFamilyPostback" ) as Panel;
+            pnlSelectFamilyPostback.Attributes["onclick"] = this.Page.ClientScript.GetPostBackClientHyperlink( rSelection , checkInFamily.Group.Id.ToString() );
+            Literal lSelectFamilyButtonHtml = e.Item.FindControl( "lSelectFamilyButtonHtml" ) as Literal;
+            var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( this.RockPage, null, new Rock.Lava.CommonMergeFieldsOptions { GetLegacyGlobalMergeFields = false } );
+            mergeFields.Add( "Family", checkInFamily );
+            mergeFields.Add( "Kiosk", CurrentCheckInState.Kiosk );
+            mergeFields.Add( "RegistrationModeEnabled", CurrentCheckInState.Kiosk.RegistrationModeEnabled );
+
+            lSelectFamilyButtonHtml.Text = this.GetAttributeValue( "FamilySelectTemplate" ).ResolveMergeFields( mergeFields );
+        }
+
+        /// <summary>
+        /// Handles the repeater postback.
+        /// </summary>
+        /// <param name="commandArgument">The command argument.</param>
+        protected void HandleRepeaterPostback( string commandArgument )
         {
             if ( KioskCurrentlyActive )
             {
-                int groupId = e.CommandArgument.ToString().AsInteger();
+                int groupId = commandArgument.AsInteger();
                 var family = CurrentCheckInState.CheckIn.Families.Where( f => f.Group.Id == groupId ).FirstOrDefault();
                 if ( family != null )
                 {
@@ -188,5 +239,7 @@ namespace RockWeb.Blocks.CheckIn
                 ClearSelection();
             }
         }
+
+
     }
 }

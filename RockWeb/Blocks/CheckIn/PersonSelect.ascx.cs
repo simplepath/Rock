@@ -159,5 +159,10 @@ namespace RockWeb.Blocks.CheckIn
                     .Count() <= 0, msg );
         }
 
+
+        protected void lbEditFamily_Click( object sender, EventArgs e )
+        {
+
+        }
     }
 }

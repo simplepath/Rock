@@ -25,9 +25,12 @@
                 <div class="control-group checkin-body-container">
                     <label class="control-label"><asp:Literal ID="lCaption" runat="server" /></label>
                     <div class="controls">
-                        <asp:Repeater ID="rSelection" runat="server" OnItemCommand="rSelection_ItemCommand">
+                        <asp:Repeater ID="rSelection" runat="server" OnItemDataBound="rSelection_ItemDataBound">
                             <ItemTemplate>
-                                <Rock:BootstrapButton ID="lbSelect" runat="server" CommandArgument='<%# Eval("Group.Id") %>' CssClass="btn btn-primary btn-large btn-block btn-checkin-select"  DataLoadingText="Loading..." ><%# Eval("Caption") %><span class="checkin-sub-title"><%# Eval("SubCaption") %></span></Rock:BootstrapButton>
+                                <%-- pnlSelectFamilyPostback will take care of firing the postback, and lSelectFamilyButtonHtml will be the button HTML from Lava  --%>
+                                <asp:Panel ID="pnlSelectFamilyPostback" runat="server">
+                                    <asp:Literal ID="lSelectFamilyButtonHtml" runat="server" />
+                                </asp:Panel>
                             </ItemTemplate>
                         </asp:Repeater>
                     </div>

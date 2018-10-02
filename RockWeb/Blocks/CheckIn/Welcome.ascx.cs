@@ -111,8 +111,20 @@ namespace RockWeb.Blocks.CheckIn
                     string btnText = GetAttributeValue( "CheckinButtonText" );
                     if ( string.IsNullOrWhiteSpace( btnText ) )
                     {
-                        btnText = CurrentCheckInState.CheckInType.AllowCheckout ? "Start" : "Check In";
+                        if ( CurrentCheckInState.Kiosk.RegistrationModeEnabled )
+                        {
+                            btnText = "Start";
+                        }
+                        else if ( CurrentCheckInState.CheckInType.AllowCheckout )
+                        {
+                            btnText = "Start";
+                        }
+                        else
+                        {
+                            btnText = "Check In";
+                        }
                     }
+
                     lbSearch.Text = string.Format( "<span>{0}</span>", btnText );
                 }
             }
