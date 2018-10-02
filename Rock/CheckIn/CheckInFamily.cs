@@ -38,15 +38,6 @@ namespace Rock.CheckIn
         public Group Group { get; set; }
 
         /// <summary>
-        /// Gets or sets the group members
-        /// </summary>
-        /// <value>
-        /// The group members.
-        /// </value>
-        [DataMember]
-        public List<GroupMember> GroupMembers { get; set; }
-
-        /// <summary>
         /// Gets or sets a value indicating whether this <see cref="CheckInFamily" /> is selected for check-in
         /// </summary>
         /// <value>

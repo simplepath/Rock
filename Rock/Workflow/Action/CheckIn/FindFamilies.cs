@@ -205,29 +205,25 @@ namespace Rock.Workflow.Action.CheckIn
                                     m.Person.RecordStatusValueId != dvInactive.Id );
                         }
 
-                        var familyMemberList = familyMemberQry.ToList();
+                        var thisFamilyMembers = familyMemberQry.ToList();
 
-                        if ( familyMemberList.Any() )
+                        if ( thisFamilyMembers.Any() )
                         {
-                            var group = familyMemberList
+                            var group = thisFamilyMembers
                                 .Select( m => m.Group )
                                 .FirstOrDefault();
 
-                            familyMemberList = familyMemberList
+                            var firstNames = thisFamilyMembers
                                 .OrderBy( m => m.GroupRole.Order )
                                 .ThenBy( m => m.Person.BirthYear )
                                 .ThenBy( m => m.Person.BirthMonth )
                                 .ThenBy( m => m.Person.BirthDay )
-                                .ThenBy( m => m.Person.Gender ).ToList();
-
-                            var firstNames = familyMemberList
+                                .ThenBy( m => m.Person.Gender )
                                 .Select( m => m.Person.NickName )
                                 .ToList();
 
                             var family = new CheckInFamily();
                             family.Group = group.Clone( false );
-                            family.GroupMembers = familyMemberList;
-                            family.FirstNames = firstNames;
                             family.Caption = group.ToString();
                             family.SubCaption = firstNames.AsDelimited( ", " );
                             checkInState.CheckIn.Families.Add( family );
