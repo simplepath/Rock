@@ -1,4 +1,5 @@
 ﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="FamilySelect.ascx.cs" Inherits="RockWeb.Blocks.CheckIn.FamilySelect" %>
+<%@ Reference Control="~/Blocks/CheckIn/EditFamily.ascx" %>
 
 <script type="text/javascript">
     Sys.Application.add_load(function () {
@@ -46,6 +47,8 @@
         <div class="checkin-actions">
             <asp:LinkButton CssClass="btn btn-default btn-back" ID="lbBack" runat="server" OnClick="lbBack_Click" Text="Back" />
             <asp:LinkButton CssClass="btn btn-default btn-cancel" ID="lbCancel" runat="server" OnClick="lbCancel_Click" Text="Cancel" />
+
+            <asp:LinkButton CssClass="btn btn-primary pull-right" ID="lbAddFamily" runat="server" OnClick="lbAddFamily_Click" Text="Add Family"/>
         </div>
     </div>
 

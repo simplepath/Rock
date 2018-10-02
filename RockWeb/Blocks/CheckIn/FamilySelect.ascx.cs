@@ -50,7 +50,7 @@ namespace RockWeb.Blocks.CheckIn
 {% endif %}
 </a>
 ",
-        Order = 8)]
+        Order = 8 )]
     public partial class FamilySelect : CheckInBlock
     {
         /// <summary>
@@ -151,7 +151,7 @@ namespace RockWeb.Blocks.CheckIn
             }
 
             Panel pnlSelectFamilyPostback = e.Item.FindControl( "pnlSelectFamilyPostback" ) as Panel;
-            pnlSelectFamilyPostback.Attributes["onclick"] = this.Page.ClientScript.GetPostBackClientHyperlink( rSelection , checkInFamily.Group.Id.ToString() );
+            pnlSelectFamilyPostback.Attributes["onclick"] = this.Page.ClientScript.GetPostBackClientHyperlink( rSelection, checkInFamily.Group.Id.ToString() );
             Literal lSelectFamilyButtonHtml = e.Item.FindControl( "lSelectFamilyButtonHtml" ) as Literal;
             var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( this.RockPage, null, new Rock.Lava.CommonMergeFieldsOptions { GetLegacyGlobalMergeFields = false } );
             mergeFields.Add( "Family", checkInFamily );
@@ -240,6 +240,18 @@ namespace RockWeb.Blocks.CheckIn
             }
         }
 
-
+        /// <summary>
+        /// Handles the Click event of the lbAddFamily control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
+        protected void lbAddFamily_Click( object sender, EventArgs e )
+        {
+            var editFamilyBlock = this.RockPage.ControlsOfTypeRecursive<RockWeb.Blocks.CheckIn.EditFamily>().FirstOrDefault();
+            if ( editFamilyBlock != null )
+            {
+                editFamilyBlock.ShowAddFamily();
+            }
+        }
     }
 }
