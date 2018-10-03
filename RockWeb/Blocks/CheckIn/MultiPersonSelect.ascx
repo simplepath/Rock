@@ -1,4 +1,5 @@
 ﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="MultiPersonSelect.ascx.cs" Inherits="RockWeb.Blocks.CheckIn.MultiPersonSelect" %>
+<%@ Reference Control="~/Blocks/CheckIn/EditFamily.ascx" %>
 
 <script type="text/javascript">
     Sys.Application.add_load(function () {
@@ -115,6 +116,8 @@
                     <div class="checkin-actions">
                         <asp:LinkButton CssClass="btn btn-default btn-cancel" ID="lbOptionCacncel" runat="server" OnClick="lbOptionCancel_Click" Text="Cancel" />
                         <asp:LinkButton CssClass="btn btn-primary pull-right" ID="lbOptionSelect" runat="server" OnClientClick="return GetOptionSelection();" OnClick="lbOptionSelect_Click" Text="Ok" />
+
+                        <asp:LinkButton CssClass="btn btn-primary pull-right" ID="lbEditFamily" runat="server" OnClick="lbEditFamily_Click" Text="Edit Family" />
                     </div>
                 </div>
 

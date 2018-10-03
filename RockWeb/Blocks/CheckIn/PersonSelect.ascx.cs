@@ -65,6 +65,7 @@ namespace RockWeb.Blocks.CheckIn
                         GoBack();
                     }
 
+                    lbEditFamily.Visible = CurrentCheckInState.Kiosk.RegistrationModeEnabled;
                     lTitle.Text = string.Format( GetAttributeValue( "Title" ), family.ToString() );
                     lCaption.Text = GetAttributeValue( "Caption" );
 

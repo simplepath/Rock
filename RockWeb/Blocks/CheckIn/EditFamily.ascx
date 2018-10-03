@@ -41,6 +41,7 @@
 
                         <%-- Edit Person View --%>
                         <asp:Panel ID="pnlEditPerson" runat="server">
+                            <asp:HiddenField ID="hfGroupMemberId" runat="server" />
                             <div class="row">
                                 <div class="col-md-4">
                                     <Rock:Toggle ID="tglAdultChild" runat="server" OffText="Adult" OnText="Child" ActiveButtonCssClass="btn-primary" OnCheckedChanged="tglAdultChild_CheckedChanged" />

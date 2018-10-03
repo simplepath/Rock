@@ -78,6 +78,7 @@ namespace RockWeb.Blocks.CheckIn
                 if ( !Page.IsPostBack )
                 {
                     ClearSelection();
+                    lbAddFamily.Visible = CurrentCheckInState.Kiosk.RegistrationModeEnabled;
                     if ( CurrentCheckInState.CheckIn.Families.Count == 1 &&
                         !CurrentCheckInState.CheckIn.ConfirmSingleFamily )
                     {

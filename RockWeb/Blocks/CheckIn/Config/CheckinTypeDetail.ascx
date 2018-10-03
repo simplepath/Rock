@@ -94,6 +94,7 @@
 
                         </Rock:PanelWidget>
 
+                        <%-- Search Settings --%>
                         <Rock:PanelWidget ID="wpSearch" runat="server" Title="Search Settings">
                             <div class="row">
                                 <div class="col-md-6">
@@ -117,6 +118,28 @@
                             </div>
                         </Rock:PanelWidget>
 
+                        <%-- Registration Settings --%>
+                        <Rock:PanelWidget ID="wpRegistrationSettings" runat="server" Title="Registration Settings">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <Rock:RockCheckBox ID="cbRegistrationDisplayBarcodeFieldForAdults" runat="server" Label="Display Barcode Field for Adults" />
+                                    <Rock:RockCheckBox ID="cbRegistrationDisplayBarcodeFieldForChildren" runat="server" Label="Display Barcode Field for Children" />
+                                    <Rock:CategoryPicker ID="cpRegistrationRequiredAttributesForAdults" runat="server" AllowMultiSelect="true" Label="Required Attributes for Adults" />
+                                    <Rock:CategoryPicker ID="cpRegistrationOptionalAttributesForAdults" runat="server" AllowMultiSelect="true" Label="Optional Attributes for Adults" />
+                                    <Rock:CategoryPicker ID="cpRegistrationRequiredAttributesForChildren" runat="server" AllowMultiSelect="true" Label="Required Attributes for Children" />
+                                    <Rock:CategoryPicker ID="cpRegistrationOptionalAttributesForChildren" runat="server" AllowMultiSelect="true" Label="Optional Attributes for Children" />
+                                    <Rock:CategoryPicker ID="cpRegistrationRequiredAttributesForFamilies" runat="server" AllowMultiSelect="true" Label="Required Attributes for Families" />
+                                    <Rock:CategoryPicker ID="cpRegistrationOptionalAttributesForFamilies" runat="server" AllowMultiSelect="true" Label="Optional Attributes for Families" />
+                                    <%-- TODO more stuff --%>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                </div>
+                            </div>
+                        </Rock:PanelWidget>
+
+                        <%-- Advanced Settings --%>
                         <Rock:PanelWidget ID="wpAdvanced" runat="server" Title="Advanced Settings">
                             <div class="row">
                                 <div class="col-md-6">
@@ -136,6 +159,7 @@
                             </div>
                         </Rock:PanelWidget>
 
+                        <%-- Custom Settings --%>
                         <Rock:PanelWidget ID="wpCustom" runat="server" Title="Custom Settings">
                             <Rock:DynamicPlaceholder ID="phAttributeEdits" runat="server" ></Rock:DynamicPlaceholder>
                         </Rock:PanelWidget>

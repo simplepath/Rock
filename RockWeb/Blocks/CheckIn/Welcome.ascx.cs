@@ -45,7 +45,7 @@ namespace RockWeb.Blocks.CheckIn
     [TextField( "Not Active Yet Caption", "Caption displayed when there are active options today, but none are active now. Use {0} for a countdown timer.", false, "This kiosk is not active yet.  Countdown until active: {0}.", "Text", 10 )]
     [TextField( "Closed Title", "", false, "Closed", "Text", 11 )]
     [TextField( "Closed Caption", "", false, "This location is currently closed.", "Text", 12 )]
-    [TextField( "Check-in Button Text", "The text to display on the check-in button. If left blank, 'Check-in' (or 'Start' when check-out is enabled) will be used.", false, "", "Text", 13, "CheckinButtonText" )]
+    [TextField( "Check-in Button Text", "The text to display on the check-in button. Defaults to 'Start' if left blank.", false, "", "Text", 13, "CheckinButtonText" )]
     [TextField( "No Option Caption", "The text to display when there are not any families found matching a scanned identifier (barcode, etc).", false, "Sorry, there were not any families found with the selected identifier.", "Text", 14 )]
 
     public partial class Welcome : CheckInBlock
@@ -108,22 +108,7 @@ namespace RockWeb.Blocks.CheckIn
                     lClosedTitle.Text = GetAttributeValue( "ClosedTitle" );
                     lClosedCaption.Text = GetAttributeValue( "ClosedCaption" );
 
-                    string btnText = GetAttributeValue( "CheckinButtonText" );
-                    if ( string.IsNullOrWhiteSpace( btnText ) )
-                    {
-                        if ( CurrentCheckInState.Kiosk.RegistrationModeEnabled )
-                        {
-                            btnText = "Start";
-                        }
-                        else if ( CurrentCheckInState.CheckInType.AllowCheckout )
-                        {
-                            btnText = "Start";
-                        }
-                        else
-                        {
-                            btnText = "Check In";
-                        }
-                    }
+                    string btnText = GetAttributeValue( "CheckinButtonText" ).IfEmpty( "Start" );
 
                     lbSearch.Text = string.Format( "<span>{0}</span>", btnText );
                 }
@@ -534,7 +519,7 @@ namespace RockWeb.Blocks.CheckIn
             {
                 var lbOpen = e.Item.FindControl( "lbOpen" ) as LinkButton;
                 var lbClose = e.Item.FindControl( "lbClose" ) as LinkButton;
-                var isActive = (bool)locationDataItem.GetPropertyValue( "IsActive" );
+                var isActive = ( bool ) locationDataItem.GetPropertyValue( "IsActive" );
 
                 if ( isActive )
                 {
@@ -555,7 +540,7 @@ namespace RockWeb.Blocks.CheckIn
                 lLocationName.Text = locationDataItem.GetPropertyValue( "Name" ) as string;
 
                 var lLocationCount = e.Item.FindControl( "lLocationCount" ) as Literal;
-                lLocationCount.Text = KioskLocationAttendance.Get( (int)locationDataItem.GetPropertyValue( "LocationId" ) ).CurrentCount.ToString();
+                lLocationCount.Text = KioskLocationAttendance.Get( ( int ) locationDataItem.GetPropertyValue( "LocationId" ) ).CurrentCount.ToString();
             }
         }
 
