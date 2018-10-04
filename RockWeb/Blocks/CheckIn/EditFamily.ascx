@@ -44,11 +44,11 @@
                             <asp:HiddenField ID="hfGroupMemberId" runat="server" />
                             <div class="row">
                                 <div class="col-md-4">
-                                    <Rock:Toggle ID="tglAdultChild" runat="server" OffText="Adult" OnText="Child" ActiveButtonCssClass="btn-primary" OnCheckedChanged="tglAdultChild_CheckedChanged" />
+                                    <Rock:Toggle ID="tglAdultChild" runat="server" OnText="Adult" OffText="Child" ActiveButtonCssClass="btn-primary" OnCheckedChanged="tglAdultChild_CheckedChanged" />
 
                                 </div>
                                 <div class="col-md-4">
-                                    <Rock:Toggle ID="tglGender" runat="server" OffText="Male" OnText="Female" ActiveButtonCssClass="btn-primary" />
+                                    <Rock:Toggle ID="tglGender" runat="server" OnText="Male" OffText="Female" ActiveButtonCssClass="btn-primary" />
 
                                 </div>
                                 <div class="col-md-4">
@@ -56,7 +56,7 @@
                                     <Rock:RockDropDownList ID="ddlChildRelationShipToAdult" runat="server" Label="Relationship to Adult" />
 
                                     <%-- Fields to be shown when editing an Adult --%>
-                                    <Rock:Toggle ID="tglAdultMaritalStatus" runat="server" OffText="Married" OnText="Single" ActiveButtonCssClass="btn-primary" />
+                                    <Rock:Toggle ID="tglAdultMaritalStatus" runat="server" OnText="Married" OffText="Single" ActiveButtonCssClass="btn-primary" />
                                 </div>
                             </div>
 
