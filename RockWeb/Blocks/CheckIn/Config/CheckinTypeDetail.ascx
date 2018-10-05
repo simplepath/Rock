@@ -124,24 +124,20 @@
                                 <div class="col-md-6">
                                     <Rock:RockCheckBox ID="cbRegistrationDisplayBarcodeFieldForAdults" runat="server" Label="Display Barcode Field for Adults" />
                                     <Rock:RockCheckBox ID="cbRegistrationDisplayBarcodeFieldForChildren" runat="server" Label="Display Barcode Field for Children" />
-
-                                    <Rock:CategoryPicker ID="cpRegistrationRequiredAttributesForAdults" runat="server" EntityTypeName="Rock.Model.Attribute" E AllowMultiSelect="true" Label="Required Attributes for Adults" />
-                                    <Rock:CategoryPicker ID="cpRegistrationOptionalAttributesForAdults" runat="server" EntityTypeName="Rock.Model.Attribute" AllowMultiSelect="true" Label="Optional Attributes for Adults" />
-                                    <Rock:CategoryPicker ID="cpRegistrationRequiredAttributesForChildren" runat="server" EntityTypeName="Rock.Model.Attribute" AllowMultiSelect="true" Label="Required Attributes for Children" />
-                                    <Rock:CategoryPicker ID="cpRegistrationOptionalAttributesForChildren" runat="server" EntityTypeName="Rock.Model.Attribute" AllowMultiSelect="true" Label="Optional Attributes for Children" />
-                                    <Rock:RockListBox ID="lbRegistrationRequiredAttributesForFamilies" runat="server" Label="Required Attributes for Families" />
-                                    <Rock:RockListBox ID="lbRegistrationOptionalAttributesForFamilies" runat="server" Label="Optional Attributes for Families" />
-
-                                    <Rock:WorkflowTypePicker ID="wftpRegistrationWorkflowTypes" runat="server" AllowMultiSelect="true" Label="Workflow Types" Help="The workflow types that should be launched when a family is saved." />
-
                                     <Rock:RockCheckBox ID="cbEnableCheckInAfterRegistration" runat="server" Label="Enable Check-in After Registration" Help="This determines if the family should continue on the check-in path after being registered, or if they should be directed to a different kiosk after registration (take then back to search )." />
                                     <Rock:RockListBox ID="lbKnownRelationshipTypes" runat="server" Label="Known Relationship Types" Help="The known relationships to display in the child's 'Relationship to Adult' field." />
                                     <Rock:RockListBox ID="lbSameFamilyKnownRelationshipTypes" runat="server" Label="Same Family Known Relationship Types" Help="Of the known relationships defined above which should be used to place the child in the family with the adults." />
                                     <Rock:RockListBox ID="lbCanCheckInKnownRelationshipTypes" runat="server" Label="Can Check-in Known Relationship Types" Help="The known relationships that will place the child in a separate family with a 'Can Check-in' relationship back to the person." />
+                                    <Rock:WorkflowTypePicker ID="wftpRegistrationAddFamilyWorkflowTypes" runat="server" AllowMultiSelect="true" Label="New Family Workflow Types" Help="The workflow types that should be launched when a family is added." />
+                                    <Rock:WorkflowTypePicker ID="wftpRegistrationAddPersonWorkflowTypes" runat="server" AllowMultiSelect="true" Label="New Person Workflow Types" Help="The workflow types that should be launched when a person is added to a family." />
                                 </div>
-                            </div>
-                            <div class="row">
                                 <div class="col-md-6">
+                                    <Rock:RockListBox ID="lbRegistrationRequiredAttributesForAdults" runat="server" Label="Required Attributes for Adults" />
+                                    <Rock:RockListBox ID="lbRegistrationOptionalAttributesForAdults" runat="server" Label="Optional Attributes for Adults" />
+                                    <Rock:RockListBox ID="lbRegistrationRequiredAttributesForChildren" runat="server" Label="Required Attributes for Children" />
+                                    <Rock:RockListBox ID="lbRegistrationOptionalAttributesForChildren" runat="server" Label="Optional Attributes for Children" />
+                                    <Rock:RockListBox ID="lbRegistrationRequiredAttributesForFamilies" runat="server" Label="Required Attributes for Families" />
+                                    <Rock:RockListBox ID="lbRegistrationOptionalAttributesForFamilies" runat="server" Label="Optional Attributes for Families" />
                                 </div>
                             </div>
                         </Rock:PanelWidget>

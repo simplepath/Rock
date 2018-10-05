@@ -15,6 +15,8 @@
 // </copyright>
 //
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Rock.Web.Cache;
 
 namespace Rock.CheckIn
@@ -244,6 +246,151 @@ namespace Rock.CheckIn
         /// </value>
         public int? AutoSelectOptions => GetSetting( "core_checkin_AutoSelectOptions" ).AsIntegerOrNull();
 
+        #region registration
+
+        /// <summary>
+        /// Gets the CheckinType settings related to Registration
+        /// </summary>
+        /// <value>
+        /// The registration.
+        /// </value>
+        public RegistrationSettings Registration { get; private set; }
+
+        /// <summary>
+        /// CheckinType settings related to Registration
+        /// </summary>
+        public class RegistrationSettings
+        {
+            /// <summary>
+            /// Gets or sets the type of the checkin.
+            /// </summary>
+            /// <value>
+            /// The type of the checkin.
+            /// </value>
+            private CheckinType _checkinType { get; set; }
+
+            /// <summary>
+            /// Initializes a new instance of the <see cref="RegistrationSettings"/> class.
+            /// </summary>
+            /// <param name="checkinType">Type of the checkin.</param>
+            public RegistrationSettings( CheckinType checkinType )
+            {
+                _checkinType = checkinType;
+            }
+
+            /// <summary>
+            /// Gets a value indicating whether [display barcode fieldfor adults].
+            /// </summary>
+            /// <value>
+            ///   <c>true</c> if [display barcode fieldfor adults]; otherwise, <c>false</c>.
+            /// </value>
+            public bool DisplayBarcodeFieldforAdults => _checkinType.GetSetting( Rock.SystemKey.GroupTypeAttributeKey.CHECKIN_REGISTRATION_DISPLAYBARCODEFIELDFORADULTS ).AsBoolean();
+
+            /// <summary>
+            /// Gets a value indicating whether [display barcode fieldfor children].
+            /// </summary>
+            /// <value>
+            ///   <c>true</c> if [display barcode fieldfor children]; otherwise, <c>false</c>.
+            /// </value>
+            public bool DisplayBarcodeFieldforChildren => _checkinType.GetSetting( Rock.SystemKey.GroupTypeAttributeKey.CHECKIN_REGISTRATION_DISPLAYBARCODEFIELDFORCHILDREN ).AsBoolean();
+
+            /// <summary>
+            /// Gets the required attributes for adults.
+            /// </summary>
+            /// <value>
+            /// The required attributesfor adults.
+            /// </value>
+            public List<AttributeCache> RequiredAttributesForAdults
+            {
+                get
+                {
+                    return GetAttributesForAttributeKey( Rock.SystemKey.GroupTypeAttributeKey.CHECKIN_REGISTRATION_REQUIREDATTRIBUTESFORADULTS );
+                }
+            }
+
+            /// <summary>
+            /// Gets the optional attributes for adults.
+            /// </summary>
+            /// <value>
+            /// The optional attributes for adults.
+            /// </value>
+            public List<AttributeCache> OptionalAttributesForAdults
+            {
+                get
+                {
+                    return GetAttributesForAttributeKey( Rock.SystemKey.GroupTypeAttributeKey.CHECKIN_REGISTRATION_OPTIONALATTRIBUTESFORADULTS );
+                }
+            }
+
+            /// <summary>
+            /// Gets the required attributes for children.
+            /// </summary>
+            /// <value>
+            /// The required attributes for children.
+            /// </value>
+            public List<AttributeCache> RequiredAttributesForChildren
+            {
+                get
+                {
+                    return GetAttributesForAttributeKey( Rock.SystemKey.GroupTypeAttributeKey.CHECKIN_REGISTRATION_REQUIREDATTRIBUTESFORCHILDREN );
+                }
+            }
+
+            /// <summary>
+            /// Gets the optional attributes for children.
+            /// </summary>
+            /// <value>
+            /// The optional attributes for children.
+            /// </value>
+            public List<AttributeCache> OptionalAttributesForChildren
+            {
+                get
+                {
+                    return GetAttributesForAttributeKey( Rock.SystemKey.GroupTypeAttributeKey.CHECKIN_REGISTRATION_OPTIONALATTRIBUTESFORCHILDREN );
+                }
+            }
+
+            /// <summary>
+            /// Gets a Dictionary of GroupTypeRoleId and Name for the known relationship group type roles that are defined for Registration (where 0 means Child/Adult in Family)
+            /// </summary>
+            /// <value>
+            /// The known relationship group type roles.
+            /// </value>
+            public Dictionary<int, string> KnownRelationshipGroupTypeRoles
+            {
+                get
+                {
+                    List<int> groupTypeRoleIds = _checkinType.GetSetting( Rock.SystemKey.GroupTypeAttributeKey.CHECKIN_REGISTRATION_KNOWNRELATIONSHIPTYPES ).SplitDelimitedValues().AsIntegerList();
+                    var knownRelationShipRoles = GroupTypeCache.Get( Rock.SystemGuid.GroupType.GROUPTYPE_KNOWN_RELATIONSHIPS ).Roles;
+
+                    var result = new Dictionary<int, string>();
+                    if ( groupTypeRoleIds.Contains( 0 ) )
+                    {
+                        result.Add( 0, "Child" );
+                    }
+
+                    foreach ( var role in knownRelationShipRoles.Where( a => groupTypeRoleIds.Contains( a.Id ) ).ToList() )
+                    {
+                        result.Add( role.Id, role.Name );
+                    }
+
+                    return result;
+                }
+            }
+
+            /// <summary>
+            /// Gets the attributes that are specified for the GroupType attribute key.
+            /// </summary>
+            /// <param name="groupTypeAttributeKey">The group type attribute key.</param>
+            /// <returns></returns>
+            private List<AttributeCache> GetAttributesForAttributeKey( string groupTypeAttributeKey )
+            {
+                return _checkinType.GetSetting( groupTypeAttributeKey ).SplitDelimitedValues().AsGuidList().Select( g => AttributeCache.Get( g ) ).ToList();
+            }
+        }
+
+        #endregion
+
         /// <summary>
         /// Initializes a new instance of the <see cref="CheckinType"/> class.
         /// </summary>
@@ -251,6 +398,8 @@ namespace Rock.CheckIn
         public CheckinType( int checkinTypeId )
         {
             _checkinType = GroupTypeCache.Get( checkinTypeId );
+
+            Registration = new RegistrationSettings( this );
         }
 
         /// <summary>

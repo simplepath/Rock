@@ -41,9 +41,14 @@ namespace Rock.SystemKey
         public const string CHECKIN_REGISTRATION_ENABLECHECKINAFTERREGISTRATION = "core_checkin_registration_EnableCheckInAfterRegistration";
 
         /// <summary>
-        /// The grouptype attribute key for checkin registration WorkflowTypes
+        /// The grouptype attribute key for checkin registration WorkflowTypes to launch when a new family is added
         /// </summary>
-        public const string CHECKIN_REGISTRATION_WORKFLOWTYPES = "core_checkin_registration_WorkflowTypes";
+        public const string CHECKIN_REGISTRATION_ADDFAMILYWORKFLOWTYPES = "core_checkin_registration_AddFamilyWorkflowTypes";
+
+        /// <summary>
+        /// The grouptype attribute key for checkin registration WorkflowTypes to launch when a new person is added
+        /// </summary>
+        public const string CHECKIN_REGISTRATION_ADDPERSONWORKFLOWTYPES = "core_checkin_registration_AddPersonWorkflowTypes";
 
         /// <summary>
         /// The grouptype attribute key for checkin registration OptionalAttributesforFamilies

@@ -15,13 +15,14 @@
                         <asp:Panel ID="pnlEditFamily" runat="server">
                             <%-- Grid --%>
                             <h2>Family Members</h2>
-                            <Rock:Grid ID="gFamilyMembers" runat="server" DisplayType="Light" ShowActionRow="false" ShowActionsInHeader="false" ShowHeader="false" ShowFooter="false">
+                            <Rock:Grid ID="gFamilyMembers" runat="server" DisplayType="Light" ShowActionRow="false" ShowActionsInHeader="false" ShowHeader="false" ShowFooter="false" OnRowDataBound="gFamilyMembers_RowDataBound" RowItemText="Person">
                                 <Columns>
-                                    <asp:BoundField DataField="Person.FullName" />
+                                    <asp:BoundField DataField="FullName" />
                                     <asp:BoundField DataField="GroupRole" />
-                                    <asp:BoundField DataField="Person.Gender" />
-                                    <asp:BoundField DataField="Person.Age" />
-                                    <asp:BoundField DataField="Person.GradeFormatted" />
+                                    <asp:BoundField DataField="Gender" />
+                                    <asp:BoundField DataField="Age" />
+                                    <asp:BoundField DataField="GradeFormatted" />
+                                    <Rock:RockLiteralField ID="lRequiredAttributes" />
                                     <Rock:EditField OnClick="EditFamilyMember_Click" />
                                     <Rock:DeleteField OnClick="DeleteFamilyMember_Click" />
                                 </Columns>
@@ -41,7 +42,7 @@
 
                         <%-- Edit Person View --%>
                         <asp:Panel ID="pnlEditPerson" runat="server">
-                            <asp:HiddenField ID="hfGroupMemberId" runat="server" />
+                            <asp:HiddenField ID="hfGroupMemberGuid" runat="server" />
                             <div class="row">
                                 <div class="col-md-4">
                                     <Rock:Toggle ID="tglAdultChild" runat="server" OnText="Adult" OffText="Child" ActiveButtonCssClass="btn-primary" OnCheckedChanged="tglAdultChild_CheckedChanged" />
