@@ -78,7 +78,7 @@ namespace RockWeb.Blocks.CheckIn
                     tbPhone.Text = Request.Cookies[CheckInCookie.PHONENUMBER].Value;
                 }
 
-                if ( this.CurrentCheckInState.Kiosk.RegistrationModeEnabled )
+                if ( CurrentCheckInType != null && this.CurrentCheckInState.Kiosk.RegistrationModeEnabled )
                 {
                     // If RegistrationMode is enabled for this device, override any SearchType settings and search by Name or Phone
                     pnlSearchName.Visible = true;
@@ -110,6 +110,18 @@ namespace RockWeb.Blocks.CheckIn
                 }
 
                 lPageTitle.Text = string.Format( GetAttributeValue( "Title" ), searchType );
+            }
+            else
+            {
+                if ( this.Request.Params["__EVENTARGUMENT"] == "AddFamily" )
+                {
+                    hfShowAddFamilyPrompt.Value = "0";
+                    var editFamilyBlock = this.RockPage.ControlsOfTypeRecursive<RockWeb.Blocks.CheckIn.EditFamily>().FirstOrDefault();
+                    if ( editFamilyBlock != null )
+                    {
+                        editFamilyBlock.ShowAddFamily();
+                    }
+                }
             }
         }
 
@@ -218,12 +230,52 @@ namespace RockWeb.Blocks.CheckIn
         }
 
         /// <summary>
+        /// Gets the condition message.
+        /// </summary>
+        /// <value>
+        /// The condition message.
+        /// </value>
+        protected string ConditionMessage
+        {
+            get
+            {
+                string conditionMessage = string.Format( "<p>{0}</p>", GetAttributeValue( "NoOptionMessage" ) );
+                return conditionMessage;
+            }
+        }
+
+        /// <summary>
         /// Processes the selection returning true if it was successful; false otherwise.
         /// </summary>
         /// <returns>true if it was successful; false otherwise.</returns>
         protected bool ProcessSelection()
         {
-            return ProcessSelection( maWarning, () => CurrentCheckInState.CheckIn.Families.Count <= 0, string.Format( "<p>{0}</p>", GetAttributeValue( "NoOptionMessage" ) ) );
+            var editFamilyBlock = this.RockPage.ControlsOfTypeRecursive<RockWeb.Blocks.CheckIn.EditFamily>().FirstOrDefault();
+
+            hfShowAddFamilyPrompt.Value = "0";
+
+            Func<bool> doNotProceedCondition = () =>
+            {
+                if ( CurrentCheckInState.CheckIn.Families.Count == 0 )
+                {
+                    if ( CurrentCheckInState.Kiosk.RegistrationModeEnabled && editFamilyBlock != null )
+                    {
+                        hfShowAddFamilyPrompt.Value = "1";
+                        return true;
+                    }
+                    else
+                    {
+                        maWarning.Show( this.ConditionMessage, Rock.Web.UI.Controls.ModalAlertType.None );
+                        return true;
+                    }
+                }
+                else
+                {
+                    return false;
+                }
+            };
+
+            return ProcessSelection( null, doNotProceedCondition, this.ConditionMessage );
         }
 
         /// <summary>

@@ -1,4 +1,6 @@
 ﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="Search.ascx.cs" Inherits="RockWeb.Blocks.CheckIn.Search" %>
+<%@ Reference Control="~/Blocks/CheckIn/EditFamily.ascx" %>
+
 <asp:UpdatePanel ID="upContent" runat="server">
 <ContentTemplate>
 
@@ -26,11 +28,23 @@
                     $phoneNumber.val('');
                 });
             });
+
+            if ($('#<%=hfShowAddFamilyPrompt.ClientID%>').val() == "1") {
+
+                Rock.dialogs.confirm('<%=this.ConditionMessage + " Do you want to add a new family?" %>', function (result) {
+                    if (result) {
+                        window.location = "javascript:__doPostBack('<%=upContent.ClientID %>', 'AddFamily')";
+                    }
+                });
+
+            }
+            
         });
 
     </script>
 
     <Rock:ModalAlert ID="maWarning" runat="server" />
+    <asp:HiddenField ID="hfShowAddFamilyPrompt" runat="server" Value="0" />
 
     <div class="checkin-header">
         <h1><asp:Literal ID="lPageTitle" runat="server" /></h1>

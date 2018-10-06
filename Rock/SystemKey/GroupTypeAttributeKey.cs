@@ -81,13 +81,13 @@ namespace Rock.SystemKey
         public const string CHECKIN_REGISTRATION_REQUIREDATTRIBUTESFORADULTS = "core_checkin_registration_RequiredAttributesforAdults";
 
         /// <summary>
-        /// The grouptype attribute key for checkin registration DisplayBarcodeFieldforChildren
+        /// The grouptype attribute key for checkin registration DisplayAlternateIdFieldforChildren
         /// </summary>
-        public const string CHECKIN_REGISTRATION_DISPLAYBARCODEFIELDFORCHILDREN = "core_checkin_registration_DisplayBarcodeFieldforChildren";
+        public const string CHECKIN_REGISTRATION_DISPLAYALTERNATEIDFIELDFORCHILDREN = "core_checkin_registration_DisplayAlternateIdFieldforChildren";
 
         /// <summary>
-        /// The grouptype attribute key for checkin registration DisplayBarcodeFieldforAdults
+        /// The grouptype attribute key for checkin registration DisplayAlternateIdFieldforAdults
         /// </summary>
-        public const string CHECKIN_REGISTRATION_DISPLAYBARCODEFIELDFORADULTS = "core_checkin_registration_DisplayBarcodeFieldforAdults";
+        public const string CHECKIN_REGISTRATION_DISPLAYALTERNATEIDFIELDFORADULTS = "core_checkin_registration_DisplayAlternateIdFieldforAdults";
     }
 }

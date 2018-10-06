@@ -279,20 +279,20 @@ namespace Rock.CheckIn
             }
 
             /// <summary>
-            /// Gets a value indicating whether [display barcode fieldfor adults].
+            /// Gets a value indicating whether [display alternate identifier fieldfor adults].
             /// </summary>
             /// <value>
-            ///   <c>true</c> if [display barcode fieldfor adults]; otherwise, <c>false</c>.
+            ///   <c>true</c> if [display alternate identifier fieldfor adults]; otherwise, <c>false</c>.
             /// </value>
-            public bool DisplayBarcodeFieldforAdults => _checkinType.GetSetting( Rock.SystemKey.GroupTypeAttributeKey.CHECKIN_REGISTRATION_DISPLAYBARCODEFIELDFORADULTS ).AsBoolean();
+            public bool DisplayAlternateIdFieldforAdults => _checkinType.GetSetting( Rock.SystemKey.GroupTypeAttributeKey.CHECKIN_REGISTRATION_DISPLAYALTERNATEIDFIELDFORADULTS ).AsBoolean();
 
             /// <summary>
-            /// Gets a value indicating whether [display barcode fieldfor children].
+            /// Gets a value indicating whether [display alternate identifier fieldfor children].
             /// </summary>
             /// <value>
-            ///   <c>true</c> if [display barcode fieldfor children]; otherwise, <c>false</c>.
+            ///   <c>true</c> if [display alternate identifier fieldfor children]; otherwise, <c>false</c>.
             /// </value>
-            public bool DisplayBarcodeFieldforChildren => _checkinType.GetSetting( Rock.SystemKey.GroupTypeAttributeKey.CHECKIN_REGISTRATION_DISPLAYBARCODEFIELDFORCHILDREN ).AsBoolean();
+            public bool DisplayAlternateIdFieldforChildren => _checkinType.GetSetting( Rock.SystemKey.GroupTypeAttributeKey.CHECKIN_REGISTRATION_DISPLAYALTERNATEIDFIELDFORCHILDREN ).AsBoolean();
 
             /// <summary>
             /// Gets the required attributes for adults.
@@ -347,6 +347,34 @@ namespace Rock.CheckIn
                 get
                 {
                     return GetAttributesForAttributeKey( Rock.SystemKey.GroupTypeAttributeKey.CHECKIN_REGISTRATION_OPTIONALATTRIBUTESFORCHILDREN );
+                }
+            }
+
+            /// <summary>
+            /// Gets the required attributes for children.
+            /// </summary>
+            /// <value>
+            /// The required attributes for children.
+            /// </value>
+            public List<AttributeCache> RequiredAttributesForFamilies
+            {
+                get
+                {
+                    return GetAttributesForAttributeKey( Rock.SystemKey.GroupTypeAttributeKey.CHECKIN_REGISTRATION_REQUIREDATTRIBUTESFORFAMILIES );
+                }
+            }
+
+            /// <summary>
+            /// Gets the optional attributes for children.
+            /// </summary>
+            /// <value>
+            /// The optional attributes for children.
+            /// </value>
+            public List<AttributeCache> OptionalAttributesForFamilies
+            {
+                get
+                {
+                    return GetAttributesForAttributeKey( Rock.SystemKey.GroupTypeAttributeKey.CHECKIN_REGISTRATION_OPTIONALATTRIBUTESFORFAMILIES );
                 }
             }
 

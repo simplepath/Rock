@@ -6,10 +6,12 @@ using System.Linq;
 using System.Web.UI.WebControls;
 using Rock;
 using Rock.CheckIn;
+using Rock.CheckIn.Registration;
 using Rock.Data;
 using Rock.Model;
 using Rock.Web;
 using Rock.Web.Cache;
+using Rock.Web.UI.Controls;
 
 /// <summary>
 /// 
@@ -30,7 +32,7 @@ namespace RockWeb.Blocks.CheckIn
         /// <value>
         /// The state of the edit family.
         /// </value>
-        public FamilyState EditFamilyState { get; set; }
+        public FamilyRegistrationState EditFamilyState { get; set; }
 
         /// <summary>
         /// Gets or sets the required attributes for adults.
@@ -86,16 +88,6 @@ namespace RockWeb.Blocks.CheckIn
         private static int _groupTypeRoleAdultId = GroupTypeCache.GetFamilyGroupType().Roles.FirstOrDefault( a => a.Guid == Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_ADULT.AsGuid() ).Id;
 
         /// <summary>
-        /// The marital status married identifier
-        /// </summary>
-        private static int _maritalStatusMarriedId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_MARITAL_STATUS_MARRIED.AsGuid() ).Id;
-
-        /// <summary>
-        /// The person search alternate value identifier (barcode search key)
-        /// </summary>
-        private static int _personSearchAlternateValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_SEARCH_KEYS_ALTERNATE_ID.AsGuid() ).Id;
-
-        /// <summary>
         /// Raises the <see cref="E:System.Web.UI.Control.Init" /> event.
         /// </summary>
         /// <param name="e">An <see cref="T:System.EventArgs" /> object that contains the event data.</param>
@@ -115,8 +107,12 @@ namespace RockWeb.Blocks.CheckIn
             OptionalAttributesForAdults = CurrentCheckInState.CheckInType.Registration.OptionalAttributesForAdults.Where( a => a.IsAuthorized( Rock.Security.Authorization.EDIT, this.CurrentPerson ) ).ToList();
             RequiredAttributesForChildren = CurrentCheckInState.CheckInType.Registration.RequiredAttributesForChildren.Where( a => a.IsAuthorized( Rock.Security.Authorization.EDIT, this.CurrentPerson ) ).ToList();
             OptionalAttributesForChildren = CurrentCheckInState.CheckInType.Registration.OptionalAttributesForChildren.Where( a => a.IsAuthorized( Rock.Security.Authorization.EDIT, this.CurrentPerson ) ).ToList();
+            RequiredAttributesForFamilies = CurrentCheckInState.CheckInType.Registration.RequiredAttributesForFamilies.Where( a => a.IsAuthorized( Rock.Security.Authorization.EDIT, this.CurrentPerson ) ).ToList();
+            OptionalAttributesForFamilies = CurrentCheckInState.CheckInType.Registration.OptionalAttributesForFamilies.Where( a => a.IsAuthorized( Rock.Security.Authorization.EDIT, this.CurrentPerson ) ).ToList();
 
-            CreateDynamicPersonControls( FamilyState.FamilyMemberState.FromPerson( new Person() ), false );
+            CreateDynamicFamilyControls( FamilyRegistrationState.FromGroup( new Group() { GroupTypeId = GroupTypeCache.GetFamilyGroupType().Id } ), false );
+
+            CreateDynamicPersonControls( FamilyRegistrationState.FamilyMemberState.FromPerson( new Person() ), false );
         }
 
         /// <summary>
@@ -136,7 +132,7 @@ namespace RockWeb.Blocks.CheckIn
         {
             base.LoadViewState( savedState );
 
-            EditFamilyState = ( this.ViewState["EditFamilyState"] as string ).FromJsonOrNull<FamilyState>();
+            EditFamilyState = ( this.ViewState["EditFamilyState"] as string ).FromJsonOrNull<FamilyRegistrationState>();
         }
 
         /// <summary>
@@ -175,13 +171,9 @@ namespace RockWeb.Blocks.CheckIn
         {
             if ( checkInFamily != null && checkInFamily.Group != null )
             {
+                this.EditFamilyState = FamilyRegistrationState.FromGroup( checkInFamily.Group );
                 hfGroupId.Value = checkInFamily.Group.Id.ToString();
                 mdEditFamily.Title = checkInFamily.Group.Name;
-
-                this.EditFamilyState = new FamilyState();
-                checkInFamily.Group.LoadAttributes();
-                this.EditFamilyState.GroupId = checkInFamily.Group.Id;
-                this.EditFamilyState.FamilyAttributeValuesState = checkInFamily.Group.AttributeValues.ToDictionary( k => k.Key, v => v.Value );
 
                 int groupId = hfGroupId.Value.AsInteger();
                 var rockContext = new RockContext();
@@ -197,11 +189,9 @@ namespace RockWeb.Blocks.CheckIn
 
                 var groupMemberList = groupMembersQuery.ToList();
 
-                this.EditFamilyState.FamilyMembersState = new List<FamilyState.FamilyMemberState>();
-
                 foreach ( var groupMember in groupMemberList )
                 {
-                    var familyMemberState = FamilyState.FamilyMemberState.FromPerson( groupMember.Person );
+                    var familyMemberState = FamilyRegistrationState.FamilyMemberState.FromPerson( groupMember.Person );
                     familyMemberState.GroupMemberGuid = groupMember.Guid;
                     familyMemberState.GroupId = groupMember.GroupId;
                     familyMemberState.IsAdult = groupMember.GroupRoleId == _groupTypeRoleAdultId;
@@ -213,7 +203,7 @@ namespace RockWeb.Blocks.CheckIn
                 IEnumerable<GroupMember> personRelationships = new PersonService( rockContext ).GetRelatedPeople( adultIds, roleIds );
                 foreach ( GroupMember personRelationship in personRelationships )
                 {
-                    var familyMemberState = FamilyState.FamilyMemberState.FromPerson( personRelationship.Person );
+                    var familyMemberState = FamilyRegistrationState.FamilyMemberState.FromPerson( personRelationship.Person );
                     familyMemberState.GroupMemberGuid = Guid.NewGuid();
                     familyMemberState.GroupId = null;
                     familyMemberState.IsAdult = personRelationship.Person.AgeClassification == AgeClassification.Adult;
@@ -221,16 +211,18 @@ namespace RockWeb.Blocks.CheckIn
                 }
 
                 BindFamilyMembersGrid();
+                CreateDynamicFamilyControls( EditFamilyState, true );
+
+                pnlEditFamily.Visible = true;
+                pnlEditPerson.Visible = false;
             }
             else
             {
+                this.EditFamilyState = FamilyRegistrationState.FromGroup( new Group() { GroupTypeId = GroupTypeCache.GetFamilyGroupType().Id } );
                 hfGroupId.Value = "0";
                 mdEditFamily.Title = "Add Family";
                 EditGroupMember( null );
             }
-
-            pnlEditFamily.Visible = true;
-            pnlEditPerson.Visible = false;
 
             upContent.Update();
             mdEditFamily.Show();
@@ -247,13 +239,18 @@ namespace RockWeb.Blocks.CheckIn
         }
 
         /// <summary>
+        /// The index of the 'DeleteField' column in the grid
+        /// </summary>
+        int _deleteFieldIndex;
+
+        /// <summary>
         /// Handles the RowDataBound event of the gFamilyMembers control.
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The <see cref="System.Web.UI.WebControls.GridViewRowEventArgs"/> instance containing the event data.</param>
         protected void gFamilyMembers_RowDataBound( object sender, System.Web.UI.WebControls.GridViewRowEventArgs e )
         {
-            var familyMemberState = e.Row.DataItem as FamilyState.FamilyMemberState;
+            var familyMemberState = e.Row.DataItem as FamilyRegistrationState.FamilyMemberState;
             if ( familyMemberState != null )
             {
                 Literal lRequiredAttributes = e.Row.FindControl( "lRequiredAttributes" ) as Literal;
@@ -281,7 +278,13 @@ namespace RockWeb.Blocks.CheckIn
 
                         lRequiredAttributes.Text = descriptionList.Html;
                     }
+                }
 
+                var deleteCell = ( e.Row.Cells[_deleteFieldIndex] as DataControlFieldCell ).Controls[0];
+                if ( deleteCell != null )
+                {
+                    // only support deleting people that haven't been saved to the database yet
+                    deleteCell.Visible = !familyMemberState.PersonId.HasValue;
                 }
             }
         }
@@ -291,6 +294,9 @@ namespace RockWeb.Blocks.CheckIn
         /// </summary>
         private void BindFamilyMembersGrid()
         {
+            var deleteField = gFamilyMembers.ColumnsOfType<DeleteField>().FirstOrDefault();
+            _deleteFieldIndex = gFamilyMembers.Columns.IndexOf( deleteField );
+
             gFamilyMembers.DataSource = this.EditFamilyState.FamilyMembersState.Where( a => a.IsDeleted == false ).ToList();
             gFamilyMembers.DataBind();
         }
@@ -335,7 +341,7 @@ namespace RockWeb.Blocks.CheckIn
         {
             var rockContext = new RockContext();
 
-            FamilyState.FamilyMemberState familyMemberState = null;
+            FamilyRegistrationState.FamilyMemberState familyMemberState = null;
 
             if ( groupMemberGuid.HasValue )
             {
@@ -345,7 +351,18 @@ namespace RockWeb.Blocks.CheckIn
             if ( familyMemberState == null )
             {
                 // create a new temp record so we can set the defaults for the new person
-                familyMemberState = FamilyState.FamilyMemberState.FromPerson( new Person() );
+                familyMemberState = FamilyRegistrationState.FamilyMemberState.FromPerson( new Person() );
+                familyMemberState.GroupMemberGuid = Guid.NewGuid();
+                familyMemberState.Gender = Gender.Male;
+                familyMemberState.IsAdult = true;
+                familyMemberState.IsMarried = true;
+
+                var firstFamilyMember = EditFamilyState.FamilyMembersState.FirstOrDefault();
+                if ( firstFamilyMember != null )
+                {
+                    // if this family already has a person, default the LastName to the first person
+                    familyMemberState.LastName = firstFamilyMember.LastName;
+                }
             }
 
             hfGroupMemberGuid.Value = familyMemberState.GroupMemberGuid.ToString();
@@ -384,7 +401,6 @@ namespace RockWeb.Blocks.CheckIn
             dpBirthDate.SelectedDate = familyMemberState.BirthDate;
             gpGradePicker.SetValue( familyMemberState.GradeOffset );
 
-            // TODO Attributes
             CreateDynamicPersonControls( familyMemberState, true );
 
             pnlEditFamily.Visible = false;
@@ -392,11 +408,33 @@ namespace RockWeb.Blocks.CheckIn
         }
 
         /// <summary>
+        /// Creates the dynamic family controls.
+        /// </summary>
+        /// <param name="editFamilyState">State of the edit family.</param>
+        /// <param name="setValues">if set to <c>true</c> [set values].</param>
+        private void CreateDynamicFamilyControls( FamilyRegistrationState editFamilyState, bool setValues )
+        {
+            phRequiredFamilyAttributes.Controls.Clear();
+            phOptionalFamilyAttributes.Controls.Clear();
+
+            var fakeFamily = new Group() { GroupTypeId = GroupTypeCache.GetFamilyGroupType().Id };
+            var attributeList = editFamilyState.FamilyAttributeValuesState.Select( a => AttributeCache.Get( a.Value.AttributeId ) ).ToList();
+            fakeFamily.Attributes = attributeList.ToDictionary( a => a.Key, v => v );
+            fakeFamily.AttributeValues = editFamilyState.FamilyAttributeValuesState;
+
+            Rock.Attribute.Helper.AddEditControls( string.Empty, this.RequiredAttributesForFamilies.OrderBy( a => a.Order ).Select( a => a.Key ).ToList(),
+                         fakeFamily, phRequiredFamilyAttributes, "vgEditPerson", setValues, new List<string>(), 3 );
+
+            Rock.Attribute.Helper.AddEditControls( string.Empty, this.OptionalAttributesForFamilies.OrderBy( a => a.Order ).Select( a => a.Key ).ToList(),
+                        fakeFamily, phOptionalFamilyAttributes, "vgEditPerson", setValues, new List<string>(), 3 );
+        }
+
+        /// <summary>
         /// Creates the dynamic person controls.
         /// </summary>
         /// <param name="person">The person.</param>
         /// <param name="setValues">if set to <c>true</c> [set values].</param>
-        private void CreateDynamicPersonControls( FamilyState.FamilyMemberState familyMemberState, bool setValues )
+        private void CreateDynamicPersonControls( FamilyRegistrationState.FamilyMemberState familyMemberState, bool setValues )
         {
             phAdultRequiredAttributes.Controls.Clear();
             phAdultOptionalAttributes.Controls.Clear();
@@ -408,16 +446,16 @@ namespace RockWeb.Blocks.CheckIn
             fakePerson.AttributeValues = familyMemberState.PersonAttributeValuesState;
 
             Rock.Attribute.Helper.AddEditControls( string.Empty, this.RequiredAttributesForAdults.OrderBy( a => a.Order ).Select( a => a.Key ).ToList(),
-                        fakePerson, phAdultRequiredAttributes, BlockValidationGroup, setValues, new List<string>(), 3 );
+                        fakePerson, phAdultRequiredAttributes, "vgEditPerson", setValues, new List<string>(), 3 );
 
             Rock.Attribute.Helper.AddEditControls( string.Empty, this.OptionalAttributesForAdults.OrderBy( a => a.Order ).Select( a => a.Key ).ToList(),
-                        fakePerson, phAdultOptionalAttributes, BlockValidationGroup, setValues, new List<string>(), 3 );
+                        fakePerson, phAdultOptionalAttributes, "vgEditPerson", setValues, new List<string>(), 3 );
 
             Rock.Attribute.Helper.AddEditControls( string.Empty, this.RequiredAttributesForChildren.OrderBy( a => a.Order ).Select( a => a.Key ).ToList(),
-                        fakePerson, phChildRequiredAttributes, BlockValidationGroup, setValues, new List<string>(), 3 );
+                        fakePerson, phChildRequiredAttributes, "vgEditPerson", setValues, new List<string>(), 3 );
 
             Rock.Attribute.Helper.AddEditControls( string.Empty, this.OptionalAttributesForChildren.OrderBy( a => a.Order ).Select( a => a.Key ).ToList(),
-                        fakePerson, phChildOptionalAttributes, BlockValidationGroup, setValues, new List<string>(), 3 );
+                        fakePerson, phChildOptionalAttributes, "vgEditPerson", setValues, new List<string>(), 3 );
         }
 
         /// <summary>
@@ -431,7 +469,7 @@ namespace RockWeb.Blocks.CheckIn
             gpGradePicker.Visible = !isAdult;
             ddlChildRelationShipToAdult.Visible = !isAdult;
 
-            tbBarcode.Visible = ( isAdult && CurrentCheckInState.CheckInType.Registration.DisplayBarcodeFieldforAdults ) || ( !isAdult && CurrentCheckInState.CheckInType.Registration.DisplayBarcodeFieldforChildren );
+            tbAlternateID.Visible = ( isAdult && CurrentCheckInState.CheckInType.Registration.DisplayAlternateIdFieldforAdults ) || ( !isAdult && CurrentCheckInState.CheckInType.Registration.DisplayAlternateIdFieldforChildren );
             phAdultRequiredAttributes.Visible = isAdult;
             phAdultRequiredAttributes.Visible = isAdult;
             phChildRequiredAttributes.Visible = !isAdult;
@@ -455,7 +493,59 @@ namespace RockWeb.Blocks.CheckIn
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void btnSaveFamily_Click( object sender, EventArgs e )
         {
-            // TODO
+            if (!EditFamilyState.FamilyMembersState.Any( x => !x.IsDeleted))
+            {
+                // Saving but nobody added to family, so just exit
+                btnCancelFamily_Click( sender, e );
+            }
+
+            var rockContext = new RockContext();
+            var personService = new PersonService( rockContext );
+            var groupService = new GroupService( rockContext );
+
+            Group primaryFamily = null;
+
+            if ( EditFamilyState.GroupId.HasValue )
+            {
+                primaryFamily = groupService.Get( EditFamilyState.GroupId.Value );
+            }
+
+            // see if we can find matches for new people that were added, and also set the primary family if this is a new family, but a matching family was found
+            foreach ( var familyMemberState in EditFamilyState.FamilyMembersState.Where( a => !a.PersonId.HasValue && !a.IsDeleted ) )
+            {
+                var personQuery = new PersonService.PersonMatchQuery( familyMemberState.FirstName, familyMemberState.LastName, familyMemberState.Email, familyMemberState.MobilePhoneNumber, familyMemberState.Gender, familyMemberState.BirthDate, familyMemberState.SuffixValueId );
+                var matchingPerson = personService.FindPerson( personQuery, true );
+                if ( matchingPerson != null )
+                {
+                    // newly added person, but a match was found, so set the PersonId to the matching person instead of creating a new person
+                    familyMemberState.PersonId = matchingPerson.Id;
+                    if ( primaryFamily == null && familyMemberState.IsAdult )
+                    {
+                        // if this is a new family, but we found a matching adult person, use that person's family as the family
+                        primaryFamily = matchingPerson.GetFamily( rockContext );
+                    }
+                }
+                else
+                {
+                    // new person, and no match found, so create a new person record
+                    // TODO....
+                }
+            }
+
+            if ( primaryFamily == null )
+            {
+                // new family and no family found by looking up matching adults, so create a new family
+                primaryFamily = new Group();
+                primaryFamily.Name = EditFamilyState.FamilyMembersState.Where( a => a.IsAdult && !a.IsDeleted ).First().LastName + " Family";
+                primaryFamily.GroupTypeId = GroupTypeCache.GetFamilyGroupType().Id;
+                if ( CurrentCheckInState.Kiosk.Device.Location != null )
+                {
+                    // Set the Campus to the Campus of this Kiosk
+                    primaryFamily.CampusId = CurrentCheckInState.Kiosk.Device.Location.CampusId;
+                }
+
+                groupService.Add( primaryFamily );
+            }
         }
 
         /// <summary>
@@ -465,7 +555,8 @@ namespace RockWeb.Blocks.CheckIn
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void btnCancelFamily_Click( object sender, EventArgs e )
         {
-            // TODO
+            upContent.Update();
+            mdEditFamily.Hide();
         }
 
         /// <summary>
@@ -475,9 +566,14 @@ namespace RockWeb.Blocks.CheckIn
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void btnCancelPerson_Click( object sender, EventArgs e )
         {
-            // TODO
             pnlEditPerson.Visible = false;
             pnlEditFamily.Visible = true;
+
+            if ( !EditFamilyState.FamilyMembersState.Any() )
+            {
+                // cancelling on adding first person to family, so cancel adding the family too
+                btnCancelFamily_Click( sender, e );
+            }
         }
 
         /// <summary>
@@ -489,21 +585,26 @@ namespace RockWeb.Blocks.CheckIn
         {
             Guid groupMemberGuid = hfGroupMemberGuid.Value.AsGuid();
             var familyMemberState = EditFamilyState.FamilyMembersState.FirstOrDefault( a => a.GroupMemberGuid == groupMemberGuid );
-            if ( familyMemberState == null)
+            if ( familyMemberState == null )
             {
-                return;
+                // new person added
+                familyMemberState = FamilyRegistrationState.FamilyMemberState.FromPerson( new Person() );
+                familyMemberState.GroupMemberGuid = groupMemberGuid;
+                familyMemberState.PersonId = null;
+                EditFamilyState.FamilyMembersState.Add( familyMemberState );
             }
 
             familyMemberState.IsAdult = tglAdultChild.Checked;
             familyMemberState.Gender = tglGender.Checked ? Gender.Male : Gender.Female;
             familyMemberState.ChildRelationshipToAdult = ddlChildRelationShipToAdult.SelectedValue.AsInteger();
             familyMemberState.IsMarried = tglAdultMaritalStatus.Checked;
-            familyMemberState.FirstName = tbFirstName.Text;
-            familyMemberState.LastName = tbLastName.Text;
+            familyMemberState.FirstName = tbFirstName.Text.FixCase();
+            familyMemberState.LastName = tbLastName.Text.FixCase();
             familyMemberState.SuffixValueId = dvpSuffix.SelectedDefinedValueId;
             familyMemberState.MobilePhoneNumber = pnMobilePhone.Text;
             familyMemberState.BirthDate = dpBirthDate.SelectedDate;
             familyMemberState.Email = tbEmail.Text;
+
             if ( gpGradePicker.SelectedGradeValue != null )
             {
                 familyMemberState.GradeOffset = gpGradePicker.SelectedGradeValue.Value.AsIntegerOrNull();
@@ -513,11 +614,11 @@ namespace RockWeb.Blocks.CheckIn
                 familyMemberState.GradeOffset = null;
             }
 
-            familyMemberState.Barcode = tbBarcode.Text;
+            familyMemberState.AlternateID = tbAlternateID.Text;
             var fakePerson = new Person();
             fakePerson.LoadAttributes();
 
-            if ( familyMemberState.IsAdult)
+            if ( familyMemberState.IsAdult )
             {
                 Rock.Attribute.Helper.GetEditValues( phAdultRequiredAttributes, fakePerson );
                 Rock.Attribute.Helper.GetEditValues( phAdultOptionalAttributes, fakePerson );
@@ -534,262 +635,6 @@ namespace RockWeb.Blocks.CheckIn
             pnlEditFamily.Visible = true;
 
             BindFamilyMembersGrid();
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public class FamilyState
-        {
-            /// <summary>
-            /// Gets or sets the group identifier.
-            /// </summary>
-            /// <value>
-            /// The group identifier.
-            /// </value>
-            public int? GroupId { get; set; }
-
-            /// <summary>
-            /// Gets or sets the state of the family attribute values.
-            /// </summary>
-            /// <value>
-            /// The state of the family attribute values.
-            /// </value>
-            public Dictionary<string, AttributeValueCache> FamilyAttributeValuesState { get; set; }
-
-            /// <summary>
-            /// Gets or sets the state of the family members.
-            /// </summary>
-            /// <value>
-            /// The state of the family members.
-            /// </value>
-            public List<FamilyMemberState> FamilyMembersState { get; set; }
-
-            /// <summary>
-            /// 
-            /// </summary>
-            public class FamilyMemberState
-            {
-                /// <summary>
-                /// Initializes a new instance of the <see cref="FamilyMemberState" /> class.
-                /// </summary>
-                /// <param name="person">The person.</param>
-                public static FamilyMemberState FromPerson( Person person )
-                {
-                    var familyMemberState = new FamilyMemberState();
-                    familyMemberState.PersonId = person.Id;
-                    familyMemberState.Barcode = person.GetPersonSearchKeys().Where( a => a.SearchTypeValueId == _personSearchAlternateValueId ).Select( a => a.SearchValue ).FirstOrDefault();
-                    familyMemberState.BirthDate = person.BirthDate;
-                    familyMemberState.ChildRelationshipToAdult = 0;
-                    familyMemberState.Email = person.Email;
-                    familyMemberState.FirstName = person.NickName;
-                    familyMemberState.Gender = person.Gender;
-                    familyMemberState.GradeOffset = person.GradeOffset;
-                    familyMemberState.IsMarried = person.MaritalStatusValueId == _maritalStatusMarriedId;
-                    familyMemberState.LastName = person.LastName;
-                    var mobilePhone = person.GetPhoneNumber( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() );
-                    familyMemberState.MobilePhoneNumber = mobilePhone != null ? mobilePhone.ToString() : null;
-
-                    person.LoadAttributes();
-                    familyMemberState.PersonAttributeValuesState = person.AttributeValues.ToDictionary( k => k.Key, v => v.Value );
-                    familyMemberState.SuffixValueId = person.SuffixValueId;
-
-                    return familyMemberState;
-                }
-
-                /// <summary>
-                /// Gets or sets a value indicating whether this family member was deleted from the grid (and therefore should be "removed" from the database on Save)
-                /// </summary>
-                /// <value>
-                ///   <c>true</c> if this instance is deleted; otherwise, <c>false</c>.
-                /// </value>
-                public bool IsDeleted { get; set; }
-
-                /// <summary>
-                /// Gets or sets the group member unique identifier (or a new guid if this is a new record that hasn't been saved yet)
-                /// </summary>
-                /// <value>
-                /// The group member unique identifier.
-                /// </value>
-                public Guid GroupMemberGuid { get; set; }
-
-                /// <summary>
-                /// Gets the person identifier or null if this is a new record that hasn't been saved yet
-                /// </summary>
-                /// <value>
-                /// The person identifier.
-                /// </value>
-                public int? PersonId { get; internal set; }
-
-                /// <summary>
-                /// Gets or sets the group identifier for the family that this person is in (Person could be in a different family depending on ChildRelationshipToAdult)
-                /// </summary>
-                /// <value>
-                /// The group identifier.
-                /// </value>
-                public int? GroupId { get; set; }
-
-                /// <summary>
-                /// Gets or sets a value indicating whether this instance is adult.
-                /// </summary>
-                /// <value>
-                ///   <c>true</c> if this instance is adult; otherwise, <c>false</c>.
-                /// </value>
-                public bool IsAdult { get; set; }
-
-                /// <summary>
-                /// Gets or sets the gender.
-                /// </summary>
-                /// <value>
-                /// The gender.
-                /// </value>
-                public Gender Gender { get; set; }
-
-                /// <summary>
-                /// Gets or sets GroupRoleId for the child relationship to adult KnownRelationshipType, or 0 if they are just a Child/Adult in this family
-                /// </summary>
-                /// <value>
-                /// The child relationship to adult.
-                /// </value>
-                public int ChildRelationshipToAdult { get; set; }
-
-                /// <summary>
-                /// Gets or sets a value indicating whether this instance is married.
-                /// </summary>
-                /// <value>
-                ///   <c>true</c> if this instance is married; otherwise, <c>false</c>.
-                /// </value>
-                public bool IsMarried { get; set; }
-
-                /// <summary>
-                /// Gets or sets the first name.
-                /// </summary>
-                /// <value>
-                /// The first name.
-                /// </value>
-                public string FirstName { get; set; }
-
-                /// <summary>
-                /// Gets or sets the last name.
-                /// </summary>
-                /// <value>
-                /// The last name.
-                /// </value>
-                public string LastName { get; set; }
-
-                /// <summary>
-                /// Gets the group role.
-                /// </summary>
-                /// <value>
-                /// The group role.
-                /// </value>
-                public string GroupRole
-                {
-                    get
-                    {
-                        return IsAdult ? "Adult" : "Child";
-                    }
-                }
-
-                /// <summary>
-                /// Gets the full name.
-                /// </summary>
-                /// <value>
-                /// The full name.
-                /// </value>
-                public string FullName
-                {
-                    get
-                    {
-                        return Person.FormatFullName( this.FirstName, this.LastName, this.SuffixValueId );
-                    }
-                }
-
-                /// <summary>
-                /// Gets the age.
-                /// </summary>
-                /// <value>
-                /// The age.
-                /// </value>
-                public int? Age
-                {
-                    get
-                    {
-                        return Person.GetAge( this.BirthDate );
-                    }
-                }
-
-                /// <summary>
-                /// Gets the grade formatted.
-                /// </summary>
-                /// <value>
-                /// The grade formatted.
-                /// </value>
-                public string GradeFormatted
-                {
-                    get
-                    {
-                        return Person.GradeFormattedFromGradeOffset( this.GradeOffset );
-                    }
-                }
-
-                /// <summary>
-                /// Gets or sets the suffix value identifier.
-                /// </summary>
-                /// <value>
-                /// The suffix value identifier.
-                /// </value>
-                public int? SuffixValueId { get; set; }
-
-                /// <summary>
-                /// Gets or sets the mobile phone number.
-                /// </summary>
-                /// <value>
-                /// The mobile phone number.
-                /// </value>
-                public string MobilePhoneNumber { get; set; }
-
-                /// <summary>
-                /// Gets or sets the birth date.
-                /// </summary>
-                /// <value>
-                /// The birth date.
-                /// </value>
-                public DateTime? BirthDate { get; set; }
-
-                /// <summary>
-                /// Gets or sets the email.
-                /// </summary>
-                /// <value>
-                /// The email.
-                /// </value>
-                public string Email { get; set; }
-
-                /// <summary>
-                /// Gets or sets the grade offset.
-                /// </summary>
-                /// <value>
-                /// The grade offset.
-                /// </value>
-                public int? GradeOffset { get; set; }
-
-                /// <summary>
-                /// Gets or sets the barcode.
-                /// </summary>
-                /// <value>
-                /// The barcode.
-                /// </value>
-                public string Barcode { get; set; }
-
-                /// <summary>
-                /// Gets or sets the state of the person attribute values.
-                /// </summary>
-                /// <value>
-                /// The state of the person attribute values.
-                /// </value>
-                public Dictionary<string, AttributeValueCache> PersonAttributeValuesState { get; set; }
-
-            }
         }
     }
 }
