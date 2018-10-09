@@ -47,7 +47,6 @@
                             <div class="row">
                                 <div class="col-md-4">
                                     <Rock:Toggle ID="tglAdultChild" runat="server" OnText="Adult" OffText="Child" ActiveButtonCssClass="btn-primary" OnCheckedChanged="tglAdultChild_CheckedChanged" />
-
                                 </div>
                                 <div class="col-md-4">
                                     <Rock:Toggle ID="tglGender" runat="server" OnText="Male" OffText="Female" ActiveButtonCssClass="btn-primary" />
@@ -55,7 +54,10 @@
                                 </div>
                                 <div class="col-md-4">
                                     <%-- Fields to be shown when editing a Child --%>
-                                    <Rock:RockDropDownList ID="ddlChildRelationShipToAdult" runat="server" Label="Relationship to Adult" />
+                                    <asp:Panel ID="pnlChildRelationshipToAdult" runat="server">
+                                        <Rock:RockDropDownList ID="ddlChildRelationShipToAdult" runat="server" Label="Relationship to Adult" />
+                                        <Rock:RockLiteral ID="lChildRelationShipToAdultReadOnly" runat="server" Label="Relationship"  />
+                                    </asp:Panel>
 
                                     <%-- Fields to be shown when editing an Adult --%>
                                     <Rock:Toggle ID="tglAdultMaritalStatus" runat="server" OnText="Married" OffText="Single" ActiveButtonCssClass="btn-primary" />

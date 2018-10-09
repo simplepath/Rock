@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-
+using Rock.Data;
 using Rock.Model;
 using Rock.Web.Cache;
 
@@ -95,7 +95,8 @@ namespace Rock.CheckIn.Registration
                 familyMemberState.IsMarried = person.MaritalStatusValueId == _maritalStatusMarriedId;
                 familyMemberState.LastName = person.LastName;
                 var mobilePhone = person.GetPhoneNumber( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() );
-                familyMemberState.MobilePhoneNumber = mobilePhone?.ToString();
+                familyMemberState.MobilePhoneCountryCode = mobilePhone?.CountryCode;
+                familyMemberState.MobilePhoneNumber = mobilePhone?.Number;
 
                 person.LoadAttributes();
                 familyMemberState.PersonAttributeValuesState = person.AttributeValues.ToDictionary( k => k.Key, v => v.Value );
@@ -233,6 +234,14 @@ namespace Rock.CheckIn.Registration
             public string MobilePhoneNumber { get; set; }
 
             /// <summary>
+            /// Gets or sets the mobile phone country code.
+            /// </summary>
+            /// <value>
+            /// The mobile phone country code.
+            /// </value>
+            public string MobilePhoneCountryCode { get; set; }
+
+            /// <summary>
             /// Gets or sets the birth date.
             /// </summary>
             /// <value>
@@ -271,6 +280,182 @@ namespace Rock.CheckIn.Registration
             /// The state of the person attribute values.
             /// </value>
             public Dictionary<string, AttributeValueCache> PersonAttributeValuesState { get; set; }
+        }
+
+        /// <summary>
+        /// Saves the family and persons to the database
+        /// </summary>
+        /// <param name="kioskCampusId">The kiosk campus identifier.</param>
+        /// <param name="rockContext">The rock context.</param>
+        public void SaveFamilyAndPersonsToDatabase( int? kioskCampusId, RockContext rockContext )
+        {
+            FamilyRegistrationState editFamilyState = this;
+            var personService = new PersonService( rockContext );
+            var groupService = new GroupService( rockContext );
+            var recordTypePersonId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
+            var recordStatusValue = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_ACTIVE.AsGuid() );
+            var connectionStatusValue = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_VISITOR.AsGuid() );
+            var maritalStatusMarried = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_MARITAL_STATUS_MARRIED.AsGuid() );
+            var maritalStatusSingle = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_MARITAL_STATUS_SINGLE.AsGuid() );
+            var numberTypeValueMobile = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() );
+            int groupTypeRoleAdultId = GroupTypeCache.GetFamilyGroupType().Roles.FirstOrDefault( a => a.Guid == Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_ADULT.AsGuid() ).Id;
+            int groupTypeRoleChildId = GroupTypeCache.GetFamilyGroupType().Roles.FirstOrDefault( a => a.Guid == Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_CHILD.AsGuid() ).Id;
+
+            Group primaryFamily = null;
+
+            if ( editFamilyState.GroupId.HasValue )
+            {
+                primaryFamily = groupService.Get( editFamilyState.GroupId.Value );
+            }
+
+            // see if we can find matches for new people that were added, and also set the primary family if this is a new family, but a matching family was found
+            foreach ( var familyMemberState in editFamilyState.FamilyMembersState.Where( a => !a.PersonId.HasValue && !a.IsDeleted ) )
+            {
+                var personQuery = new PersonService.PersonMatchQuery( familyMemberState.FirstName, familyMemberState.LastName, familyMemberState.Email, familyMemberState.MobilePhoneNumber, familyMemberState.Gender, familyMemberState.BirthDate, familyMemberState.SuffixValueId );
+                var matchingPerson = personService.FindPerson( personQuery, true );
+                if ( matchingPerson != null )
+                {
+                    // newly added person, but a match was found, so set the PersonId to the matching person instead of creating a new person
+                    familyMemberState.PersonId = matchingPerson.Id;
+                    if ( primaryFamily == null && familyMemberState.IsAdult )
+                    {
+                        // if this is a new family, but we found a matching adult person, use that person's family as the family
+                        primaryFamily = matchingPerson.GetFamily( rockContext );
+                    }
+                }
+            }
+
+            // loop thru all people and add/update as needed
+            foreach ( var familyMemberState in editFamilyState.FamilyMembersState.Where( a => !a.IsDeleted ) )
+            {
+                Person person;
+                if ( !familyMemberState.PersonId.HasValue )
+                {
+                    person = new Person();
+                    personService.Add( person );
+                    person.RecordTypeValueId = recordTypePersonId;
+                    person.RecordStatusValueId = recordStatusValue?.Id;
+                    person.ConnectionStatusValueId = connectionStatusValue?.Id;
+                }
+                else
+                {
+                    person = personService.Get( familyMemberState.PersonId.Value );
+                }
+
+                person.Gender = familyMemberState.Gender;
+                person.MaritalStatusValueId = ( familyMemberState.IsMarried ) ? maritalStatusMarried.Id : maritalStatusSingle.Id;
+                person.NickName = familyMemberState.FirstName;
+                person.LastName = familyMemberState.LastName;
+                person.SuffixValueId = familyMemberState.SuffixValueId;
+
+                person.SetBirthDate( familyMemberState.BirthDate );
+                person.Email = familyMemberState.Email;
+                person.GradeOffset = familyMemberState.GradeOffset;
+
+                rockContext.SaveChanges();
+
+                bool isNewPerson = !familyMemberState.PersonId.HasValue;
+                if ( !familyMemberState.PersonId.HasValue )
+                {
+                    // if we added a new person, we know now the personId after SaveChanges, so set it
+                    familyMemberState.PersonId = person.Id;
+                }
+
+                if ( familyMemberState.AlternateID.IsNotNullOrWhiteSpace() )
+                {
+                    PersonSearchKey personAlternateValueIdSearchKey;
+                    PersonSearchKeyService personSearchKeyService = new PersonSearchKeyService( rockContext );
+                    if ( isNewPerson )
+                    {
+                        // if we added a new person, a default AlternateId was probably added in the service layer. If a specific Alternate ID was specified, make sure that their SearchKey is updated
+                        personAlternateValueIdSearchKey = person.GetPersonSearchKeys( rockContext ).Where( a => a.SearchTypeValueId == _personSearchAlternateValueId ).FirstOrDefault();
+                    }
+                    else
+                    {
+                        // see if the key already exists. If if it doesn't already exist, let a new one get created
+                        personAlternateValueIdSearchKey = person.GetPersonSearchKeys( rockContext ).Where( a => a.SearchTypeValueId == _personSearchAlternateValueId && a.SearchValue == familyMemberState.AlternateID ).FirstOrDefault();
+                    }
+
+                    if ( personAlternateValueIdSearchKey == null )
+                    {
+                        personAlternateValueIdSearchKey = new PersonSearchKey();
+                        personAlternateValueIdSearchKey.PersonAliasId = person.PrimaryAliasId;
+                        personAlternateValueIdSearchKey.SearchTypeValueId = _personSearchAlternateValueId;
+                        personSearchKeyService.Add( personAlternateValueIdSearchKey );
+                    }
+
+                    if ( personAlternateValueIdSearchKey.SearchValue != familyMemberState.AlternateID )
+                    {
+                        personAlternateValueIdSearchKey.SearchValue = familyMemberState.AlternateID;
+                        rockContext.SaveChanges();
+                    }
+                }
+
+                person.LoadAttributes();
+                foreach ( var attributeValue in familyMemberState.PersonAttributeValuesState )
+                {
+                    person.SetAttributeValue( attributeValue.Key, attributeValue.Value.Value );
+                }
+
+                person.SaveAttributeValues( rockContext );
+
+                person.UpdatePhoneNumber( numberTypeValueMobile.Id, familyMemberState.MobilePhoneCountryCode, familyMemberState.MobilePhoneNumber, true, false, rockContext );
+                rockContext.SaveChanges();
+            }
+
+            if ( primaryFamily == null )
+            {
+                // new family and no family found by looking up matching adults, so create a new family
+                primaryFamily = new Group();
+                primaryFamily.Name = editFamilyState.FamilyMembersState.Where( a => a.IsAdult && !a.IsDeleted ).First().LastName + " Family";
+                primaryFamily.GroupTypeId = GroupTypeCache.GetFamilyGroupType().Id;
+
+                // Set the Campus to the Campus of this Kiosk
+                primaryFamily.CampusId = kioskCampusId;
+
+                groupService.Add( primaryFamily );
+                rockContext.SaveChanges();
+                editFamilyState.GroupId = primaryFamily.Id;
+            }
+
+            primaryFamily.LoadAttributes();
+            foreach ( var familyAttribute in editFamilyState.FamilyAttributeValuesState )
+            {
+                primaryFamily.SetAttributeValue( familyAttribute.Key, familyAttribute.Value.Value );
+            }
+
+            primaryFamily.SaveAttributeValues( rockContext );
+
+            var groupMemberService = new GroupMemberService( rockContext );
+
+            // loop thru all people that are part of the same family (in the UI) and ensure they are all in the same primary family (in the database)
+            foreach ( var familyMemberState in editFamilyState.FamilyMembersState.Where( a => !a.IsDeleted && a.ChildRelationshipToAdult == 0 ) )
+            {
+                var currentFamilyMember = primaryFamily.Members.FirstOrDefault( m => m.PersonId == familyMemberState.PersonId.Value );
+
+                if ( currentFamilyMember == null )
+                {
+                    currentFamilyMember = new GroupMember
+                    {
+                        GroupId = primaryFamily.Id,
+                        PersonId = familyMemberState.PersonId.Value,
+                        GroupMemberStatus = GroupMemberStatus.Active
+                    };
+
+                    if ( familyMemberState.IsAdult )
+                    {
+                        currentFamilyMember.GroupRoleId = groupTypeRoleAdultId;
+                    }
+                    else
+                    {
+                        currentFamilyMember.GroupRoleId = groupTypeRoleChildId;
+                    }
+
+                    groupMemberService.Add( currentFamilyMember );
+
+                    rockContext.SaveChanges();
+                }
+            }
         }
     }
 }

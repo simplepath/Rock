@@ -367,6 +367,13 @@ namespace RockWeb.Blocks.CheckIn
 
             hfGroupMemberGuid.Value = familyMemberState.GroupMemberGuid.ToString();
             tglAdultChild.Checked = familyMemberState.IsAdult;
+
+            // only allow Adult/Child and Relationship to be changed for newly added people
+            tglAdultChild.Visible = !familyMemberState.PersonId.HasValue;
+
+            ddlChildRelationShipToAdult.Visible = !familyMemberState.PersonId.HasValue;
+            lChildRelationShipToAdultReadOnly.Visible = familyMemberState.PersonId.HasValue && familyMemberState.ChildRelationshipToAdult != 0;
+
             ShowControlsForRole( tglAdultChild.Checked );
 
             tglGender.Checked = familyMemberState.Gender == Gender.Male;
@@ -380,24 +387,29 @@ namespace RockWeb.Blocks.CheckIn
             }
 
             ddlChildRelationShipToAdult.SetValue( familyMemberState.ChildRelationshipToAdult );
+            lChildRelationShipToAdultReadOnly.Text = CurrentCheckInState.CheckInType.Registration.KnownRelationshipGroupTypeRoles.GetValueOrNull( familyMemberState.ChildRelationshipToAdult );
 
+            tbFirstName.Focus();
             tbFirstName.Text = familyMemberState.FirstName;
             tbLastName.Text = familyMemberState.LastName;
+            tbAlternateID.Text = familyMemberState.AlternateID;
 
             dvpSuffix.DefinedTypeId = DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.PERSON_SUFFIX.AsGuid() ).Id;
             dvpSuffix.SetValue( familyMemberState.SuffixValueId );
 
-
             var mobilePhoneNumber = familyMemberState.MobilePhoneNumber;
             if ( mobilePhoneNumber != null )
             {
+                pnMobilePhone.CountryCode = familyMemberState.MobilePhoneCountryCode;
                 pnMobilePhone.Number = mobilePhoneNumber;
             }
             else
             {
+                pnMobilePhone.CountryCode = string.Empty;
                 pnMobilePhone.Number = string.Empty;
             }
 
+            tbEmail.Text = familyMemberState.Email;
             dpBirthDate.SelectedDate = familyMemberState.BirthDate;
             gpGradePicker.SetValue( familyMemberState.GradeOffset );
 
@@ -467,7 +479,7 @@ namespace RockWeb.Blocks.CheckIn
             tglAdultMaritalStatus.Visible = isAdult;
             dpBirthDate.Visible = !isAdult;
             gpGradePicker.Visible = !isAdult;
-            ddlChildRelationShipToAdult.Visible = !isAdult;
+            pnlChildRelationshipToAdult.Visible = !isAdult;
 
             tbAlternateID.Visible = ( isAdult && CurrentCheckInState.CheckInType.Registration.DisplayAlternateIdFieldforAdults ) || ( !isAdult && CurrentCheckInState.CheckInType.Registration.DisplayAlternateIdFieldforChildren );
             phAdultRequiredAttributes.Visible = isAdult;
@@ -493,58 +505,60 @@ namespace RockWeb.Blocks.CheckIn
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void btnSaveFamily_Click( object sender, EventArgs e )
         {
-            if (!EditFamilyState.FamilyMembersState.Any( x => !x.IsDeleted))
+            if ( !EditFamilyState.FamilyMembersState.Any( x => !x.IsDeleted ) )
             {
-                // Saving but nobody added to family, so just exit
+                // Saving a new family, but nobody added to family, so just exit
                 btnCancelFamily_Click( sender, e );
             }
 
             var rockContext = new RockContext();
-            var personService = new PersonService( rockContext );
-            var groupService = new GroupService( rockContext );
 
-            Group primaryFamily = null;
-
-            if ( EditFamilyState.GroupId.HasValue )
+            int? kioskCampusId = null;
+            if ( CurrentCheckInState.Kiosk.Device.Location != null )
             {
-                primaryFamily = groupService.Get( EditFamilyState.GroupId.Value );
+                // Set the Campus for new families to the Campus of this Kiosk
+                kioskCampusId = CurrentCheckInState.Kiosk.Device.Location.CampusId;
             }
 
-            // see if we can find matches for new people that were added, and also set the primary family if this is a new family, but a matching family was found
-            foreach ( var familyMemberState in EditFamilyState.FamilyMembersState.Where( a => !a.PersonId.HasValue && !a.IsDeleted ) )
+            rockContext.WrapTransaction( () =>
             {
-                var personQuery = new PersonService.PersonMatchQuery( familyMemberState.FirstName, familyMemberState.LastName, familyMemberState.Email, familyMemberState.MobilePhoneNumber, familyMemberState.Gender, familyMemberState.BirthDate, familyMemberState.SuffixValueId );
-                var matchingPerson = personService.FindPerson( personQuery, true );
-                if ( matchingPerson != null )
+                EditFamilyState.SaveFamilyAndPersonsToDatabase( kioskCampusId, rockContext );
+            } );
+
+            if ( CurrentCheckInState.CheckInType.Registration.EnableCheckInAfterRegistration )
+            {
+                upContent.Update();
+                mdEditFamily.Hide();
+
+                if ( CurrentCheckInState.CheckIn.CurrentFamily == null )
                 {
-                    // newly added person, but a match was found, so set the PersonId to the matching person instead of creating a new person
-                    familyMemberState.PersonId = matchingPerson.Id;
-                    if ( primaryFamily == null && familyMemberState.IsAdult )
+                    CurrentCheckInState.CheckIn.Families.Add( new CheckInFamily() { Selected = true } );
+                }
+
+                CurrentCheckInState.CheckIn.CurrentFamily.Group = new GroupService( rockContext ).Get( EditFamilyState.GroupId.Value ).Clone() as Group;
+                foreach ( var familyMemberState in EditFamilyState.FamilyMembersState )
+                {
+                    var checkinPerson = CurrentCheckInState.CheckIn.CurrentFamily.People.FirstOrDefault( a => a.Person.Id == familyMemberState.PersonId.Value );
+                    var databasePerson = new PersonService( rockContext ).Get( familyMemberState.PersonId.Value );
+                    if ( checkinPerson != null )
                     {
-                        // if this is a new family, but we found a matching adult person, use that person's family as the family
-                        primaryFamily = matchingPerson.GetFamily( rockContext );
+                        checkinPerson.Person = databasePerson.Clone() as Person;
+                    }
+                    else
+                    {
+                        checkinPerson = new CheckInPerson();
+                        checkinPerson.Person = databasePerson.Clone() as Person;
+                        checkinPerson.FamilyMember = familyMemberState.ChildRelationshipToAdult == 0;
+                        CurrentCheckInState.CheckIn.CurrentFamily.People.Add( checkinPerson );
                     }
                 }
-                else
-                {
-                    // new person, and no match found, so create a new person record
-                    // TODO....
-                }
+
+                // reload the current page so that other blocks will get updated correctly
+                NavigateToCurrentPageReference();
             }
-
-            if ( primaryFamily == null )
+            else
             {
-                // new family and no family found by looking up matching adults, so create a new family
-                primaryFamily = new Group();
-                primaryFamily.Name = EditFamilyState.FamilyMembersState.Where( a => a.IsAdult && !a.IsDeleted ).First().LastName + " Family";
-                primaryFamily.GroupTypeId = GroupTypeCache.GetFamilyGroupType().Id;
-                if ( CurrentCheckInState.Kiosk.Device.Location != null )
-                {
-                    // Set the Campus to the Campus of this Kiosk
-                    primaryFamily.CampusId = CurrentCheckInState.Kiosk.Device.Location.CampusId;
-                }
-
-                groupService.Add( primaryFamily );
+                NavigateToHomePage();
             }
         }
 
@@ -600,8 +614,10 @@ namespace RockWeb.Blocks.CheckIn
             familyMemberState.IsMarried = tglAdultMaritalStatus.Checked;
             familyMemberState.FirstName = tbFirstName.Text.FixCase();
             familyMemberState.LastName = tbLastName.Text.FixCase();
-            familyMemberState.SuffixValueId = dvpSuffix.SelectedDefinedValueId;
+            familyMemberState.SuffixValueId = dvpSuffix.SelectedValue.AsIntegerOrNull();
+
             familyMemberState.MobilePhoneNumber = pnMobilePhone.Text;
+            familyMemberState.MobilePhoneCountryCode = pnMobilePhone.CountryCode;
             familyMemberState.BirthDate = dpBirthDate.SelectedDate;
             familyMemberState.Email = tbEmail.Text;
 

@@ -66,6 +66,8 @@
                         <asp:LinkButton CssClass="btn btn-default btn-back" ID="lbBack" runat="server" OnClick="lbBack_Click" Text="Back" />
                         <asp:LinkButton CssClass="btn btn-default btn-cancel" ID="lbCancel" runat="server" OnClick="lbCancel_Click" Text="Cancel" />
                         <asp:LinkButton CssClass="btn btn-primary pull-right" ID="lbSelect" runat="server" OnClientClick="return GetPersonSelection();" OnClick="lbSelect_Click" Text="Next" />
+
+                        <asp:LinkButton CssClass="btn btn-primary pull-right" ID="lbEditFamily" runat="server" OnClick="lbEditFamily_Click" Text="Edit Family" />
                     </div>
                 </div>
             </asp:Panel>
@@ -117,7 +119,7 @@
                         <asp:LinkButton CssClass="btn btn-default btn-cancel" ID="lbOptionCacncel" runat="server" OnClick="lbOptionCancel_Click" Text="Cancel" />
                         <asp:LinkButton CssClass="btn btn-primary pull-right" ID="lbOptionSelect" runat="server" OnClientClick="return GetOptionSelection();" OnClick="lbOptionSelect_Click" Text="Ok" />
 
-                        <asp:LinkButton CssClass="btn btn-primary pull-right" ID="lbEditFamily" runat="server" OnClick="lbEditFamily_Click" Text="Edit Family" />
+                        
                     </div>
                 </div>
 

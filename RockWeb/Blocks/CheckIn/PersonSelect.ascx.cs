@@ -69,7 +69,7 @@ namespace RockWeb.Blocks.CheckIn
                     lTitle.Text = string.Format( GetAttributeValue( "Title" ), family.ToString() );
                     lCaption.Text = GetAttributeValue( "Caption" );
 
-                    if ( family.People.Count == 1 )
+                    if ( family.People.Count == 1 && !CurrentCheckInState.Kiosk.RegistrationModeEnabled )
                     {
                         if ( UserBackedUp )
                         {

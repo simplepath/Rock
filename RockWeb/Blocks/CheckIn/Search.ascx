@@ -11,8 +11,10 @@
                 // set focus to the input unless on a touch device
                 var isTouchDevice = 'ontouchstart' in document.documentElement;
                 if (!isTouchDevice) {
-                    console.log("not touch");
-                    $('.search-input').focus();
+                    
+                    if ($('.modal-open').length == 0) {
+                        $('.search-input').focus();
+                    }
                 }
 
                 $('.tenkey a.digit').click(function () {
