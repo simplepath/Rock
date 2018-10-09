@@ -1729,12 +1729,14 @@ namespace RockWeb.Blocks.Event
                     }
                 }
 
+                Dictionary<int, Guid> backupFamilyGuid = new Dictionary<int, Guid>();
+
                 try
                 {
                     bool hasPayment = ( RegistrationState.PaymentAmount ?? 0.0m ) > 0.0m;
 
                     // Save the registration
-                    registration = SaveRegistration( rockContext, hasPayment );
+                    registration = SaveRegistration( rockContext, hasPayment, backupFamilyGuid );
                     if ( registration != null )
                     {
                         // If there is a payment being made, process the payment
@@ -1766,6 +1768,20 @@ namespace RockWeb.Blocks.Event
                 }
                 catch ( Exception ex )
                 {
+                    // Restore family guids that were cleared on save registration.
+                    if ( backupFamilyGuid.Count != 0 )
+                    {
+                        // Get each registrant
+                        foreach ( var registrantInfo in RegistrationState.Registrants.ToList() )
+                        {
+
+                            if ( backupFamilyGuid.ContainsKey( registrantInfo.Id ) )
+                            {
+                                registrantInfo.FamilyGuid = backupFamilyGuid[registrantInfo.Id];
+                            }
+                        }
+                    }
+
                     ExceptionLogService.LogException( ex, Context, this.RockPage.PageId, this.RockPage.Site.Id, CurrentPersonAlias );
 
                     string message = ex.Message;
@@ -1925,7 +1941,7 @@ namespace RockWeb.Blocks.Event
         /// <param name="rockContext">The rock context.</param>
         /// <param name="hasPayment">if set to <c>true</c> [has payment].</param>
         /// <returns></returns>
-        private Registration SaveRegistration( RockContext rockContext, bool hasPayment )
+        private Registration SaveRegistration( RockContext rockContext, bool hasPayment, Dictionary<int, Guid> backupFamilyGuid )
         {
             var registrationService = new RegistrationService( rockContext );
             var registrantService = new RegistrationRegistrantService( rockContext );
@@ -2541,6 +2557,9 @@ namespace RockWeb.Blocks.Event
                             null,
                             true,
                             CurrentPersonAliasId ) );
+
+                    // Backup family guids just in case something goes wrong so that it can be restored.
+                    backupFamilyGuid[registrantInfo.Id] = registrantInfo.FamilyGuid;
 
                     // Clear this registrant's family guid so it's not updated again
                     registrantInfo.FamilyGuid = Guid.Empty;
