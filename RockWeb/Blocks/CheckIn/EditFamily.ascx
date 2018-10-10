@@ -14,6 +14,7 @@
                     <ContentTemplate>
                         <%-- Edit Family View --%>
                         <asp:Panel ID="pnlEditFamily" runat="server">
+                            <asp:ValidationSummary ID="vsEditFamily" runat="server" HeaderText="Please correct the following:" CssClass="alert alert-validation" ValidationGroup="vgEditFamily" />
                             <%-- Grid --%>
                             <h2>Family Members</h2>
                             <Rock:Grid ID="gFamilyMembers" runat="server" DisplayType="Light" ShowActionRow="false" ShowActionsInHeader="false" ShowHeader="false" ShowFooter="false" OnRowDataBound="gFamilyMembers_RowDataBound" RowItemText="Person">
@@ -30,8 +31,9 @@
                             </Rock:Grid>
 
                             <%-- Family Attributes --%>
-                            <Rock:DynamicPlaceholder ID="phRequiredFamilyAttributes" runat="server" />
-                            <Rock:DynamicPlaceholder ID="phOptionalFamilyAttributes" runat="server" />
+
+                            <Rock:DynamicPlaceholder ID="phFamilyRequiredAttributes" runat="server" />
+                            <Rock:DynamicPlaceholder ID="phFamilyOptionalAttributes" runat="server" />
 
                             <%-- Edit Family Buttons --%>
                             <div class="actions">
@@ -43,20 +45,27 @@
 
                         <%-- Edit Person View --%>
                         <asp:Panel ID="pnlEditPerson" runat="server">
+                            
+
                             <asp:HiddenField ID="hfGroupMemberGuid" runat="server" />
+                            <asp:ValidationSummary ID="vsEditPerson" runat="server" HeaderText="Please correct the following:" CssClass="alert alert-validation" ValidationGroup="vgEditPerson" />
                             <div class="row">
                                 <div class="col-md-4">
                                     <Rock:Toggle ID="tglAdultChild" runat="server" OnText="Adult" OffText="Child" ActiveButtonCssClass="btn-primary" OnCheckedChanged="tglAdultChild_CheckedChanged" />
+                                    <asp:Panel ID="pnlRecordStatusNotActive" runat="server">
+                                        <span title="" class="label label-danger" data-toggle="tooltip">Inactive</span>
+                                        <br />
+                                        <asp:LinkButton ID="btnMakeRecordStatusActive" runat="server" CssClass="btn btn-primary" CausesValidation="false" Text="Activate" OnClick="btnMakeRecordStatusActive_Click" />
+                                    </asp:Panel>
                                 </div>
                                 <div class="col-md-4">
                                     <Rock:Toggle ID="tglGender" runat="server" OnText="Male" OffText="Female" ActiveButtonCssClass="btn-primary" />
-
                                 </div>
                                 <div class="col-md-4">
                                     <%-- Fields to be shown when editing a Child --%>
                                     <asp:Panel ID="pnlChildRelationshipToAdult" runat="server">
                                         <Rock:RockDropDownList ID="ddlChildRelationShipToAdult" runat="server" Label="Relationship to Adult" />
-                                        <Rock:RockLiteral ID="lChildRelationShipToAdultReadOnly" runat="server" Label="Relationship"  />
+                                        <Rock:RockLiteral ID="lChildRelationShipToAdultReadOnly" runat="server" Label="Relationship" />
                                     </asp:Panel>
 
                                     <%-- Fields to be shown when editing an Adult --%>
