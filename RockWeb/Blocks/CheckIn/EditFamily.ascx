@@ -79,7 +79,7 @@
                             <div class="row">
                                 <div class="col-md-4">
                                     <Rock:PhoneNumberBox ID="pnMobilePhone" runat="server" Label="Mobile Phone" ValidationGroup="vgEditPerson" />
-                                    <Rock:DatePicker ID="dpBirthDate" runat="server" Label="Birthdate" AllowFutureDates="False" RequireYear="True" ShowOnFocus="false" StartView="decade" ValidationGroup="vgEditPerson" />
+                                    <Rock:BirthdayPicker ID="dpBirthDate" runat="server" Label="Birthdate" RequireYear="True" ValidationGroup="vgEditPerson" />
                                 </div>
                                 <div class="col-md-4">
                                     <Rock:EmailBox ID="tbEmail" runat="server" Label="Email" ValidationGroup="vgEditPerson" />

@@ -203,11 +203,20 @@ namespace RockWeb.Blocks.CheckIn
                 IEnumerable<GroupMember> personRelationships = new PersonService( rockContext ).GetRelatedPeople( adultIds, roleIds );
                 foreach ( GroupMember personRelationship in personRelationships )
                 {
-                    var familyMemberState = FamilyRegistrationState.FamilyMemberState.FromPerson( personRelationship.Person );
-                    familyMemberState.GroupMemberGuid = Guid.NewGuid();
-                    familyMemberState.GroupId = null;
-                    familyMemberState.IsAdult = personRelationship.Person.AgeClassification == AgeClassification.Adult;
-                    this.EditFamilyState.FamilyMembersState.Add( familyMemberState );
+                    if ( !this.EditFamilyState.FamilyMembersState.Any( a => a.PersonId == personRelationship.Person.Id ) )
+                    {
+                        var familyMemberState = FamilyRegistrationState.FamilyMemberState.FromPerson( personRelationship.Person );
+                        familyMemberState.GroupMemberGuid = Guid.NewGuid();
+                        var relatedFamily = personRelationship.Person.GetFamily();
+                        if ( relatedFamily != null )
+                        {
+                            familyMemberState.GroupId = relatedFamily.Id;
+                        }
+
+                        familyMemberState.IsAdult = false;
+                        familyMemberState.ChildRelationshipToAdult = personRelationship.GroupRoleId;
+                        this.EditFamilyState.FamilyMembersState.Add( familyMemberState );
+                    }
                 }
 
                 BindFamilyMembersGrid();

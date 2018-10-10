@@ -456,6 +456,59 @@ namespace Rock.CheckIn.Registration
                     rockContext.SaveChanges();
                 }
             }
+
+            // make a dictionary of new related families (by lastname) so we can combine any new related children into a family with the same last name
+            Dictionary<string, Group> newRelatedFamilies = new Dictionary<string, Group>( StringComparer.OrdinalIgnoreCase );
+
+            // loop thru all people that are NOT part of the same family
+            foreach ( var familyMemberState in editFamilyState.FamilyMembersState.Where( a => !a.IsDeleted && a.ChildRelationshipToAdult != 0 ) )
+            {
+                if (!familyMemberState.GroupId.HasValue)
+                {
+                    // related person not in a family yet
+                    Group relatedFamily = newRelatedFamilies.GetValueOrNull( familyMemberState.LastName );
+                    if ( relatedFamily == null )
+                    {
+                        relatedFamily = new Group();
+                        relatedFamily.Name = familyMemberState.LastName + " Family";
+                        relatedFamily.GroupTypeId = GroupTypeCache.GetFamilyGroupType().Id;
+
+                        // Set the Campus to the Campus of this Kiosk
+                        relatedFamily.CampusId = kioskCampusId;
+
+                        newRelatedFamilies.Add( familyMemberState.LastName, relatedFamily );
+                        groupService.Add( relatedFamily );
+                    }
+                    
+
+                    rockContext.SaveChanges();
+                    
+                    familyMemberState.GroupId = relatedFamily.Id;
+
+                    var familyMember = new GroupMember
+                    {
+                        GroupId = relatedFamily.Id,
+                        PersonId = familyMemberState.PersonId.Value,
+                        GroupMemberStatus = GroupMemberStatus.Active
+                    };
+
+                    if ( familyMemberState.IsAdult )
+                    {
+                        familyMember.GroupRoleId = groupTypeRoleAdultId;
+                    }
+                    else
+                    {
+                        familyMember.GroupRoleId = groupTypeRoleChildId;
+                    }
+
+                    groupMemberService.Add( familyMember );
+                }
+
+                foreach ( var primaryFamilyAdult in editFamilyState.FamilyMembersState.Where( a => a.IsAdult && a.ChildRelationshipToAdult == 0 ) )
+                {
+                    groupMemberService.CreateKnownRelationship( primaryFamilyAdult.PersonId.Value, familyMemberState.PersonId.Value, familyMemberState.ChildRelationshipToAdult );
+                }
+            }
         }
     }
 }
