@@ -33,7 +33,7 @@ namespace Rockweb.Blocks.Crm
     /// <summary>
     /// Calculates a person's spiritual gift assessment score based on a series of question answers.
     /// </summary>
-    [DisplayName( "Assessment" )]
+    [DisplayName( "Gifts Assessment" )]
     [Category( "CRM" )]
     [Description( "Allows you to take a spiritual gifts test and saves your spiritual gifts score." )]
 
@@ -147,7 +147,7 @@ namespace Rockweb.Blocks.Crm
     </div>
 </div>
 " )]
-    public partial class Assessment : Rock.Web.UI.RockBlock
+    public partial class GiftsAssessment : Rock.Web.UI.RockBlock
     {
         #region Fields
 

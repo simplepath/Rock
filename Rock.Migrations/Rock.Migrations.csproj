@@ -116,6 +116,10 @@
     <Compile Include="Migrations\201810031231026_AddSpiritualityGifts.Designer.cs">
       <DependentUpon>201810031231026_AddSpiritualityGifts.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201810101916084_AddPageWithRoutesForGiftsAssessment.cs" />
+    <Compile Include="Migrations\201810101916084_AddPageWithRoutesForGiftsAssessment.Designer.cs">
+      <DependentUpon>201810101916084_AddPageWithRoutesForGiftsAssessment.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\CreateDatabase\201311251734059_CreateDatabase.cs" />
     <Compile Include="Migrations\CreateDatabase\201311251734059_CreateDatabase.Designer.cs">
       <DependentUpon>201311251734059_CreateDatabase.cs</DependentUpon>
@@ -443,6 +447,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201810031231026_AddSpiritualityGifts.resx">
       <DependentUpon>201810031231026_AddSpiritualityGifts.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201810101916084_AddPageWithRoutesForGiftsAssessment.resx">
+      <DependentUpon>201810101916084_AddPageWithRoutesForGiftsAssessment.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\CreateDatabase\201311251734059_CreateDatabase.resx">
       <DependentUpon>201311251734059_CreateDatabase.cs</DependentUpon>

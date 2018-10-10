@@ -1,4 +1,4 @@
-﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="Assessment.ascx.cs" Inherits="Rockweb.Blocks.Crm.Assessment" ViewStateMode="Enabled" EnableViewState="true" %>
+﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="GiftsAssessment.ascx.cs" Inherits="Rockweb.Blocks.Crm.GiftsAssessment" ViewStateMode="Enabled" EnableViewState="true" %>
 <script type="text/javascript">
     ///<summary>
     /// Fade-in effect for the panel.
