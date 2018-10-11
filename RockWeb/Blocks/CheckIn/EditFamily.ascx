@@ -39,7 +39,7 @@
                             <div class="actions">
                                 <asp:LinkButton ID="btnCancelFamily" runat="server" CssClass="btn btn-default" Text="Cancel" CausesValidation="false" OnClick="btnCancelFamily_Click" />
                                 <asp:LinkButton ID="btnAddPerson" runat="server" CssClass="btn btn-default" Text="Add Person" CausesValidation="false" OnClick="btnAddPerson_Click" />
-                                <asp:LinkButton ID="btnSaveFamily" runat="server" CssClass="btn btn-primary" Text="Save" CausesValidation="true" ValidationGroup="vgEditFamily" OnClick="btnSaveFamily_Click" />
+                                <Rock:BootstrapButton ID="btnSaveFamily" runat="server" CssClass="btn btn-primary" Text="Save" CausesValidation="true" ValidationGroup="vgEditFamily" OnClick="btnSaveFamily_Click" DataLoadingText="Saving..." />
                             </div>
                         </asp:Panel>
 
@@ -52,11 +52,7 @@
                             <div class="row">
                                 <div class="col-md-4">
                                     <Rock:Toggle ID="tglAdultChild" runat="server" OnText="Adult" OffText="Child" ActiveButtonCssClass="btn-primary" OnCheckedChanged="tglAdultChild_CheckedChanged" />
-                                    <asp:Panel ID="pnlRecordStatusNotActive" runat="server">
-                                        <span title="" class="label label-danger" data-toggle="tooltip">Inactive</span>
-                                        <br />
-                                        <asp:LinkButton ID="btnMakeRecordStatusActive" runat="server" CssClass="btn btn-primary" CausesValidation="false" Text="Activate" OnClick="btnMakeRecordStatusActive_Click" />
-                                    </asp:Panel>
+                                    <Rock:DefinedValuePicker ID="dvpRecordStatus" runat="server" Label="Record Status" ValidationGroup="vgEditPerson" />
                                 </div>
                                 <div class="col-md-4">
                                     <Rock:Toggle ID="tglGender" runat="server" OnText="Male" OffText="Female" ActiveButtonCssClass="btn-primary" />

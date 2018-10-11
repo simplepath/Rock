@@ -42,6 +42,11 @@ namespace Rock.CheckIn.Registration
             if ( group.Id > 0 )
             {
                 familyState.GroupId = group.Id;
+                familyState.FamilyName = group.Name;
+            }
+            else
+            {
+                familyState.FamilyName = "New Family";
             }
 
             familyState.FamilyAttributeValuesState = group.AttributeValues.ToDictionary( k => k.Key, v => v.Value );
@@ -60,9 +65,12 @@ namespace Rock.CheckIn.Registration
         private static int _maritalStatusMarriedId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_MARITAL_STATUS_MARRIED.AsGuid() ).Id;
 
         /// <summary>
-        /// The person record status active identifier
+        /// Gets the name of the family.
         /// </summary>
-        private static int _personRecordStatusActiveId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_ACTIVE.AsGuid() ).Id;
+        /// <value>
+        /// The name of the family.
+        /// </value>
+        public string FamilyName { get; set; }
 
         /// <summary>
         /// Gets or sets the group identifier.
@@ -124,7 +132,7 @@ namespace Rock.CheckIn.Registration
                 familyPersonState.PersonAttributeValuesState = person.AttributeValues.ToDictionary( k => k.Key, v => v.Value );
                 familyPersonState.SuffixValueId = person.SuffixValueId;
 
-                familyPersonState.RecordStatusIsActive = person.Id == 0 || ( person.RecordStatusValueId == _personRecordStatusActiveId );
+                familyPersonState.RecordStatusValueId = person.RecordStatusValueId;
 
                 return familyPersonState;
             }
@@ -223,7 +231,20 @@ namespace Rock.CheckIn.Registration
             /// <value>
             /// The full name.
             /// </value>
-            public string FullName => Person.FormatFullName( this.FirstName, this.LastName, this.SuffixValueId );
+            public string FullName
+            {
+                get
+                {
+                    if ( this.FirstName == null && this.LastName == null )
+                    {
+                        return "New Person";
+                    }
+                    else
+                    {
+                        return Person.FormatFullName( this.FirstName, this.LastName, this.SuffixValueId );
+                    }
+                }
+            }
 
             /// <summary>
             /// Gets the age.
@@ -250,12 +271,12 @@ namespace Rock.CheckIn.Registration
             public int? SuffixValueId { get; set; }
 
             /// <summary>
-            /// Gets or sets a value indicating whether [record status is active].
+            /// Gets or sets the record status value identifier.
             /// </summary>
             /// <value>
-            ///   <c>true</c> if [record status is active]; otherwise, <c>false</c>.
+            /// The record status value identifier.
             /// </value>
-            public bool RecordStatusIsActive { get; set; } = true;
+            public int? RecordStatusValueId { get; set; }
 
             /// <summary>
             /// Gets or sets the mobile phone number.
@@ -383,15 +404,7 @@ namespace Rock.CheckIn.Registration
                 person.SetBirthDate( familyPersonState.BirthDate );
                 person.Email = familyPersonState.Email;
                 person.GradeOffset = familyPersonState.GradeOffset;
-
-                // if the person was inactive, see if they were re-activated
-                if ( person.RecordStatusValueId != _personRecordStatusActiveId )
-                {
-                    if ( familyPersonState.RecordStatusIsActive == true )
-                    {
-                        person.RecordStatusValueId = _personRecordStatusActiveId;
-                    }
-                }
+                person.RecordStatusValueId = familyPersonState.RecordStatusValueId;
 
                 rockContext.SaveChanges();
 
@@ -448,7 +461,8 @@ namespace Rock.CheckIn.Registration
             {
                 // new family and no family found by looking up matching adults, so create a new family
                 primaryFamily = new Group();
-                primaryFamily.Name = editFamilyState.FamilyPersonListState.Where( a => a.IsAdult && !a.IsDeleted ).First().LastName + " Family";
+                var familyLastName = editFamilyState.FamilyPersonListState.OrderBy( a => a.IsAdult ).Where( a => !a.IsDeleted ).Select(a => a.LastName).FirstOrDefault();
+                primaryFamily.Name = familyLastName + " Family";
                 primaryFamily.GroupTypeId = GroupTypeCache.GetFamilyGroupType().Id;
 
                 // Set the Campus to the Campus of this Kiosk

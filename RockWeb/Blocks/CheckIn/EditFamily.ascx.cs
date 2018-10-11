@@ -13,14 +13,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // </copyright>
-//
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.Entity;
 using System.Linq;
 using System.Web.UI;
-using System.Web.UI.HtmlControls;
 using System.Web.UI.WebControls;
 
 using Rock;
@@ -107,6 +105,13 @@ namespace RockWeb.Blocks.CheckIn
         private static int _groupTypeRoleAdultId = GroupTypeCache.GetFamilyGroupType().Roles.FirstOrDefault( a => a.Guid == Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_ADULT.AsGuid() ).Id;
 
         /// <summary>
+        /// The person record status active identifier
+        /// </summary>
+        private static int _personRecordStatusActiveId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_ACTIVE.AsGuid() ).Id;
+
+        #region Methods
+
+        /// <summary>
         /// Raises the <see cref="E:System.Web.UI.Control.Init" /> event.
         /// </summary>
         /// <param name="e">An <see cref="T:System.EventArgs" /> object that contains the event data.</param>
@@ -167,289 +172,6 @@ namespace RockWeb.Blocks.CheckIn
         }
 
         /// <summary>
-        /// Shows the Edit Family modal dialog (Called from other Checkin Blocks)
-        /// </summary>
-        public void ShowEditFamily( CheckInFamily checkInFamily )
-        {
-            ShowFamilyDetail( checkInFamily );
-        }
-
-        /// <summary>
-        /// Shows the Add family modal dialog (Called from other Checkin Blocks)
-        /// </summary>
-        public void ShowAddFamily()
-        {
-            ShowFamilyDetail( null );
-        }
-
-        /// <summary>
-        /// Shows edit UI fo the family (or null adding a new family)
-        /// </summary>
-        /// <param name="checkInFamily">The check in family.</param>
-        private void ShowFamilyDetail( CheckInFamily checkInFamily )
-        {
-            if ( checkInFamily != null && checkInFamily.Group != null )
-            {
-                this.EditFamilyState = FamilyRegistrationState.FromGroup( checkInFamily.Group );
-                hfGroupId.Value = checkInFamily.Group.Id.ToString();
-                mdEditFamily.Title = checkInFamily.Group.Name;
-
-                int groupId = hfGroupId.Value.AsInteger();
-                var rockContext = new RockContext();
-                var groupMemberService = new GroupMemberService( rockContext );
-                var groupMembersQuery = groupMemberService.Queryable( false )
-                    .Include( a => a.Person )
-                    .Where( a => a.GroupId == groupId )
-                    .OrderBy( m => m.GroupRole.Order )
-                    .ThenBy( m => m.Person.BirthYear )
-                    .ThenBy( m => m.Person.BirthMonth )
-                    .ThenBy( m => m.Person.BirthDay )
-                    .ThenBy( m => m.Person.Gender );
-
-                var groupMemberList = groupMembersQuery.ToList();
-
-                foreach ( var groupMember in groupMemberList )
-                {
-                    var familyPersonState = FamilyRegistrationState.FamilyPersonState.FromPerson( groupMember.Person );
-                    familyPersonState.GroupMemberGuid = groupMember.Guid;
-                    familyPersonState.GroupId = groupMember.GroupId;
-                    familyPersonState.IsAdult = groupMember.GroupRoleId == _groupTypeRoleAdultId;
-                    this.EditFamilyState.FamilyPersonListState.Add( familyPersonState );
-                }
-
-                var adultIds = this.EditFamilyState.FamilyPersonListState.Where( a => a.IsAdult && a.PersonId.HasValue ).Select( a => a.PersonId.Value ).ToList();
-                var roleIds = CurrentCheckInState.CheckInType.Registration.KnownRelationshipGroupTypeRoles.Where( a => a.Key != 0 ).Select( a => a.Key ).ToList();
-                IEnumerable<GroupMember> personRelationships = new PersonService( rockContext ).GetRelatedPeople( adultIds, roleIds );
-                foreach ( GroupMember personRelationship in personRelationships )
-                {
-                    if ( !this.EditFamilyState.FamilyPersonListState.Any( a => a.PersonId == personRelationship.Person.Id ) )
-                    {
-                        var familyPersonState = FamilyRegistrationState.FamilyPersonState.FromPerson( personRelationship.Person );
-                        familyPersonState.GroupMemberGuid = Guid.NewGuid();
-                        var relatedFamily = personRelationship.Person.GetFamily();
-                        if ( relatedFamily != null )
-                        {
-                            familyPersonState.GroupId = relatedFamily.Id;
-                        }
-
-                        familyPersonState.IsAdult = false;
-                        familyPersonState.ChildRelationshipToAdult = personRelationship.GroupRoleId;
-                        this.EditFamilyState.FamilyPersonListState.Add( familyPersonState );
-                    }
-                }
-
-                BindFamilyMembersGrid();
-                CreateDynamicFamilyControls( EditFamilyState, true );
-
-                pnlEditFamily.Visible = true;
-                pnlEditPerson.Visible = false;
-            }
-            else
-            {
-                this.EditFamilyState = FamilyRegistrationState.FromGroup( new Group() { GroupTypeId = GroupTypeCache.GetFamilyGroupType().Id } );
-                hfGroupId.Value = "0";
-                mdEditFamily.Title = "Add Family";
-                EditGroupMember( null );
-            }
-
-            upContent.Update();
-            mdEditFamily.Show();
-        }
-
-        /// <summary>
-        /// Handles the GridRebind event of the gFamilyMembers control.
-        /// </summary>
-        /// <param name="sender">The source of the event.</param>
-        /// <param name="e">The <see cref="Rock.Web.UI.Controls.GridRebindEventArgs"/> instance containing the event data.</param>
-        private void gFamilyMembers_GridRebind( object sender, Rock.Web.UI.Controls.GridRebindEventArgs e )
-        {
-            BindFamilyMembersGrid();
-        }
-
-        /// <summary>
-        /// The index of the 'DeleteField' column in the grid
-        /// </summary>
-        private int _deleteFieldIndex;
-
-        /// <summary>
-        /// Handles the RowDataBound event of the gFamilyMembers control.
-        /// </summary>
-        /// <param name="sender">The source of the event.</param>
-        /// <param name="e">The <see cref="System.Web.UI.WebControls.GridViewRowEventArgs"/> instance containing the event data.</param>
-        protected void gFamilyMembers_RowDataBound( object sender, System.Web.UI.WebControls.GridViewRowEventArgs e )
-        {
-            var familyPersonState = e.Row.DataItem as FamilyRegistrationState.FamilyPersonState;
-            if ( familyPersonState != null )
-            {
-                Literal lRequiredAttributes = e.Row.FindControl( "lRequiredAttributes" ) as Literal;
-                if ( lRequiredAttributes != null )
-                {
-                    List<AttributeCache> requiredAttributes;
-                    if ( familyPersonState.IsAdult )
-                    {
-                        requiredAttributes = RequiredAttributesForAdults;
-                    }
-                    else
-                    {
-                        requiredAttributes = RequiredAttributesForChildren;
-                    }
-
-                    if ( requiredAttributes.Any() )
-                    {
-                        DescriptionList descriptionList = new DescriptionList().SetHorizontal( true );
-                        foreach ( var requiredAttribute in requiredAttributes )
-                        {
-                            var attributeValue = familyPersonState.PersonAttributeValuesState.GetValueOrNull( requiredAttribute.Key );
-                            var requiredAttributeDisplayValue = requiredAttribute.FieldType.Field.FormatValue( lRequiredAttributes, attributeValue != null ? attributeValue.Value : null, requiredAttribute.QualifierValues, true );
-                            descriptionList.Add( requiredAttribute.Name, requiredAttributeDisplayValue );
-                        }
-
-                        lRequiredAttributes.Text = descriptionList.Html;
-                    }
-                }
-
-                var deleteCell = ( e.Row.Cells[_deleteFieldIndex] as DataControlFieldCell ).Controls[0];
-                if ( deleteCell != null )
-                {
-                    // only support deleting people that haven't been saved to the database yet
-                    deleteCell.Visible = !familyPersonState.PersonId.HasValue;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Binds the family members grid.
-        /// </summary>
-        private void BindFamilyMembersGrid()
-        {
-            var deleteField = gFamilyMembers.ColumnsOfType<DeleteField>().FirstOrDefault();
-            _deleteFieldIndex = gFamilyMembers.Columns.IndexOf( deleteField );
-
-            gFamilyMembers.DataSource = this.EditFamilyState.FamilyPersonListState.Where( a => a.IsDeleted == false ).ToList();
-            gFamilyMembers.DataBind();
-        }
-
-        /// <summary>
-        /// Handles the Click event of the DeleteFamilyMember control.
-        /// </summary>
-        /// <param name="sender">The source of the event.</param>
-        /// <param name="e">The <see cref="Rock.Web.UI.Controls.RowEventArgs"/> instance containing the event data.</param>
-        protected void DeleteFamilyMember_Click( object sender, Rock.Web.UI.Controls.RowEventArgs e )
-        {
-            var familyPersonState = EditFamilyState.FamilyPersonListState.FirstOrDefault( a => a.GroupMemberGuid == ( Guid ) e.RowKeyValue );
-            familyPersonState.IsDeleted = true;
-            BindFamilyMembersGrid();
-        }
-
-        /// <summary>
-        /// Handles the Click event of the EditFamilyMember control.
-        /// </summary>
-        /// <param name="sender">The source of the event.</param>
-        /// <param name="e">The <see cref="Rock.Web.UI.Controls.RowEventArgs"/> instance containing the event data.</param>
-        protected void EditFamilyMember_Click( object sender, Rock.Web.UI.Controls.RowEventArgs e )
-        {
-            EditGroupMember( ( Guid ) e.RowKeyValue );
-        }
-
-        /// <summary>
-        /// Handles the Click event of the btnAddPerson control.
-        /// </summary>
-        /// <param name="sender">The source of the event.</param>
-        /// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
-        protected void btnAddPerson_Click( object sender, System.EventArgs e )
-        {
-            EditGroupMember( null );
-        }
-
-        /// <summary>
-        /// Edits the group member.
-        /// </summary>
-        /// <param name="groupMemberId">The group member identifier.</param>
-        private void EditGroupMember( Guid? groupMemberGuid )
-        {
-            var rockContext = new RockContext();
-
-            FamilyRegistrationState.FamilyPersonState familyPersonState = null;
-
-            if ( groupMemberGuid.HasValue )
-            {
-                familyPersonState = EditFamilyState.FamilyPersonListState.FirstOrDefault( a => a.GroupMemberGuid == groupMemberGuid );
-            }
-
-            if ( familyPersonState == null )
-            {
-                // create a new temp record so we can set the defaults for the new person
-                familyPersonState = FamilyRegistrationState.FamilyPersonState.FromPerson( new Person() );
-                familyPersonState.GroupMemberGuid = Guid.NewGuid();
-                familyPersonState.Gender = Gender.Male;
-                familyPersonState.IsAdult = true;
-                familyPersonState.IsMarried = true;
-
-                var firstFamilyMember = EditFamilyState.FamilyPersonListState.FirstOrDefault();
-                if ( firstFamilyMember != null )
-                {
-                    // if this family already has a person, default the LastName to the first person
-                    familyPersonState.LastName = firstFamilyMember.LastName;
-                }
-            }
-
-            hfGroupMemberGuid.Value = familyPersonState.GroupMemberGuid.ToString();
-            tglAdultChild.Checked = familyPersonState.IsAdult;
-
-            // only allow Adult/Child and Relationship to be changed for newly added people
-            tglAdultChild.Visible = !familyPersonState.PersonId.HasValue;
-
-            ddlChildRelationShipToAdult.Visible = !familyPersonState.PersonId.HasValue;
-            lChildRelationShipToAdultReadOnly.Visible = familyPersonState.PersonId.HasValue && familyPersonState.ChildRelationshipToAdult != 0;
-
-            ShowControlsForRole( tglAdultChild.Checked );
-
-            tglGender.Checked = familyPersonState.Gender == Gender.Male;
-            tglAdultMaritalStatus.Checked = familyPersonState.IsMarried;
-
-            ddlChildRelationShipToAdult.Items.Clear();
-
-            foreach ( var relationShipType in CurrentCheckInState.CheckInType.Registration.KnownRelationshipGroupTypeRoles )
-            {
-                ddlChildRelationShipToAdult.Items.Add( new ListItem( relationShipType.Value, relationShipType.Key.ToString() ) );
-            }
-
-            ddlChildRelationShipToAdult.SetValue( familyPersonState.ChildRelationshipToAdult );
-            lChildRelationShipToAdultReadOnly.Text = CurrentCheckInState.CheckInType.Registration.KnownRelationshipGroupTypeRoles.GetValueOrNull( familyPersonState.ChildRelationshipToAdult );
-
-            pnlRecordStatusNotActive.Visible = familyPersonState.RecordStatusIsActive == false;
-
-            tbFirstName.Focus();
-            tbFirstName.Text = familyPersonState.FirstName;
-            tbLastName.Text = familyPersonState.LastName;
-            tbAlternateID.Text = familyPersonState.AlternateID;
-
-            dvpSuffix.DefinedTypeId = DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.PERSON_SUFFIX.AsGuid() ).Id;
-            dvpSuffix.SetValue( familyPersonState.SuffixValueId );
-
-            var mobilePhoneNumber = familyPersonState.MobilePhoneNumber;
-            if ( mobilePhoneNumber != null )
-            {
-                pnMobilePhone.CountryCode = familyPersonState.MobilePhoneCountryCode;
-                pnMobilePhone.Number = mobilePhoneNumber;
-            }
-            else
-            {
-                pnMobilePhone.CountryCode = string.Empty;
-                pnMobilePhone.Number = string.Empty;
-            }
-
-            tbEmail.Text = familyPersonState.Email;
-            dpBirthDate.SelectedDate = familyPersonState.BirthDate;
-            gpGradePicker.SetValue( familyPersonState.GradeOffset );
-
-            CreateDynamicPersonControls( familyPersonState, true );
-
-            pnlEditFamily.Visible = false;
-            pnlEditPerson.Visible = true;
-        }
-
-        /// <summary>
         /// Creates the dynamic family controls.
         /// </summary>
         /// <param name="editFamilyState">State of the edit family.</param>
@@ -463,7 +185,7 @@ namespace RockWeb.Blocks.CheckIn
             var attributeList = editFamilyState.FamilyAttributeValuesState.Select( a => AttributeCache.Get( a.Value.AttributeId ) ).ToList();
             fakeFamily.Attributes = attributeList.ToDictionary( a => a.Key, v => v );
             fakeFamily.AttributeValues = editFamilyState.FamilyAttributeValuesState;
-            
+
             Rock.Attribute.Helper.AddEditControls(
                 string.Empty,
                 this.RequiredAttributesForFamilies.OrderBy( a => a.Order ).Select( a => a.Key ).ToList(),
@@ -574,39 +296,177 @@ namespace RockWeb.Blocks.CheckIn
             }
         }
 
-        /// <summary>
-        /// Shows the controls for role.
-        /// </summary>
-        /// <param name="isAdult">if set to <c>true</c> [is adult].</param>
-        private void ShowControlsForRole( bool isAdult )
-        {
-            tglAdultMaritalStatus.Visible = isAdult;
-            dpBirthDate.Visible = !isAdult;
-            gpGradePicker.Visible = !isAdult;
-            pnlChildRelationshipToAdult.Visible = !isAdult;
+        #endregion Methods
 
-            tbAlternateID.Visible = ( isAdult && CurrentCheckInState.CheckInType.Registration.DisplayAlternateIdFieldforAdults ) || ( !isAdult && CurrentCheckInState.CheckInType.Registration.DisplayAlternateIdFieldforChildren );
-            phAdultRequiredAttributes.Visible = isAdult;
-            phAdultRequiredAttributes.Visible = isAdult;
-            phChildRequiredAttributes.Visible = !isAdult;
-            phChildOptionalAttributes.Visible = !isAdult;
+        #region Edit Family
+
+        /// <summary>
+        /// Shows the Edit Family modal dialog (Called from other Checkin Blocks)
+        /// </summary>
+        public void ShowEditFamily( CheckInFamily checkInFamily )
+        {
+            ShowFamilyDetail( checkInFamily );
         }
 
         /// <summary>
-        /// Handles the CheckedChanged event of the tglAdultChild control.
+        /// Shows the Add family modal dialog (Called from other Checkin Blocks)
+        /// </summary>
+        public void ShowAddFamily()
+        {
+            ShowFamilyDetail( null );
+        }
+
+        /// <summary>
+        /// Shows edit UI fo the family (or null adding a new family)
+        /// </summary>
+        /// <param name="checkInFamily">The check in family.</param>
+        private void ShowFamilyDetail( CheckInFamily checkInFamily )
+        {
+            if ( checkInFamily != null && checkInFamily.Group != null )
+            {
+                this.EditFamilyState = FamilyRegistrationState.FromGroup( checkInFamily.Group );
+                hfGroupId.Value = checkInFamily.Group.Id.ToString();
+                mdEditFamily.Title = checkInFamily.Group.Name;
+
+                int groupId = hfGroupId.Value.AsInteger();
+                var rockContext = new RockContext();
+                var groupMemberService = new GroupMemberService( rockContext );
+                var groupMembersQuery = groupMemberService.Queryable( false )
+                    .Include( a => a.Person )
+                    .Where( a => a.GroupId == groupId )
+                    .OrderBy( m => m.GroupRole.Order )
+                    .ThenBy( m => m.Person.BirthYear )
+                    .ThenBy( m => m.Person.BirthMonth )
+                    .ThenBy( m => m.Person.BirthDay )
+                    .ThenBy( m => m.Person.Gender );
+
+                var groupMemberList = groupMembersQuery.ToList();
+
+                foreach ( var groupMember in groupMemberList )
+                {
+                    var familyPersonState = FamilyRegistrationState.FamilyPersonState.FromPerson( groupMember.Person );
+                    familyPersonState.GroupMemberGuid = groupMember.Guid;
+                    familyPersonState.GroupId = groupMember.GroupId;
+                    familyPersonState.IsAdult = groupMember.GroupRoleId == _groupTypeRoleAdultId;
+                    this.EditFamilyState.FamilyPersonListState.Add( familyPersonState );
+                }
+
+                var adultIds = this.EditFamilyState.FamilyPersonListState.Where( a => a.IsAdult && a.PersonId.HasValue ).Select( a => a.PersonId.Value ).ToList();
+                var roleIds = CurrentCheckInState.CheckInType.Registration.KnownRelationshipGroupTypeRoles.Where( a => a.Key != 0 ).Select( a => a.Key ).ToList();
+                IEnumerable<GroupMember> personRelationships = new PersonService( rockContext ).GetRelatedPeople( adultIds, roleIds );
+                foreach ( GroupMember personRelationship in personRelationships )
+                {
+                    if ( !this.EditFamilyState.FamilyPersonListState.Any( a => a.PersonId == personRelationship.Person.Id ) )
+                    {
+                        var familyPersonState = FamilyRegistrationState.FamilyPersonState.FromPerson( personRelationship.Person );
+                        familyPersonState.GroupMemberGuid = Guid.NewGuid();
+                        var relatedFamily = personRelationship.Person.GetFamily();
+                        if ( relatedFamily != null )
+                        {
+                            familyPersonState.GroupId = relatedFamily.Id;
+                        }
+
+                        familyPersonState.IsAdult = false;
+                        familyPersonState.ChildRelationshipToAdult = personRelationship.GroupRoleId;
+                        this.EditFamilyState.FamilyPersonListState.Add( familyPersonState );
+                    }
+                }
+
+                BindFamilyMembersGrid();
+                CreateDynamicFamilyControls( EditFamilyState, true );
+
+                ShowFamilyView();
+            }
+            else
+            {
+                this.EditFamilyState = FamilyRegistrationState.FromGroup( new Group() { GroupTypeId = GroupTypeCache.GetFamilyGroupType().Id } );
+                hfGroupId.Value = "0";
+                mdEditFamily.Title = "Add Family";
+                EditGroupMember( null );
+            }
+
+            upContent.Update();
+            mdEditFamily.Show();
+        }
+
+        /// <summary>
+        /// Handles the GridRebind event of the gFamilyMembers control.
         /// </summary>
         /// <param name="sender">The source of the event.</param>
-        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
-        protected void tglAdultChild_CheckedChanged( object sender, EventArgs e )
+        /// <param name="e">The <see cref="Rock.Web.UI.Controls.GridRebindEventArgs"/> instance containing the event data.</param>
+        private void gFamilyMembers_GridRebind( object sender, Rock.Web.UI.Controls.GridRebindEventArgs e )
         {
-            ShowControlsForRole( tglAdultChild.Checked );
+            BindFamilyMembersGrid();
+        }
+
+        /// <summary>
+        /// The index of the 'DeleteField' column in the grid
+        /// </summary>
+        private int _deleteFieldIndex;
+
+        /// <summary>
+        /// Handles the RowDataBound event of the gFamilyMembers control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="System.Web.UI.WebControls.GridViewRowEventArgs"/> instance containing the event data.</param>
+        protected void gFamilyMembers_RowDataBound( object sender, System.Web.UI.WebControls.GridViewRowEventArgs e )
+        {
+            var familyPersonState = e.Row.DataItem as FamilyRegistrationState.FamilyPersonState;
+            if ( familyPersonState != null )
+            {
+                Literal lRequiredAttributes = e.Row.FindControl( "lRequiredAttributes" ) as Literal;
+                if ( lRequiredAttributes != null )
+                {
+                    List<AttributeCache> requiredAttributes;
+                    if ( familyPersonState.IsAdult )
+                    {
+                        requiredAttributes = RequiredAttributesForAdults;
+                    }
+                    else
+                    {
+                        requiredAttributes = RequiredAttributesForChildren;
+                    }
+
+                    if ( requiredAttributes.Any() )
+                    {
+                        DescriptionList descriptionList = new DescriptionList().SetHorizontal( true );
+                        foreach ( var requiredAttribute in requiredAttributes )
+                        {
+                            var attributeValue = familyPersonState.PersonAttributeValuesState.GetValueOrNull( requiredAttribute.Key );
+                            var requiredAttributeDisplayValue = requiredAttribute.FieldType.Field.FormatValue( lRequiredAttributes, attributeValue != null ? attributeValue.Value : null, requiredAttribute.QualifierValues, true );
+                            descriptionList.Add( requiredAttribute.Name, requiredAttributeDisplayValue );
+                        }
+
+                        lRequiredAttributes.Text = descriptionList.Html;
+                    }
+                }
+
+                var deleteCell = ( e.Row.Cells[_deleteFieldIndex] as DataControlFieldCell ).Controls[0];
+                if ( deleteCell != null )
+                {
+                    // only support deleting people that haven't been saved to the database yet
+                    deleteCell.Visible = !familyPersonState.PersonId.HasValue;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Binds the family members grid.
+        /// </summary>
+        private void BindFamilyMembersGrid()
+        {
+            var deleteField = gFamilyMembers.ColumnsOfType<DeleteField>().FirstOrDefault();
+            _deleteFieldIndex = gFamilyMembers.Columns.IndexOf( deleteField );
+
+            gFamilyMembers.DataSource = this.EditFamilyState.FamilyPersonListState.Where( a => a.IsDeleted == false ).ToList();
+            gFamilyMembers.DataBind();
         }
 
         /// <summary>
         /// Handles the Click event of the btnSaveFamily control.
         /// </summary>
         /// <param name="sender">The source of the event.</param>
-        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
+        /// <param name="e">The <see cref="EventArgs" /> instance containing the event data.</param>
         protected void btnSaveFamily_Click( object sender, EventArgs e )
         {
             if ( CurrentCheckInState == null )
@@ -627,11 +487,12 @@ namespace RockWeb.Blocks.CheckIn
 
             var rockContext = new RockContext();
 
+            // Set the Campus for new families to the Campus of this Kiosk
             int? kioskCampusId = null;
-            if ( CurrentCheckInState.Kiosk.Device.Location != null )
+            var deviceLocation = new DeviceService( rockContext ).GetSelect( CurrentCheckInState.Kiosk.Device.Id, a => a.Locations.FirstOrDefault() );
+            if ( deviceLocation != null )
             {
-                // Set the Campus for new families to the Campus of this Kiosk
-                kioskCampusId = CurrentCheckInState.Kiosk.Device.Location.CampusId;
+                kioskCampusId = deviceLocation.CampusId;
             }
 
             var fakeFamily = new Group() { GroupTypeId = GroupTypeCache.GetFamilyGroupType().Id };
@@ -718,14 +579,199 @@ namespace RockWeb.Blocks.CheckIn
         }
 
         /// <summary>
+        /// Handles the Click event of the DeleteFamilyMember control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="Rock.Web.UI.Controls.RowEventArgs"/> instance containing the event data.</param>
+        protected void DeleteFamilyMember_Click( object sender, Rock.Web.UI.Controls.RowEventArgs e )
+        {
+            var familyPersonState = EditFamilyState.FamilyPersonListState.FirstOrDefault( a => a.GroupMemberGuid == ( Guid ) e.RowKeyValue );
+            familyPersonState.IsDeleted = true;
+            BindFamilyMembersGrid();
+        }
+
+        /// <summary>
+        /// Handles the Click event of the EditFamilyMember control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="Rock.Web.UI.Controls.RowEventArgs"/> instance containing the event data.</param>
+        protected void EditFamilyMember_Click( object sender, Rock.Web.UI.Controls.RowEventArgs e )
+        {
+            EditGroupMember( ( Guid ) e.RowKeyValue );
+        }
+
+        /// <summary>
+        /// Handles the Click event of the btnAddPerson control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
+        protected void btnAddPerson_Click( object sender, System.EventArgs e )
+        {
+            EditGroupMember( null );
+        }
+
+        /// <summary>
+        /// Shows the family view.
+        /// </summary>
+        private void ShowFamilyView()
+        {
+            pnlEditPerson.Visible = false;
+            pnlEditFamily.Visible = true;
+            mdEditFamily.Title = EditFamilyState.FamilyName;
+            upContent.Update();
+        }
+
+        #endregion Edit Family
+
+        #region Edit Person
+
+        /// <summary>
+        /// Edits the group member.
+        /// </summary>
+        /// <param name="groupMemberId">The group member identifier.</param>
+        private void EditGroupMember( Guid? groupMemberGuid )
+        {
+            var rockContext = new RockContext();
+
+            FamilyRegistrationState.FamilyPersonState familyPersonState = null;
+
+            if ( groupMemberGuid.HasValue )
+            {
+                familyPersonState = EditFamilyState.FamilyPersonListState.FirstOrDefault( a => a.GroupMemberGuid == groupMemberGuid );
+            }
+
+            if ( familyPersonState == null )
+            {
+                // create a new temp record so we can set the defaults for the new person
+                familyPersonState = FamilyRegistrationState.FamilyPersonState.FromPerson( new Person() );
+                familyPersonState.GroupMemberGuid = Guid.NewGuid();
+                familyPersonState.Gender = Gender.Male;
+                familyPersonState.IsAdult = false;
+                familyPersonState.IsMarried = false;
+
+                var firstFamilyMember = EditFamilyState.FamilyPersonListState.FirstOrDefault();
+                if ( firstFamilyMember != null )
+                {
+                    // if this family already has a person, default the LastName to the first person
+                    familyPersonState.LastName = firstFamilyMember.LastName;
+                }
+            }
+
+            hfGroupMemberGuid.Value = familyPersonState.GroupMemberGuid.ToString();
+            tglAdultChild.Checked = familyPersonState.IsAdult;
+
+            // only allow Adult/Child and Relationship to be changed for newly added people
+            tglAdultChild.Visible = !familyPersonState.PersonId.HasValue;
+
+            ddlChildRelationShipToAdult.Visible = !familyPersonState.PersonId.HasValue;
+            lChildRelationShipToAdultReadOnly.Visible = familyPersonState.PersonId.HasValue && familyPersonState.ChildRelationshipToAdult != 0;
+
+            ShowControlsForRole( tglAdultChild.Checked );
+
+            tglGender.Checked = familyPersonState.Gender == Gender.Male;
+            tglAdultMaritalStatus.Checked = familyPersonState.IsMarried;
+
+            ddlChildRelationShipToAdult.Items.Clear();
+
+            foreach ( var relationShipType in CurrentCheckInState.CheckInType.Registration.KnownRelationshipGroupTypeRoles )
+            {
+                ddlChildRelationShipToAdult.Items.Add( new ListItem( relationShipType.Value, relationShipType.Key.ToString() ) );
+            }
+
+            ddlChildRelationShipToAdult.SetValue( familyPersonState.ChildRelationshipToAdult );
+            lChildRelationShipToAdultReadOnly.Text = CurrentCheckInState.CheckInType.Registration.KnownRelationshipGroupTypeRoles.GetValueOrNull( familyPersonState.ChildRelationshipToAdult );
+
+            // Only show the RecordStatus if they aren't currently active
+            dvpRecordStatus.Visible = false;
+            if ( familyPersonState.PersonId.HasValue )
+            {
+                var personRecordStatusValueId = new PersonService( rockContext ).GetSelect( familyPersonState.PersonId.Value, a => a.RecordStatusValueId );
+                if ( personRecordStatusValueId.HasValue )
+                {
+                    dvpRecordStatus.Visible = personRecordStatusValueId != _personRecordStatusActiveId;
+                }
+            }
+
+            tbFirstName.Focus();
+            tbFirstName.Text = familyPersonState.FirstName;
+            tbLastName.Text = familyPersonState.LastName;
+            tbAlternateID.Text = familyPersonState.AlternateID;
+
+            dvpSuffix.DefinedTypeId = DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.PERSON_SUFFIX.AsGuid() ).Id;
+            dvpSuffix.SetValue( familyPersonState.SuffixValueId );
+
+            dvpRecordStatus.DefinedTypeId = DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.PERSON_RECORD_STATUS.AsGuid() ).Id;
+            dvpRecordStatus.SetValue( familyPersonState.RecordStatusValueId );
+
+            var mobilePhoneNumber = familyPersonState.MobilePhoneNumber;
+            if ( mobilePhoneNumber != null )
+            {
+                pnMobilePhone.CountryCode = familyPersonState.MobilePhoneCountryCode;
+                pnMobilePhone.Number = mobilePhoneNumber;
+            }
+            else
+            {
+                pnMobilePhone.CountryCode = string.Empty;
+                pnMobilePhone.Number = string.Empty;
+            }
+
+            tbEmail.Text = familyPersonState.Email;
+            dpBirthDate.SelectedDate = familyPersonState.BirthDate;
+            gpGradePicker.SetValue( familyPersonState.GradeOffset );
+
+            CreateDynamicPersonControls( familyPersonState, true );
+
+            ShowPersonView( familyPersonState );
+        }
+
+        /// <summary>
+        /// Shows the person view.
+        /// </summary>
+        /// <param name="familyPersonState">State of the family person.</param>
+        private void ShowPersonView( FamilyRegistrationState.FamilyPersonState familyPersonState )
+        {
+            pnlEditFamily.Visible = false;
+            pnlEditPerson.Visible = true;
+            mdEditFamily.Title = familyPersonState.FullName;
+            upContent.Update();
+        }
+
+        /// <summary>
+        /// Shows the controls for role.
+        /// </summary>
+        /// <param name="isAdult">if set to <c>true</c> [is adult].</param>
+        private void ShowControlsForRole( bool isAdult )
+        {
+            tglAdultMaritalStatus.Visible = isAdult;
+            dpBirthDate.Visible = !isAdult;
+            gpGradePicker.Visible = !isAdult;
+            pnlChildRelationshipToAdult.Visible = !isAdult;
+
+            tbAlternateID.Visible = ( isAdult && CurrentCheckInState.CheckInType.Registration.DisplayAlternateIdFieldforAdults ) || ( !isAdult && CurrentCheckInState.CheckInType.Registration.DisplayAlternateIdFieldforChildren );
+            phAdultRequiredAttributes.Visible = isAdult;
+            phAdultRequiredAttributes.Visible = isAdult;
+            phChildRequiredAttributes.Visible = !isAdult;
+            phChildOptionalAttributes.Visible = !isAdult;
+        }
+
+        /// <summary>
+        /// Handles the CheckedChanged event of the tglAdultChild control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
+        protected void tglAdultChild_CheckedChanged( object sender, EventArgs e )
+        {
+            ShowControlsForRole( tglAdultChild.Checked );
+        }
+
+        /// <summary>
         /// Handles the Click event of the btnCancelPerson control.
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void btnCancelPerson_Click( object sender, EventArgs e )
         {
-            pnlEditPerson.Visible = false;
-            pnlEditFamily.Visible = true;
+            ShowFamilyView();
 
             if ( !EditFamilyState.FamilyPersonListState.Any() )
             {
@@ -752,15 +798,7 @@ namespace RockWeb.Blocks.CheckIn
                 EditFamilyState.FamilyPersonListState.Add( familyPersonState );
             }
 
-            // if a person's record status is not active, they'll get prompted to make them active. If they made them active, the pnlRecordStatusNotActive will be hidden
-            if ( familyPersonState.RecordStatusIsActive == false )
-            {
-                if ( pnlRecordStatusNotActive.Visible == false )
-                {
-                    familyPersonState.RecordStatusIsActive = true;
-                }
-            }
-
+            familyPersonState.RecordStatusValueId = dvpRecordStatus.SelectedValue.AsIntegerOrNull();
             familyPersonState.IsAdult = tglAdultChild.Checked;
             familyPersonState.Gender = tglGender.Checked ? Gender.Male : Gender.Female;
             familyPersonState.ChildRelationshipToAdult = ddlChildRelationShipToAdult.SelectedValue.AsInteger();
@@ -800,20 +838,11 @@ namespace RockWeb.Blocks.CheckIn
 
             familyPersonState.PersonAttributeValuesState = fakePerson.AttributeValues.ToDictionary( k => k.Key, v => v.Value );
 
-            pnlEditPerson.Visible = false;
-            pnlEditFamily.Visible = true;
+            ShowFamilyView();
 
             BindFamilyMembersGrid();
         }
 
-        /// <summary>
-        /// Handles the Click event of the btnMakeRecordStatusActive control.
-        /// </summary>
-        /// <param name="sender">The source of the event.</param>
-        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
-        protected void btnMakeRecordStatusActive_Click( object sender, EventArgs e )
-        {
-            pnlRecordStatusNotActive.Visible = false;
-        }
+        #endregion Edit Person
     }
 }
