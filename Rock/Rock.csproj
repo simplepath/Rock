@@ -487,6 +487,12 @@
     <Compile Include="Attribute\WorkflowAttributeAttribute.cs" />
     <Compile Include="Attribute\WorkflowTextOrAttributeAttribute.cs" />
     <Compile Include="Attribute\WorkflowTypeFieldAttribute.cs" />
+    <Compile Include="CheckIn\CheckInEditFamilyBlock.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="CheckIn\CheckInSearchBlock.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
     <Compile Include="CheckIn\Registration\FamilyRegistrationState.cs" />
     <Compile Include="Data\NoAttributeFilterExpression.cs" />
     <Compile Include="Jobs\NoRetryAggregateException.cs" />

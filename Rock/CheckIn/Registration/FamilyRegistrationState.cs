@@ -99,14 +99,24 @@ namespace Rock.CheckIn.Registration
         /// <summary>
         /// A Member of the Family or a Person with a "Can Check-in, etc"  Relationship
         /// </summary>
+        [System.Diagnostics.DebuggerDisplay( "{FullName}, {GroupRole}, InPrimaryFamily:{InPrimaryFamily}" )]
         public class FamilyPersonState
         {
+            /// <summary>
+            /// Creates a temporary FamilyMemberState from a "new Person()"
+            /// </summary>
+            /// <returns></returns>
+            public static FamilyPersonState FromTemporaryPerson()
+            {
+                return FromPerson( new Person(), 0, true );
+            }
+
             /// <summary>
             /// Creates a FamilyMemberState from the person object
             /// </summary>
             /// <param name="person">The person.</param>
             /// <returns></returns>
-            public static FamilyPersonState FromPerson( Person person )
+            public static FamilyPersonState FromPerson( Person person, int childRelationshipToAdult, bool inPrimaryFamily )
             {
                 var familyPersonState = new FamilyPersonState();
                 familyPersonState.IsAdult = person.AgeClassification == AgeClassification.Adult;
@@ -117,8 +127,8 @@ namespace Rock.CheckIn.Registration
 
                 familyPersonState.AlternateID = person.GetPersonSearchKeys().Where( a => a.SearchTypeValueId == _personSearchAlternateValueId ).Select( a => a.SearchValue ).FirstOrDefault();
                 familyPersonState.BirthDate = person.BirthDate;
-                familyPersonState.ChildRelationshipToAdult = 0;
-                familyPersonState.InPrimaryFamily = true;
+                familyPersonState.ChildRelationshipToAdult = childRelationshipToAdult;
+                familyPersonState.InPrimaryFamily = inPrimaryFamily;
                 familyPersonState.Email = person.Email;
                 familyPersonState.FirstName = person.NickName;
                 familyPersonState.Gender = person.Gender;
@@ -263,6 +273,14 @@ namespace Rock.CheckIn.Registration
                 }
             }
 
+            /// <summary>
+            /// Returns the Search term to use when searching for this person's family
+            /// </summary>
+            /// <value>
+            /// The full name for search.
+            /// </value>
+            public string FullNameForSearch => Person.FormatFullName( this.FirstName, this.LastName, null );
+            
             /// <summary>
             /// Gets the age.
             /// </summary>

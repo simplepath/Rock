@@ -1,5 +1,4 @@
 ﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="Search.ascx.cs" Inherits="RockWeb.Blocks.CheckIn.Search" %>
-<%@ Reference Control="~/Blocks/CheckIn/EditFamily.ascx" %>
 
 <asp:UpdatePanel ID="upContent" runat="server">
 <ContentTemplate>

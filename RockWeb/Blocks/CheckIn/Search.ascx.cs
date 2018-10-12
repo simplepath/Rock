@@ -29,14 +29,14 @@ namespace RockWeb.Blocks.CheckIn
     /// <summary>
     /// Search Block for Checkin
     /// </summary>
-    /// <seealso cref="Rock.CheckIn.CheckInBlock" />
+    /// <seealso cref="Rock.CheckIn.CheckInSearchBlock" />
     [DisplayName( "Search" )]
     [Category( "Check-in" )]
     [Description( "Searches by name or phone number depending on settings." )]
 
     [TextField( "Title", "Title to display. Use {0} for search type.", false, "Search By {0}", "Text", 5 )]
     [TextField( "No Option Message", "", false, "There were not any families that match the search criteria.", "Text", 6 )]
-    public partial class Search : CheckInBlock
+    public partial class Search : CheckInSearchBlock
     {
         /// <summary>
         /// Raises the <see cref="E:System.Web.UI.Control.Init" /> event.
@@ -116,7 +116,7 @@ namespace RockWeb.Blocks.CheckIn
                 if ( this.Request.Params["__EVENTARGUMENT"] == "AddFamily" )
                 {
                     hfShowAddFamilyPrompt.Value = "0";
-                    var editFamilyBlock = this.RockPage.ControlsOfTypeRecursive<RockWeb.Blocks.CheckIn.EditFamily>().FirstOrDefault();
+                    var editFamilyBlock = this.RockPage.ControlsOfTypeRecursive<CheckInEditFamilyBlock>().FirstOrDefault();
                     if ( editFamilyBlock != null )
                     {
                         editFamilyBlock.ShowAddFamily();
@@ -126,14 +126,19 @@ namespace RockWeb.Blocks.CheckIn
         }
 
         /// <summary>
-        /// Handles the Click event of the lbSearch control.
+        /// Searches for Families based on the searchString
         /// </summary>
-        /// <param name="sender">The source of the event.</param>
-        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
-        protected void lbSearch_Click( object sender, EventArgs e )
+        /// <param name="searchString">The search string.</param>
+        public override void ProcessSearch( string searchString )
         {
             if ( KioskCurrentlyActive )
             {
+                txtName.Text = searchString;
+                if ( !searchString.Any( c => char.IsLetter( c ) ) )
+                {
+                    tbPhone.Text = searchString;
+                }
+
                 Guid searchTypeGuid = Rock.SystemGuid.DefinedValue.CHECKIN_SEARCH_TYPE_PHONE_NUMBER.AsGuid();
                 if ( ( this.CurrentCheckInState != null ) && this.CurrentCheckInState.Kiosk.RegistrationModeEnabled )
                 {
@@ -167,6 +172,23 @@ namespace RockWeb.Blocks.CheckIn
                         SearchByPhone();
                     }
                 }
+            }
+        }
+
+        /// <summary>
+        /// Handles the Click event of the lbSearch control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
+        protected void lbSearch_Click( object sender, EventArgs e )
+        {
+            if ( tbPhone.Visible )
+            {
+                ProcessSearch( tbPhone.Text );
+            }
+            else
+            {
+                ProcessSearch( txtName.Text );
             }
         }
 
@@ -225,7 +247,7 @@ namespace RockWeb.Blocks.CheckIn
                     ? string.Format( "<p>Please enter no more than {0} numbers</p>", maxLength )
                     : string.Format( "<p>Please enter at least {0} numbers</p>", minLength );
 
-                maWarning.Show( errorMsg, Rock.Web.UI.Controls.ModalAlertType.Warning );
+                maWarning.Show( errorMsg, Rock.Web.UI.Controls.ModalAlertType.None );
             }
         }
 
@@ -250,7 +272,7 @@ namespace RockWeb.Blocks.CheckIn
         /// <returns>true if it was successful; false otherwise.</returns>
         protected bool ProcessSelection()
         {
-            var editFamilyBlock = this.RockPage.ControlsOfTypeRecursive<RockWeb.Blocks.CheckIn.EditFamily>().FirstOrDefault();
+            var editFamilyBlock = this.RockPage.ControlsOfTypeRecursive<CheckInEditFamilyBlock>().FirstOrDefault();
 
             hfShowAddFamilyPrompt.Value = "0";
 

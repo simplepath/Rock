@@ -41,7 +41,7 @@ namespace RockWeb.Blocks.CheckIn
     [DisplayName( "Edit Family" )]
     [Category( "Check-in" )]
     [Description( "Block to Add or Edit a Family during the Check-in Process." )]
-    public partial class EditFamily : CheckInBlock
+    public partial class EditFamily : CheckInEditFamilyBlock
     {
         /// <summary>
         /// Gets or sets the state of the edit family.
@@ -161,7 +161,7 @@ namespace RockWeb.Blocks.CheckIn
 
             CreateDynamicFamilyControls( FamilyRegistrationState.FromGroup( new Group() { GroupTypeId = GroupTypeCache.GetFamilyGroupType().Id } ), false );
 
-            CreateDynamicPersonControls( FamilyRegistrationState.FamilyPersonState.FromPerson( new Person() ), false );
+            CreateDynamicPersonControls( FamilyRegistrationState.FamilyPersonState.FromTemporaryPerson(), false );
         }
 
         /// <summary>
@@ -306,17 +306,18 @@ namespace RockWeb.Blocks.CheckIn
         #region Edit Family
 
         /// <summary>
-        /// Shows the Edit Family modal dialog (Called from other Checkin Blocks)
+        /// Shows the Edit Family block in Edit Family mode
         /// </summary>
-        public void ShowEditFamily( CheckInFamily checkInFamily )
+        /// <param name="checkInFamily">The check in family.</param>
+        public override void ShowEditFamily( CheckInFamily checkInFamily )
         {
             ShowFamilyDetail( checkInFamily );
         }
 
         /// <summary>
-        /// Shows the Add family modal dialog (Called from other Checkin Blocks)
+        /// Shows the Edit Family block in New Family mode
         /// </summary>
-        public void ShowAddFamily()
+        public override void ShowAddFamily()
         {
             ShowFamilyDetail( null );
         }
@@ -349,7 +350,7 @@ namespace RockWeb.Blocks.CheckIn
 
                 foreach ( var groupMember in groupMemberList )
                 {
-                    var familyPersonState = FamilyRegistrationState.FamilyPersonState.FromPerson( groupMember.Person );
+                    var familyPersonState = FamilyRegistrationState.FamilyPersonState.FromPerson( groupMember.Person, 0, true );
                     familyPersonState.GroupMemberGuid = groupMember.Guid;
                     familyPersonState.GroupId = groupMember.GroupId;
                     familyPersonState.IsAdult = groupMember.GroupRoleId == _groupTypeRoleAdultId;
@@ -363,7 +364,7 @@ namespace RockWeb.Blocks.CheckIn
                 {
                     if ( !this.EditFamilyState.FamilyPersonListState.Any( a => a.PersonId == personRelationship.Person.Id ) )
                     {
-                        var familyPersonState = FamilyRegistrationState.FamilyPersonState.FromPerson( personRelationship.Person );
+                        var familyPersonState = FamilyRegistrationState.FamilyPersonState.FromPerson( personRelationship.Person, personRelationship.GroupRoleId, false );
                         familyPersonState.GroupMemberGuid = Guid.NewGuid();
                         var relatedFamily = personRelationship.Person.GetFamily();
                         if ( relatedFamily != null )
@@ -386,6 +387,7 @@ namespace RockWeb.Blocks.CheckIn
             else
             {
                 this.EditFamilyState = FamilyRegistrationState.FromGroup( new Group() { GroupTypeId = GroupTypeCache.GetFamilyGroupType().Id } );
+                CreateDynamicFamilyControls( EditFamilyState, true );
                 hfGroupId.Value = "0";
                 mdEditFamily.Title = "Add Family";
                 EditGroupMember( null );
@@ -543,18 +545,47 @@ namespace RockWeb.Blocks.CheckIn
                 {
                     // if this is a new family, add it to the Checkin.Families so that the CurrentFamily wil be set to the new family
                     currentFamily = new CheckInFamily() { Selected = false };
-                    CurrentCheckInState.CheckIn.Families.Add( currentFamily  );
+                    currentFamily.Group = new GroupService( rockContext ).GetNoTracking( EditFamilyState.GroupId.Value ).Clone( false );
+                    CurrentCheckInState.CheckIn.Families.Add( currentFamily );
                 }
 
                 if ( currentFamily.Selected )
                 {
                     currentFamily.People.Clear();
-                    Rock.Workflow.Action.CheckIn.FindFamilyMembers.ProcessForFamily( rockContext, currentFamily, CurrentCheckInState.CheckInType.PreventInactivePeople );
-                    Rock.Workflow.Action.CheckIn.FindRelationships.ProcessForFamily( rockContext, currentFamily, CurrentCheckInState.CheckInType.PreventInactivePeople );
+
+                    // execute the workflow activity that is configured for this block (probably 'Person Search') so that
+                    // the checkin state gets updated with any changes we made in Edit Family
+                    string workflowActivity = GetAttributeValue( "WorkflowActivity" );
+                    List<string> errorMessages;
+                    if ( !string.IsNullOrEmpty( workflowActivity ) )
+                    {
+                        ProcessActivity( workflowActivity, out errorMessages );
+                    }
                 }
 
-                // reload the current page so that other blocks will get updated correctly
-                NavigateToCurrentPageReference();
+                // if the searchBlock is on this page, have it re-search using the person's updated full name
+                var searchBlock = this.RockPage.ControlsOfTypeRecursive<CheckInSearchBlock>().FirstOrDefault();
+
+                if ( searchBlock != null )
+                {
+                    var firstFamilyPerson = EditFamilyState.FamilyPersonListState.OrderBy( a => a.IsAdult ).FirstOrDefault();
+                    string searchString;
+                    if ( firstFamilyPerson != null )
+                    {
+                        searchString = firstFamilyPerson.FullNameForSearch;
+                    }
+                    else
+                    {
+                        searchString = CurrentCheckInState.CheckIn.SearchValue;
+                    }
+
+                    searchBlock.ProcessSearch( searchString );
+                }
+                else
+                {
+                    // reload the current page so that other blocks will get updated correctly
+                    NavigateToCurrentPageReference();
+                }
             }
             else
             {
@@ -639,7 +670,7 @@ namespace RockWeb.Blocks.CheckIn
             if ( familyPersonState == null )
             {
                 // create a new temp record so we can set the defaults for the new person
-                familyPersonState = FamilyRegistrationState.FamilyPersonState.FromPerson( new Person() );
+                familyPersonState = FamilyRegistrationState.FamilyPersonState.FromTemporaryPerson();
                 familyPersonState.GroupMemberGuid = Guid.NewGuid();
                 familyPersonState.Gender = Gender.Male;
                 familyPersonState.IsAdult = false;
@@ -660,7 +691,7 @@ namespace RockWeb.Blocks.CheckIn
             tglAdultChild.Visible = !familyPersonState.PersonId.HasValue;
 
             ddlChildRelationShipToAdult.Visible = !familyPersonState.PersonId.HasValue;
-            lChildRelationShipToAdultReadOnly.Visible = familyPersonState.PersonId.HasValue && familyPersonState.ChildRelationshipToAdult != 0;
+            lChildRelationShipToAdultReadOnly.Visible = familyPersonState.PersonId.HasValue;
 
             ShowControlsForRole( tglAdultChild.Checked );
 
@@ -793,7 +824,7 @@ namespace RockWeb.Blocks.CheckIn
             if ( familyPersonState == null )
             {
                 // new person added
-                familyPersonState = FamilyRegistrationState.FamilyPersonState.FromPerson( new Person() );
+                familyPersonState = FamilyRegistrationState.FamilyPersonState.FromTemporaryPerson();
                 familyPersonState.GroupMemberGuid = groupMemberGuid;
                 familyPersonState.PersonId = null;
                 EditFamilyState.FamilyPersonListState.Add( familyPersonState );

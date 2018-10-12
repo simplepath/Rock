@@ -1,4 +1,5 @@
 ﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="EditFamily.ascx.cs" Inherits="RockWeb.Blocks.CheckIn.EditFamily" %>
+<%@ Reference Control="~/Blocks/CheckIn/Search.ascx" %>
 
 <%-- Wrap with a 'Conditional' Update Panel so that we don't loose the modal effect on postback from mdEditFamily --%>
 <asp:UpdatePanel ID="upContent" runat="server" UpdateMode="Conditional">

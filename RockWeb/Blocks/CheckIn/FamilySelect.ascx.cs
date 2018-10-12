@@ -119,7 +119,7 @@ namespace RockWeb.Blocks.CheckIn
                     if ( this.Request.Params["__EVENTARGUMENT"] == "EditFamily" )
                     {
                         hfShowEditFamilyPrompt.Value = "0";
-                        var editFamilyBlock = this.RockPage.ControlsOfTypeRecursive<RockWeb.Blocks.CheckIn.EditFamily>().FirstOrDefault();
+                        var editFamilyBlock = this.RockPage.ControlsOfTypeRecursive<CheckInEditFamilyBlock>().FirstOrDefault();
                         if ( editFamilyBlock != null )
                         {
                             var firstListedFamily = this.CurrentCheckInState.CheckIn.Families.FirstOrDefault();
@@ -255,7 +255,7 @@ namespace RockWeb.Blocks.CheckIn
         /// </summary>
         private void ProcessSelection()
         {
-            var editFamilyBlock = this.RockPage.ControlsOfTypeRecursive<RockWeb.Blocks.CheckIn.EditFamily>().FirstOrDefault();
+            var editFamilyBlock = this.RockPage.ControlsOfTypeRecursive<CheckInEditFamilyBlock>().FirstOrDefault();
 
             hfShowEditFamilyPrompt.Value = "0";
 
@@ -296,7 +296,7 @@ namespace RockWeb.Blocks.CheckIn
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void lbAddFamily_Click( object sender, EventArgs e )
         {
-            var editFamilyBlock = this.RockPage.ControlsOfTypeRecursive<RockWeb.Blocks.CheckIn.EditFamily>().FirstOrDefault();
+            var editFamilyBlock = this.RockPage.ControlsOfTypeRecursive<CheckInEditFamilyBlock>().FirstOrDefault();
             if ( editFamilyBlock != null )
             {
                 editFamilyBlock.ShowAddFamily();

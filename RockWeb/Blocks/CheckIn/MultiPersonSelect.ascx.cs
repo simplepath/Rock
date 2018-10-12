@@ -685,7 +685,7 @@ namespace RockWeb.Blocks.CheckIn
                 return;
             }
 
-            var editFamilyBlock = this.RockPage.ControlsOfTypeRecursive<RockWeb.Blocks.CheckIn.EditFamily>().FirstOrDefault();
+            var editFamilyBlock = this.RockPage.ControlsOfTypeRecursive<CheckInEditFamilyBlock>().FirstOrDefault();
             if ( editFamilyBlock != null && CurrentCheckInState.CheckIn.CurrentFamily != null )
             {
                 editFamilyBlock.ShowEditFamily( CurrentCheckInState.CheckIn.CurrentFamily );
