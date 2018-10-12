@@ -6,6 +6,16 @@
         $('a.btn-checkin-select').click(function () {
             $(this).siblings().attr('onclick', 'return false;');
         });
+
+        if ($('#<%=hfShowEditFamilyPrompt.ClientID%>').val() == "1") {
+
+                Rock.dialogs.confirm('<%=this.ConditionMessage + " Do you want to edit this family?" %>', function (result) {
+                    if (result) {
+                        window.location = "javascript:__doPostBack('<%=upContent.ClientID %>', 'EditFamily')";
+                    }
+                });
+
+            }
     });
 </script>
 
@@ -13,6 +23,7 @@
 <ContentTemplate>
 
     <Rock:ModalAlert ID="maWarning" runat="server" />
+    <asp:HiddenField ID="hfShowEditFamilyPrompt" runat="server" Value="0" />
 
     <div class="checkin-header">
         <h1><asp:Literal ID="lTitle" runat="server" /></h1>

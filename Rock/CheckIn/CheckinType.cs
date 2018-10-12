@@ -392,11 +392,67 @@ namespace Rock.CheckIn
             /// <value>
             /// The known relationship group type roles.
             /// </value>
-            public Dictionary<int, string> KnownRelationshipGroupTypeRoles
+            public Dictionary<int, string> KnownRelationships
             {
                 get
                 {
                     List<int> groupTypeRoleIds = _checkinType.GetSetting( Rock.SystemKey.GroupTypeAttributeKey.CHECKIN_REGISTRATION_KNOWNRELATIONSHIPTYPES ).SplitDelimitedValues().AsIntegerList();
+                    var knownRelationShipRoles = GroupTypeCache.Get( Rock.SystemGuid.GroupType.GROUPTYPE_KNOWN_RELATIONSHIPS ).Roles;
+
+                    var result = new Dictionary<int, string>();
+                    if ( groupTypeRoleIds.Contains( 0 ) )
+                    {
+                        result.Add( 0, "Child" );
+                    }
+
+                    foreach ( var role in knownRelationShipRoles.Where( a => groupTypeRoleIds.Contains( a.Id ) ).ToList() )
+                    {
+                        result.Add( role.Id, role.Name );
+                    }
+
+                    return result;
+                }
+            }
+
+            /// <summary>
+            /// Gets a Dictionary of GroupTypeRoleId and Name for the known relationship group type roles that indicate that the person is in the primary fmily
+            /// </summary>
+            /// <value>
+            /// The known relationships same family.
+            /// </value>
+            public Dictionary<int, string> KnownRelationshipsSameFamily
+            {
+                get
+                {
+                    List<int> groupTypeRoleIds = _checkinType.GetSetting( Rock.SystemKey.GroupTypeAttributeKey.CHECKIN_REGISTRATION_SAMEFAMILYKNOWNRELATIONSHIPTYPES ).SplitDelimitedValues().AsIntegerList();
+                    var knownRelationShipRoles = GroupTypeCache.Get( Rock.SystemGuid.GroupType.GROUPTYPE_KNOWN_RELATIONSHIPS ).Roles;
+
+                    var result = new Dictionary<int, string>();
+                    if ( groupTypeRoleIds.Contains( 0 ) )
+                    {
+                        result.Add( 0, "Child" );
+                    }
+
+                    foreach ( var role in knownRelationShipRoles.Where( a => groupTypeRoleIds.Contains( a.Id ) ).ToList() )
+                    {
+                        result.Add( role.Id, role.Name );
+                    }
+
+                    return result;
+                }
+            }
+
+            /// <summary>
+            /// Gets a Dictionary of GroupTypeRoleId and Name for the known relationship group type roles that indicate that the person is not in the primary family (just "Can Checkin", etc)
+            /// </summary>
+            /// <value>
+            /// The known relationships can checkin.
+            /// </value>
+            public Dictionary<int, string> KnownRelationshipsCanCheckin
+            {
+                get
+                {
+                    List<int> groupTypeRoleIds = _checkinType.GetSetting( Rock.SystemKey.GroupTypeAttributeKey.CHECKIN_REGISTRATION_CANCHECKINKNOWNRELATIONSHIPTYPES ).SplitDelimitedValues().AsIntegerList();
                     var knownRelationShipRoles = GroupTypeCache.Get( Rock.SystemGuid.GroupType.GROUPTYPE_KNOWN_RELATIONSHIPS ).Roles;
 
                     var result = new Dictionary<int, string>();

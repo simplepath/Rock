@@ -152,6 +152,11 @@ namespace RockWeb.Blocks.CheckIn
         {
             base.LoadViewState( savedState );
 
+            if ( CurrentCheckInState == null )
+            {
+                return;
+            }
+
             EditFamilyState = ( this.ViewState["EditFamilyState"] as string ).FromJsonOrNull<FamilyRegistrationState>();
 
             CreateDynamicFamilyControls( FamilyRegistrationState.FromGroup( new Group() { GroupTypeId = GroupTypeCache.GetFamilyGroupType().Id } ), false );
@@ -352,7 +357,7 @@ namespace RockWeb.Blocks.CheckIn
                 }
 
                 var adultIds = this.EditFamilyState.FamilyPersonListState.Where( a => a.IsAdult && a.PersonId.HasValue ).Select( a => a.PersonId.Value ).ToList();
-                var roleIds = CurrentCheckInState.CheckInType.Registration.KnownRelationshipGroupTypeRoles.Where( a => a.Key != 0 ).Select( a => a.Key ).ToList();
+                var roleIds = CurrentCheckInState.CheckInType.Registration.KnownRelationships.Where( a => a.Key != 0 ).Select( a => a.Key ).ToList();
                 IEnumerable<GroupMember> personRelationships = new PersonService( rockContext ).GetRelatedPeople( adultIds, roleIds );
                 foreach ( GroupMember personRelationship in personRelationships )
                 {
@@ -368,6 +373,7 @@ namespace RockWeb.Blocks.CheckIn
 
                         familyPersonState.IsAdult = false;
                         familyPersonState.ChildRelationshipToAdult = personRelationship.GroupRoleId;
+                        familyPersonState.CanCheckIn = CurrentCheckInState.CheckInType.Registration.KnownRelationshipsCanCheckin.Any( k => k.Key == familyPersonState.ChildRelationshipToAdult );
                         this.EditFamilyState.FamilyPersonListState.Add( familyPersonState );
                     }
                 }
@@ -531,30 +537,20 @@ namespace RockWeb.Blocks.CheckIn
             {
                 upContent.Update();
                 mdEditFamily.Hide();
+                var currentFamily = CurrentCheckInState.CheckIn.Families.FirstOrDefault( a => a.Group.Id == EditFamilyState.GroupId );
 
-                if ( CurrentCheckInState.CheckIn.CurrentFamily == null )
+                if ( currentFamily == null )
                 {
                     // if this is a new family, add it to the Checkin.Families so that the CurrentFamily wil be set to the new family
-                    CurrentCheckInState.CheckIn.Families.Add( new CheckInFamily() { Selected = true } );
+                    currentFamily = new CheckInFamily() { Selected = false };
+                    CurrentCheckInState.CheckIn.Families.Add( currentFamily  );
                 }
 
-                // Update CurrentCheckInState.CheckIn.CurrentFamily to match the updated Group (Family) and People
-                CurrentCheckInState.CheckIn.CurrentFamily.Group = new GroupService( rockContext ).Get( EditFamilyState.GroupId.Value ).Clone() as Group;
-                foreach ( var familyPersonState in EditFamilyState.FamilyPersonListState )
+                if ( currentFamily.Selected )
                 {
-                    var checkinPerson = CurrentCheckInState.CheckIn.CurrentFamily.People.FirstOrDefault( a => a.Person.Id == familyPersonState.PersonId.Value );
-                    var databasePerson = new PersonService( rockContext ).Get( familyPersonState.PersonId.Value );
-                    if ( checkinPerson != null )
-                    {
-                        checkinPerson.Person = databasePerson.Clone() as Person;
-                    }
-                    else
-                    {
-                        checkinPerson = new CheckInPerson();
-                        checkinPerson.Person = databasePerson.Clone() as Person;
-                        checkinPerson.FamilyMember = familyPersonState.ChildRelationshipToAdult == 0;
-                        CurrentCheckInState.CheckIn.CurrentFamily.People.Add( checkinPerson );
-                    }
+                    currentFamily.People.Clear();
+                    Rock.Workflow.Action.CheckIn.FindFamilyMembers.ProcessForFamily( rockContext, currentFamily, CurrentCheckInState.CheckInType.PreventInactivePeople );
+                    Rock.Workflow.Action.CheckIn.FindRelationships.ProcessForFamily( rockContext, currentFamily, CurrentCheckInState.CheckInType.PreventInactivePeople );
                 }
 
                 // reload the current page so that other blocks will get updated correctly
@@ -673,13 +669,13 @@ namespace RockWeb.Blocks.CheckIn
 
             ddlChildRelationShipToAdult.Items.Clear();
 
-            foreach ( var relationShipType in CurrentCheckInState.CheckInType.Registration.KnownRelationshipGroupTypeRoles )
+            foreach ( var relationShipType in CurrentCheckInState.CheckInType.Registration.KnownRelationships )
             {
                 ddlChildRelationShipToAdult.Items.Add( new ListItem( relationShipType.Value, relationShipType.Key.ToString() ) );
             }
 
             ddlChildRelationShipToAdult.SetValue( familyPersonState.ChildRelationshipToAdult );
-            lChildRelationShipToAdultReadOnly.Text = CurrentCheckInState.CheckInType.Registration.KnownRelationshipGroupTypeRoles.GetValueOrNull( familyPersonState.ChildRelationshipToAdult );
+            lChildRelationShipToAdultReadOnly.Text = CurrentCheckInState.CheckInType.Registration.KnownRelationships.GetValueOrNull( familyPersonState.ChildRelationshipToAdult );
 
             // Only show the RecordStatus if they aren't currently active
             dvpRecordStatus.Visible = false;
@@ -742,6 +738,11 @@ namespace RockWeb.Blocks.CheckIn
         /// <param name="isAdult">if set to <c>true</c> [is adult].</param>
         private void ShowControlsForRole( bool isAdult )
         {
+            if ( CurrentCheckInState == null )
+            {
+                return;
+            }
+
             tglAdultMaritalStatus.Visible = isAdult;
             dpBirthDate.Visible = !isAdult;
             gpGradePicker.Visible = !isAdult;
@@ -802,6 +803,11 @@ namespace RockWeb.Blocks.CheckIn
             familyPersonState.IsAdult = tglAdultChild.Checked;
             familyPersonState.Gender = tglGender.Checked ? Gender.Male : Gender.Female;
             familyPersonState.ChildRelationshipToAdult = ddlChildRelationShipToAdult.SelectedValue.AsInteger();
+
+            familyPersonState.InPrimaryFamily = CurrentCheckInState.CheckInType.Registration.KnownRelationshipsSameFamily.Any( k => k.Key == familyPersonState.ChildRelationshipToAdult );
+            familyPersonState.CanCheckIn = ( familyPersonState.InPrimaryFamily == false )
+                && CurrentCheckInState.CheckInType.Registration.KnownRelationshipsCanCheckin.Any( k => k.Key == familyPersonState.ChildRelationshipToAdult );
+
             familyPersonState.IsMarried = tglAdultMaritalStatus.Checked;
             familyPersonState.FirstName = tbFirstName.Text.FixCase();
             familyPersonState.LastName = tbLastName.Text.FixCase();

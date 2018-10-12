@@ -115,6 +115,17 @@ namespace RockWeb.Blocks.CheckIn
                     {
                         HandleRepeaterPostback( this.Request.Params["__EVENTARGUMENT"] );
                     }
+
+                    if ( this.Request.Params["__EVENTARGUMENT"] == "EditFamily" )
+                    {
+                        hfShowEditFamilyPrompt.Value = "0";
+                        var editFamilyBlock = this.RockPage.ControlsOfTypeRecursive<RockWeb.Blocks.CheckIn.EditFamily>().FirstOrDefault();
+                        if ( editFamilyBlock != null )
+                        {
+                            var firstListedFamily = this.CurrentCheckInState.CheckIn.Families.FirstOrDefault();
+                            editFamilyBlock.ShowEditFamily( firstListedFamily );
+                        }
+                    }
                 }
             }
         }
@@ -225,17 +236,54 @@ namespace RockWeb.Blocks.CheckIn
         }
 
         /// <summary>
+        /// Gets the condition message.
+        /// </summary>
+        /// <value>
+        /// The condition message.
+        /// </value>
+        protected string ConditionMessage
+        {
+            get
+            {
+                string conditionMessage = string.Format( "<p>{0}</p>", GetAttributeValue( "NoOptionMessage" ) );
+                return conditionMessage;
+            }
+        }
+
+        /// <summary>
         /// Processes the selection.
         /// </summary>
         private void ProcessSelection()
         {
-            if ( !ProcessSelection(
-                maWarning,
-                () => (
-                    CurrentCheckInState.CheckIn.Families.All( f => f.People.Count == 0 ) &&
-                    CurrentCheckInState.CheckIn.Families.All( f => f.Action == CheckinAction.CheckIn )
-                ),
-                string.Format( "<p>{0}</p>", GetAttributeValue( "NoOptionMessage" ) ) ) )
+            var editFamilyBlock = this.RockPage.ControlsOfTypeRecursive<RockWeb.Blocks.CheckIn.EditFamily>().FirstOrDefault();
+
+            hfShowEditFamilyPrompt.Value = "0";
+
+            Func<bool> doNotProceedCondition = () =>
+            {
+                var noMatchingFamilies = CurrentCheckInState.CheckIn.Families.All( f => f.People.Count == 0 ) &&
+                    CurrentCheckInState.CheckIn.Families.All( f => f.Action == CheckinAction.CheckIn );
+
+                if ( noMatchingFamilies )
+                {
+                    if ( CurrentCheckInState.Kiosk.RegistrationModeEnabled && editFamilyBlock != null )
+                    {
+                        hfShowEditFamilyPrompt.Value = "1";
+                        return true;
+                    }
+                    else
+                    {
+                        maWarning.Show( this.ConditionMessage, Rock.Web.UI.Controls.ModalAlertType.None );
+                        return true;
+                    }
+                }
+                else
+                {
+                    return false;
+                }
+            };
+
+            if ( !ProcessSelection( null, doNotProceedCondition, this.ConditionMessage ) )
             {
                 ClearSelection();
             }

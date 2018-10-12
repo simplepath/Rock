@@ -6,7 +6,7 @@
         <asp:HiddenField ID="hfGroupId" runat="server" />
 
         <%-- Edit Family Modal --%>
-        <Rock:ModalDialog ID="mdEditFamily" runat="server" Title="Add Family" CancelLinkVisible="false">
+        <Rock:ModalDialog ID="mdEditFamily" runat="server" Title="Add Family" CancelLinkVisible="false" >
             <Content>
 
                 <%-- Have an inner UpdatePanel wrapper by a 'Conditional' Update Panel so that we don't loose the modal effect on postback from mdEditFamily --%>

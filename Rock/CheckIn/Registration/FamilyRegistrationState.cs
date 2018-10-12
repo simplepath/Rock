@@ -118,6 +118,7 @@ namespace Rock.CheckIn.Registration
                 familyPersonState.AlternateID = person.GetPersonSearchKeys().Where( a => a.SearchTypeValueId == _personSearchAlternateValueId ).Select( a => a.SearchValue ).FirstOrDefault();
                 familyPersonState.BirthDate = person.BirthDate;
                 familyPersonState.ChildRelationshipToAdult = 0;
+                familyPersonState.InPrimaryFamily = true;
                 familyPersonState.Email = person.Email;
                 familyPersonState.FirstName = person.NickName;
                 familyPersonState.Gender = person.Gender;
@@ -192,6 +193,22 @@ namespace Rock.CheckIn.Registration
             /// The child relationship to adult.
             /// </value>
             public int ChildRelationshipToAdult { get; set; }
+
+            /// <summary>
+            /// Gets or sets a value indicating whether [in primary family].
+            /// </summary>
+            /// <value>
+            ///   <c>true</c> if [in primary family]; otherwise, <c>false</c>.
+            /// </value>
+            public bool InPrimaryFamily { get; set; }
+
+            /// <summary>
+            /// If InPrimaryFamily == False, indicates whether the ChildRelationshipToAdult should ensure there is a CanCheckIn relationship
+            /// </summary>
+            /// <value>
+            ///   <c>true</c> if this instance can check in; otherwise, <c>false</c>.
+            /// </value>
+            public bool CanCheckIn { get; set; }
 
             /// <summary>
             /// Gets or sets a value indicating whether this instance is married.
@@ -353,6 +370,8 @@ namespace Rock.CheckIn.Registration
             var numberTypeValueMobile = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() );
             int groupTypeRoleAdultId = GroupTypeCache.GetFamilyGroupType().Roles.FirstOrDefault( a => a.Guid == Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_ADULT.AsGuid() ).Id;
             int groupTypeRoleChildId = GroupTypeCache.GetFamilyGroupType().Roles.FirstOrDefault( a => a.Guid == Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_CHILD.AsGuid() ).Id;
+            int? groupTypeRoleCanCheckInId = GroupTypeCache.Get( Rock.SystemGuid.GroupType.GROUPTYPE_KNOWN_RELATIONSHIPS.AsGuid() )?
+                .Roles.FirstOrDefault( r => r.Guid == Rock.SystemGuid.GroupRole.GROUPROLE_KNOWN_RELATIONSHIPS_CAN_CHECK_IN.AsGuid() )?.Id;
 
             Group primaryFamily = null;
 
@@ -484,7 +503,7 @@ namespace Rock.CheckIn.Registration
             var groupMemberService = new GroupMemberService( rockContext );
 
             // loop thru all people that are part of the same family (in the UI) and ensure they are all in the same primary family (in the database)
-            foreach ( var familyPersonState in editFamilyState.FamilyPersonListState.Where( a => !a.IsDeleted && a.ChildRelationshipToAdult == 0 ) )
+            foreach ( var familyPersonState in editFamilyState.FamilyPersonListState.Where( a => !a.IsDeleted && a.InPrimaryFamily ) )
             {
                 var currentFamilyMember = primaryFamily.Members.FirstOrDefault( m => m.PersonId == familyPersonState.PersonId.Value );
 
@@ -516,7 +535,7 @@ namespace Rock.CheckIn.Registration
             Dictionary<string, Group> newRelatedFamilies = new Dictionary<string, Group>( StringComparer.OrdinalIgnoreCase );
 
             // loop thru all people that are NOT part of the same family
-            foreach ( var familyPersonState in editFamilyState.FamilyPersonListState.Where( a => !a.IsDeleted && a.ChildRelationshipToAdult != 0 ) )
+            foreach ( var familyPersonState in editFamilyState.FamilyPersonListState.Where( a => !a.IsDeleted && a.InPrimaryFamily == false ) )
             {
                 if ( !familyPersonState.GroupId.HasValue )
                 {
@@ -558,9 +577,16 @@ namespace Rock.CheckIn.Registration
                     groupMemberService.Add( familyMember );
                 }
 
-                foreach ( var primaryFamilyAdult in editFamilyState.FamilyPersonListState.Where( a => a.IsAdult && a.ChildRelationshipToAdult == 0 ) )
+                // ensure there are known relationships between each adult in the primary family to this person that isn't in the primary family
+                foreach ( var primaryFamilyAdult in editFamilyState.FamilyPersonListState.Where( a => a.IsAdult && a.InPrimaryFamily ) )
                 {
                     groupMemberService.CreateKnownRelationship( primaryFamilyAdult.PersonId.Value, familyPersonState.PersonId.Value, familyPersonState.ChildRelationshipToAdult );
+
+                    // if this is something other than the CanCheckIn relationship, but is a relationship that should ensure a CanCheckIn relationship, create a CanCheckinRelationship
+                    if ( groupTypeRoleCanCheckInId.HasValue && familyPersonState.CanCheckIn && groupTypeRoleCanCheckInId != familyPersonState.ChildRelationshipToAdult  )
+                    {
+                        groupMemberService.CreateKnownRelationship( primaryFamilyAdult.PersonId.Value, familyPersonState.PersonId.Value, groupTypeRoleCanCheckInId.Value );
+                    }
                 }
             }
         }
