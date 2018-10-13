@@ -80,8 +80,10 @@
                         }
                         else {
                             if ((date.getTime() - lastKeyPress) > 500) {
+                                // if it's been more than 500ms, assume it is a new wedge read, so start a new keyboardBuffer
                                 keyboardBuffer = String.fromCharCode(e.which);
                             } else if ((date.getTime() - lastKeyPress) < 100) {
+                                // if it's been more less than 100ms, assume a wedge read is coming in and append to the keyboardBuffer
                                 keyboardBuffer += String.fromCharCode(e.which);
                             }
                         }
