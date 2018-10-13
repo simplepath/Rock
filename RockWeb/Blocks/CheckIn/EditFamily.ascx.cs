@@ -26,6 +26,7 @@ using Rock.CheckIn;
 using Rock.CheckIn.Registration;
 using Rock.Data;
 using Rock.Model;
+using Rock.Transactions;
 using Rock.Web;
 using Rock.Web.Cache;
 using Rock.Web.UI.Controls;
@@ -530,10 +531,39 @@ namespace RockWeb.Blocks.CheckIn
                 }
             }
 
+            FamilyRegistrationState.SaveResult saveResult = null;
+
             rockContext.WrapTransaction( () =>
             {
-                EditFamilyState.SaveFamilyAndPersonsToDatabase( kioskCampusId, rockContext );
+                saveResult = EditFamilyState.SaveFamilyAndPersonsToDatabase( kioskCampusId, rockContext );
             } );
+
+            // Queue up any Workflows that are configured to fire after a new person and/or family is added
+            if ( saveResult.NewFamilyList.Any() )
+            {
+                var addFamilyWorkflowTypes = CurrentCheckInState.CheckInType.Registration.AddFamilyWorkflowTypes;
+                foreach ( var newFamily in saveResult.NewFamilyList )
+                {
+                    foreach ( var addFamilyWorkflowType in addFamilyWorkflowTypes )
+                    {
+                        LaunchWorkflowTransaction launchWorkflowTransaction = new LaunchWorkflowTransaction<Group>( addFamilyWorkflowType.Id, newFamily.Id );
+                        launchWorkflowTransaction.Enqueue();
+                    }
+                }
+            }
+
+            if ( saveResult.NewPersonList.Any() )
+            {
+                var addPersonWorkflowTypes = CurrentCheckInState.CheckInType.Registration.AddPersonWorkflowTypes;
+                foreach ( var newPerson in saveResult.NewPersonList )
+                {
+                    foreach ( var addPersonWorkflowType in addPersonWorkflowTypes )
+                    {
+                        LaunchWorkflowTransaction launchWorkflowTransaction = new LaunchWorkflowTransaction<Person>( addPersonWorkflowType.Id, newPerson.Id );
+                        launchWorkflowTransaction.Enqueue();
+                    }
+                }
+            }
 
             if ( CurrentCheckInState.CheckInType.Registration.EnableCheckInAfterRegistration )
             {

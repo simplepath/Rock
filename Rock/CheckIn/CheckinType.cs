@@ -471,6 +471,38 @@ namespace Rock.CheckIn
             }
 
             /// <summary>
+            /// WorkflowTypes that should be queued after adding a new family
+            /// </summary>
+            /// <value>
+            /// The add family workflow types.
+            /// </value>
+            public List<WorkflowTypeCache> AddFamilyWorkflowTypes
+            {
+                get
+                {
+                    var workflowTypeGuids = _checkinType.GetSetting( Rock.SystemKey.GroupTypeAttributeKey.CHECKIN_REGISTRATION_ADDPERSONWORKFLOWTYPES )?.SplitDelimitedValues().AsGuidList() ?? new List<Guid>();
+
+                    return workflowTypeGuids.Select( g => WorkflowTypeCache.Get( g ) ).Where( a => a != null ).ToList();
+                }
+            }
+
+            /// <summary>
+            /// WorkflowTypes that should be queued after adding a new person
+            /// </summary>
+            /// <value>
+            /// The add person workflow types.
+            /// </value>
+            public List<WorkflowTypeCache> AddPersonWorkflowTypes
+            {
+                get
+                {
+                    var workflowTypeGuids = _checkinType.GetSetting( Rock.SystemKey.GroupTypeAttributeKey.CHECKIN_REGISTRATION_ADDFAMILYWORKFLOWTYPES )?.SplitDelimitedValues().AsGuidList() ?? new List<Guid>();
+
+                    return workflowTypeGuids.Select( g => WorkflowTypeCache.Get( g ) ).Where( a => a != null ).ToList();
+                }
+            }
+
+            /// <summary>
             /// Gets the attributes that are specified for the GroupType attribute key.
             /// </summary>
             /// <param name="groupTypeAttributeKey">The group type attribute key.</param>

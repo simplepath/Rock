@@ -371,12 +371,37 @@ namespace Rock.CheckIn.Registration
         }
 
         /// <summary>
+        /// Any new Family (Group) record and/or Person records that were added as a result of the Save
+        /// </summary>
+        public class SaveResult
+        {
+            /// <summary>
+            /// Gets the new family list.
+            /// </summary>
+            /// <value>
+            /// The new family list.
+            /// </value>
+            public List<Group> NewFamilyList { get; private set; } = new List<Group>();
+
+            /// <summary>
+            /// Gets the new person list.
+            /// </summary>
+            /// <value>
+            /// The new person list.
+            /// </value>
+            public List<Person> NewPersonList { get; private set; } = new List<Person>();
+        }
+
+        /// <summary>
         /// Saves the family and persons to the database
         /// </summary>
         /// <param name="kioskCampusId">The kiosk campus identifier.</param>
         /// <param name="rockContext">The rock context.</param>
-        public void SaveFamilyAndPersonsToDatabase( int? kioskCampusId, RockContext rockContext )
+        /// <returns></returns>
+        public SaveResult SaveFamilyAndPersonsToDatabase( int? kioskCampusId, RockContext rockContext )
         {
+            SaveResult saveResult = new SaveResult();
+
             FamilyRegistrationState editFamilyState = this;
             var personService = new PersonService( rockContext );
             var groupService = new GroupService( rockContext );
@@ -388,8 +413,8 @@ namespace Rock.CheckIn.Registration
             var numberTypeValueMobile = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() );
             int groupTypeRoleAdultId = GroupTypeCache.GetFamilyGroupType().Roles.FirstOrDefault( a => a.Guid == Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_ADULT.AsGuid() ).Id;
             int groupTypeRoleChildId = GroupTypeCache.GetFamilyGroupType().Roles.FirstOrDefault( a => a.Guid == Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_CHILD.AsGuid() ).Id;
-            int? groupTypeRoleCanCheckInId = GroupTypeCache.Get( Rock.SystemGuid.GroupType.GROUPTYPE_KNOWN_RELATIONSHIPS.AsGuid() )?
-                .Roles.FirstOrDefault( r => r.Guid == Rock.SystemGuid.GroupRole.GROUPROLE_KNOWN_RELATIONSHIPS_CAN_CHECK_IN.AsGuid() )?.Id;
+            int? groupTypeRoleCanCheckInId = GroupTypeCache.Get( Rock.SystemGuid.GroupType.GROUPTYPE_KNOWN_RELATIONSHIPS.AsGuid() )
+                ?.Roles.FirstOrDefault( r => r.Guid == Rock.SystemGuid.GroupRole.GROUPROLE_KNOWN_RELATIONSHIPS_CAN_CHECK_IN.AsGuid() )?.Id;
 
             Group primaryFamily = null;
 
@@ -423,6 +448,7 @@ namespace Rock.CheckIn.Registration
                 {
                     person = new Person();
                     personService.Add( person );
+                    saveResult.NewPersonList.Add( person );
                     person.RecordTypeValueId = recordTypePersonId;
                     person.RecordStatusValueId = recordStatusValue?.Id;
                     person.ConnectionStatusValueId = connectionStatusValue?.Id;
@@ -498,7 +524,7 @@ namespace Rock.CheckIn.Registration
             {
                 // new family and no family found by looking up matching adults, so create a new family
                 primaryFamily = new Group();
-                var familyLastName = editFamilyState.FamilyPersonListState.OrderBy( a => a.IsAdult ).Where( a => !a.IsDeleted ).Select(a => a.LastName).FirstOrDefault();
+                var familyLastName = editFamilyState.FamilyPersonListState.OrderBy( a => a.IsAdult ).Where( a => !a.IsDeleted ).Select( a => a.LastName ).FirstOrDefault();
                 primaryFamily.Name = familyLastName + " Family";
                 primaryFamily.GroupTypeId = GroupTypeCache.GetFamilyGroupType().Id;
 
@@ -506,6 +532,7 @@ namespace Rock.CheckIn.Registration
                 primaryFamily.CampusId = kioskCampusId;
 
                 groupService.Add( primaryFamily );
+                saveResult.NewFamilyList.Add( primaryFamily );
                 rockContext.SaveChanges();
                 editFamilyState.GroupId = primaryFamily.Id;
             }
@@ -570,6 +597,7 @@ namespace Rock.CheckIn.Registration
 
                         newRelatedFamilies.Add( familyPersonState.LastName, relatedFamily );
                         groupService.Add( relatedFamily );
+                        saveResult.NewFamilyList.Add( relatedFamily );
                     }
 
                     rockContext.SaveChanges();
@@ -601,12 +629,14 @@ namespace Rock.CheckIn.Registration
                     groupMemberService.CreateKnownRelationship( primaryFamilyAdult.PersonId.Value, familyPersonState.PersonId.Value, familyPersonState.ChildRelationshipToAdult );
 
                     // if this is something other than the CanCheckIn relationship, but is a relationship that should ensure a CanCheckIn relationship, create a CanCheckinRelationship
-                    if ( groupTypeRoleCanCheckInId.HasValue && familyPersonState.CanCheckIn && groupTypeRoleCanCheckInId != familyPersonState.ChildRelationshipToAdult  )
+                    if ( groupTypeRoleCanCheckInId.HasValue && familyPersonState.CanCheckIn && groupTypeRoleCanCheckInId != familyPersonState.ChildRelationshipToAdult )
                     {
                         groupMemberService.CreateKnownRelationship( primaryFamilyAdult.PersonId.Value, familyPersonState.PersonId.Value, groupTypeRoleCanCheckInId.Value );
                     }
                 }
             }
+
+            return saveResult;
         }
     }
 }

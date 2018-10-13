@@ -6,6 +6,52 @@
     <ContentTemplate>
         <asp:HiddenField ID="hfGroupId" runat="server" />
 
+        <script>
+            Sys.Application.add_load(function () {
+
+                var lastKeyPress = 0;
+                var keyboardBuffer = '';
+
+                var $alternateId = $('.js-alternate-id');
+                if ($alternateId.is(':visible')) {
+                    var alternateIdElementId = $alternateId.prop('id');
+                
+                    $(document).off('keypress').on('keypress', function (e) {
+                        
+                        if (e.target.id != alternateIdElementId) {
+                            var date = new Date();
+                            var timeDiff = (date.getTime() - lastKeyPress);
+                            if ( timeDiff > 500) {
+                                // if it's been more than 500ms, assume it is either a new wedge read or just normal keyboard input
+                                console.log("new input");
+                                keyboardBuffer = String.fromCharCode(e.which);
+                            } else if (timeDiff < 100) {
+                                // if it's been more less than 100ms, assume a wedge read is coming in and append to the keyboardBuffer
+                                console.log("fast input");
+                                var targetBuffer = keyboardBuffer;
+                                keyboardBuffer += String.fromCharCode(e.which);
+                                if (keyboardBuffer.length > 6) {
+                                    // if we've gotton more than 6 chars of 'fast input', pretty good chance it is a wedge
+                                    // A fast typist might be able to cause this to happen too
+                                    var $target = $(e.target);
+                                    var targetVal = $target.val();
+                                    if (targetVal.includes(targetBuffer)) {
+                                        targetVal = targetVal.replace(targetBuffer, '');
+                                        $target.val(targetVal);
+                                    }
+                                    
+                                    $alternateId.val(keyboardBuffer);
+                                    $alternateId.focus();
+                                }
+                            }
+
+                            lastKeyPress = date.getTime();
+                        }
+                    });
+                }
+            });
+        </script>
+
         <%-- Edit Family Modal --%>
         <Rock:ModalDialog ID="mdEditFamily" runat="server" Title="Add Family" CancelLinkVisible="false" >
             <Content>
@@ -45,9 +91,7 @@
                         </asp:Panel>
 
                         <%-- Edit Person View --%>
-                        <asp:Panel ID="pnlEditPerson" runat="server">
-                            
-
+                        <asp:Panel ID="pnlEditPerson" runat="server" DefaultButton="btnDonePerson" >
                             <asp:HiddenField ID="hfGroupMemberGuid" runat="server" />
                             <asp:ValidationSummary ID="vsEditPerson" runat="server" HeaderText="Please correct the following:" CssClass="alert alert-validation" ValidationGroup="vgEditPerson" />
                             <div class="row">
@@ -92,7 +136,7 @@
                                     <Rock:GradePicker ID="gpGradePicker" runat="server" Label="Grade" ValidationGroup="vgEditPerson" />
                                 </div>
                                 <div class="col-md-4">
-                                    <Rock:RockTextBox ID="tbAlternateID" runat="server" Label="Alternate ID" ValidationGroup="vgEditPerson" />
+                                    <Rock:RockTextBox ID="tbAlternateID" runat="server" Label="Alternate ID" CssClass="js-alternate-id" ValidationGroup="vgEditPerson" />
                                 </div>
                             </div>
 
