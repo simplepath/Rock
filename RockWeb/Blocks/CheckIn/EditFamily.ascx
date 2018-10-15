@@ -15,9 +15,9 @@
                 var $alternateId = $('.js-alternate-id');
                 if ($alternateId.is(':visible')) {
                     var alternateIdElementId = $alternateId.prop('id');
-                
+
                     $(document).off('keypress').on('keypress', function (e) {
-                        
+
                         if (e.target.id != alternateIdElementId) {
                             var date = new Date();
                             var timeDiff = (date.getTime() - lastKeyPress);
@@ -39,7 +39,7 @@
                                         targetVal = targetVal.replace(targetBuffer, '');
                                         $target.val(targetVal);
                                     }
-                                    
+
                                     $alternateId.val(keyboardBuffer);
                                     $alternateId.focus();
                                 }
@@ -91,7 +91,9 @@
                         </asp:Panel>
 
                         <%-- Edit Person View --%>
-                        <asp:Panel ID="pnlEditPerson" runat="server" DefaultButton="btnDonePerson" >
+                        <asp:Panel ID="pnlEditPerson" runat="server" DefaultButton="btnDonePerson">
+
+
                             <asp:HiddenField ID="hfGroupMemberGuid" runat="server" />
                             <asp:ValidationSummary ID="vsEditPerson" runat="server" HeaderText="Please correct the following:" CssClass="alert alert-validation" ValidationGroup="vgEditPerson" />
                             <div class="row">

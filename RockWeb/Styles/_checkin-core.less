@@ -54,6 +54,7 @@ h1 {
   font-size: 24px;
   font-weight: @font-weight-semibold;
   white-space: normal;
+  text-align: left;
 }
 
 // 3. Global Styles
@@ -204,7 +205,7 @@ body {
 .tenkey {
   width: 320px;
 
-  a {
+  button {
     &:focus, &:active {
       background-color: @btn-default-bg;
     }
@@ -318,6 +319,7 @@ input.namesearch {
 // checkin summary page
 .checkin-summary {
   list-style-type: none;
+  padding: 0;
 
   li {
     margin-bottom: 18px;
@@ -377,7 +379,7 @@ input.namesearch {
   position: absolute;
   z-index: 1;
   width: 100%;
-  padding-right: 40px;
+  padding: 0 40px 0 40px;
   -webkit-text-size-adjust: none;
   -ms-text-size-adjust: none;
   -webkit-user-select: none;

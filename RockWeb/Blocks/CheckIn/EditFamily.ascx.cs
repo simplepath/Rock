@@ -32,12 +32,12 @@ using Rock.Web.Cache;
 using Rock.Web.UI.Controls;
 
 /// <summary>
-/// 
+///
 /// </summary>
 namespace RockWeb.Blocks.CheckIn
 {
     /// <summary>
-    /// 
+    ///
     /// </summary>
     [DisplayName( "Edit Family" )]
     [Category( "Check-in" )]
@@ -200,7 +200,7 @@ namespace RockWeb.Blocks.CheckIn
                 btnSaveFamily.ValidationGroup,
                 setValues,
                 new List<string>(),
-                3 );
+                2 );
 
             Rock.Attribute.Helper.AddEditControls(
                 string.Empty,
@@ -210,7 +210,7 @@ namespace RockWeb.Blocks.CheckIn
                 btnSaveFamily.ValidationGroup,
                 setValues,
                 new List<string>(),
-                3 );
+                2 );
 
             // override the attribute's IsRequired and set Required based on whether the attribute is part of the Required or Optional set of attributes for the Registration
             foreach ( IHasRequired attributeControl in phFamilyRequiredAttributes.ControlsOfTypeRecursive<Control>().OfType<IHasRequired>() )
@@ -248,7 +248,7 @@ namespace RockWeb.Blocks.CheckIn
                 btnDonePerson.ValidationGroup,
                 setValues,
                 new List<string>(),
-                3 );
+                2 );
 
             Rock.Attribute.Helper.AddEditControls(
                 string.Empty,
@@ -258,7 +258,7 @@ namespace RockWeb.Blocks.CheckIn
                 btnDonePerson.ValidationGroup,
                 setValues,
                 new List<string>(),
-                3 );
+                2 );
 
             Rock.Attribute.Helper.AddEditControls(
                 string.Empty,
@@ -268,7 +268,7 @@ namespace RockWeb.Blocks.CheckIn
                 btnDonePerson.ValidationGroup,
                 setValues,
                 new List<string>(),
-                3 );
+                2 );
 
             Rock.Attribute.Helper.AddEditControls(
                 string.Empty,
@@ -278,7 +278,7 @@ namespace RockWeb.Blocks.CheckIn
                 btnDonePerson.ValidationGroup,
                 setValues,
                 new List<string>(),
-                3 );
+                2 );
 
             // override the attribute's IsRequired and set Required based on whether the attribute is part of the Required or Optional set of attributes for the Registration
             foreach ( IHasRequired attributeControl in phAdultRequiredAttributes.ControlsOfTypeRecursive<Control>().OfType<IHasRequired>() )
