@@ -464,6 +464,11 @@ namespace RockWeb.Blocks.CheckIn
                 string.Format( "<p>{0}</p>", GetAttributeValue( "NoOptionMessage" ) ) );
         }
 
+        protected string GetSelectedClass( bool selected )
+        {
+            return selected ? "is-active" : "";
+        }
+
         protected string GetCheckboxClass( bool selected )
         {
             return selected ? "fa fa-check-square fa-3x" : "fa fa-square-o fa-3x";

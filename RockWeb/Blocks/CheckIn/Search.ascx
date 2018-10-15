@@ -85,7 +85,7 @@
                     </div>
                 </asp:Panel>
 
-                <asp:Panel ID="pnlSearchName" runat="server">
+                <asp:Panel ID="pnlSearchName" CssClass="clearfix" runat="server">
                     <Rock:RockTextBox ID="txtName" runat="server" Label="Name" CssClass="search-input namesearch" />
                 </asp:Panel>
 

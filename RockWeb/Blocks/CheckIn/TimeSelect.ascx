@@ -13,13 +13,14 @@
         <div class="checkin-scroll-panel">
             <div class="scroller">
 
-                <div class="control-group" style="margin: 0 auto">
+                <div class="control-group checkin-time-select" style="margin: 0 auto">
                     <h1><asp:Literal ID="lCaption" runat="server" /></h1>
-                    <div class="checkin-timelist" data-toggle="buttons-checkbox">
+                    <div class="controls checkin-timelist btn-group" data-toggle="buttons-checkbox">
                         <asp:Repeater ID="rSelection" runat="server">
                             <ItemTemplate>
-                                <button type="button" schedule-id='<%# Eval("Schedule.Id") %>' class='<%# "btn btn-checkin-select btn-block" + ((bool)Eval("PreSelected") ? " active" : "") %>'>
-                                    <div class="checkbox-container"><i class="fa fa-square-o"></i></div>
+                                <button type="button" schedule-id='<%# Eval("Schedule.Id") %>' class='<%# "btn btn-default btn-lg btn-checkbox" + ((bool)Eval("PreSelected") ? " active" : "") %>'>
+                                    <i class="fa fa-square-o"></i>
+
                                     <div><%# Container.DataItem.ToString() %></div>
                                 </button>
                             </ItemTemplate>
