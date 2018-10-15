@@ -9,24 +9,50 @@
         <script>
             Sys.Application.add_load(function () {
 
+                // the number of ms since the last time keyboard input was received when in 'capture alternateid' mode'
                 var lastKeyPress = 0;
+
+                // the keyboard input capture in 'capture alternateid' mode prior to the alternate-id field having focus
                 var keyboardBuffer = '';
+
+                // the element that was active when 'capture alternateid' mode detected wedge input
+                var originalTarget = null;
 
                 var $alternateId = $('.js-alternate-id');
                 if ($alternateId.is(':visible')) {
                     var alternateIdElementId = $alternateId.prop('id');
+
+                    $alternateId.on('keypress', function (e) {
+                        if (e.which == 13) {
+                            var date = new Date();
+                            var timeDiff = (date.getTime() - lastKeyPress);
+
+                            if (timeDiff < 500) {
+                                // restore focus back to the element that was active when 'capture alternateid' mode detected wedge input
+
+                                if (originalTarget) {
+                                    originalTarget.focus();
+                                }
+
+                                // don't let a carriage return in the AlternateID field cause the form to submit. It is probably from the Keyboard Wedge if it has been less than 500ms
+                                // NOTE: a Carriage Return from the Wedge takes longer than other input, so we have to wait a little longer (but not too long).
+                                e.preventDefault();
+                                return false;
+                            }
+                        }
+                    });
 
                     $(document).off('keypress').on('keypress', function (e) {
 
                         if (e.target.id != alternateIdElementId) {
                             var date = new Date();
                             var timeDiff = (date.getTime() - lastKeyPress);
-                            if ( timeDiff > 500) {
+                            if (timeDiff > 500) {
                                 // if it's been more than 500ms, assume it is either a new wedge read or just normal keyboard input
                                 console.log("new input");
                                 keyboardBuffer = String.fromCharCode(e.which);
-                            } else if (timeDiff < 100) {
-                                // if it's been more less than 100ms, assume a wedge read is coming in and append to the keyboardBuffer
+                            } else if (timeDiff < 75) {
+                                // if it's been more less than 75ms, assume a wedge read is coming in and append to the keyboardBuffer
                                 console.log("fast input");
                                 var targetBuffer = keyboardBuffer;
                                 keyboardBuffer += String.fromCharCode(e.which);
@@ -41,19 +67,20 @@
                                     }
 
                                     $alternateId.val(keyboardBuffer);
+                                    originalTarget = $(e.target);
                                     $alternateId.focus();
                                 }
                             }
-
-                            lastKeyPress = date.getTime();
                         }
+
+                        lastKeyPress = date.getTime();
                     });
                 }
             });
         </script>
 
         <%-- Edit Family Modal --%>
-        <Rock:ModalDialog ID="mdEditFamily" runat="server" Title="Add Family" CancelLinkVisible="false" >
+        <Rock:ModalDialog ID="mdEditFamily" runat="server" Title="Add Family" CancelLinkVisible="false">
             <Content>
 
                 <%-- Have an inner UpdatePanel wrapper by a 'Conditional' Update Panel so that we don't loose the modal effect on postback from mdEditFamily --%>
@@ -67,7 +94,7 @@
                             <Rock:Grid ID="gFamilyMembers" runat="server" DisplayType="Light" ShowActionRow="false" ShowActionsInHeader="false" ShowHeader="false" ShowFooter="false" OnRowDataBound="gFamilyMembers_RowDataBound" RowItemText="Person">
                                 <Columns>
                                     <asp:BoundField DataField="FullName" />
-                                    <asp:BoundField DataField="GroupRole" />
+                                    <Rock:RockLiteralField ID="lGroupRoleAndRelationship" />
                                     <asp:BoundField DataField="Gender" />
                                     <asp:BoundField DataField="Age" />
                                     <asp:BoundField DataField="GradeFormatted" />
@@ -100,6 +127,9 @@
                                 <div class="col-md-4">
                                     <Rock:Toggle ID="tglAdultChild" runat="server" OnText="Adult" OffText="Child" ActiveButtonCssClass="btn-primary" OnCheckedChanged="tglAdultChild_CheckedChanged" />
                                     <Rock:DefinedValuePicker ID="dvpRecordStatus" runat="server" Label="Record Status" ValidationGroup="vgEditPerson" />
+
+                                    <%-- keep a hidden field for connectionstatus since we need to keep the state, but don't want it to be editable or viewable --%>
+                                    <asp:HiddenField ID="hfConnectionStatus" runat="server" />
                                 </div>
                                 <div class="col-md-4">
                                     <Rock:Toggle ID="tglGender" runat="server" OnText="Male" OffText="Female" ActiveButtonCssClass="btn-primary" />
@@ -131,7 +161,7 @@
                             <div class="row">
                                 <div class="col-md-4">
                                     <Rock:PhoneNumberBox ID="pnMobilePhone" runat="server" Label="Mobile Phone" ValidationGroup="vgEditPerson" />
-                                    <Rock:BirthdayPicker ID="dpBirthDate" runat="server" Label="Birthdate" RequireYear="True" ValidationGroup="vgEditPerson" />
+                                    <Rock:DatePicker ID="dpBirthDate" runat="server" Label="Birthdate" AllowFutureDates="False" RequireYear="True" ShowOnFocus="false" StartView="decade" />
                                 </div>
                                 <div class="col-md-4">
                                     <Rock:EmailBox ID="tbEmail" runat="server" Label="Email" ValidationGroup="vgEditPerson" />

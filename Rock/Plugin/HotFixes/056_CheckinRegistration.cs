@@ -48,6 +48,7 @@ namespace Rock.Plugin.HotFixes
             RockMigrationHelper.AddEntityAttribute( "Rock.Model.GroupType", "BD0D9B57-2A41-4490-89FF-F01DAB7D4904", "GroupTypePurposeValueId", "142", "Known Relationship Types", "", "The known relationships to display in the child’s ‘Relationship to Adult’ field.", 48, "9,0", "93176010-C4E4-4D0A-99C6-D7E73E76E920", "core_checkin_registration_KnownRelationshipTypes" );
             RockMigrationHelper.AddEntityAttribute( "Rock.Model.GroupType", "BD0D9B57-2A41-4490-89FF-F01DAB7D4904", "GroupTypePurposeValueId", "142", "Same Family Known Relationship Types", "", "Of the known relationships defined by Relationship to Adult, which should be used to place the child in the family with the adults.", 49, "0", "AD151CDD-FDDE-4F58-AD28-CCAAE1B27F53", "core_checkin_registration_SameFamilyKnownRelationshipTypes" );
             RockMigrationHelper.AddEntityAttribute( "Rock.Model.GroupType", "BD0D9B57-2A41-4490-89FF-F01DAB7D4904", "GroupTypePurposeValueId", "142", "Can Check-in Known Relationship Types", "", "The known relationships that will place the child in a separate family with a ‘Can Check-in’ relationship back to the person.", 50, "9", "CA8F82B4-66F2-4A2E-9711-3E866F73A4A2", "core_checkin_registration_CanCheckInKnownRelationshipTypes" );
+            RockMigrationHelper.AddEntityAttribute( "Rock.Model.GroupType", "59D5A94C-94A0-4630-B80A-BB25697D74C7", "GroupTypePurposeValueId", "142", "Default Person Connection Status", "", "", 1003, "b91ba046-bc1e-400c-b85d-638c1f4e0ce2", "6869D3CC-2518-4F56-BB55-5E9B128AFB68", "core_checkin_registration_DefaultPersonConnectionStatus" );
 
             RockMigrationHelper.AddEntityAttribute( "Rock.Model.Device", "1EDAFDED-DFE6-4334-B019-6EECBA89E05A", "DeviceTypeValueId", "41", "Registration Mode", "", "Kiosk serves the role of enrolling new families. This enables Add Family and Edit Family features during the check-in process.", 1002, "False", "05F72E44-9D94-4C97-9458-13B038EDEAE3", "core_device_RegistrationMode" );
 
@@ -83,6 +84,7 @@ WHERE [Guid] IN (
         ,'3967BF30-0550-4626-975F-DEED0BDEA479'
         ,'DD198B9A-075E-434C-92DB-413411C1AD77'
         ,'87FBEE5A-55DC-4A3D-A864-6882C34498AD'
+        ,'6869D3CC-2518-4F56-BB55-5E9B128AFB68'
         )
 " );
 
@@ -221,6 +223,22 @@ AND R.[Name] <> 'Child'
 UNION ALL
 SELECT 0, 'Child'
 ORDER BY [Text]", "8B055917-4E83-435E-9C1D-605245AA00BB" );
+
+
+            // core_checkin_registration_DefaultPersonConnectionStatus
+            RockMigrationHelper.UpdateAttributeQualifier( "6869D3CC-2518-4F56-BB55-5E9B128AFB68", "allowmultiple", @"False", "C34B3347-23EF-4CAD-92E5-5209D09F7F21" );
+
+            // core_checkin_registration_DefaultPersonConnectionStatus
+            RockMigrationHelper.UpdateAttributeQualifier( "6869D3CC-2518-4F56-BB55-5E9B128AFB68", "definedtype", @"4", "7897A05B-3E03-47CD-A4B5-389ABDEECD2A" );
+
+            // core_checkin_registration_DefaultPersonConnectionStatus
+            RockMigrationHelper.UpdateAttributeQualifier( "6869D3CC-2518-4F56-BB55-5E9B128AFB68", "displaydescription", @"False", "85B6D721-E1D6-4971-BFC1-572A93CC1404" );
+
+            // core_checkin_registration_DefaultPersonConnectionStatus
+            RockMigrationHelper.UpdateAttributeQualifier( "6869D3CC-2518-4F56-BB55-5E9B128AFB68", "enhancedselection", @"False", "CFD310E9-6FA8-4971-8DFF-76CA60030968" );
+
+            // core_checkin_registration_DefaultPersonConnectionStatus
+            RockMigrationHelper.UpdateAttributeQualifier( "6869D3CC-2518-4F56-BB55-5E9B128AFB68", "includeInactive", @"False", "5CCED4C9-EDC4-4292-991D-6865E4C96EB7" );
 
 
             /* New Checkin Blocks */

@@ -409,9 +409,14 @@ namespace RockWeb.Blocks.CheckIn
         }
 
         /// <summary>
-        /// The index of the 'DeleteField' column in the grid
+        /// The index of the 'DeleteField' column in the grid for gFamilyMembers_RowDataBound
         /// </summary>
         private int _deleteFieldIndex;
+
+        /// <summary>
+        /// The known relationship lookup for gFamilyMembers_RowDataBound
+        /// </summary>
+        private Dictionary<int, string> _knownRelationshipLookup = null;
 
         /// <summary>
         /// Handles the RowDataBound event of the gFamilyMembers control.
@@ -423,6 +428,17 @@ namespace RockWeb.Blocks.CheckIn
             var familyPersonState = e.Row.DataItem as FamilyRegistrationState.FamilyPersonState;
             if ( familyPersonState != null )
             {
+                Literal lGroupRoleAndRelationship = e.Row.FindControl( "lGroupRoleAndRelationship" ) as Literal;
+                if ( lGroupRoleAndRelationship != null )
+                {
+                    lGroupRoleAndRelationship.Text = familyPersonState.GroupRole;
+                    if ( familyPersonState.ChildRelationshipToAdult > 0 && _knownRelationshipLookup != null )
+                    {
+                        var relationshipText = _knownRelationshipLookup.GetValueOrNull( familyPersonState.ChildRelationshipToAdult );
+                        lGroupRoleAndRelationship.Text = string.Format( "{0}<br/>{1}", familyPersonState.GroupRole, relationshipText );
+                    }
+                }
+
                 Literal lRequiredAttributes = e.Row.FindControl( "lRequiredAttributes" ) as Literal;
                 if ( lRequiredAttributes != null )
                 {
@@ -467,6 +483,7 @@ namespace RockWeb.Blocks.CheckIn
             var deleteField = gFamilyMembers.ColumnsOfType<DeleteField>().FirstOrDefault();
             _deleteFieldIndex = gFamilyMembers.Columns.IndexOf( deleteField );
 
+            _knownRelationshipLookup = CurrentCheckInState.CheckInType.Registration.KnownRelationships.ToDictionary( k => k.Key, v => v.Value );
             gFamilyMembers.DataSource = this.EditFamilyState.FamilyPersonListState.Where( a => a.IsDeleted == false ).ToList();
             gFamilyMembers.DataBind();
         }
@@ -542,11 +559,14 @@ namespace RockWeb.Blocks.CheckIn
             if ( saveResult.NewFamilyList.Any() )
             {
                 var addFamilyWorkflowTypes = CurrentCheckInState.CheckInType.Registration.AddFamilyWorkflowTypes;
-                foreach ( var newFamily in saveResult.NewFamilyList )
+
+                // only fire a NewFamily workflow if the Primary family is new (don't fire workflows for any 'Can Checkin' families that were created)
+                var newPrimaryFamily = saveResult.NewFamilyList.FirstOrDefault( a => a.Id == EditFamilyState.GroupId.Value );
+                if ( newPrimaryFamily != null )
                 {
                     foreach ( var addFamilyWorkflowType in addFamilyWorkflowTypes )
                     {
-                        LaunchWorkflowTransaction launchWorkflowTransaction = new LaunchWorkflowTransaction<Group>( addFamilyWorkflowType.Id, newFamily.Id );
+                        LaunchWorkflowTransaction launchWorkflowTransaction = new LaunchWorkflowTransaction<Group>( addFamilyWorkflowType.Id, newPrimaryFamily.Id );
                         launchWorkflowTransaction.Enqueue();
                     }
                 }
@@ -705,6 +725,8 @@ namespace RockWeb.Blocks.CheckIn
                 familyPersonState.Gender = Gender.Male;
                 familyPersonState.IsAdult = false;
                 familyPersonState.IsMarried = false;
+                familyPersonState.RecordStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_ACTIVE.AsGuid() ).Id;
+                familyPersonState.ConnectionStatusValueId = CurrentCheckInState.CheckInType.Registration.DefaultPersonConnectionStatusId;
 
                 var firstFamilyMember = EditFamilyState.FamilyPersonListState.FirstOrDefault();
                 if ( firstFamilyMember != null )
@@ -759,6 +781,7 @@ namespace RockWeb.Blocks.CheckIn
 
             dvpRecordStatus.DefinedTypeId = DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.PERSON_RECORD_STATUS.AsGuid() ).Id;
             dvpRecordStatus.SetValue( familyPersonState.RecordStatusValueId );
+            hfConnectionStatus.Value = familyPersonState.ConnectionStatusValueId.ToString();
 
             var mobilePhoneNumber = familyPersonState.MobilePhoneNumber;
             if ( mobilePhoneNumber != null )
@@ -807,6 +830,7 @@ namespace RockWeb.Blocks.CheckIn
             tglAdultMaritalStatus.Visible = isAdult;
             dpBirthDate.Visible = !isAdult;
             gpGradePicker.Visible = !isAdult;
+            tbEmail.Visible = isAdult;
             pnlChildRelationshipToAdult.Visible = !isAdult;
 
             tbAlternateID.Visible = ( isAdult && CurrentCheckInState.CheckInType.Registration.DisplayAlternateIdFieldforAdults ) || ( !isAdult && CurrentCheckInState.CheckInType.Registration.DisplayAlternateIdFieldforChildren );
@@ -861,6 +885,7 @@ namespace RockWeb.Blocks.CheckIn
             }
 
             familyPersonState.RecordStatusValueId = dvpRecordStatus.SelectedValue.AsIntegerOrNull();
+            familyPersonState.ConnectionStatusValueId = hfConnectionStatus.Value.AsIntegerOrNull();
             familyPersonState.IsAdult = tglAdultChild.Checked;
             familyPersonState.Gender = tglGender.Checked ? Gender.Male : Gender.Female;
             familyPersonState.ChildRelationshipToAdult = ddlChildRelationShipToAdult.SelectedValue.AsInteger();

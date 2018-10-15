@@ -144,6 +144,7 @@ namespace Rock.CheckIn.Registration
                 familyPersonState.SuffixValueId = person.SuffixValueId;
 
                 familyPersonState.RecordStatusValueId = person.RecordStatusValueId;
+                familyPersonState.ConnectionStatusValueId = person.ConnectionStatusValueId;
 
                 return familyPersonState;
             }
@@ -314,6 +315,14 @@ namespace Rock.CheckIn.Registration
             public int? RecordStatusValueId { get; set; }
 
             /// <summary>
+            /// Gets or sets the connection status value identifier.
+            /// </summary>
+            /// <value>
+            /// The connection status value identifier.
+            /// </value>
+            public int? ConnectionStatusValueId { get; set; }
+
+            /// <summary>
             /// Gets or sets the mobile phone number.
             /// </summary>
             /// <value>
@@ -406,8 +415,6 @@ namespace Rock.CheckIn.Registration
             var personService = new PersonService( rockContext );
             var groupService = new GroupService( rockContext );
             var recordTypePersonId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
-            var recordStatusValue = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_ACTIVE.AsGuid() );
-            var connectionStatusValue = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_VISITOR.AsGuid() );
             var maritalStatusMarried = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_MARITAL_STATUS_MARRIED.AsGuid() );
             var maritalStatusSingle = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_MARITAL_STATUS_SINGLE.AsGuid() );
             var numberTypeValueMobile = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() );
@@ -450,8 +457,6 @@ namespace Rock.CheckIn.Registration
                     personService.Add( person );
                     saveResult.NewPersonList.Add( person );
                     person.RecordTypeValueId = recordTypePersonId;
-                    person.RecordStatusValueId = recordStatusValue?.Id;
-                    person.ConnectionStatusValueId = connectionStatusValue?.Id;
                 }
                 else
                 {
@@ -468,6 +473,7 @@ namespace Rock.CheckIn.Registration
                 person.Email = familyPersonState.Email;
                 person.GradeOffset = familyPersonState.GradeOffset;
                 person.RecordStatusValueId = familyPersonState.RecordStatusValueId;
+                person.ConnectionStatusValueId = familyPersonState.ConnectionStatusValueId;
 
                 rockContext.SaveChanges();
 

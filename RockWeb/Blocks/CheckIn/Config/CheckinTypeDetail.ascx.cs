@@ -283,6 +283,21 @@ namespace RockWeb.Blocks.CheckIn.Config
                     Rock.SystemKey.GroupTypeAttributeKey.CHECKIN_REGISTRATION_OPTIONALATTRIBUTESFORFAMILIES,
                     lbRegistrationOptionalAttributesForFamilies.SelectedValues.AsDelimited( "," ) );
 
+                Guid? defaultPersonConnectionStatusValueGuid = null;
+                var defaultPersonConnectionStatusValueId = dvpRegistrationDefaultPersonConnectionStatus.SelectedValue.AsIntegerOrNull();
+                if ( defaultPersonConnectionStatusValueId.HasValue )
+                {
+                    var defaultPersonConnectionStatusValue = DefinedValueCache.Get( defaultPersonConnectionStatusValueId.Value );
+                    if ( defaultPersonConnectionStatusValue != null )
+                    {
+                        defaultPersonConnectionStatusValueGuid = defaultPersonConnectionStatusValue.Guid;
+                    }
+                }
+
+                groupType.SetAttributeValue(
+                    Rock.SystemKey.GroupTypeAttributeKey.CHECKIN_REGISTRATION_DEFAULTPERSONCONNECTIONSTATUS,
+                    dvpRegistrationDefaultPersonConnectionStatus.ToString() );
+
                 var workflowTypeService = new WorkflowTypeService( rockContext );
 
                 groupType.SetAttributeValue(
@@ -375,6 +390,12 @@ namespace RockWeb.Blocks.CheckIn.Config
             if ( groupType == null )
             {
                 groupType = new GroupType { Id = 0 };
+                var templatePurpose = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.GROUPTYPE_PURPOSE_CHECKIN_TEMPLATE.AsGuid() );
+                if ( templatePurpose != null )
+                {
+                    groupType.GroupTypePurposeValueId = templatePurpose.Id;
+                }
+
                 // hide the panel drawer that show created and last modified dates
                 pdAuditDetails.Visible = false;
             }
@@ -490,6 +511,20 @@ namespace RockWeb.Blocks.CheckIn.Config
                 lbRegistrationRequiredAttributesForFamilies.SetValues( groupType.GetAttributeValue( Rock.SystemKey.GroupTypeAttributeKey.CHECKIN_REGISTRATION_REQUIREDATTRIBUTESFORFAMILIES ).SplitDelimitedValues() );
                 lbRegistrationOptionalAttributesForFamilies.SetValues( groupType.GetAttributeValue( Rock.SystemKey.GroupTypeAttributeKey.CHECKIN_REGISTRATION_OPTIONALATTRIBUTESFORFAMILIES ).SplitDelimitedValues() );
 
+                int? defaultPersonConnectionStatusValueId = null;
+                Guid? defaultPersonConnectionStatusValueGuid = groupType.GetAttributeValue( Rock.SystemKey.GroupTypeAttributeKey.CHECKIN_REGISTRATION_DEFAULTPERSONCONNECTIONSTATUS ).AsGuidOrNull();
+                if ( defaultPersonConnectionStatusValueGuid.HasValue )
+                {
+                    var defaultPersonRecordStatusValue = DefinedValueCache.Get( defaultPersonConnectionStatusValueGuid.Value );
+                    if ( defaultPersonRecordStatusValue != null)
+                    {
+                        defaultPersonConnectionStatusValueId = defaultPersonRecordStatusValue.Id;
+                    }
+                }
+
+                dvpRegistrationDefaultPersonConnectionStatus.DefinedTypeId = DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.PERSON_CONNECTION_STATUS.AsGuid() ).Id;
+                dvpRegistrationDefaultPersonConnectionStatus.SetValue( defaultPersonConnectionStatusValueId );
+
                 var workflowTypeService = new WorkflowTypeService( rockContext );
                 wftpRegistrationAddFamilyWorkflowTypes.SetValues( workflowTypeService.GetByGuids( groupType.GetAttributeValue( Rock.SystemKey.GroupTypeAttributeKey.CHECKIN_REGISTRATION_ADDFAMILYWORKFLOWTYPES ).SplitDelimitedValues().AsGuidList() ) );
                 wftpRegistrationAddPersonWorkflowTypes.SetValues( workflowTypeService.GetByGuids( groupType.GetAttributeValue( Rock.SystemKey.GroupTypeAttributeKey.CHECKIN_REGISTRATION_ADDPERSONWORKFLOWTYPES ).SplitDelimitedValues().AsGuidList() ) );
@@ -538,7 +573,7 @@ namespace RockWeb.Blocks.CheckIn.Config
 
             excludeList.Add( Rock.SystemKey.GroupTypeAttributeKey.CHECKIN_REGISTRATION_CANCHECKINKNOWNRELATIONSHIPTYPES );
             excludeList.Add( Rock.SystemKey.GroupTypeAttributeKey.CHECKIN_REGISTRATION_DISPLAYALTERNATEIDFIELDFORADULTS );
-            excludeList.Add( Rock.SystemKey.GroupTypeAttributeKey.CHECKIN_REGISTRATION_DISPLAYALTERNATEIDFIELDFORCHILDREN);
+            excludeList.Add( Rock.SystemKey.GroupTypeAttributeKey.CHECKIN_REGISTRATION_DISPLAYALTERNATEIDFIELDFORCHILDREN );
             excludeList.Add( Rock.SystemKey.GroupTypeAttributeKey.CHECKIN_REGISTRATION_ENABLECHECKINAFTERREGISTRATION );
             excludeList.Add( Rock.SystemKey.GroupTypeAttributeKey.CHECKIN_REGISTRATION_KNOWNRELATIONSHIPTYPES );
             excludeList.Add( Rock.SystemKey.GroupTypeAttributeKey.CHECKIN_REGISTRATION_OPTIONALATTRIBUTESFORADULTS );
@@ -550,6 +585,7 @@ namespace RockWeb.Blocks.CheckIn.Config
             excludeList.Add( Rock.SystemKey.GroupTypeAttributeKey.CHECKIN_REGISTRATION_SAMEFAMILYKNOWNRELATIONSHIPTYPES );
             excludeList.Add( Rock.SystemKey.GroupTypeAttributeKey.CHECKIN_REGISTRATION_ADDFAMILYWORKFLOWTYPES );
             excludeList.Add( Rock.SystemKey.GroupTypeAttributeKey.CHECKIN_REGISTRATION_ADDPERSONWORKFLOWTYPES );
+            excludeList.Add( Rock.SystemKey.GroupTypeAttributeKey.CHECKIN_REGISTRATION_DEFAULTPERSONCONNECTIONSTATUS );
 
             if ( groupType.Attributes.Any( t => !excludeList.Contains( t.Value.Key ) ) )
             {

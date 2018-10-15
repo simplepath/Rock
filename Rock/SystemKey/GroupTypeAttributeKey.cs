@@ -89,5 +89,10 @@ namespace Rock.SystemKey
         /// The grouptype attribute key for checkin registration DisplayAlternateIdFieldforAdults
         /// </summary>
         public const string CHECKIN_REGISTRATION_DISPLAYALTERNATEIDFIELDFORADULTS = "core_checkin_registration_DisplayAlternateIdFieldforAdults";
+
+        /// <summary>
+        /// The grouptype attribute key for checkin registration Default Person Connection Status (DefinedValue.Guid)
+        /// </summary>
+        public const string CHECKIN_REGISTRATION_DEFAULTPERSONCONNECTIONSTATUS = "core_checkin_registration_DefaultPersonConnectionStatus";
     }
 }

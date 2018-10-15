@@ -303,6 +303,31 @@ namespace Rock.CheckIn
             public bool EnableCheckInAfterRegistration => _checkinType.GetSetting( Rock.SystemKey.GroupTypeAttributeKey.CHECKIN_REGISTRATION_ENABLECHECKINAFTERREGISTRATION ).AsBoolean();
 
             /// <summary>
+            /// Gets the default person connection status identifier.
+            /// </summary>
+            /// <value>
+            /// The default person connection status identifier.
+            /// </value>
+            public int? DefaultPersonConnectionStatusId
+            {
+                get
+                {
+                    var personConnectionStatusGuid = _checkinType.GetSetting( Rock.SystemKey.GroupTypeAttributeKey.CHECKIN_REGISTRATION_DEFAULTPERSONCONNECTIONSTATUS ).AsGuidOrNull();
+                    if ( !personConnectionStatusGuid.HasValue )
+                    {
+                        personConnectionStatusGuid = Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_VISITOR.AsGuid();
+                    }
+
+                    if ( personConnectionStatusGuid.HasValue )
+                    {
+                        return DefinedValueCache.Get( personConnectionStatusGuid.Value )?.Id;
+                    }
+
+                    return null;
+                }
+            }
+
+            /// <summary>
             /// Gets the required attributes for adults.
             /// </summary>
             /// <value>
