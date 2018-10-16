@@ -132,9 +132,6 @@
                                     <asp:HiddenField ID="hfConnectionStatus" runat="server" />
                                 </div>
                                 <div class="col-md-6">
-                                    <Rock:Toggle ID="tglGender" runat="server" OnText="Male" OffText="Female" ActiveButtonCssClass="btn-primary" />
-                                </div>
-                                <div class="col-md-12">
                                     <%-- Fields to be shown when editing a Child --%>
                                     <asp:Panel ID="pnlChildRelationshipToAdult" runat="server">
                                         <Rock:RockDropDownList ID="ddlChildRelationShipToAdult" runat="server" Label="Relationship to Adult" />
@@ -160,7 +157,7 @@
                                     <Rock:DefinedValuePicker ID="dvpSuffix" runat="server" Label="Suffix" ValidationGroup="vgEditPerson" />
                                 </div>
                                 <div class="col-md-6">
-                                    <Rock:PhoneNumberBox ID="pnMobilePhone" runat="server" Label="Mobile Phone" ValidationGroup="vgEditPerson" />
+                                    <Rock:Toggle ID="tglGender" runat="server" OnText="Male" OffText="Female" ActiveButtonCssClass="btn-primary" />
                                 </div>
                                 <div class="col-md-6">
                                     <Rock:DatePicker ID="dpBirthDate" runat="server" Label="Birthdate" AllowFutureDateSelection="False" RequireYear="True" ShowOnFocus="false" StartView="decade" />
@@ -169,11 +166,15 @@
                                     <Rock:GradePicker ID="gpGradePicker" runat="server" Label="Grade" ValidationGroup="vgEditPerson" />
                                 </div>
                                 <div class="col-md-6">
+                                    <Rock:PhoneNumberBox ID="pnMobilePhone" runat="server" Label="Mobile Phone" ValidationGroup="vgEditPerson" />
+                                </div>
+                                <div class="col-md-6">
                                     <Rock:EmailBox ID="tbEmail" runat="server" Label="Email" ValidationGroup="vgEditPerson" />
                                 </div>
                                 <div class="col-md-6">
                                     <Rock:RockTextBox ID="tbAlternateID" runat="server" Label="Alternate ID" CssClass="js-alternate-id" ValidationGroup="vgEditPerson" />
                                 </div>
+
                             </div>
 
                             <%-- Person Attributes editing an Adult --%>

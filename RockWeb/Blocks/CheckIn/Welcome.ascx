@@ -125,15 +125,15 @@
                 });
 
                 if ($('.js-manager-login').is(':visible')) {
-                    $('.tenkey button.digit').click(function () {
+                    $('.tenkey a.digit').click(function () {
                         $phoneNumber = $("input[id$='tbPIN']");
                         $phoneNumber.val($phoneNumber.val() + $(this).html());
                     });
-                    $('.tenkey button.back').click(function () {
+                    $('.tenkey a.back').click(function () {
                         $phoneNumber = $("input[id$='tbPIN']");
                         $phoneNumber.val($phoneNumber.val().slice(0, -1));
                     });
-                    $('.tenkey button.clear').click(function () {
+                    $('.tenkey a.clear').click(function () {
                         $phoneNumber = $("input[id$='tbPIN']");
                         $phoneNumber.val('');
                     });
@@ -296,24 +296,24 @@
 
                                     <div class="tenkey checkin-phone-keypad">
                                         <div>
-                                            <button class="btn btn-default btn-lg digit">1</button>
-                                            <button class="btn btn-default btn-lg digit">2</button>
-                                            <button class="btn btn-default btn-lg digit">3</button>
+                                            <a href="#" class="btn btn-default btn-lg btn-keypad digit">1</a>
+                                            <a href="#" class="btn btn-default btn-lg btn-keypad digit">2</a>
+                                            <a href="#" class="btn btn-default btn-lg btn-keypad digit">3</a>
                                         </div>
                                         <div>
-                                            <button class="btn btn-default btn-lg digit">4</button>
-                                            <button class="btn btn-default btn-lg digit">5</button>
-                                            <button class="btn btn-default btn-lg digit">6</button>
+                                            <a href="#" class="btn btn-default btn-lg btn-keypad digit">4</a>
+                                            <a href="#" class="btn btn-default btn-lg btn-keypad digit">5</a>
+                                            <a href="#" class="btn btn-default btn-lg btn-keypad digit">6</a>
                                         </div>
                                         <div>
-                                            <button class="btn btn-default btn-lg digit">7</button>
-                                            <button class="btn btn-default btn-lg digit">8</button>
-                                            <button class="btn btn-default btn-lg digit">9</button>
+                                            <a href="#" class="btn btn-default btn-lg btn-keypad digit">7</a>
+                                            <a href="#" class="btn btn-default btn-lg btn-keypad digit">8</a>
+                                            <a href="#" class="btn btn-default btn-lg btn-keypad digit">9</a>
                                         </div>
                                         <div>
-                                            <button class="btn btn-default btn-lg command clear">Clear</button>
-                                            <button class="btn btn-default btn-lg digit">0</button>
-                                            <button class="btn btn-default btn-lg btn-keypad command back"><i class="fas fa-backspace"></i></button>
+                                            <a href="#" class="btn btn-default btn-lg btn-keypad command clear">Clear</a>
+                                            <a href="#" class="btn btn-default btn-lg btn-keypad digit">0</a>
+                                            <a href="#" class="btn btn-default btn-lg btn-keypad command back"><i class="fas fa-backspace"></i></a>
                                         </div>
                                     </div>
 
@@ -336,8 +336,8 @@
             <div class="checkin-footer">
 
                 <div class="checkin-actions">
-                    <asp:LinkButton ID="lbCancel" runat="server" CausesValidation="false" OnClick="lbCancel_Click" CssClass="btn btn-default btn-cancel">Cancel</asp:LinkButton>
                     <asp:LinkButton ID="lbLogin" runat="server" OnClick="lbLogin_Click" CssClass="btn btn-primary">Login</asp:LinkButton>
+                    <asp:LinkButton ID="lbCancel" runat="server" CausesValidation="false" OnClick="lbCancel_Click" CssClass="btn btn-default btn-cancel">Cancel</asp:LinkButton>
                 </div>
             </div>
 
