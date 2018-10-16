@@ -77,14 +77,14 @@ namespace RockWeb.Blocks.CheckIn
             }}
             else
             {{
-                $('#{0}').button('loading')
+                $('#{0}').button('Loading')
                 $('#{1}').val(ids);
                 return true;
             }}
         }}
 
         $('a.js-person-select').click( function() {{
-            //$(this).toggleClass('btn-dimmed');
+            $(this).toggleClass('active');
             $(this).find('i').toggleClass('fa-check-square').toggleClass('fa-square-o');
             var ids = '';
             $('div.checkin-person-list').find('i.fa-check-square').each( function() {{
@@ -104,7 +104,7 @@ namespace RockWeb.Blocks.CheckIn
             }}
             else
             {{
-                $('#{2}').button('loading')
+                $('#{2}').button('Loading')
                 $('#{3}').val(keys);
                 return true;
             }}
@@ -466,7 +466,7 @@ namespace RockWeb.Blocks.CheckIn
 
         protected string GetSelectedClass( bool selected )
         {
-            return selected ? "is-active" : "";
+            return selected ? "active" : "";
         }
 
         protected string GetCheckboxClass( bool selected )

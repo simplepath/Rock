@@ -5,7 +5,8 @@
 
     <script>
         Sys.Application.add_load(function () {
-          $(document).ready(function() {
+
+            $(document).ready(function() {
                 // set focus to the input unless on a touch device
                 var isTouchDevice = 'ontouchstart' in document.documentElement;
                 if (!isTouchDevice) {
@@ -16,15 +17,15 @@
 
                 }
 
-                $('.tenkey button.digit').click(function () {
+                $('.tenkey a.digit').click(function () {
                     $phoneNumber = $("input[id$='tbPhone']");
                     $phoneNumber.val($phoneNumber.val() + $(this).html());
                 });
-                $('.tenkey button.back').click(function () {
+                $('.tenkey a.back').click(function () {
                     $phoneNumber = $("input[id$='tbPhone']");
                     $phoneNumber.val($phoneNumber.val().slice(0,-1));
                 });
-                $('.tenkey button.clear').click(function () {
+                $('.tenkey a.clear').click(function () {
                     $phoneNumber = $("input[id$='tbPhone']");
                     $phoneNumber.val('');
                 });
@@ -41,7 +42,6 @@
             }
 
         });
-
     </script>
 
     <Rock:ModalAlert ID="maWarning" runat="server" />
@@ -59,28 +59,28 @@
                 <div class="checkin-search-body">
 
                 <asp:Panel ID="pnlSearchPhone" runat="server" CssClass="clearfix">
-                    <Rock:RockTextBox ID="tbPhone" MaxLength="10" CssClass="search-input checkin-phone-entry" runat="server" Label="Phone Number" />
+                    <Rock:RockTextBox ID="tbPhone" MaxLength="10" CssClass="search-input checkin-phone-entry" runat="server" Label="Phone Number" autocomplete="off" />
 
                     <div class="tenkey checkin-phone-keypad">
                         <div>
-                            <button class="btn btn-default btn-lg btn-keypad digit">1</button>
-                            <button class="btn btn-default btn-lg btn-keypad digit">2</button>
-                            <button class="btn btn-default btn-lg btn-keypad digit">3</button>
+                            <a href="#" class="btn btn-default btn-lg btn-keypad digit">1</a>
+                            <a href="#" class="btn btn-default btn-lg btn-keypad digit">2</a>
+                            <a href="#" class="btn btn-default btn-lg btn-keypad digit">3</a>
                         </div>
                         <div>
-                            <button class="btn btn-default btn-lg btn-keypad digit">4</button>
-                            <button class="btn btn-default btn-lg btn-keypad digit">5</button>
-                            <button class="btn btn-default btn-lg btn-keypad digit">6</button>
+                            <a href="#" class="btn btn-default btn-lg btn-keypad digit">4</a>
+                            <a href="#" class="btn btn-default btn-lg btn-keypad digit">5</a>
+                            <a href="#" class="btn btn-default btn-lg btn-keypad digit">6</a>
                         </div>
                         <div>
-                            <button class="btn btn-default btn-lg btn-keypad digit">7</button>
-                            <button class="btn btn-default btn-lg btn-keypad digit">8</button>
-                            <button class="btn btn-default btn-lg btn-keypad digit">9</button>
+                            <a href="#" class="btn btn-default btn-lg btn-keypad digit">7</a>
+                            <a href="#" class="btn btn-default btn-lg btn-keypad digit">8</a>
+                            <a href="#" class="btn btn-default btn-lg btn-keypad digit">9</a>
                         </div>
                         <div>
-                            <button class="btn btn-default btn-lg btn-keypad command clear">Clear</button>
-                            <button class="btn btn-default btn-lg btn-keypad digit">0</button>
-                            <button class="btn btn-default btn-lg btn-keypad command back"><i class="fas fa-backspace"></i></button>
+                            <a href="#" class="btn btn-default btn-lg btn-keypad command clear">Clear</a>
+                            <a href="#" class="btn btn-default btn-lg btn-keypad digit">0</a>
+                            <a href="#" class="btn btn-default btn-lg btn-keypad command back"><i class="fas fa-backspace"></i></a>
                         </div>
                     </div>
                 </asp:Panel>
