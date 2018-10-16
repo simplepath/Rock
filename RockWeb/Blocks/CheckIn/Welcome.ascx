@@ -113,6 +113,17 @@
                     window.location = "javascript:__doPostBack('hfWedgeEntry', 'Family_Id_Search')";
                 }
 
+                // try to find the start button using js-start-button hook, otherwise, just hook to the first anchor tag
+                var $startButton = $('.js-start-button-container .js-start-button');
+                if ($startButton.length == 0) {
+                    $startButton = $('.js-start-button-container a');
+                }
+
+                // handle click of start button in js-start-button-container
+                $startButton.on('click', function (a, b, c) {
+                    window.location = "javascript:__doPostBack('<%=upContent.ClientID%>', 'StartClick')";
+                });
+
                 if ($('.js-manager-login').is(':visible')) {
                     $('.tenkey button.digit').click(function () {
                         $phoneNumber = $("input[id$='tbPIN']");
@@ -213,8 +224,9 @@
             <div class="checkin-body">
                 <div class="checkin-scroll-panel">
                     <div class="scroller">
-                        <div class="checkin-search-actions checkin-start">
-                            <asp:LinkButton CssClass="btn btn-primary btn-checkin" ID="lbSearch" runat="server" OnClick="lbSearch_Click" Text="Check In"></asp:LinkButton>
+                        <%-- lStartButtonHtml will be the button HTML from Lava  --%>
+                        <div class="js-start-button-container">
+                            <asp:Literal ID="lStartButtonHtml" runat="server" />
                         </div>
                     </div>
                 </div>

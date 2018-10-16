@@ -246,6 +246,30 @@ namespace Rock.CheckIn
         /// </value>
         public int? AutoSelectOptions => GetSetting( "core_checkin_AutoSelectOptions" ).AsIntegerOrNull();
 
+        /// <summary>
+        /// Gets the start lava template.
+        /// </summary>
+        /// <value>
+        /// The start lava template.
+        /// </value>
+        public string StartLavaTemplate => GetSetting( Rock.SystemKey.GroupTypeAttributeKey.CHECKIN_START_LAVA_TEMPLATE );
+
+        /// <summary>
+        /// Gets the family select lava template.
+        /// </summary>
+        /// <value>
+        /// The family select lava template.
+        /// </value>
+        public string FamilySelectLavaTemplate => GetSetting( Rock.SystemKey.GroupTypeAttributeKey.CHECKIN_FAMILYSELECT_LAVA_TEMPLATE );
+
+        /// <summary>
+        /// Gets the success lava template.
+        /// </summary>
+        /// <value>
+        /// The success lava template.
+        /// </value>
+        public string SuccessLavaTemplate => GetSetting( Rock.SystemKey.GroupTypeAttributeKey.CHECKIN_SUCCESS_LAVA_TEMPLATE );
+
         #region registration
 
         /// <summary>

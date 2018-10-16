@@ -35,22 +35,6 @@ namespace RockWeb.Blocks.CheckIn
     [TextField( "Title", "Title to display.", false, "Families", "Text", 5 )]
     [TextField( "Caption", "", false, "Select Your Family", "Text", 6 )]
     [TextField( "No Option Message", "", false, "Sorry, no one in your family is eligible to check-in at this location.", "Text", 7 )]
-
-    [CodeEditorField(
-        "Family Select Template",
-        "The Lava Template to use when rendering the Family Select button for each family.",
-        Rock.Web.UI.Controls.CodeEditorMode.Lava,
-        IsRequired = false,
-        DefaultValue = @"
-<a class='btn btn-primary btn-large btn-block btn-checkin-select'>
-{% if RegistrationModeEnabled == true %}
-    {{ Family.Group.Name }}<span class='checkin-sub-title'>{{ Family.FirstNames }}</span>
-{% else %}
-    {{ Family.Group.Name }}<span class='checkin-sub-title'>{{ Family.FirstNames }}</span>
-{% endif %}
-</a>
-",
-        Order = 8 )]
     public partial class FamilySelect : CheckInBlock
     {
         /// <summary>
@@ -170,7 +154,9 @@ namespace RockWeb.Blocks.CheckIn
             mergeFields.Add( "Kiosk", CurrentCheckInState.Kiosk );
             mergeFields.Add( "RegistrationModeEnabled", CurrentCheckInState.Kiosk.RegistrationModeEnabled );
 
-            lSelectFamilyButtonHtml.Text = this.GetAttributeValue( "FamilySelectTemplate" ).ResolveMergeFields( mergeFields );
+            var familySelectLavaTemplate = CurrentCheckInState.CheckInType.FamilySelectLavaTemplate;
+
+            lSelectFamilyButtonHtml.Text = familySelectLavaTemplate.ResolveMergeFields( mergeFields );
         }
 
         /// <summary>

@@ -49,6 +49,42 @@ namespace Rock.Plugin.HotFixes
             RockMigrationHelper.AddEntityAttribute( "Rock.Model.GroupType", "BD0D9B57-2A41-4490-89FF-F01DAB7D4904", "GroupTypePurposeValueId", "142", "Same Family Known Relationship Types", "", "Of the known relationships defined by Relationship to Adult, which should be used to place the child in the family with the adults.", 49, "0", "AD151CDD-FDDE-4F58-AD28-CCAAE1B27F53", "core_checkin_registration_SameFamilyKnownRelationshipTypes" );
             RockMigrationHelper.AddEntityAttribute( "Rock.Model.GroupType", "BD0D9B57-2A41-4490-89FF-F01DAB7D4904", "GroupTypePurposeValueId", "142", "Can Check-in Known Relationship Types", "", "The known relationships that will place the child in a separate family with a ‘Can Check-in’ relationship back to the person.", 50, "9", "CA8F82B4-66F2-4A2E-9711-3E866F73A4A2", "core_checkin_registration_CanCheckInKnownRelationshipTypes" );
             RockMigrationHelper.AddEntityAttribute( "Rock.Model.GroupType", "59D5A94C-94A0-4630-B80A-BB25697D74C7", "GroupTypePurposeValueId", "142", "Default Person Connection Status", "", "", 1003, "b91ba046-bc1e-400c-b85d-638c1f4e0ce2", "6869D3CC-2518-4F56-BB55-5E9B128AFB68", "core_checkin_registration_DefaultPersonConnectionStatus" );
+            RockMigrationHelper.AddEntityAttribute( "Rock.Model.GroupType", "1D0D3794-C210-48A8-8C68-3FBEC08A6BA5", "GroupTypePurposeValueId", "142", "Start Lava Template", "", "The lava template to use when rendering the Start button on the Welcome Block.", 1004, @"<div class='checkin-search-actions checkin-start'>
+{% if RegistrationModeEnabled == true %}
+    <a class='btn btn-primary btn-checkin js-start-button'>
+      <span>{{ CheckinButtonText }}</span>
+    </a>
+{% else %}
+    <a class='btn btn-primary btn-checkin js-start-button'>
+      <span>{{ CheckinButtonText }}</span>
+   </a>
+{% endif %}
+</div>
+", "5F242D2A-FD01-4508-9F4C-ED01124309E7", "core_checkin_StartLavaTemplate" );
+            RockMigrationHelper.AddEntityAttribute( "Rock.Model.GroupType", "1D0D3794-C210-48A8-8C68-3FBEC08A6BA5", "GroupTypePurposeValueId", "142", "Family Select Template", "", "The lava template to use when rendering each family button on the Family Select block.", 1005, @"<a class='btn btn-primary btn-large btn-block btn-checkin-select'>
+{% if RegistrationModeEnabled == true %}
+    {{ Family.Group.Name }}<span class='checkin-sub-title'>{{ Family.FirstNames }}</span>
+{% else %}
+    {{ Family.Group.Name }}<span class='checkin-sub-title'>{{ Family.FirstNames }}</span>
+{% endif %}
+</a>", "3ABA00E7-2C55-434B-BA1F-C392CC9C9D90", "core_checkin_FamilyLavaTemplate" );
+            RockMigrationHelper.AddEntityAttribute( "Rock.Model.GroupType", "1D0D3794-C210-48A8-8C68-3FBEC08A6BA5", "GroupTypePurposeValueId", "142", "Success Template", "", "", 1006, @"<ol class=""checkin-summary checkin-body-container"">
+
+{% for checkinResult in CheckinResultList %}
+    {% if RegistrationModeEnabled == true %}
+        <li>{{ checkinResult.DetailMessage }}</li>
+    {% else %}
+        <li>{{ checkinResult.DetailMessage }}</li>
+    {% endif %}
+{% endfor %}
+
+{% comment %}Display any error messages from the label printer{% endcomment %}
+{% for message in ZebraPrintMessageList %}
+    <br/>{{ message }}
+{% endfor %}
+
+</ol>", "F5BA6DCC-0A4D-4616-871D-ECBA7082C45F", "core_checkin_SuccessLavaTemplate" );
+
 
             RockMigrationHelper.AddEntityAttribute( "Rock.Model.Device", "1EDAFDED-DFE6-4334-B019-6EECBA89E05A", "DeviceTypeValueId", "41", "Registration Mode", "", "Kiosk serves the role of enrolling new families. This enables Add Family and Edit Family features during the check-in process.", 1002, "False", "05F72E44-9D94-4C97-9458-13B038EDEAE3", "core_device_RegistrationMode" );
 
@@ -85,6 +121,9 @@ WHERE [Guid] IN (
         ,'DD198B9A-075E-434C-92DB-413411C1AD77'
         ,'87FBEE5A-55DC-4A3D-A864-6882C34498AD'
         ,'6869D3CC-2518-4F56-BB55-5E9B128AFB68'
+        ,'5F242D2A-FD01-4508-9F4C-ED01124309E7'
+        ,'3ABA00E7-2C55-434B-BA1F-C392CC9C9D90'
+        ,'F5BA6DCC-0A4D-4616-871D-ECBA7082C45F'  
         )
 " );
 
@@ -239,6 +278,34 @@ ORDER BY [Text]", "8B055917-4E83-435E-9C1D-605245AA00BB" );
 
             // core_checkin_registration_DefaultPersonConnectionStatus
             RockMigrationHelper.UpdateAttributeQualifier( "6869D3CC-2518-4F56-BB55-5E9B128AFB68", "includeInactive", @"False", "5CCED4C9-EDC4-4292-991D-6865E4C96EB7" );
+
+
+            // core_checkin_StartLavaTemplate
+            RockMigrationHelper.UpdateAttributeQualifier( "5F242D2A-FD01-4508-9F4C-ED01124309E7", "editorHeight", @"", "52CD97C5-89C0-46AA-9643-93BAFE1048CC" );
+
+            // core_checkin_StartLavaTemplate
+            RockMigrationHelper.UpdateAttributeQualifier( "5F242D2A-FD01-4508-9F4C-ED01124309E7", "editorMode", @"3", "9454CEDB-3975-4F30-A386-DC58C53AEEEF" );
+
+            // core_checkin_StartLavaTemplate
+            RockMigrationHelper.UpdateAttributeQualifier( "5F242D2A-FD01-4508-9F4C-ED01124309E7", "editorTheme", @"0", "EA0D3D09-26BB-4248-918C-EBB2617FEE99" );
+
+            // core_checkin_FamilyLavaTemplate
+            RockMigrationHelper.UpdateAttributeQualifier( "3ABA00E7-2C55-434B-BA1F-C392CC9C9D90", "editorHeight", @"", "6628E68A-E4AF-4935-B3FF-C63DDD009D06" );
+
+            // core_checkin_FamilyLavaTemplate
+            RockMigrationHelper.UpdateAttributeQualifier( "3ABA00E7-2C55-434B-BA1F-C392CC9C9D90", "editorMode", @"3", "DFE260FF-1453-4398-8788-31A337DC476C" );
+
+            // core_checkin_FamilyLavaTemplate
+            RockMigrationHelper.UpdateAttributeQualifier( "3ABA00E7-2C55-434B-BA1F-C392CC9C9D90", "editorTheme", @"0", "386481B8-6CC4-4603-8B52-F2CE14B42095" );
+
+            // core_checkin_SuccessLavaTemplate
+            RockMigrationHelper.UpdateAttributeQualifier( "F5BA6DCC-0A4D-4616-871D-ECBA7082C45F", "editorHeight", @"", "0DBF3708-7CD9-4D0E-8C68-5177AC8E6ADC" );
+
+            // core_checkin_SuccessLavaTemplate
+            RockMigrationHelper.UpdateAttributeQualifier( "F5BA6DCC-0A4D-4616-871D-ECBA7082C45F", "editorMode", @"3", "48BD2454-304F-416B-AC49-2398F47667C9" );
+
+            // core_checkin_SuccessLavaTemplate
+            RockMigrationHelper.UpdateAttributeQualifier( "F5BA6DCC-0A4D-4616-871D-ECBA7082C45F", "editorTheme", @"0", "81AB2246-8592-47D2-8090-AB392BC271E3" );
 
 
             /* New Checkin Blocks */

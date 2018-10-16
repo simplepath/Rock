@@ -20,6 +20,8 @@ namespace Rock.SystemKey
     /// </summary>
     public class GroupTypeAttributeKey
     {
+        #region Registration Specific
+
         /// <summary>
         /// The grouptype attribute key for checkin registration CanCheckInKnownRelationshipTypes
         /// </summary>
@@ -94,5 +96,26 @@ namespace Rock.SystemKey
         /// The grouptype attribute key for checkin registration Default Person Connection Status (DefinedValue.Guid)
         /// </summary>
         public const string CHECKIN_REGISTRATION_DEFAULTPERSONCONNECTIONSTATUS = "core_checkin_registration_DefaultPersonConnectionStatus";
+
+        #endregion Registration Specific
+
+        #region Display
+
+        /// <summary>
+        /// The grouptype attribute key for the checkin start lava template
+        /// </summary>
+        public const string CHECKIN_START_LAVA_TEMPLATE = "core_checkin_StartLavaTemplate";
+
+        /// <summary>
+        /// The grouptype attribute key for the checkin familyselect lava template
+        /// </summary>
+        public const string CHECKIN_FAMILYSELECT_LAVA_TEMPLATE = "core_checkin_FamilyLavaTemplate";
+
+        /// <summary>
+        /// The grouptype attribute key for the checkin success lava template
+        /// </summary>
+        public const string CHECKIN_SUCCESS_LAVA_TEMPLATE = "core_checkin_SuccessLavaTemplate";
+
+        #endregion Display
     }
 }
