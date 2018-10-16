@@ -5,6 +5,7 @@
 <asp:UpdatePanel ID="upContent" runat="server" UpdateMode="Conditional">
     <ContentTemplate>
         <asp:HiddenField ID="hfGroupId" runat="server" />
+        <asp:HiddenField ID="hfShowCancelEditPrompt" runat="server" Value="0" />
 
         <script>
             Sys.Application.add_load(function () {
@@ -76,6 +77,27 @@
                         lastKeyPress = date.getTime();
                     });
                 }
+
+                if ($('#<%=hfShowCancelEditPrompt.ClientID%>').val() == "1") {
+
+                bootbox.confirm({
+                    message: 'Changes have been make to this family. Are you sure you want to cancel?',
+                    buttons: {
+                        cancel: {
+                            label: 'Cancel'
+                        },
+                        confirm: {
+                            label: 'OK'
+                        }
+                    },
+                    callback: function (result) {
+                        if (result) {
+                            window.location = "javascript:__doPostBack('<%=upContent.ClientID %>', 'ConfirmCancelFamily')";
+                        }
+                    }
+                });
+
+            }
             });
         </script>
 

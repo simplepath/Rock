@@ -644,5 +644,14 @@ namespace Rock.CheckIn.Registration
 
             return saveResult;
         }
+
+        /// <summary>
+        /// Gets an Int64 HashCode that can be used to determine if state has been changed
+        /// </summary>
+        /// <returns></returns>
+        public long GetStateHash()
+        {
+            return this.ToJson().MakeInt64HashCode();
+        }
     }
 }

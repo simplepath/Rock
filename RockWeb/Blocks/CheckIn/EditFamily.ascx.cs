@@ -44,6 +44,28 @@ namespace RockWeb.Blocks.CheckIn
     [Description( "Block to Add or Edit a Family during the Check-in Process." )]
     public partial class EditFamily : CheckInEditFamilyBlock
     {
+        #region private fields
+
+        /// <summary>
+        /// A hash of EditFamilyState before any editing. Use this to determine if there were any changes
+        /// </summary>
+        /// <value>
+        /// The initial state hash.
+        /// </value>
+        private long _initialEditFamilyStateHash
+        {
+            get
+            {
+                return ViewState["_initialEditFamilyStateHash"] as long? ?? 0;
+            }
+            set
+            {
+                ViewState["_initialEditFamilyStateHash"] = value;
+            }
+        }
+
+        #endregion 
+
         /// <summary>
         /// Gets or sets the state of the edit family.
         /// </summary>
@@ -143,6 +165,17 @@ namespace RockWeb.Blocks.CheckIn
         protected override void OnLoad( EventArgs e )
         {
             base.OnLoad( e );
+
+            if ( this.IsPostBack )
+            {
+                // make sure the ShowAddFamilyPrompt is disabled so that it doesn't show again until explicitly enabled after doing a Search
+                hfShowCancelEditPrompt.Value = "0";
+
+                if ( this.Request.Params["__EVENTARGUMENT"] == "ConfirmCancelFamily" )
+                {
+                    CancelFamilyEdit( false );
+                }
+            }
         }
 
         /// <summary>
@@ -394,6 +427,8 @@ namespace RockWeb.Blocks.CheckIn
                 EditGroupMember( null );
             }
 
+            UpdateFamilyAttributesState();
+            _initialEditFamilyStateHash = this.EditFamilyState.GetStateHash();
 
             // disable any idle redirect blocks that are on the page when the mdEditFamily modal is open
             DisableIdleRedirectBlocks( true );
@@ -507,7 +542,7 @@ namespace RockWeb.Blocks.CheckIn
             if ( !EditFamilyState.FamilyPersonListState.Any( x => !x.IsDeleted ) )
             {
                 // Saving a new family, but nobody added to family, so just exit
-                btnCancelFamily_Click( sender, e );
+                CancelFamilyEdit( false );
             }
 
             if ( !this.Page.IsValid )
@@ -525,32 +560,7 @@ namespace RockWeb.Blocks.CheckIn
                 kioskCampusId = deviceLocation.CampusId;
             }
 
-            var fakeFamily = new Group() { GroupTypeId = GroupTypeCache.GetFamilyGroupType().Id };
-            fakeFamily.LoadAttributes();
-            Rock.Attribute.Helper.GetEditValues( phFamilyRequiredAttributes, fakeFamily );
-            Rock.Attribute.Helper.GetEditValues( phFamilyOptionalAttributes, fakeFamily );
-
-            // only include the attributes that are included in Required/Optional attributes so that we don't accidentally delete values for attributes are aren't included
-            EditFamilyState.FamilyAttributeValuesState = fakeFamily.AttributeValues
-                .Where( a => RequiredAttributesForFamilies.Any( r => r.Key == a.Key ) || OptionalAttributesForFamilies.Any( r => r.Key == a.Key ) )
-                .ToDictionary( k => k.Key, v => v.Value );
-
-            // only include the attributes for each person that are included in Required/Optional attributes so that we don't accidentally delete values for attributes are aren't included
-            foreach ( var familyPersonState in EditFamilyState.FamilyPersonListState )
-            {
-                if ( familyPersonState.IsAdult )
-                {
-                    familyPersonState.PersonAttributeValuesState = familyPersonState.PersonAttributeValuesState
-                        .Where( a => RequiredAttributesForAdults.Any( r => r.Key == a.Key ) || OptionalAttributesForAdults.Any( r => r.Key == a.Key ) )
-                        .ToDictionary( k => k.Key, v => v.Value );
-                }
-                else
-                {
-                    familyPersonState.PersonAttributeValuesState = familyPersonState.PersonAttributeValuesState
-                        .Where( a => RequiredAttributesForChildren.Any( r => r.Key == a.Key ) || OptionalAttributesForChildren.Any( r => r.Key == a.Key ) )
-                        .ToDictionary( k => k.Key, v => v.Value );
-                }
-            }
+            UpdateFamilyAttributesState();
 
             FamilyRegistrationState.SaveResult saveResult = null;
 
@@ -653,12 +663,66 @@ namespace RockWeb.Blocks.CheckIn
         }
 
         /// <summary>
+        /// Updates the EditFamilyState.FamilyAttributeValuesState each person's PersonAttributeValuesState from any values that were viewable/edited in the UI
+        /// </summary>
+        private void UpdateFamilyAttributesState()
+        {
+            var fakeFamily = new Group() { GroupTypeId = GroupTypeCache.GetFamilyGroupType().Id };
+            fakeFamily.LoadAttributes();
+            Rock.Attribute.Helper.GetEditValues( phFamilyRequiredAttributes, fakeFamily );
+            Rock.Attribute.Helper.GetEditValues( phFamilyOptionalAttributes, fakeFamily );
+
+            // only include the attributes that are included in Required/Optional attributes so that we don't accidentally delete values for attributes are aren't included
+            EditFamilyState.FamilyAttributeValuesState = fakeFamily.AttributeValues
+                .Where( a => RequiredAttributesForFamilies.Any( r => r.Key == a.Key ) || OptionalAttributesForFamilies.Any( r => r.Key == a.Key ) )
+                .ToDictionary( k => k.Key, v => v.Value );
+
+            // only include the attributes for each person that are included in Required/Optional attributes so that we don't accidentally delete values for attributes are aren't included
+            foreach ( var familyPersonState in EditFamilyState.FamilyPersonListState )
+            {
+                if ( familyPersonState.IsAdult )
+                {
+                    familyPersonState.PersonAttributeValuesState = familyPersonState.PersonAttributeValuesState
+                        .Where( a => RequiredAttributesForAdults.Any( r => r.Key == a.Key ) || OptionalAttributesForAdults.Any( r => r.Key == a.Key ) )
+                        .ToDictionary( k => k.Key, v => v.Value );
+                }
+                else
+                {
+                    familyPersonState.PersonAttributeValuesState = familyPersonState.PersonAttributeValuesState
+                        .Where( a => RequiredAttributesForChildren.Any( r => r.Key == a.Key ) || OptionalAttributesForChildren.Any( r => r.Key == a.Key ) )
+                        .ToDictionary( k => k.Key, v => v.Value );
+                }
+            }
+        }
+
+        /// <summary>
         /// Handles the Click event of the btnCancelFamily control.
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void btnCancelFamily_Click( object sender, EventArgs e )
         {
+            CancelFamilyEdit( true );
+        }
+
+        /// <summary>
+        /// Cancels the family edit.
+        /// </summary>
+        /// <param name="promptIfChangesMade">if set to <c>true</c> [prompt if changes made].</param>
+        private void CancelFamilyEdit( bool promptIfChangesMade )
+        {
+            if ( promptIfChangesMade )
+            {
+                UpdateFamilyAttributesState();
+                long currentEditFamilyStateHash = EditFamilyState.GetStateHash();
+                if ( _initialEditFamilyStateHash != currentEditFamilyStateHash )
+                {
+                    hfShowCancelEditPrompt.Value = "1";
+                    upContent.Update();
+                    return;
+                }
+            }
+
             upContent.Update();
             mdEditFamily.Hide();
 
@@ -873,7 +937,7 @@ namespace RockWeb.Blocks.CheckIn
             if ( !EditFamilyState.FamilyPersonListState.Any() )
             {
                 // cancelling on adding first person to family, so cancel adding the family too
-                btnCancelFamily_Click( sender, e );
+                CancelFamilyEdit( false );
             }
         }
 
