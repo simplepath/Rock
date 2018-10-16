@@ -27,6 +27,7 @@
 
                             <div class="control-group checkin-body-container">
                                 <label class="control-label"><asp:Literal ID="lCaption" runat="server" /></label>
+                                <asp:LinkButton CssClass="btn btn-primary pull-right" ID="lbEditFamily" runat="server" OnClick="lbEditFamily_Click" Text="Edit Family" /> 
                                 <div class="controls checkin-person-list">
                                     <asp:Repeater ID="rSelection" runat="server">
                                         <ItemTemplate>
@@ -88,7 +89,6 @@
 
                             <div class="control-group checkin-body-container">
                                 <label class="control-label"><asp:Literal ID="lCaption2" runat="server" /></label>
-                                <asp:LinkButton CssClass="btn btn-primary pull-right" ID="lbEditFamily" runat="server" OnClick="lbEditFamily_Click" Text="Edit Family" />
                                 <div class="controls checkin-option-list">
                                     <asp:Repeater ID="rOptions" runat="server">
                                         <ItemTemplate>
