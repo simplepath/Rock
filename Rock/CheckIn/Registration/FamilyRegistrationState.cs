@@ -46,7 +46,7 @@ namespace Rock.CheckIn.Registration
             }
             else
             {
-                familyState.FamilyName = "New Family";
+                familyState.FamilyName = "Add Family";
             }
 
             familyState.FamilyAttributeValuesState = group.AttributeValues.ToDictionary( k => k.Key, v => v.Value );
@@ -265,7 +265,7 @@ namespace Rock.CheckIn.Registration
                 {
                     if ( this.FirstName == null && this.LastName == null )
                     {
-                        return "New Person";
+                        return "Add Person";
                     }
                     else
                     {

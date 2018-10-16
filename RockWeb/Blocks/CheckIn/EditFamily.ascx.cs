@@ -316,7 +316,7 @@ namespace RockWeb.Blocks.CheckIn
         }
 
         /// <summary>
-        /// Shows the Edit Family block in New Family mode
+        /// Shows the Edit Family block in Add Family mode
         /// </summary>
         public override void ShowAddFamily()
         {
@@ -393,6 +393,10 @@ namespace RockWeb.Blocks.CheckIn
                 mdEditFamily.Title = "Add Family";
                 EditGroupMember( null );
             }
+
+
+            // disable any idle redirect blocks that are on the page when the mdEditFamily modal is open
+            DisableIdleRedirectBlocks( true );
 
             upContent.Update();
             mdEditFamily.Show();
@@ -589,6 +593,10 @@ namespace RockWeb.Blocks.CheckIn
             {
                 upContent.Update();
                 mdEditFamily.Hide();
+
+                // un-disable any IdleRedirect blocks
+                DisableIdleRedirectBlocks( false );
+
                 var currentFamily = CurrentCheckInState.CheckIn.Families.FirstOrDefault( a => a.Group.Id == EditFamilyState.GroupId );
 
                 if ( currentFamily == null )
@@ -653,6 +661,9 @@ namespace RockWeb.Blocks.CheckIn
         {
             upContent.Update();
             mdEditFamily.Hide();
+
+            // un-disable any IdleRedirect blocks
+            DisableIdleRedirectBlocks( false );
         }
 
         /// <summary>
