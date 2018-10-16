@@ -63,9 +63,9 @@ namespace Rock.Plugin.HotFixes
 ", "5F242D2A-FD01-4508-9F4C-ED01124309E7", "core_checkin_StartLavaTemplate" );
             RockMigrationHelper.AddEntityAttribute( "Rock.Model.GroupType", "1D0D3794-C210-48A8-8C68-3FBEC08A6BA5", "GroupTypePurposeValueId", "142", "Family Select Template", "", "The lava template to use when rendering each family button on the Family Select block.", 1005, @"<a class='btn btn-primary btn-large btn-block btn-checkin-select'>
 {% if RegistrationModeEnabled == true %}
-    {{ Family.Group.Name }}<span class='checkin-sub-title'>{{ Family.FirstNames }}</span>
+    {{ Family.Group.Name }}<span class='checkin-sub-title'>{{ Family.SubCaption }}</span>
 {% else %}
-    {{ Family.Group.Name }}<span class='checkin-sub-title'>{{ Family.FirstNames }}</span>
+    {{ Family.Group.Name }}<span class='checkin-sub-title'>{{ Family.SubCaption }}</span>
 {% endif %}
 </a>", "3ABA00E7-2C55-434B-BA1F-C392CC9C9D90", "core_checkin_FamilyLavaTemplate" );
             RockMigrationHelper.AddEntityAttribute( "Rock.Model.GroupType", "1D0D3794-C210-48A8-8C68-3FBEC08A6BA5", "GroupTypePurposeValueId", "142", "Success Template", "", "", 1006, @"<ol class=""checkin-summary checkin-body-container"">
@@ -352,26 +352,6 @@ ORDER BY [Text]", "8B055917-4E83-435E-9C1D-605245AA00BB" );
             RockMigrationHelper.AddBlockAttributeValue( "07BC8F00-2925-4CDC-8F9E-DB431B822770", "9B1B49A1-716D-4B5C-A75E-D39B681207AB", @"Person Search" );
             // Attrib Value for Block:Edit Family, Attribute:Workflow Type Page: Person Select (Family Check-in), Site: Rock Check-in
             RockMigrationHelper.AddBlockAttributeValue( "07BC8F00-2925-4CDC-8F9E-DB431B822770", "C7C8C51E-B5A0-49A5-96F3-CB23BB5F81AB", @"3076f178-a242-44e5-a9e7-77e7a622200a" );
-            
-            // Attrib for BlockType: Family Select:Family Select Template
-            RockMigrationHelper.UpdateBlockTypeAttribute( "6B050E12-A232-41F6-94C5-B190F4520607", "1D0D3794-C210-48A8-8C68-3FBEC08A6BA5", "Family Select Template", "FamilySelectTemplate", "", @"The Lava Template to use when rendering the Family Select button for each family.", 8, @"
-<a class='btn btn-primary btn-large btn-block btn-checkin-select'>
-{% if RegistrationModeEnabled == true %}
-    {{ Family.Group.Name }}<span class='checkin-sub-title'>{{ Family.FirstNames }}</span>
-{% else %}
-    {{ Family.Group.Name }}<span class='checkin-sub-title'>{{ Family.FirstNames }}</span>
-{% endif %}
-</a>
-", "C8705104-955A-4E08-A70C-CAFFFEE5B842" );
-            // Attrib Value for Block:Family Select, Attribute:Family Select Template Page: Family Select, Site: Rock Check-in
-            RockMigrationHelper.AddBlockAttributeValue( "CD97D61E-7BCE-436B-ACDD-4383EB7490BA", "C8705104-955A-4E08-A70C-CAFFFEE5B842", @"<a class='btn btn-primary btn-large btn-block btn-checkin-select' onclick=""Rock.controls.bootstrapButton.showLoading(this);"" data-loading-text=""Loading..."">
-{% if RegistrationModeEnabled == true %}
-    {{ Family.Group.Name }}<span class='checkin-sub-title'>{{ Family.FirstNames | Join:', '}}</span>
-{% else %}
-    {{ Family.Group.Name }}<span class='checkin-sub-title'>{{ Family.FirstNames | Join:', ' }}</span>
-{% endif %}
-</a>
-" );
         }
 
         /// <summary>
