@@ -1,5 +1,6 @@
 @import "_rock-variables";
 
+@import "rock-components/picker-date.less";
 /*
   Used to style the check-in screens
 
@@ -17,6 +18,9 @@
 // -------------------------
 @checkin-scrollbar-bg: fade(@text-color, 50%);
 
+@font-size-base: 18px;
+@input-border-radius: 50px;
+@font-size-h1: 28px;
 
 // 2. Bootstrap Overrides
 // -------------------------
@@ -34,7 +38,7 @@ h3 {
 }
 
 h1 {
-  font-size: 28px;
+  // font-size: 28px;
   color: @header-text-color;
 }
 
@@ -44,7 +48,6 @@ h1 {
 
 .form-group label {
   margin-bottom: 6px;
-  font-size: 18px;
 }
 
 .btn-checkin-select {
@@ -234,11 +237,12 @@ body {
   z-index: @zindex-popover;
 
   .modal-content {
-    background-color: @bg-color;
+    background-color: @modal-body-bg;
+    color: @modal-body-text-color;
   }
 
   .modal-footer {
-    border-top-color: lighten(@bg-color, 20%);
+    border-top-color: @modal-footer-border-color;
   }
 }
 
@@ -276,9 +280,8 @@ img[src*="no-photo"] {
 
 // search page
 .checkin-search-body {
-  width: 260px;
-  margin-right: auto !important;
-  margin-left: auto !important;
+  width: 360px;
+  margin: 0 auto;
 }
 
 input.checkin-phone-entry {
@@ -361,6 +364,42 @@ input.namesearch {
   padding-top: 20px;
 }
 
+// Family Registration Toggles
+
+.datepicker {
+  color: @modal-body-text-color;
+}
+
+.toggle-container {
+  margin-top: @line-height-computed + 6px;
+  .form-group();
+}
+
+.btn-group {
+  display: -ms-flexbox;
+  display: flex;
+  border-radius: 50px;
+
+  > .btn {
+    width: 100%;
+    border-radius: 50px;
+  }
+
+  > .btn-default {
+    color: #a09fa0;
+    border-color: #dad8d6;
+    background-color: #ffffff;
+  }
+
+  > .active,
+  > .active:hover {
+    color: #fff;
+    background-color: #76c24e;
+    border-color: #76c24e;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+  }
+}
 
 //
 // 6. Scroll Container

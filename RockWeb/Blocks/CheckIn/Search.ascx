@@ -33,9 +33,20 @@
 
             if ($('#<%=hfShowAddFamilyPrompt.ClientID%>').val() == "1") {
 
-                Rock.dialogs.confirm('<%=this.ConditionMessage + " Do you want to add a new family?" %>', function (result) {
-                    if (result) {
-                        window.location = "javascript:__doPostBack('<%=upContent.ClientID %>', 'AddFamily')";
+                bootbox.confirm({
+                    message: '<%=this.ConditionMessage%>',
+                    buttons: {
+                        cancel: {
+                            label: 'Try Again'
+                        },
+                        confirm: {
+                            label: 'Add a New Family'
+                        }
+                    },
+                    callback: function (result) {
+                        if (result) {
+                            window.location = "javascript:__doPostBack('<%=upContent.ClientID %>', 'AddFamily')";
+                        }
                     }
                 });
 
@@ -59,7 +70,7 @@
                 <div class="checkin-search-body">
 
                 <asp:Panel ID="pnlSearchPhone" runat="server" CssClass="clearfix">
-                    <Rock:RockTextBox ID="tbPhone" MaxLength="10" CssClass="search-input checkin-phone-entry" runat="server" Label="Phone Number" autocomplete="off" />
+                    <Rock:RockTextBox ID="tbPhone" MaxLength="10" CssClass="search-input checkin-phone-entry input-lg" runat="server" Label="Phone Number" autocomplete="off" />
 
                     <div class="tenkey checkin-phone-keypad">
                         <div>
@@ -86,7 +97,7 @@
                 </asp:Panel>
 
                 <asp:Panel ID="pnlSearchName" CssClass="clearfix" runat="server">
-                    <Rock:RockTextBox ID="txtName" runat="server" Label="Name" CssClass="search-input namesearch" />
+                    <Rock:RockTextBox ID="txtName" runat="server" Label="Name" CssClass="search-input namesearch input-lg" />
                 </asp:Panel>
 
                 <div class="checkin-actions">
