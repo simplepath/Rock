@@ -113,9 +113,11 @@ namespace RockWeb.Blocks.CheckIn
             }
             else
             {
+                // make sure the ShowAddFamilyPrompt is disabled so that it doesn't show again until explicitly enabled after doing a Search
+                hfShowAddFamilyPrompt.Value = "0";
+
                 if ( this.Request.Params["__EVENTARGUMENT"] == "AddFamily" )
                 {
-                    hfShowAddFamilyPrompt.Value = "0";
                     var editFamilyBlock = this.RockPage.ControlsOfTypeRecursive<CheckInEditFamilyBlock>().FirstOrDefault();
                     if ( editFamilyBlock != null )
                     {
