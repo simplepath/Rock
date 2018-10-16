@@ -35,6 +35,7 @@
 
                 <div class="control-group checkin-body-container">
                     <label class="control-label"><asp:Literal ID="lCaption" runat="server" /></label>
+                    <asp:LinkButton CssClass="btn btn-link pull-right" ID="lbAddFamily" runat="server" OnClick="lbAddFamily_Click" Text="Add Family"/>
                     <div class="controls">
                         <asp:Repeater ID="rSelection" runat="server" OnItemDataBound="rSelection_ItemDataBound">
                             <ItemTemplate>
@@ -57,8 +58,6 @@
         <div class="checkin-actions">
             <asp:LinkButton CssClass="btn btn-default btn-back" ID="lbBack" runat="server" OnClick="lbBack_Click" Text="Back" />
             <asp:LinkButton CssClass="btn btn-default btn-cancel" ID="lbCancel" runat="server" OnClick="lbCancel_Click" Text="Cancel" />
-
-            <asp:LinkButton CssClass="btn btn-primary pull-right" ID="lbAddFamily" runat="server" OnClick="lbAddFamily_Click" Text="Add Family"/>
         </div>
     </div>
 
