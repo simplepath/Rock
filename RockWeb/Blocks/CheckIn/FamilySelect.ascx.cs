@@ -16,6 +16,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data.Entity;
 using System.Linq;
 using System.Web.UI;
 using System.Web.UI.HtmlControls;
@@ -156,9 +157,24 @@ namespace RockWeb.Blocks.CheckIn
             mergeFields.Add( "Kiosk", CurrentCheckInState.Kiosk );
             mergeFields.Add( "RegistrationModeEnabled", CurrentCheckInState.Kiosk.RegistrationModeEnabled );
 
-            var familySelectLavaTemplate = CurrentCheckInState.CheckInType.FamilySelectLavaTemplate;
+            // prepare a query with a new context in case the Lava wants to access Members of this family, and so that lazy loading will work
+            using ( var rockContext = new Rock.Data.RockContext() )
+            {
+                var familyMembersQuery = new GroupMemberService( rockContext ).Queryable().Include( a => a.Person ).Include( a => a.GroupRole )
+                    .AsNoTracking()
+                    .Where( a => a.GroupId == checkInFamily.Group.Id )
+                    .OrderBy( m => m.GroupRole.Order )
+                                    .ThenBy( m => m.Person.BirthYear )
+                                    .ThenBy( m => m.Person.BirthMonth )
+                                    .ThenBy( m => m.Person.BirthDay )
+                                    .ThenBy( m => m.Person.Gender );
 
-            lSelectFamilyButtonHtml.Text = familySelectLavaTemplate.ResolveMergeFields( mergeFields );
+                var familySelectLavaTemplate = CurrentCheckInState.CheckInType.FamilySelectLavaTemplate;
+
+                mergeFields.Add( "FamilyMembers", familyMembersQuery );
+
+                lSelectFamilyButtonHtml.Text = familySelectLavaTemplate.ResolveMergeFields( mergeFields );
+            }
         }
 
         /// <summary>
