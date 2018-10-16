@@ -26,7 +26,18 @@ namespace Rock.CheckIn
     /// </summary>
     public class CheckinType
     {
-        private GroupTypeCache _checkinType;
+        /// <summary>
+        /// The checkin type identifier
+        /// </summary>
+        private int _checkinTypeId;
+
+        /// <summary>
+        /// Gets the type of the checkin.
+        /// </summary>
+        /// <value>
+        /// The type of the checkin.
+        /// </value>
+        private GroupTypeCache _checkinType => GroupTypeCache.Get( _checkinTypeId );
 
         /// <summary>
         /// Gets the type of checkin.
@@ -570,7 +581,7 @@ namespace Rock.CheckIn
         /// <param name="checkinTypeId">The checkin type identifier.</param>
         public CheckinType( int checkinTypeId )
         {
-            _checkinType = GroupTypeCache.Get( checkinTypeId );
+            _checkinTypeId = checkinTypeId;
 
             Registration = new RegistrationSettings( this );
         }
