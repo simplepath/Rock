@@ -296,7 +296,7 @@ namespace RockWeb.Blocks.CheckIn.Config
 
                 groupType.SetAttributeValue(
                     Rock.SystemKey.GroupTypeAttributeKey.CHECKIN_REGISTRATION_DEFAULTPERSONCONNECTIONSTATUS,
-                    dvpRegistrationDefaultPersonConnectionStatus.ToString() );
+                    defaultPersonConnectionStatusValueGuid.ToString() );
 
                 var workflowTypeService = new WorkflowTypeService( rockContext );
 
