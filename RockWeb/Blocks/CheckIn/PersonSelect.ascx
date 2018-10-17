@@ -24,6 +24,7 @@
 
                 <div class="control-group checkin-body-container">
                     <label class="control-label"><asp:Literal ID="lCaption" runat="server"></asp:Literal></label>
+                    <asp:LinkButton CssClass="btn btn-primary pull-right" ID="lbEditFamily" runat="server" OnClick="lbEditFamily_Click" Text="<i class='fa fa-pencil-alt'></i> Edit Family" />
                     <div class="controls">
                         <asp:Repeater ID="rSelection" runat="server" OnItemCommand="rSelection_ItemCommand" OnItemDataBound="rSelection_ItemDataBound">
                             <ItemTemplate>
@@ -44,8 +45,6 @@
         <div class="checkin-actions">
             <asp:LinkButton CssClass="btn btn-default btn-back" ID="lbBack" runat="server" OnClick="lbBack_Click" Text="Back" />
             <asp:LinkButton CssClass="btn btn-default btn-cancel" ID="lbCancel" runat="server" OnClick="lbCancel_Click" Text="Cancel" />
-
-            <asp:LinkButton CssClass="btn btn-primary pull-right" ID="lbEditFamily" runat="server" OnClick="lbEditFamily_Click" Text="Edit Family" />
         </div>
     </div>
 

@@ -112,8 +112,10 @@
                         <asp:Panel ID="pnlEditFamily" runat="server">
                             <asp:ValidationSummary ID="vsEditFamily" runat="server" HeaderText="Please correct the following:" CssClass="alert alert-validation" ValidationGroup="vgEditFamily" />
                             <%-- Grid --%>
-                            <h2>Family Members</h2>
-                            <asp:LinkButton ID="btnAddPerson" runat="server" CssClass="btn btn-default btn-link" Text="Add Person" CausesValidation="false" OnClick="btnAddPerson_Click" />
+                            <div class="control-group edit-family-header">
+                                <label class="control-label">Family Members</label>
+                                <asp:LinkButton ID="btnAddPerson" runat="server" CssClass="btn btn-link btn-add-person pull-right" Text="<i class='fas fa-plus'></i> Add Person" CausesValidation="false" OnClick="btnAddPerson_Click" />
+                            </div>
                             <Rock:Grid ID="gFamilyMembers" runat="server" DisplayType="Light" ShowActionRow="false" ShowActionsInHeader="false" ShowHeader="false" ShowFooter="false" OnRowDataBound="gFamilyMembers_RowDataBound" RowItemText="Person">
                                 <Columns>
                                     <asp:BoundField DataField="FullName" />

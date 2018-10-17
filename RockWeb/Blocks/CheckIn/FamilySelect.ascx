@@ -35,7 +35,7 @@
 
                 <div class="control-group checkin-body-container">
                     <label class="control-label"><asp:Literal ID="lCaption" runat="server" /></label>
-                    <asp:LinkButton CssClass="btn btn-link pull-right" ID="lbAddFamily" runat="server" OnClick="lbAddFamily_Click" Text="Add Family"/>
+                    <asp:LinkButton CssClass="btn btn-link pull-right" ID="lbAddFamily" runat="server" OnClick="lbAddFamily_Click" Text="<i class='fa fa-plus'></i> Add Family"/>
                     <div class="controls">
                         <asp:Repeater ID="rSelection" runat="server" OnItemDataBound="rSelection_ItemDataBound">
                             <ItemTemplate>

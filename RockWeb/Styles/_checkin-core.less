@@ -394,33 +394,45 @@ input.namesearch {
 .toggle-container {
   margin-top: @line-height-computed + 6px;
   .form-group();
-}
 
-.btn-group {
-  display: -ms-flexbox;
-  display: flex;
-  border-radius: 50px;
-
-  > .btn {
-    width: 100%;
+  .btn-group {
+    display: -ms-flexbox;
+    display: flex;
     border-radius: 50px;
-  }
 
-  > .btn-default {
-    color: #a09fa0;
-    border-color: #dad8d6;
-    background-color: #ffffff;
-  }
+    > .btn {
+      width: 100%;
+      border-radius: 50px;
 
-  > .active,
-  > .active:hover {
-    color: #fff;
-    background-color: #76c24e;
-    border-color: #76c24e;
-    -webkit-box-shadow: none;
-    box-shadow: none;
+      &:active {
+        -webkit-box-shadow: none;
+        box-shadow: none;
+
+        &:focus {
+          background-color: fade(#76c24e, 75%);
+          color: #ffffff;
+        }
+      }
+    }
+
+    > .btn-default {
+      color: #a09fa0;
+      border-color: #dad8d6;
+      background-color: #ffffff;
+    }
+
+    > .active,
+    > .active:hover {
+      color: #fff;
+      background-color: #76c24e;
+      border-color: #76c24e;
+      -webkit-box-shadow: none;
+      box-shadow: none;
+    }
   }
 }
+
+
 
 //
 // 6. Scroll Container

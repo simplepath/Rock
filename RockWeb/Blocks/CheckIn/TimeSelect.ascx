@@ -14,7 +14,7 @@
             <div class="scroller">
 
                 <div class="control-group checkin-time-select" style="margin: 0 auto">
-                    <h1><asp:Literal ID="lCaption" runat="server" /></h1>
+                    <label class="control-label"><asp:Literal ID="lCaption" runat="server" /></label>
                     <div class="controls checkin-timelist btn-group" data-toggle="buttons-checkbox">
                         <asp:Repeater ID="rSelection" runat="server">
                             <ItemTemplate>
