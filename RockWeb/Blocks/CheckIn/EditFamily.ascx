@@ -131,8 +131,7 @@
 
                             <%-- Family Attributes --%>
 
-                            <Rock:DynamicPlaceholder ID="phFamilyRequiredAttributes" runat="server" />
-                            <Rock:DynamicPlaceholder ID="phFamilyOptionalAttributes" runat="server" />
+                            <Rock:DynamicPlaceholder ID="phFamilyAttributes" runat="server" />
 
                             <%-- Edit Family Buttons --%>
                             <div class="actions">
@@ -203,14 +202,12 @@
 
                             <%-- Person Attributes editing an Adult --%>
                             <asp:Panel ID="pnlAdultFields" runat="server">
-                                <Rock:DynamicPlaceholder ID="phAdultRequiredAttributes" runat="server" />
-                                <Rock:DynamicPlaceholder ID="phAdultOptionalAttributes" runat="server" />
+                                <Rock:DynamicPlaceholder ID="phAdultAttributes" runat="server" />
                             </asp:Panel>
 
                             <%-- Person Attributes when editing a Child --%>
                             <asp:Panel ID="pnlChildFields" runat="server">
-                                <Rock:DynamicPlaceholder ID="phChildRequiredAttributes" runat="server" />
-                                <Rock:DynamicPlaceholder ID="phChildOptionalAttributes" runat="server" />
+                                <Rock:DynamicPlaceholder ID="phChildAttributes" runat="server" />
                             </asp:Panel>
 
                             <%-- Person Actions --%>
