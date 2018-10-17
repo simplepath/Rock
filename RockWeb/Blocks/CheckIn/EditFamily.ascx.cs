@@ -52,11 +52,11 @@ namespace RockWeb.Blocks.CheckIn
         /// <value>
         /// The initial state hash.
         /// </value>
-        private long _initialEditFamilyStateHash
+        private int _initialEditFamilyStateHash
         {
             get
             {
-                return ViewState["_initialEditFamilyStateHash"] as long? ?? 0;
+                return ViewState["_initialEditFamilyStateHash"] as int? ?? 0;
             }
             set
             {
@@ -427,7 +427,6 @@ namespace RockWeb.Blocks.CheckIn
                 EditGroupMember( null );
             }
 
-            UpdateFamilyAttributesState();
             _initialEditFamilyStateHash = this.EditFamilyState.GetStateHash();
 
             // disable any idle redirect blocks that are on the page when the mdEditFamily modal is open
@@ -562,6 +561,8 @@ namespace RockWeb.Blocks.CheckIn
 
             UpdateFamilyAttributesState();
 
+            SetEditableStateAttributes();
+
             FamilyRegistrationState.SaveResult saveResult = null;
 
             rockContext.WrapTransaction( () =>
@@ -663,34 +664,35 @@ namespace RockWeb.Blocks.CheckIn
         }
 
         /// <summary>
-        /// Updates the EditFamilyState.FamilyAttributeValuesState each person's PersonAttributeValuesState from any values that were viewable/edited in the UI
+        /// Updates the EditFamilyState.FamilyAttributeValuesState from any values that were viewable/editable in the UI
         /// </summary>
         private void UpdateFamilyAttributesState()
         {
-            var fakeFamily = new Group() { GroupTypeId = GroupTypeCache.GetFamilyGroupType().Id };
+            var fakeFamily = new Group() { GroupTypeId = GroupTypeCache.GetFamilyGroupType().Id, Id = EditFamilyState.GroupId ?? 0 };
             fakeFamily.LoadAttributes();
             Rock.Attribute.Helper.GetEditValues( phFamilyRequiredAttributes, fakeFamily );
             Rock.Attribute.Helper.GetEditValues( phFamilyOptionalAttributes, fakeFamily );
+            
+            EditFamilyState.FamilyAttributeValuesState = fakeFamily.AttributeValues.ToDictionary( k => k.Key, v => v.Value );
+        }
 
-            // only include the attributes that are included in Required/Optional attributes so that we don't accidentally delete values for attributes are aren't included
-            EditFamilyState.FamilyAttributeValuesState = fakeFamily.AttributeValues
-                .Where( a => RequiredAttributesForFamilies.Any( r => r.Key == a.Key ) || OptionalAttributesForFamilies.Any( r => r.Key == a.Key ) )
-                .ToDictionary( k => k.Key, v => v.Value );
+        /// <summary>
+        /// Sets the editable state attributes for the EditFamilyState and each FamilyPersonState, so that only Editable attributes are saved to the database
+        /// </summary>
+        private void SetEditableStateAttributes()
+        {
+            EditFamilyState.EditableFamilyAttributes = RequiredAttributesForFamilies.Union(OptionalAttributesForFamilies).Select( a => a.Id ).ToList();
 
             // only include the attributes for each person that are included in Required/Optional attributes so that we don't accidentally delete values for attributes are aren't included
             foreach ( var familyPersonState in EditFamilyState.FamilyPersonListState )
             {
                 if ( familyPersonState.IsAdult )
                 {
-                    familyPersonState.PersonAttributeValuesState = familyPersonState.PersonAttributeValuesState
-                        .Where( a => RequiredAttributesForAdults.Any( r => r.Key == a.Key ) || OptionalAttributesForAdults.Any( r => r.Key == a.Key ) )
-                        .ToDictionary( k => k.Key, v => v.Value );
+                    familyPersonState.EditableAttributes = RequiredAttributesForAdults.Union( OptionalAttributesForAdults ).Select( a => a.Id ).ToList();
                 }
                 else
                 {
-                    familyPersonState.PersonAttributeValuesState = familyPersonState.PersonAttributeValuesState
-                        .Where( a => RequiredAttributesForChildren.Any( r => r.Key == a.Key ) || OptionalAttributesForChildren.Any( r => r.Key == a.Key ) )
-                        .ToDictionary( k => k.Key, v => v.Value );
+                    familyPersonState.EditableAttributes = RequiredAttributesForChildren.Union( OptionalAttributesForChildren ).Select( a => a.Id ).ToList();
                 }
             }
         }
@@ -714,7 +716,7 @@ namespace RockWeb.Blocks.CheckIn
             if ( promptIfChangesMade )
             {
                 UpdateFamilyAttributesState();
-                long currentEditFamilyStateHash = EditFamilyState.GetStateHash();
+                int currentEditFamilyStateHash = EditFamilyState.GetStateHash();
                 if ( _initialEditFamilyStateHash != currentEditFamilyStateHash )
                 {
                     hfShowCancelEditPrompt.Value = "1";
@@ -910,7 +912,7 @@ namespace RockWeb.Blocks.CheckIn
 
             tbAlternateID.Visible = ( isAdult && CurrentCheckInState.CheckInType.Registration.DisplayAlternateIdFieldforAdults ) || ( !isAdult && CurrentCheckInState.CheckInType.Registration.DisplayAlternateIdFieldforChildren );
             phAdultRequiredAttributes.Visible = isAdult;
-            phAdultRequiredAttributes.Visible = isAdult;
+            phAdultOptionalAttributes.Visible = isAdult;
             phChildRequiredAttributes.Visible = !isAdult;
             phChildOptionalAttributes.Visible = !isAdult;
         }
@@ -989,7 +991,7 @@ namespace RockWeb.Blocks.CheckIn
             }
 
             familyPersonState.AlternateID = tbAlternateID.Text;
-            var fakePerson = new Person();
+            var fakePerson = new Person() { Id = familyPersonState.PersonId ?? 0 };
             fakePerson.LoadAttributes();
 
             if ( familyPersonState.IsAdult )

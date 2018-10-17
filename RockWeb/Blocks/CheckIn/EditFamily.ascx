@@ -84,10 +84,10 @@
                     message: 'Changes have been make to this family. Are you sure you want to cancel?',
                     buttons: {
                         cancel: {
-                            label: 'Cancel'
+                            label: 'No'
                         },
                         confirm: {
-                            label: 'OK'
+                            label: 'Yes'
                         }
                     },
                     callback: function (result) {

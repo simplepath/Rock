@@ -81,6 +81,14 @@ namespace Rock.CheckIn.Registration
         public int? GroupId { get; set; }
 
         /// <summary>
+        /// Gets or sets the editable family attributes. (only save these to the database)
+        /// </summary>
+        /// <value>
+        /// The editable family attributes.
+        /// </value>
+        public List<int> EditableFamilyAttributes { get; set; }
+
+        /// <summary>
         /// Gets or sets the state of the family attribute values.
         /// </summary>
         /// <value>
@@ -371,6 +379,14 @@ namespace Rock.CheckIn.Registration
             public string AlternateID { get; set; }
 
             /// <summary>
+            /// Gets or sets the editable attributes for this person (only save these to the database)
+            /// </summary>
+            /// <value>
+            /// The editable attributes.
+            /// </value>
+            public List<int> EditableAttributes { get; set; }
+
+            /// <summary>
             /// Gets or sets the state of the person attribute values.
             /// </summary>
             /// <value>
@@ -517,7 +533,11 @@ namespace Rock.CheckIn.Registration
                 person.LoadAttributes();
                 foreach ( var attributeValue in familyPersonState.PersonAttributeValuesState )
                 {
-                    person.SetAttributeValue( attributeValue.Key, attributeValue.Value.Value );
+                    // only set attribute values that are editable so we don't accidently delete any attribute values
+                    if ( familyPersonState.EditableAttributes.Contains( attributeValue.Value.AttributeId ) )
+                    {
+                        person.SetAttributeValue( attributeValue.Key, attributeValue.Value.Value );
+                    }
                 }
 
                 person.SaveAttributeValues( rockContext );
@@ -546,7 +566,11 @@ namespace Rock.CheckIn.Registration
             primaryFamily.LoadAttributes();
             foreach ( var familyAttribute in editFamilyState.FamilyAttributeValuesState )
             {
-                primaryFamily.SetAttributeValue( familyAttribute.Key, familyAttribute.Value.Value );
+                // only set attribute values that are editable so we don't accidently delete any attribute values
+                if ( editFamilyState.EditableFamilyAttributes.Contains( familyAttribute.Value.AttributeId ) )
+                {
+                    primaryFamily.SetAttributeValue( familyAttribute.Key, familyAttribute.Value.Value );
+                }
             }
 
             primaryFamily.SaveAttributeValues( rockContext );
@@ -646,12 +670,12 @@ namespace Rock.CheckIn.Registration
         }
 
         /// <summary>
-        /// Gets an Int64 HashCode that can be used to determine if state has been changed
+        /// Gets a HashCode that can be used to determine if state has been changed
         /// </summary>
         /// <returns></returns>
-        public long GetStateHash()
+        public int GetStateHash()
         {
-            return this.ToJson().MakeInt64HashCode();
+            return this.ToJson().GetHashCode();
         }
     }
 }
