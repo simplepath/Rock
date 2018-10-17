@@ -195,6 +195,11 @@ namespace RockWeb.Blocks.CheckIn
                         mergeFields.Add( "CheckinResultList", checkinResultList );
                         mergeFields.Add( "Kiosk", CurrentCheckInState.Kiosk );
                         mergeFields.Add( "RegistrationModeEnabled", CurrentCheckInState.Kiosk.RegistrationModeEnabled );
+                        if ( CurrentGroupTypeIds != null )
+                        {
+                            var checkInAreas = CurrentGroupTypeIds.Select( a => Rock.Web.Cache.GroupTypeCache.Get( a ) );
+                            mergeFields.Add( "CheckinAreas", checkInAreas );
+                        }
 
                         if ( printFromClient.Any() )
                         {

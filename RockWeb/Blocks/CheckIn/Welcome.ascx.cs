@@ -121,6 +121,11 @@ namespace RockWeb.Blocks.CheckIn
                     mergeFields.Add( "CheckinButtonText", checkinButtonText );
                     mergeFields.Add( "Kiosk", CurrentCheckInState.Kiosk );
                     mergeFields.Add( "RegistrationModeEnabled", CurrentCheckInState.Kiosk.RegistrationModeEnabled );
+                    if ( CurrentGroupTypeIds != null )
+                    {
+                        var checkInAreas = CurrentGroupTypeIds.Select( a => GroupTypeCache.Get( a ) );
+                        mergeFields.Add( "CheckinAreas", checkInAreas );
+                    }
 
                     lStartButtonHtml.Text = CurrentCheckInState.CheckInType.StartLavaTemplate.ResolveMergeFields( mergeFields );
                 }
