@@ -26,10 +26,10 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 using Rock.Data;
-using Rock.Web.Cache;
+using Rock.Security;
 using Rock.UniversalSearch;
 using Rock.UniversalSearch.IndexModels;
-using Rock.Security;
+using Rock.Web.Cache;
 
 namespace Rock.Model
 {
@@ -262,6 +262,33 @@ namespace Rock.Model
         [DefinedValue]
         public int? StatusValueId { get; set; }
 
+        /// <summary>
+        /// Gets or sets a value indicating whether GroupMembers must meet GroupMemberRequirements before they can be scheduled.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [scheduling must meet requirements]; otherwise, <c>false</c>.
+        /// </value>
+        [DataMember]
+        public bool SchedulingMustMeetRequirements { get; set; }
+
+        /// <summary>
+        /// Gets or sets the attendance record required for check in.
+        /// </summary>
+        /// <value>
+        /// The attendance record required for check in.
+        /// </value>
+        [DataMember]
+        public AttendanceRecordRequiredForCheckIn AttendanceRecordRequiredForCheckIn { get; set; }
+
+        /// <summary>
+        /// Gets or sets the PersonAliasId of the person to notify when a person cancels
+        /// </summary>
+        /// <value>
+        /// The schedule cancellation person alias identifier.
+        /// </value>
+        [DataMember]
+        public int? ScheduleCancellationPersonAliasId { get; set; }
+
         #endregion
 
         #region Virtual Properties
@@ -492,6 +519,7 @@ namespace Rock.Model
                     _supportedActions.Add( Authorization.MANAGE_MEMBERS, "The roles and/or users that have access to manage the group members." );
                     _supportedActions.Add( Authorization.EDIT, "The roles and/or users that have access to edit." );
                     _supportedActions.Add( Authorization.ADMINISTRATE, "The roles and/or users that have access to administrate." );
+                    _supportedActions.Add( Authorization.SCHEDULE, "The roles and/or users that may perform scheduling." );
                 }
 
                 return _supportedActions;
@@ -527,6 +555,14 @@ namespace Rock.Model
         /// </value>
         [DataMember]
         public virtual DefinedValue StatusValue { get; set; }
+
+        /// <summary>
+        /// Gets or sets the PersonAlias of the person to notify when a person cancels
+        /// </summary>
+        /// <value>
+        /// The schedule cancellation person alias.
+        /// </value>
+        public virtual PersonAlias ScheduleCancellationPersonAlias { get; set; }
 
         #endregion
 
@@ -682,7 +718,7 @@ namespace Rock.Model
             return result;
         }
 
-        
+
 
         /// <summary>
         /// Method that will be called on an entity immediately before the item is saved by context
@@ -691,7 +727,7 @@ namespace Rock.Model
         /// <param name="entry"></param>
         public override void PreSaveChanges( Data.DbContext dbContext, DbEntityEntry entry )
         {
-            var rockContext = (RockContext)dbContext;
+            var rockContext = ( RockContext ) dbContext;
 
             HistoryChangeList = new History.HistoryChangeList();
 
@@ -699,17 +735,17 @@ namespace Rock.Model
             {
                 case System.Data.Entity.EntityState.Added:
                     {
-                        HistoryChangeList.AddChange( History.HistoryVerb.Add, History.HistoryChangeType.Record, "Group").SetNewValue( Name );
+                        HistoryChangeList.AddChange( History.HistoryVerb.Add, History.HistoryChangeType.Record, "Group" ).SetNewValue( Name );
 
                         History.EvaluateChange( HistoryChangeList, "Name", string.Empty, Name );
                         History.EvaluateChange( HistoryChangeList, "Description", string.Empty, Description );
-                        History.EvaluateChange( HistoryChangeList, "Group Type", (int?)null, GroupType, GroupTypeId );
-                        History.EvaluateChange( HistoryChangeList, "Campus", (int?)null, Campus, CampusId );
-                        History.EvaluateChange( HistoryChangeList, "Security Role", (bool?)null, IsSecurityRole );
-                        History.EvaluateChange( HistoryChangeList, "Active", (bool?)null, IsActive );
-                        History.EvaluateChange( HistoryChangeList, "Allow Guests", (bool?)null, AllowGuests );
-                        History.EvaluateChange( HistoryChangeList, "Public", (bool?)null, IsPublic );
-                        History.EvaluateChange( HistoryChangeList, "Group Capacity", (int?)null, GroupCapacity );
+                        History.EvaluateChange( HistoryChangeList, "Group Type", ( int? ) null, GroupType, GroupTypeId );
+                        History.EvaluateChange( HistoryChangeList, "Campus", ( int? ) null, Campus, CampusId );
+                        History.EvaluateChange( HistoryChangeList, "Security Role", ( bool? ) null, IsSecurityRole );
+                        History.EvaluateChange( HistoryChangeList, "Active", ( bool? ) null, IsActive );
+                        History.EvaluateChange( HistoryChangeList, "Allow Guests", ( bool? ) null, AllowGuests );
+                        History.EvaluateChange( HistoryChangeList, "Public", ( bool? ) null, IsPublic );
+                        History.EvaluateChange( HistoryChangeList, "Group Capacity", ( int? ) null, GroupCapacity );
 
                         // if this is a new record, but is saved with IsActive=False, set the InactiveDateTime if it isn't set already
                         if ( !this.IsActive )
@@ -797,7 +833,7 @@ namespace Rock.Model
         {
             if ( HistoryChangeList != null && HistoryChangeList.Any() )
             {
-                HistoryService.SaveChanges( (RockContext)dbContext, typeof( Group ), Rock.SystemGuid.Category.HISTORY_GROUP_CHANGES.AsGuid(), this.Id, HistoryChangeList, this.Name, null, null,  true, this.ModifiedByPersonAliasId, dbContext.SourceOfChange );
+                HistoryService.SaveChanges( ( RockContext ) dbContext, typeof( Group ), Rock.SystemGuid.Category.HISTORY_GROUP_CHANGES.AsGuid(), this.Id, HistoryChangeList, this.Name, null, null, true, this.ModifiedByPersonAliasId, dbContext.SourceOfChange );
             }
 
             base.PostSaveChanges( dbContext );
@@ -1021,10 +1057,10 @@ namespace Rock.Model
             Guid groupTypeScheduleRole = Rock.SystemGuid.GroupType.GROUPTYPE_SECURITY_ROLE.AsGuid();
             if ( _originalGroupTypeId.HasValue && _originalGroupTypeId != this.GroupTypeId )
             {
-                originalGroupTypeGuid = GroupTypeCache.Get( _originalGroupTypeId.Value, (RockContext)dbContext )?.Guid;
+                originalGroupTypeGuid = GroupTypeCache.Get( _originalGroupTypeId.Value, ( RockContext ) dbContext )?.Guid;
             }
 
-            var groupTypeGuid = GroupTypeCache.Get( this.GroupTypeId, (RockContext)dbContext )?.Guid;
+            var groupTypeGuid = GroupTypeCache.Get( this.GroupTypeId, ( RockContext ) dbContext )?.Guid;
             if ( this.IsSecurityRole || ( _originalIsSecurityRole == true ) || ( groupTypeGuid == groupTypeScheduleRole ) || ( originalGroupTypeGuid == groupTypeScheduleRole ) )
             {
                 RoleCache.FlushItem( this.Id );
@@ -1053,6 +1089,7 @@ namespace Rock.Model
             this.HasOptional( p => p.RequiredSignatureDocumentTemplate ).WithMany().HasForeignKey( p => p.RequiredSignatureDocumentTemplateId ).WillCascadeOnDelete( false );
             this.HasOptional( p => p.ArchivedByPersonAlias ).WithMany().HasForeignKey( p => p.ArchivedByPersonAliasId ).WillCascadeOnDelete( false );
             this.HasOptional( p => p.StatusValue ).WithMany().HasForeignKey( p => p.StatusValueId ).WillCascadeOnDelete( false );
+            this.HasOptional( p => p.ScheduleCancellationPersonAlias ).WithMany().HasForeignKey( p => p.ScheduleCancellationPersonAliasId ).WillCascadeOnDelete( false );
 
             // Tell EF that we never want archived groups. 
             // This will prevent archived members from being included in any Groupqueries.
@@ -1063,6 +1100,17 @@ namespace Rock.Model
             // NOTE: This is not specific to Group, it is for any Filtered Model (currently just Group and GroupMember)
             Z.EntityFramework.Plus.QueryFilterManager.AllowPropertyFilter = false;
         }
+    }
+
+    #endregion
+
+    #region Enumerations
+
+    public enum AttendanceRecordRequiredForCheckIn
+    {
+        AllShow,
+        RequireAttendanceRecord,
+        RequireAttendanceRecordAsPreference
     }
 
     #endregion

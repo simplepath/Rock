@@ -164,12 +164,12 @@ namespace Rock.Model
         /// A collection of <see cref="Rock.Model.Schedule"/> that are associated with this GroupLocation.
         /// </value>
         [DataMember]
-        public virtual ICollection<Schedule> Schedules
-        {
-            get { return _schedules ?? ( _schedules = new Collection<Schedule>() ); }
-            set { _schedules = value; }
-        }
-        private ICollection<Schedule> _schedules;
+        public virtual ICollection<Schedule> Schedules => GroupLocationSchedules.Select( a => a.Schedule );
+
+
+
+        [DataMember]
+        public virtual ICollection<GroupLocationScheduleConfig> GroupLocationSchedules { get; set; } = new Collection<GroupLocationScheduleConfig>();
 
         /// <summary>
         /// Gets or sets the history changes.
@@ -224,7 +224,7 @@ namespace Rock.Model
                         }
 
                         History.EvaluateChange( GroupHistoryChanges, $"{locationTypeName} Is Mailing", entry.OriginalValues["IsMailingLocation"].ToStringSafe().AsBoolean(), IsMailingLocation );
-                        History.EvaluateChange( GroupHistoryChanges, $"{locationTypeName} Is Mapp Location", entry.OriginalValues["IsMappedLocation"].ToStringSafe().AsBoolean(), IsMappedLocation );
+                        History.EvaluateChange( GroupHistoryChanges, $"{locationTypeName} Is Mapped Location", entry.OriginalValues["IsMappedLocation"].ToStringSafe().AsBoolean(), IsMappedLocation );
 
                         break;
                     }
@@ -287,7 +287,6 @@ namespace Rock.Model
             this.HasRequired( t => t.Location ).WithMany( l => l.GroupLocations).HasForeignKey( t => t.LocationId );
             this.HasOptional( t => t.GroupLocationTypeValue ).WithMany().HasForeignKey( t => t.GroupLocationTypeValueId ).WillCascadeOnDelete( false );
             this.HasOptional( t => t.GroupMemberPersonAlias ).WithMany().HasForeignKey( t => t.GroupMemberPersonAliasId ).WillCascadeOnDelete( true );
-            this.HasMany( t => t.Schedules ).WithMany().Map( t => { t.MapLeftKey( "GroupLocationId" ); t.MapRightKey( "ScheduleId" ); t.ToTable( "GroupLocationSchedule" ); } );
         }
     }
 

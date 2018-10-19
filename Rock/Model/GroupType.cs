@@ -611,7 +611,70 @@ namespace Rock.Model
         [DataMember]
         public int? GroupStatusDefinedTypeId { get; set; }
 
-        #endregion
+        #endregion Entity Properties
+
+        /// <summary>
+        /// Gets or sets a value indicating whether this instance is scheduling enabled for groups of this type
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if this instance is scheduling enabled; otherwise, <c>false</c>.
+        /// </value>
+        [DataMember]
+        public bool IsSchedulingEnabled { get; set; }
+
+        /// <summary>
+        /// Gets or sets the communication template to use when a person is scheduled or when the schedule has been updated
+        /// </summary>
+        /// <value>
+        /// The scheduled communication template identifier.
+        /// </value>
+        [DataMember]
+        public int? ScheduledCommunicationTemplateId { get; set; }
+
+        /// <summary>
+        /// Gets or sets the communication template to use when sending a Schedule Reminder
+        /// </summary>
+        /// <value>
+        /// The schedule reminder communication template identifier.
+        /// </value>
+        [DataMember]
+        public int? ScheduleReminderCommunicationTemplateId { get; set; }
+
+        /// <summary>
+        /// Gets or sets the WorkflowType to execute when a person indicates they won't be able to volunteer at their scheduled time
+        /// </summary>
+        /// <value>
+        /// The schedule cancellation workflow type identifier.
+        /// </value>
+        [DataMember]
+        public int? ScheduleCancellationWorkflowTypeId { get; set; }
+
+        /// <summary>
+        /// Gets or sets the number of days prior to the schedule to send a confirmation email.
+        /// </summary>
+        /// <value>
+        /// The schedule confirmation email offset days.
+        /// </value>
+        [DataMember]
+        public int? ScheduleConfirmationEmailOffsetDays { get; set; }
+
+        /// <summary>
+        /// Gets or sets the number of days prior to the schedule to send a reminder email.
+        /// </summary>
+        /// <value>
+        /// The schedule reminder email offset days.
+        /// </value>
+        [DataMember]
+        public int? ScheduleReminderEmailOffsetDays { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether a person must specify a reason when declining/cancelling.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [requires reason if decline schedule]; otherwise, <c>false</c>.
+        /// </value>
+        [DataMember]
+        public bool RequiresReasonIfDeclineSchedule { get; set; }
 
         #region Virtual Properties
 
@@ -732,6 +795,33 @@ namespace Rock.Model
         public virtual DefinedValue GroupTypePurposeValue { get; set; }
 
         /// <summary>
+        /// Gets or sets the communication template to use when a person is scheduled or when the schedule has been updated
+        /// </summary>
+        /// <value>
+        /// The scheduled communication template.
+        /// </value>
+        [DataMember]
+        public virtual CommunicationTemplate ScheduledCommunicationTemplate { get; set; }
+
+        /// <summary>
+        /// Gets or sets the communication template to use when sending a Schedule Reminder
+        /// </summary>
+        /// <value>
+        /// The schedule reminder communication template.
+        /// </value>
+        [DataMember]
+        public virtual CommunicationTemplate ScheduleReminderCommunicationTemplate { get; set; }
+
+        /// <summary>
+        /// Gets or sets the WorkflowType to execute when a person indicates they won't be able to volunteer at their scheduled time
+        /// </summary>
+        /// <value>
+        /// The type of the schedule cancellation workflow.
+        /// </value>
+        [DataMember]
+        public virtual WorkflowType ScheduleCancellationWorkflowType { get; set; }
+
+        /// <summary>
         /// Gets a count of <see cref="Rock.Model.Group">Groups</see> that belong to this GroupType.
         /// </summary>
         /// <value>
@@ -804,6 +894,7 @@ namespace Rock.Model
                     _supportedActions.Add( Authorization.MANAGE_MEMBERS, "The roles and/or users that have access to manage the group members." );
                     _supportedActions.Add( Authorization.EDIT, "The roles and/or users that have access to edit." );
                     _supportedActions.Add( Authorization.ADMINISTRATE, "The roles and/or users that have access to administrate." );
+                    _supportedActions.Add( Authorization.SCHEDULE, "The roles and/or users that may perform scheduling." );
                 }
                 return _supportedActions;
             }
@@ -1109,6 +1200,9 @@ namespace Rock.Model
             this.HasOptional( p => p.DefaultGroupRole ).WithMany().HasForeignKey( p => p.DefaultGroupRoleId ).WillCascadeOnDelete( false );
             this.HasOptional( p => p.GroupStatusDefinedType ).WithMany().HasForeignKey( p => p.GroupStatusDefinedTypeId ).WillCascadeOnDelete( false );
             this.HasOptional( p => p.InheritedGroupType ).WithMany().HasForeignKey( p => p.InheritedGroupTypeId ).WillCascadeOnDelete( false );
+            this.HasOptional( p => p.ScheduledCommunicationTemplate ).WithMany().HasForeignKey( p => p.ScheduledCommunicationTemplateId ).WillCascadeOnDelete( false );
+            this.HasOptional( p => p.ScheduleReminderCommunicationTemplate ).WithMany().HasForeignKey( p => p.ScheduleReminderCommunicationTemplateId ).WillCascadeOnDelete( false );
+            this.HasOptional( p => p.ScheduleCancellationWorkflowType ).WithMany().HasForeignKey( p => p.ScheduleCancellationWorkflowTypeId ).WillCascadeOnDelete( false );
         }
     }
 

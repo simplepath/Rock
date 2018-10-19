@@ -82,6 +82,11 @@ namespace Rock.Security
         /// </summary>
         public const string MANAGE_MEMBERS = "ManageMembers";
 
+        /// <summary>
+        /// Authorization to perform scheduling
+        /// </summary>
+        public const string SCHEDULE = "Schedule";
+
         #endregion
 
         #region Public Methods

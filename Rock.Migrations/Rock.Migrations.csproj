@@ -120,6 +120,10 @@
     <Compile Include="Migrations\201810161814574_Rollup_1016.Designer.cs">
       <DependentUpon>201810161814574_Rollup_1016.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201810182226156_VSchedule.cs" />
+    <Compile Include="Migrations\201810182226156_VSchedule.Designer.cs">
+      <DependentUpon>201810182226156_VSchedule.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\CreateDatabase\201311251734059_CreateDatabase.cs" />
     <Compile Include="Migrations\CreateDatabase\201311251734059_CreateDatabase.Designer.cs">
       <DependentUpon>201311251734059_CreateDatabase.cs</DependentUpon>
@@ -450,6 +454,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201810161814574_Rollup_1016.resx">
       <DependentUpon>201810161814574_Rollup_1016.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201810182226156_VSchedule.resx">
+      <DependentUpon>201810182226156_VSchedule.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\CreateDatabase\201311251734059_CreateDatabase.resx">
       <DependentUpon>201311251734059_CreateDatabase.cs</DependentUpon>
