@@ -323,18 +323,17 @@ ORDER BY [Text]", "8B055917-4E83-435E-9C1D-605245AA00BB" );
             // Attrib for BlockType: Edit Family:Workflow Type
             RockMigrationHelper.UpdateBlockTypeAttribute( "06DF448A-684E-4B64-8E1B-EA1727BA9233", "46A03F59-55D3-4ACE-ADD5-B4642225DD20", "Workflow Type", "WorkflowType", "", @"The workflow type to activate for check-in", 0, @"", "C7C8C51E-B5A0-49A5-96F3-CB23BB5F81AB" );
 
-
             // Add Block to Page: Search, Site: Rock Check-in
             RockMigrationHelper.AddBlock( true, "D47858C0-0E6E-46DC-AE99-8EC84BA5F45F", "", "06DF448A-684E-4B64-8E1B-EA1727BA9233", "Add Family", "Main", @"", @"", 2, "7FBE00BD-7A4E-4F2D-89F1-D62348F4F146" );
-            // Attrib Value for Block:Edit Family, Attribute:Workflow Activity Page: Family Select, Site: Rock Check-in
+            // Attrib Value for Block:Edit Family, Attribute:Workflow Activity Page: Search, Site: Rock Check-in
             RockMigrationHelper.AddBlockAttributeValue( "7FBE00BD-7A4E-4F2D-89F1-D62348F4F146", "9B1B49A1-716D-4B5C-A75E-D39B681207AB", @"Family Search" );
-            // Attrib Value for Block:Edit Family, Attribute:Workflow Type Page: Family Select, Site: Rock Check-in
+            // Attrib Value for Block:Edit Family, Attribute:Workflow Type Page: Search, Site: Rock Check-in
             RockMigrationHelper.AddBlockAttributeValue( "7FBE00BD-7A4E-4F2D-89F1-D62348F4F146", "C7C8C51E-B5A0-49A5-96F3-CB23BB5F81AB", Rock.SystemGuid.WorkflowType.UNATTENDED_CHECKIN );
 
             // Add Block to Page: Family Select, Site: Rock Check-in
-            RockMigrationHelper.AddBlock( true, "10C97379-F719-4ACB-B8C6-651957B660A4", "", "06DF448A-684E-4B64-8E1B-EA1727BA9233", "Edit Family", "Main", @"", @"", 2, "829998AD-2992-4A11-932F-5C3AE5B09895" );
+            RockMigrationHelper.AddBlock( true, "10C97379-F719-4ACB-B8C6-651957B660A4", "", "06DF448A-684E-4B64-8E1B-EA1727BA9233", "Add Family", "Main", @"", @"", 2, "829998AD-2992-4A11-932F-5C3AE5B09895" );
             // Attrib Value for Block:Edit Family, Attribute:Workflow Activity Page: Family Select, Site: Rock Check-in
-            RockMigrationHelper.AddBlockAttributeValue( "829998AD-2992-4A11-932F-5C3AE5B09895", "9B1B49A1-716D-4B5C-A75E-D39B681207AB", @"Person Search" );
+            RockMigrationHelper.AddBlockAttributeValue( "829998AD-2992-4A11-932F-5C3AE5B09895", "9B1B49A1-716D-4B5C-A75E-D39B681207AB", @"Family Search" );
             // Attrib Value for Block:Edit Family, Attribute:Workflow Type Page: Family Select, Site: Rock Check-in
             RockMigrationHelper.AddBlockAttributeValue( "829998AD-2992-4A11-932F-5C3AE5B09895", "C7C8C51E-B5A0-49A5-96F3-CB23BB5F81AB", Rock.SystemGuid.WorkflowType.UNATTENDED_CHECKIN );
 
@@ -344,7 +343,6 @@ ORDER BY [Text]", "8B055917-4E83-435E-9C1D-605245AA00BB" );
             RockMigrationHelper.AddBlockAttributeValue( "5E00309E-EC0D-4B99-A1C7-FD644361E5DD", "9B1B49A1-716D-4B5C-A75E-D39B681207AB", @"Person Search" );
             // Attrib Value for Block:Edit Family, Attribute:Workflow Type Page: Person Select, Site: Rock Check-in
             RockMigrationHelper.AddBlockAttributeValue( "5E00309E-EC0D-4B99-A1C7-FD644361E5DD", "C7C8C51E-B5A0-49A5-96F3-CB23BB5F81AB", Rock.SystemGuid.WorkflowType.UNATTENDED_CHECKIN );
-            
 
             // Add Block to Page: Person Select (Family Check-in), Site: Rock Check-in
             RockMigrationHelper.AddBlock( true, "D14154BA-2F2C-41C3-B380-F833252CBB13", "", "06DF448A-684E-4B64-8E1B-EA1727BA9233", "Edit Family", "Main", @"", @"", 2, "07BC8F00-2925-4CDC-8F9E-DB431B822770" );

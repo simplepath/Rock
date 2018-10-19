@@ -594,7 +594,7 @@ namespace RockWeb.Blocks.CheckIn
                 if ( currentFamily == null )
                 {
                     // if this is a new family, add it to the Checkin.Families so that the CurrentFamily wil be set to the new family
-                    currentFamily = new CheckInFamily() { Selected = false };
+                    currentFamily = new CheckInFamily() { Selected = true };
                     currentFamily.Group = new GroupService( rockContext ).GetNoTracking( EditFamilyState.GroupId.Value ).Clone( false );
                     CurrentCheckInState.CheckIn.Families.Add( currentFamily );
                 }
