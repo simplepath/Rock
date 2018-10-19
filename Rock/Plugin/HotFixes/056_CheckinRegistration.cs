@@ -352,6 +352,19 @@ ORDER BY [Text]", "8B055917-4E83-435E-9C1D-605245AA00BB" );
             RockMigrationHelper.AddBlockAttributeValue( "07BC8F00-2925-4CDC-8F9E-DB431B822770", "9B1B49A1-716D-4B5C-A75E-D39B681207AB", @"Person Search" );
             // Attrib Value for Block:Edit Family, Attribute:Workflow Type Page: Person Select (Family Check-in), Site: Rock Check-in
             RockMigrationHelper.AddBlockAttributeValue( "07BC8F00-2925-4CDC-8F9E-DB431B822770", "C7C8C51E-B5A0-49A5-96F3-CB23BB5F81AB", Rock.SystemGuid.WorkflowType.UNATTENDED_CHECKIN );
+
+            // update default Search text for search blocktype
+            RockMigrationHelper.UpdateBlockTypeAttribute( "E3A99534-6FD9-49AD-AC52-32D53B2CEDD7", "9C204CD0-1233-41C5-818A-C5DA439445AA", "Title", "Title", "", "Title to display. Use {0} for search type.", 5, @"Search", "837B34E3-D140-44CD-8456-9D222325E42E" );
+
+            // update Search text for search block (if it is still the old default)
+            Sql( $@"
+                DECLARE @BlockId int = (SELECT [Id] FROM [Block] WHERE [Guid] = '1EF10CB9-DFDC-42CE-9B00-8665050F6B78')
+                DECLARE @AttributeId int = (SELECT [Id] FROM [Attribute] WHERE [Guid] = '837B34E3-D140-44CD-8456-9D222325E42E')
+
+                UPDATE [AttributeValue] SET [Value] = 'Search'
+                WHERE [AttributeId] = @AttributeId
+                  AND [EntityId] = @BlockId
+                  AND [Value] = 'Search By {{0}}'" );
         }
 
         /// <summary>

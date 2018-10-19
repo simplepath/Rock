@@ -34,7 +34,7 @@ namespace RockWeb.Blocks.CheckIn
     [Category( "Check-in" )]
     [Description( "Searches by name or phone number depending on settings." )]
 
-    [TextField( "Title", "Title to display. Use {0} for search type.", false, "Search By {0}", "Text", 5 )]
+    [TextField( "Title", "Title to display. Use {0} for search type.", false, "Search", "Text", 5 )]
     [TextField( "No Option Message", "", false, "There were not any families that match the search criteria.", "Text", 6 )]
     public partial class Search : CheckInSearchBlock
     {
