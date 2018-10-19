@@ -81,7 +81,7 @@
                 if ($('#<%=hfShowCancelEditPrompt.ClientID%>').val() == "1") {
 
                 bootbox.confirm({
-                    message: 'Changes have been make to this family. Do you want to leave without saving?',
+                    message: 'Changes have been made to this family. Do you want to leave without saving?',
                     buttons: {
                         cancel: {
                             label: 'Stay on This Page'
