@@ -386,7 +386,10 @@ namespace Rock.CheckIn
             {
                 get
                 {
-                    return GetAttributesForAttributeKey( Rock.SystemKey.GroupTypeAttributeKey.CHECKIN_REGISTRATION_OPTIONALATTRIBUTESFORADULTS );
+                    var optionalAttributes = GetAttributesForAttributeKey( Rock.SystemKey.GroupTypeAttributeKey.CHECKIN_REGISTRATION_OPTIONALATTRIBUTESFORADULTS );
+
+                    // just in case an attribute is specified as Optional AND Required, don't include it if it is also a Required attribute
+                    return optionalAttributes.Where( a => !this.RequiredAttributesForAdults.Any( r => r.Id == a.Id ) ).ToList();
                 }
             }
 
@@ -414,7 +417,10 @@ namespace Rock.CheckIn
             {
                 get
                 {
-                    return GetAttributesForAttributeKey( Rock.SystemKey.GroupTypeAttributeKey.CHECKIN_REGISTRATION_OPTIONALATTRIBUTESFORCHILDREN );
+                    var optionalAttributes = GetAttributesForAttributeKey( Rock.SystemKey.GroupTypeAttributeKey.CHECKIN_REGISTRATION_OPTIONALATTRIBUTESFORCHILDREN );
+
+                    // just in case an attribute is specified as Optional AND Required, don't include it if it is also a Required attribute
+                    return optionalAttributes.Where( a => !this.RequiredAttributesForChildren.Any( r => r.Id == a.Id ) ).ToList();
                 }
             }
 
@@ -442,7 +448,10 @@ namespace Rock.CheckIn
             {
                 get
                 {
-                    return GetAttributesForAttributeKey( Rock.SystemKey.GroupTypeAttributeKey.CHECKIN_REGISTRATION_OPTIONALATTRIBUTESFORFAMILIES );
+                    var optionalAttributes = GetAttributesForAttributeKey( Rock.SystemKey.GroupTypeAttributeKey.CHECKIN_REGISTRATION_OPTIONALATTRIBUTESFORFAMILIES );
+
+                    // just in case an attribute is specified as Optional AND Required, don't include it if it is also a Required attribute
+                    return optionalAttributes.Where( a => !this.RequiredAttributesForFamilies.Any( r => r.Id == a.Id ) ).ToList();
                 }
             }
 

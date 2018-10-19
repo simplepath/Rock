@@ -201,14 +201,14 @@
                             </div>
 
                             <%-- Person Attributes editing an Adult --%>
-                            <asp:Panel ID="pnlAdultFields" runat="server">
+                            <Rock:HtmlGenericContainer ID="pnlAdultFields" runat="server">
                                 <Rock:DynamicPlaceholder ID="phAdultAttributes" runat="server" />
-                            </asp:Panel>
+                            </Rock:HtmlGenericContainer>
 
                             <%-- Person Attributes when editing a Child --%>
-                            <asp:Panel ID="pnlChildFields" runat="server">
+                            <Rock:HtmlGenericContainer ID="pnlChildFields" runat="server">
                                 <Rock:DynamicPlaceholder ID="phChildAttributes" runat="server" />
-                            </asp:Panel>
+                            </Rock:HtmlGenericContainer>
 
                             <%-- Person Actions --%>
                             <div class="actions">

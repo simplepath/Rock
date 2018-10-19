@@ -166,6 +166,11 @@ namespace RockWeb.Blocks.CheckIn
         {
             base.OnLoad( e );
 
+            if ( CurrentCheckInState == null )
+            {
+                NavigateToHomePage();
+            }
+
             if ( this.IsPostBack )
             {
                 // make sure the ShowAddFamilyPrompt is disabled so that it doesn't show again until explicitly enabled after doing a Search
@@ -652,7 +657,7 @@ namespace RockWeb.Blocks.CheckIn
             var fakeFamily = new Group() { GroupTypeId = GroupTypeCache.GetFamilyGroupType().Id, Id = EditFamilyState.GroupId ?? 0 };
             fakeFamily.LoadAttributes();
             Rock.Attribute.Helper.GetEditValues( phFamilyAttributes, fakeFamily );
-            
+
             EditFamilyState.FamilyAttributeValuesState = fakeFamily.AttributeValues.ToDictionary( k => k.Key, v => v.Value );
         }
 
@@ -661,7 +666,7 @@ namespace RockWeb.Blocks.CheckIn
         /// </summary>
         private void SetEditableStateAttributes()
         {
-            EditFamilyState.EditableFamilyAttributes = RequiredAttributesForFamilies.Union(OptionalAttributesForFamilies).Select( a => a.Id ).ToList();
+            EditFamilyState.EditableFamilyAttributes = RequiredAttributesForFamilies.Union( OptionalAttributesForFamilies ).Select( a => a.Id ).ToList();
 
             // only include the attributes for each person that are included in Required/Optional attributes so that we don't accidentally delete values for attributes are aren't included
             foreach ( var familyPersonState in EditFamilyState.FamilyPersonListState )
