@@ -60,8 +60,23 @@ h1 {
   text-align: left;
 }
 
+// unlike Bootstrap's original .table-responsive, this is applied for all widths. (i.e. NOT only applied <768px)
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  -ms-overflow-style: -ms-autohiding-scrollbar;
+}
+
 // 3. Global Styles
 // -------------------------
+
+a.help {
+  margin-left: 6px;
+  color: @help-color;
+  outline: 0;
+}
 
 // Validation Alert
 .alert-validation {
@@ -154,6 +169,10 @@ body {
       font-size: 36px;
     }
   }
+}
+
+.checkin-body-container > label {
+  padding: 0 0 @padding-base-vertical 0;
 }
 
 .checkin-search-actions a {
@@ -381,11 +400,32 @@ input.namesearch {
 }
 
 // family select - select person
+
 .family-personselect {
   padding-top: 20px;
 }
 
-// Family Registration Toggles
+// Family Registration
+
+.btn-action {
+  .button-variant(@btn-action-color; @btn-action-bg; @btn-action-border);
+}
+
+
+
+.value-list-rows .controls-row {
+  margin-bottom: 6px;
+
+  .input-width-lg {
+    width: 100%;
+    max-width: ~"calc(100% - 50px)";
+  }
+}
+
+.form-control-group .form-control {
+  float: left;
+  margin-right: 6px;
+}
 
 .datepicker {
   color: @modal-body-text-color;
@@ -432,7 +472,27 @@ input.namesearch {
   }
 }
 
+.table > tbody > tr > td {
+  vertical-align: middle;
+}
 
+.table > tbody > tr:last-child > td {
+  border-bottom: 1px solid @table-border-color;
+}
+
+
+// highlight required fields
+.form-group.required {
+  .control-label::after {
+    margin-left: 4px;
+    font-family: @fa-font-face;
+    font-size: 6px;
+    font-weight: @fa-theme-weight;
+    color: @required-field-color;
+    vertical-align: super;
+    content: @fa-var-circle;
+  }
+}
 
 //
 // 6. Scroll Container

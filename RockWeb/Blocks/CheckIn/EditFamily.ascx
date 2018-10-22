@@ -116,7 +116,7 @@
                                 <label class="control-label">Family Members</label>
                                 <asp:LinkButton ID="btnAddPerson" runat="server" CssClass="btn btn-link btn-add-person pull-right" Text="<i class='fas fa-plus'></i> Add Person" CausesValidation="false" OnClick="btnAddPerson_Click" />
                             </div>
-                            <Rock:Grid ID="gFamilyMembers" runat="server" DisplayType="Light" ShowActionRow="false" ShowActionsInHeader="false" ShowHeader="false" ShowFooter="false" OnRowDataBound="gFamilyMembers_RowDataBound" RowItemText="Person">
+                            <Rock:Grid ID="gFamilyMembers" runat="server" CssClass="edit-family-grid" DisplayType="Light" ShowActionRow="false" ShowActionsInHeader="false" ShowHeader="false" ShowFooter="false" OnRowDataBound="gFamilyMembers_RowDataBound" RowItemText="Person">
                                 <Columns>
                                     <asp:BoundField DataField="FullName" />
                                     <Rock:RockLiteralField ID="lGroupRoleAndRelationship" />

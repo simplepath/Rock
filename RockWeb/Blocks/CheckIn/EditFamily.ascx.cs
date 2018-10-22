@@ -64,7 +64,7 @@ namespace RockWeb.Blocks.CheckIn
             }
         }
 
-        #endregion 
+        #endregion
 
         /// <summary>
         /// Gets or sets the state of the edit family.
@@ -478,7 +478,7 @@ namespace RockWeb.Blocks.CheckIn
 
                     if ( requiredAttributes.Any() )
                     {
-                        DescriptionList descriptionList = new DescriptionList().SetHorizontal( true );
+                        DescriptionList descriptionList = new DescriptionList();
                         foreach ( var requiredAttribute in requiredAttributes )
                         {
                             var attributeValue = familyPersonState.PersonAttributeValuesState.GetValueOrNull( requiredAttribute.Key );
