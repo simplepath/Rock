@@ -433,16 +433,22 @@ input.namesearch {
 
 .toggle-container {
   margin-top: @line-height-computed + 6px;
-  .form-group();
+  margin-bottom:  @form-group-margin-bottom;
+
+  &.form-group {
+    margin-top: 0;
+  }
 
   .btn-group {
     display: -ms-flexbox;
     display: flex;
     border-radius: 50px;
+    height: @input-height-base;
 
     > .btn {
       width: 100%;
       border-radius: 50px;
+      margin-bottom: 0;
 
       &:active {
         -webkit-box-shadow: none;
@@ -462,7 +468,8 @@ input.namesearch {
     }
 
     > .active,
-    > .active:hover {
+    > .active:hover,
+    &:active {
       color: #fff;
       background-color: #76c24e;
       border-color: #76c24e;
