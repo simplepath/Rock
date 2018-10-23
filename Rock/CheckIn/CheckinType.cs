@@ -549,7 +549,7 @@ namespace Rock.CheckIn
             {
                 get
                 {
-                    var workflowTypeGuids = _checkinType.GetSetting( Rock.SystemKey.GroupTypeAttributeKey.CHECKIN_REGISTRATION_ADDPERSONWORKFLOWTYPES )?.SplitDelimitedValues().AsGuidList() ?? new List<Guid>();
+                    var workflowTypeGuids = _checkinType.GetSetting( Rock.SystemKey.GroupTypeAttributeKey.CHECKIN_REGISTRATION_ADDFAMILYWORKFLOWTYPES )?.SplitDelimitedValues().AsGuidList() ?? new List<Guid>();
 
                     return workflowTypeGuids.Select( g => WorkflowTypeCache.Get( g ) ).Where( a => a != null ).ToList();
                 }
@@ -565,7 +565,7 @@ namespace Rock.CheckIn
             {
                 get
                 {
-                    var workflowTypeGuids = _checkinType.GetSetting( Rock.SystemKey.GroupTypeAttributeKey.CHECKIN_REGISTRATION_ADDFAMILYWORKFLOWTYPES )?.SplitDelimitedValues().AsGuidList() ?? new List<Guid>();
+                    var workflowTypeGuids = _checkinType.GetSetting( Rock.SystemKey.GroupTypeAttributeKey.CHECKIN_REGISTRATION_ADDPERSONWORKFLOWTYPES )?.SplitDelimitedValues().AsGuidList() ?? new List<Guid>();
 
                     return workflowTypeGuids.Select( g => WorkflowTypeCache.Get( g ) ).Where( a => a != null ).ToList();
                 }
