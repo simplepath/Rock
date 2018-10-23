@@ -784,7 +784,9 @@ namespace RockWeb.Blocks.CheckIn
                 // create a new temp record so we can set the defaults for the new person
                 familyPersonState = FamilyRegistrationState.FamilyPersonState.FromTemporaryPerson();
                 familyPersonState.GroupMemberGuid = Guid.NewGuid();
-                familyPersonState.Gender = Gender.Male;
+
+                // default Gender to Unknown so that it'll prompt to select gender if it hasn't been selected yet
+                familyPersonState.Gender = Gender.Unknown;
                 familyPersonState.IsAdult = false;
                 familyPersonState.IsMarried = false;
                 familyPersonState.RecordStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_ACTIVE.AsGuid() ).Id;
@@ -808,8 +810,7 @@ namespace RockWeb.Blocks.CheckIn
             lChildRelationShipToAdultReadOnly.Visible = familyPersonState.PersonId.HasValue;
 
             ShowControlsForRole( tglAdultChild.Checked );
-
-            tglGender.Checked = familyPersonState.Gender == Gender.Male;
+            bgGender.SetValue( familyPersonState.Gender.ConvertToInt() );
             tglAdultMaritalStatus.Checked = familyPersonState.IsMarried;
 
             ddlChildRelationShipToAdult.Items.Clear();
@@ -947,7 +948,8 @@ namespace RockWeb.Blocks.CheckIn
             familyPersonState.RecordStatusValueId = dvpRecordStatus.SelectedValue.AsIntegerOrNull();
             familyPersonState.ConnectionStatusValueId = hfConnectionStatus.Value.AsIntegerOrNull();
             familyPersonState.IsAdult = tglAdultChild.Checked;
-            familyPersonState.Gender = tglGender.Checked ? Gender.Male : Gender.Female;
+
+            familyPersonState.Gender = bgGender.SelectedValueAsEnumOrNull<Gender>() ?? Gender.Unknown;
             familyPersonState.ChildRelationshipToAdult = ddlChildRelationShipToAdult.SelectedValue.AsInteger();
 
             familyPersonState.InPrimaryFamily = CurrentCheckInState.CheckInType.Registration.KnownRelationshipsSameFamily.Any( k => k.Key == familyPersonState.ChildRelationshipToAdult );

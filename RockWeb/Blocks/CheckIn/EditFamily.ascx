@@ -180,7 +180,10 @@
                                     <Rock:DefinedValuePicker ID="dvpSuffix" runat="server" Label="Suffix" ValidationGroup="vgEditPerson" />
                                 </div>
                                 <div class="col-md-6">
-                                    <Rock:Toggle ID="tglGender" runat="server" OnText="Male" OffText="Female" ActiveButtonCssClass="btn-primary" />
+                                    <Rock:ButtonGroup ID="bgGender" runat="server" SelectedItemClass="btn btn-primary" UnselectedItemClass="btn btn-default" Required="true" ValidationGroup="vgEditPerson" RequiredErrorMessage="Gender is required.">
+                                        <asp:ListItem Text="Male" Value="1" />
+                                        <asp:ListItem Text="Female" Value="2" />
+                                    </Rock:ButtonGroup>
                                 </div>
                                 <div class="col-md-6">
                                     <Rock:DatePicker ID="dpBirthDate" runat="server" Label="Birthdate" AllowFutureDateSelection="False" RequireYear="True" ShowOnFocus="false" StartView="decade" />
