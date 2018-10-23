@@ -180,7 +180,7 @@
                                     <Rock:DefinedValuePicker ID="dvpSuffix" runat="server" Label="Suffix" ValidationGroup="vgEditPerson" />
                                 </div>
                                 <div class="col-md-6">
-                                    <Rock:ButtonGroup ID="bgGender" runat="server" SelectedItemClass="btn btn-primary" UnselectedItemClass="btn btn-default" Required="true" ValidationGroup="vgEditPerson" RequiredErrorMessage="Gender is required.">
+                                    <Rock:ButtonGroup ID="bgGender" runat="server" SelectedItemClass="btn btn-primary" UnselectedItemClass="btn btn-default" Label="&nbsp;" Required="true" ValidationGroup="vgEditPerson" RequiredErrorMessage="Gender is required.">
                                         <asp:ListItem Text="Male" Value="1" />
                                         <asp:ListItem Text="Female" Value="2" />
                                     </Rock:ButtonGroup>
