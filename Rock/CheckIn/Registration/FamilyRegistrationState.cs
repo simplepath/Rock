@@ -166,6 +166,14 @@ namespace Rock.CheckIn.Registration
             public bool IsDeleted { get; set; }
 
             /// <summary>
+            /// Gets or sets a value indicating whether this record was initially a 'New Person' in the UI, but was converted to a Matched person after a match was found
+            /// </summary>
+            /// <value>
+            ///   <c>true</c> if [converted to matched person]; otherwise, <c>false</c>.
+            /// </value>
+            public bool ConvertedToMatchedPerson { get; set; } = false;
+
+            /// <summary>
             /// Gets or sets the group member unique identifier (or a new guid if this is a new record that hasn't been saved yet)
             /// </summary>
             /// <value>
@@ -271,7 +279,7 @@ namespace Rock.CheckIn.Registration
             {
                 get
                 {
-                    if ( this.FirstName == null && this.LastName == null )
+                    if ( this.FirstName == null )
                     {
                         return "Add Person";
                     }
@@ -456,7 +464,9 @@ namespace Rock.CheckIn.Registration
                     // newly added person, but a match was found, so set the PersonId, GroupId, and ConnectionStatusValueID to the matching person instead of creating a new person
                     familyPersonState.PersonId = matchingPerson.Id;
                     familyPersonState.GroupId = matchingPerson.GetFamily( rockContext )?.Id;
+                    familyPersonState.RecordStatusValueId = matchingPerson.RecordStatusValueId;
                     familyPersonState.ConnectionStatusValueId = matchingPerson.ConnectionStatusValueId;
+                    familyPersonState.ConvertedToMatchedPerson = true;
                     if ( primaryFamily == null && familyPersonState.IsAdult )
                     {
                         // if this is a new family, but we found a matching adult person, use that person's family as the family
@@ -481,15 +491,36 @@ namespace Rock.CheckIn.Registration
                     person = personService.Get( familyPersonState.PersonId.Value );
                 }
 
+                // NOTE, Gender, MaritalStatusValueId, NickName, LastName are required fields so, always updated them to match the UI (even if a matched person was found)
                 person.Gender = familyPersonState.Gender;
                 person.MaritalStatusValueId = familyPersonState.IsMarried ? maritalStatusMarried.Id : maritalStatusSingle.Id;
                 person.NickName = familyPersonState.FirstName;
                 person.LastName = familyPersonState.LastName;
-                person.SuffixValueId = familyPersonState.SuffixValueId;
 
-                person.SetBirthDate( familyPersonState.BirthDate );
-                person.Email = familyPersonState.Email;
-                person.GradeOffset = familyPersonState.GradeOffset;
+                // if the familyPersonState was converted to a Matched Person, don't overwrite existing values with blank values
+                var saveEmptyValues = !familyPersonState.ConvertedToMatchedPerson;
+
+                if ( familyPersonState.SuffixValueId.HasValue || saveEmptyValues )
+                {
+                    person.SuffixValueId = familyPersonState.SuffixValueId;
+                }
+
+                if ( familyPersonState.BirthDate.HasValue || saveEmptyValues )
+                {
+                    person.SetBirthDate( familyPersonState.BirthDate );
+                }
+
+                if ( familyPersonState.Email.IsNotNullOrWhiteSpace() || saveEmptyValues )
+                {
+                    person.Email = familyPersonState.Email;
+                }
+
+                if ( familyPersonState.GradeOffset.HasValue || saveEmptyValues )
+                {
+                    person.GradeOffset = familyPersonState.GradeOffset;
+                }
+
+                // if a matching person was found, the familyPersonState's RecordStatusValueId and ConnectinoStatusValueId was already updated to match the matched person
                 person.RecordStatusValueId = familyPersonState.RecordStatusValueId;
                 person.ConnectionStatusValueId = familyPersonState.ConnectionStatusValueId;
 
@@ -538,13 +569,20 @@ namespace Rock.CheckIn.Registration
                     // only set attribute values that are editable so we don't accidently delete any attribute values
                     if ( familyPersonState.EditableAttributes.Contains( attributeValue.Value.AttributeId ) )
                     {
-                        person.SetAttributeValue( attributeValue.Key, attributeValue.Value.Value );
+                        if ( attributeValue.Value.Value.IsNotNullOrWhiteSpace() || saveEmptyValues )
+                        {
+                            person.SetAttributeValue( attributeValue.Key, attributeValue.Value.Value );
+                        }
                     }
                 }
 
                 person.SaveAttributeValues( rockContext );
 
-                person.UpdatePhoneNumber( numberTypeValueMobile.Id, familyPersonState.MobilePhoneCountryCode, familyPersonState.MobilePhoneNumber, true, false, rockContext );
+                if ( familyPersonState.MobilePhoneNumber.IsNotNullOrWhiteSpace() || saveEmptyValues )
+                {
+                    person.UpdatePhoneNumber( numberTypeValueMobile.Id, familyPersonState.MobilePhoneCountryCode, familyPersonState.MobilePhoneNumber, true, false, rockContext );
+                }
+
                 rockContext.SaveChanges();
             }
 

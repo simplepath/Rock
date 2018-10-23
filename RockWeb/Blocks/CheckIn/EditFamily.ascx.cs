@@ -817,7 +817,14 @@ namespace RockWeb.Blocks.CheckIn
             lChildRelationShipToAdultReadOnly.Visible = familyPersonState.PersonId.HasValue;
 
             ShowControlsForRole( tglAdultChild.Checked );
-            bgGender.SetValue( familyPersonState.Gender.ConvertToInt() );
+            if ( familyPersonState.Gender == Gender.Unknown )
+            {
+                bgGender.SelectedValue = null;
+            }
+            else
+            {
+                bgGender.SetValue( familyPersonState.Gender.ConvertToInt() );
+            }
             tglAdultMaritalStatus.Checked = familyPersonState.IsMarried;
 
             ddlChildRelationShipToAdult.Items.Clear();
@@ -867,7 +874,14 @@ namespace RockWeb.Blocks.CheckIn
 
             tbEmail.Text = familyPersonState.Email;
             dpBirthDate.SelectedDate = familyPersonState.BirthDate;
-            gpGradePicker.SetValue( familyPersonState.GradeOffset );
+            if ( familyPersonState.GradeOffset.HasValue )
+            {
+                gpGradePicker.SetValue( familyPersonState.GradeOffset );
+            }
+            else
+            {
+                gpGradePicker.SelectedValue = null;
+            }
 
             CreateDynamicPersonControls( familyPersonState, true );
 

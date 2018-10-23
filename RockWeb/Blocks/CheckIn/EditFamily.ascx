@@ -192,7 +192,7 @@
                                     <Rock:DatePicker ID="dpBirthDate" runat="server" Label="Birthdate" AllowFutureDateSelection="False" RequireYear="True" ShowOnFocus="false" StartView="decade" />
                                 </div>
                                 <div class="col-md-6">
-                                    <Rock:GradePicker ID="gpGradePicker" runat="server" Label="Grade" ValidationGroup="vgEditPerson" />
+                                    <Rock:GradePicker ID="gpGradePicker" runat="server" Label="Grade" UseGradeOffsetAsValue="true" UseAbbreviation="true" ValidationGroup="vgEditPerson" />
                                 </div>
                                 <div class="col-md-6">
                                     <Rock:PhoneNumberBox ID="pnMobilePhone" runat="server" Label="Mobile Phone" ValidationGroup="vgEditPerson" />
