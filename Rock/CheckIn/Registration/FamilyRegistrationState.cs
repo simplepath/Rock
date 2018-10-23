@@ -600,6 +600,10 @@ namespace Rock.CheckIn.Registration
                 groupService.Add( primaryFamily );
                 saveResult.NewFamilyList.Add( primaryFamily );
                 rockContext.SaveChanges();
+            }
+
+            if ( !editFamilyState.GroupId.HasValue )
+            {
                 editFamilyState.GroupId = primaryFamily.Id;
             }
 

@@ -615,6 +615,26 @@ namespace RockWeb.Blocks.CheckIn
                     List<string> errorMessages;
                     if ( !string.IsNullOrEmpty( workflowActivity ) )
                     {
+                        // just in case this is a new family, or family name or phonenumber was changed, update the search to match the updated values
+                        if (  CurrentCheckInState.CheckIn.SearchType.Guid == Rock.SystemGuid.DefinedValue.CHECKIN_SEARCH_TYPE_NAME.AsGuid())
+                        {
+                            var firstFamilyPerson = EditFamilyState.FamilyPersonListState.OrderBy( a => a.IsAdult ).FirstOrDefault();
+                            if ( firstFamilyPerson != null )
+                            {
+                                CurrentCheckInState.CheckIn.SearchValue = firstFamilyPerson.FullNameForSearch;
+                            }
+                        }
+
+                        if ( CurrentCheckInState.CheckIn.SearchType.Guid == Rock.SystemGuid.DefinedValue.CHECKIN_SEARCH_TYPE_PHONE_NUMBER.AsGuid())
+                        {
+                            var firstFamilyPersonWithPhone = EditFamilyState.FamilyPersonListState.Where(a => a.MobilePhoneNumber.IsNotNullOrWhiteSpace()).OrderBy( a => a.IsAdult ).FirstOrDefault();
+                            if ( firstFamilyPersonWithPhone != null )
+                            {
+                                CurrentCheckInState.CheckIn.SearchValue = firstFamilyPersonWithPhone.MobilePhoneNumber;
+                            }
+                        }
+
+
                         ProcessActivity( workflowActivity, out errorMessages );
                     }
                 }
@@ -995,7 +1015,7 @@ namespace RockWeb.Blocks.CheckIn
             familyPersonState.LastName = tbLastName.Text.FixCase();
             familyPersonState.SuffixValueId = dvpSuffix.SelectedValue.AsIntegerOrNull();
 
-            familyPersonState.MobilePhoneNumber = pnMobilePhone.Text;
+            familyPersonState.MobilePhoneNumber = pnMobilePhone.Number;
             familyPersonState.MobilePhoneCountryCode = pnMobilePhone.CountryCode;
             familyPersonState.BirthDate = dpBirthDate.SelectedDate;
             familyPersonState.Email = tbEmail.Text;
