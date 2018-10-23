@@ -521,6 +521,7 @@ namespace RockWeb.Blocks.CheckIn
         {
             if ( CurrentCheckInState == null )
             {
+                // OnLoad would have started a 'NavigateToHomePage', so just jump out
                 return;
             }
 
@@ -724,6 +725,12 @@ namespace RockWeb.Blocks.CheckIn
         /// <param name="e">The <see cref="Rock.Web.UI.Controls.RowEventArgs"/> instance containing the event data.</param>
         protected void DeleteFamilyMember_Click( object sender, Rock.Web.UI.Controls.RowEventArgs e )
         {
+            if ( CurrentCheckInState == null )
+            {
+                // OnLoad would have started a 'NavigateToHomePage', so just jump out
+                return;
+            }
+
             var familyPersonState = EditFamilyState.FamilyPersonListState.FirstOrDefault( a => a.GroupMemberGuid == ( Guid ) e.RowKeyValue );
             familyPersonState.IsDeleted = true;
             BindFamilyMembersGrid();
@@ -887,6 +894,7 @@ namespace RockWeb.Blocks.CheckIn
         {
             if ( CurrentCheckInState == null )
             {
+                // OnLoad would have started a 'NavigateToHomePage', so just jump out
                 return;
             }
 
@@ -918,6 +926,12 @@ namespace RockWeb.Blocks.CheckIn
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void btnCancelPerson_Click( object sender, EventArgs e )
         {
+            if ( CurrentCheckInState == null )
+            {
+                // OnLoad would have started a 'NavigateToHomePage', so just jump out
+                return;
+            }
+
             ShowFamilyView();
 
             if ( !EditFamilyState.FamilyPersonListState.Any() )
@@ -934,6 +948,12 @@ namespace RockWeb.Blocks.CheckIn
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void btnDonePerson_Click( object sender, EventArgs e )
         {
+            if ( CurrentCheckInState == null )
+            {
+                // OnLoad would have started a 'NavigateToHomePage', so just jump out
+                return;
+            }
+
             Guid groupMemberGuid = hfGroupMemberGuid.Value.AsGuid();
             var familyPersonState = EditFamilyState.FamilyPersonListState.FirstOrDefault( a => a.GroupMemberGuid == groupMemberGuid );
             if ( familyPersonState == null )

@@ -453,8 +453,10 @@ namespace Rock.CheckIn.Registration
                 var matchingPerson = personService.FindPerson( personQuery, true );
                 if ( matchingPerson != null )
                 {
-                    // newly added person, but a match was found, so set the PersonId to the matching person instead of creating a new person
+                    // newly added person, but a match was found, so set the PersonId, GroupId, and ConnectionStatusValueID to the matching person instead of creating a new person
                     familyPersonState.PersonId = matchingPerson.Id;
+                    familyPersonState.GroupId = matchingPerson.GetFamily( rockContext )?.Id;
+                    familyPersonState.ConnectionStatusValueId = matchingPerson.ConnectionStatusValueId;
                     if ( primaryFamily == null && familyPersonState.IsAdult )
                     {
                         // if this is a new family, but we found a matching adult person, use that person's family as the family

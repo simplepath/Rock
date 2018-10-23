@@ -33,6 +33,9 @@
 
                                 if (originalTarget) {
                                     originalTarget.focus();
+
+                                    // clear the originalTarget
+                                    originalTarget = $(false);
                                 }
 
                                 // don't let a carriage return in the AlternateID field cause the form to submit. It is probably from the Keyboard Wedge if it has been less than 500ms
@@ -44,17 +47,15 @@
                     });
 
                     $(document).off('keypress').on('keypress', function (e) {
+                        var date = new Date();
 
                         if (e.target.id != alternateIdElementId) {
-                            var date = new Date();
                             var timeDiff = (date.getTime() - lastKeyPress);
                             if (timeDiff > 500) {
                                 // if it's been more than 500ms, assume it is either a new wedge read or just normal keyboard input
-                                console.log("new input");
                                 keyboardBuffer = String.fromCharCode(e.which);
                             } else if (timeDiff < 75) {
                                 // if it's been more less than 75ms, assume a wedge read is coming in and append to the keyboardBuffer
-                                console.log("fast input");
                                 var targetBuffer = keyboardBuffer;
                                 keyboardBuffer += String.fromCharCode(e.which);
                                 if (keyboardBuffer.length > 6) {
@@ -70,6 +71,8 @@
                                     $alternateId.val(keyboardBuffer);
                                     originalTarget = $(e.target);
                                     $alternateId.focus();
+                                    e.preventDefault();
+                                    return false;
                                 }
                             }
                         }
