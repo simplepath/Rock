@@ -123,6 +123,8 @@ namespace Rock.CheckIn.Registration
             /// Creates a FamilyMemberState from the person object
             /// </summary>
             /// <param name="person">The person.</param>
+            /// <param name="childRelationshipToAdult">The child relationship to adult.</param>
+            /// <param name="inPrimaryFamily">if set to <c>true</c> [in primary family].</param>
             /// <returns></returns>
             public static FamilyPersonState FromPerson( Person person, int childRelationshipToAdult, bool inPrimaryFamily )
             {

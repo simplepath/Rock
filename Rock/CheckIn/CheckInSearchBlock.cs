@@ -12,6 +12,10 @@ namespace Rock.CheckIn
     /// <seealso cref="Rock.CheckIn.CheckInBlock" />
     public abstract class CheckInSearchBlock : CheckInBlock
     {
+        /// <summary>
+        /// Processes the search.
+        /// </summary>
+        /// <param name="searchString">The search string.</param>
         public abstract void ProcessSearch( string searchString );
     }
 }
