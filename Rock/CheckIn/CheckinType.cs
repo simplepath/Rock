@@ -578,7 +578,7 @@ namespace Rock.CheckIn
             /// <returns></returns>
             private List<AttributeCache> GetAttributesForAttributeKey( string groupTypeAttributeKey )
             {
-                return _checkinType.GetSetting( groupTypeAttributeKey ).SplitDelimitedValues().AsGuidList().Select( g => AttributeCache.Get( g ) ).ToList();
+                return _checkinType.GetSetting( groupTypeAttributeKey ).SplitDelimitedValues().AsGuidList().Select( g => AttributeCache.Get( g ) ).Where( a => a != null ).ToList();
             }
         }
 
