@@ -250,6 +250,44 @@ namespace Rock.Field
         }
 
         /// <summary>
+        /// Determines whether [has change handler] [the specified control].
+        /// </summary>
+        /// <param name="control">The control.</param>
+        /// <returns>
+        ///   <c>true</c> if [has change handler] [the specified control]; otherwise, <c>false</c>.
+        /// </returns>
+        public virtual bool HasChangeHandler( Control control )
+        {
+            return control is TextBox || control is ListControl;
+        }
+
+        /// <summary>
+        /// Specifies an action to perform when the EditControl's Value is changed
+        /// </summary>
+        /// <param name="control">The control.</param>
+        /// <param name="action">The action.</param>
+        public virtual void AddChangeHandler( Control control, Action action )
+        {
+            if ( control is TextBox textBox )
+            {
+                textBox.AutoPostBack = true;
+                textBox.TextChanged += ( object sender, EventArgs e ) =>
+                    {
+                        action.Invoke();
+                    };
+            }
+
+            if ( control is ListControl listControl )
+            {
+                listControl.AutoPostBack = true;
+                listControl.SelectedIndexChanged += ( object sender, EventArgs e ) =>
+                {
+                    action.Invoke();
+                };
+            }
+        }
+
+        /// <summary>
         /// Tests the value to ensure that it is a valid value.  If not, message will indicate why
         /// </summary>
         /// <param name="value">The value.</param>

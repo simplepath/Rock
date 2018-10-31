@@ -172,6 +172,10 @@ namespace Rock.Field
         /// <param name="value">The value.</param>
         void SetEditValue( Control control, Dictionary<string, ConfigurationValue> configurationValues, string value );
 
+        bool HasChangeHandler( Control control );
+
+        void AddChangeHandler( Control control, Action action );
+
         /// <summary>
         /// Tests the value to ensure that it is a valid value.  If not, message will indicate why
         /// </summary>

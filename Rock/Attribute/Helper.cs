@@ -1095,6 +1095,9 @@ namespace Rock.Attribute
                         Value = setValue ? item.AttributeValues?[attribute.Key]?.Value : null
                     };
 
+                    AttributeEditControlWrapper attributeEditControlWrapper = new AttributeEditControlWrapper { AttributeId = attribute.Id };
+                    attributeEditControlWrapper.ID = $"_attributeEditControlWrapper_{attribute.Id}";
+
                     if ( numberOfColumns.HasValue )
                     {
                         int colSize = (int)Math.Ceiling((double)12 / numberOfColumns.Value);
@@ -1102,12 +1105,24 @@ namespace Rock.Attribute
                         HtmlGenericControl attributeCol = parentIsDynamic ? new DynamicControlsHtmlGenericControl( "div" ) : new HtmlGenericControl( "div" );
                         attributeRow.Controls.Add( attributeCol );
                         attributeCol.AddCssClass( string.Format( "col-md-{0}", colSize ) );
-                        attribute.AddControl( attributeCol.Controls, attributeControlOptions );
+                        attributeCol.Controls.Add( attributeEditControlWrapper );
                     }
                     else
                     {
-                        attribute.AddControl( fieldSet.Controls, attributeControlOptions );
+                        fieldSet.Controls.Add( attributeEditControlWrapper );
                     }
+
+                    var editControl = attribute.AddControl( attributeEditControlWrapper.Controls, attributeControlOptions );
+                    attributeEditControlWrapper.EditControl = editControl;
+                    
+                    if ( attribute.FieldType.Field.HasChangeHandler( editControl ) )
+                    {
+                        attribute.FieldType.Field.AddChangeHandler( editControl, () =>
+                            {
+                                attributeEditControlWrapper.TriggerEditValueUpdated( editControl );
+                            } );
+                    }
+                    
                 }
             }
         }

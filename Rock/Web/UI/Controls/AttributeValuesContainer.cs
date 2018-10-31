@@ -4,6 +4,7 @@ using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using Rock.Attribute;
+using Rock.Model;
 using Rock.Web.Cache;
 
 namespace Rock.Web.UI.Controls
@@ -38,6 +39,8 @@ namespace Rock.Web.UI.Controls
 
         // Keeps track of which attributes and values we created display controls for, so we can re-create them on postback
         private Dictionary<int, string> _displayModeAttributeIdValuesState { get; set; }
+
+        private Dictionary<int, AttributeEditControlWrapper> _attributeEditControlWrappers;
 
         #endregion
 
@@ -259,6 +262,30 @@ namespace Rock.Web.UI.Controls
                     }
                 }
             }
+
+            _attributeEditControlWrappers = _phAttributes.ControlsOfTypeRecursive<AttributeEditControlWrapper>().ToDictionary( k => k.AttributeId, v => v );
+
+            foreach ( var attributeEditControlWrapper in _attributeEditControlWrappers.Values )
+            {
+
+                attributeEditControlWrapper.EditValueUpdated += AttributeEditControlWrapper_EditValueUpdated;
+            }
+        }
+
+        private void AttributeEditControlWrapper_EditValueUpdated( object sender, EventArgs e )
+        {
+            foreach ( var attributeEditControlWrapper in _attributeEditControlWrappers.Values )
+            {
+                if ( attributeEditControlWrapper.AttributeId == 3780 )
+                {
+                    var compareToAttribute = AttributeCache.Get( 3779 );
+                    var comparedToEditControl = _attributeEditControlWrappers[compareToAttribute.Id].EditControl;
+                    var comparedToAttributeValue = compareToAttribute.FieldType.Field.GetEditValue( comparedToEditControl, compareToAttribute.QualifierValues );
+                    attributeEditControlWrapper.SetVisibility( ComparisonType.EqualTo, "Blue", compareToAttribute.Id, comparedToAttributeValue );
+                }
+            }
+
+            Debug.WriteLine( "Hello from AttributeEditControlWrapper_EditValueUpdated" );
         }
 
         /// <summary>
