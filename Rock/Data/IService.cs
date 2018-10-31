@@ -47,5 +47,22 @@ namespace Rock.Data
         /// <param name="whereExpression">The where expression.</param>
         /// <returns></returns>
         IQueryable<int> GetIds( ParameterExpression parameterExpression, Expression whereExpression );
+
+        /// <summary>
+        /// Gets a queryable of items that match the specified whereExpression
+        /// </summary>
+        /// <param name="parameterExpression">The parameter expression.</param>
+        /// <param name="whereExpression">The where expression.</param>
+        /// <returns></returns>
+        IQueryable<IEntity> Get( ParameterExpression parameterExpression, Expression whereExpression );
+
+        /// <summary>
+        /// Gets a queryable of items that match the specified whereExpression and ordered using the specified sortProperty
+        /// </summary>
+        /// <param name="parameterExpression">The parameter expression.</param>
+        /// <param name="whereExpression">The where expression.</param>
+        /// <param name="sortProperty">The sort property.</param>
+        /// <returns></returns>
+        IQueryable<IEntity> Get( ParameterExpression parameterExpression, Expression whereExpression, Rock.Web.UI.Controls.SortProperty sortProperty );
     }
 }

@@ -202,7 +202,7 @@ namespace Rock.Data
         }
 
         /// <summary>
-        /// Gets a list of items that match the specified expression.
+        /// Gets a queryable of items that match the specified whereExpression
         /// </summary>
         /// <param name="parameterExpression">The parameter expression.</param>
         /// <param name="whereExpression">The where expression.</param>
@@ -213,7 +213,7 @@ namespace Rock.Data
         }
 
         /// <summary>
-        /// Gets a list of items that match the specified expression.
+        /// Gets a queryable of items that match the specified whereExpression and ordered using the specified sortProperty
         /// </summary>
         /// <param name="parameterExpression">The parameter expression.</param>
         /// <param name="whereExpression">The where expression.</param>
@@ -611,6 +611,29 @@ namespace Rock.Data
                 // manually set the value of ModifiedAuditValuesAlreadyUpdated since it isn't a Database field
                 ( targetItem as IModel ).ModifiedAuditValuesAlreadyUpdated = ( sourceItem as IModel ).ModifiedAuditValuesAlreadyUpdated;
             }
+        }
+
+        /// <summary>
+        /// Gets a queryable of items that match the specified whereExpression
+        /// </summary>
+        /// <param name="parameterExpression">The parameter expression.</param>
+        /// <param name="whereExpression">The where expression.</param>
+        /// <returns></returns>
+        IQueryable<IEntity> IService.Get( ParameterExpression parameterExpression, Expression whereExpression )
+        {
+            return this.Get( parameterExpression, whereExpression );
+        }
+
+        /// <summary>
+        /// Gets a queryable of items that match the specified whereExpression and ordered using the specified sortProperty
+        /// </summary>
+        /// <param name="parameterExpression">The parameter expression.</param>
+        /// <param name="whereExpression">The where expression.</param>
+        /// <param name="sortProperty">The sort property.</param>
+        /// <returns></returns>
+        IQueryable<IEntity> IService.Get( ParameterExpression parameterExpression, Expression whereExpression, Rock.Web.UI.Controls.SortProperty sortProperty )
+        {
+            return this.Get( parameterExpression, whereExpression, sortProperty );
         }
 
         #endregion
