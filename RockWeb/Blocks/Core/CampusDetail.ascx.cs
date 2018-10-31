@@ -194,6 +194,7 @@ namespace RockWeb.Blocks.Core
             ppCampusLeader.SetValue( campus.LeaderPersonAlias != null ? campus.LeaderPersonAlias.Person : null );
             kvlServiceTimes.Value = campus.ServiceTimes;
 
+            campus.LoadAttributes();
             avcAttributes.ExcludedAttributes = campus.Attributes.Where( a => !a.Value.IsAuthorized( Rock.Security.Authorization.EDIT, this.CurrentPerson ) ).Select( a => a.Value ).ToArray();
             avcAttributes.AddEditControls( campus, true );
 
