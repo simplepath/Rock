@@ -207,7 +207,7 @@ $('.template-form > .panel-body').on('validation-error', function() {
             result.Guid = new Guid( _hfFormGuid.Value );
             result.Name = _tbFormName.Text;
 
-            if (expandInvalid && !Expanded && !result.IsValid)
+            if ( expandInvalid && !Expanded && !result.IsValid )
             {
                 Expanded = true;
             }
@@ -396,9 +396,16 @@ $('.template-form > .panel-body').on('validation-error', function() {
                 }
                 else
                 {
-                    // TODO
-                    linkButton.Visible = false;
-                    // TODO
+                    if ( field.FieldVisibilityRules.Any() )
+                    {
+                        linkButton.AddCssClass( "active" );
+                    }
+                    else
+                    {
+                        linkButton.RemoveCssClass( "active" );
+                    }
+
+                    linkButton.Visible = true;
                 }
             }
         }
@@ -499,7 +506,7 @@ $('.template-form > .panel-body').on('validation-error', function() {
             writer.WriteLine( string.Format( "<a class='btn btn-xs btn-link'><i class='form-state fa {0}'></i></a>",
                 Expanded ? "fa fa-chevron-up" : "fa fa-chevron-down" ) );
 
-            if ( IsDeleteEnabled  )
+            if ( IsDeleteEnabled )
             {
                 _lbDeleteForm.Visible = true;
                 _lbDeleteForm.RenderControl( writer );
@@ -615,7 +622,7 @@ $('.template-form > .panel-body').on('validation-error', function() {
         {
             if ( EditFieldClick != null )
             {
-                var eventArg = new TemplateFormFieldEventArg( FormGuid, (Guid)e.RowKeyValue );
+                var eventArg = new TemplateFormFieldEventArg( FormGuid, ( Guid ) e.RowKeyValue );
                 EditFieldClick( this, eventArg );
             }
         }
@@ -643,7 +650,7 @@ $('.template-form > .panel-body').on('validation-error', function() {
         {
             if ( DeleteFieldClick != null )
             {
-                var eventArg = new TemplateFormFieldEventArg( FormGuid, (Guid)e.RowKeyValue );
+                var eventArg = new TemplateFormFieldEventArg( FormGuid, ( Guid ) e.RowKeyValue );
                 DeleteFieldClick( this, eventArg );
             }
         }

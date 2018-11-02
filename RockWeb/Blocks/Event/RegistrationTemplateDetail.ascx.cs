@@ -2420,7 +2420,13 @@ The first registrant's information will be used to complete the registrar inform
             {
                 ShowDialog( "FieldFilter" );
 
-                // TODO
+                hfFormGuidFilter.Value = formGuid.ToString();
+                hfFormFieldGuidFilter.Value = formFieldGuid.ToString();
+                var formField = FormFieldsState[formGuid].FirstOrDefault( a => a.Guid == formFieldGuid );
+                var otherFormFields = FormFieldsState[formGuid].Where( a => a != formField && a.AttributeId.HasValue ).ToList();
+
+                frcFieldFilter.AttributeId = formField.AttributeId.Value;
+                frcFieldFilter.ComparableAttributesIds = otherFormFields.Select( a => a.AttributeId.Value ).ToList();
             }
 
             BuildControls( true );
@@ -2436,6 +2442,18 @@ The first registrant's information will be used to complete the registrar inform
             //
         }
 
+        /// <summary>
+        /// Handles the Click event of the btnAddFilterFieldCriteria control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
+        protected void btnAddFilterFieldCriteria_Click( object sender, EventArgs e )
+        {
+            var formGuid = hfFormGuidFilter.Value.AsGuid();
+            var formFieldGuid = hfFormFieldGuidFilter.Value.AsGuid();
+            var formField = FormFieldsState[formGuid].FirstOrDefault( a => a.Guid == formFieldGuid );
+            frcFieldFilter.AddFilterRuleControl( new Rock.Field.AttributeFieldVisibilityRule(), false );
+        }
 
         #endregion
 
@@ -2883,5 +2901,7 @@ The first registrant's information will be used to complete the registrar inform
         #endregion
 
         #endregion
+
+       
     }
 }

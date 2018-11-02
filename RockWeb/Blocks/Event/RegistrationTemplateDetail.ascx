@@ -381,8 +381,35 @@
         <Rock:ModalDialog ID="dlgFieldFilter" runat="server" Title="Form Field Filter" OnSaveClick="dlgFieldFilter_SaveClick" OnCancelScript="clearActiveDialog();" ValidationGroup="FieldFilter">
             <Content>
                 <asp:HiddenField ID="hfFormGuidFilter" runat="server" />
-                <asp:HiddenField ID="hfAttributeGuidFilter" runat="server" />
+                <asp:HiddenField ID="hfFormFieldGuidFilter" runat="server" />
                 <asp:ValidationSummary ID="ValidationSummaryFieldFilter" runat="server" HeaderText="Please correct the following:" CssClass="alert alert-validation" ValidationGroup="FieldFilter" />
+                <div class="panel panel-block">
+                    <div class="panel-heading">
+                        <div class="filter-toggle pull-left">
+                            <Rock:RockDropDownList ID="ddlFilterShowHide" CssClass="input-width-sm pull-left" runat="server" >
+                                <asp:ListItem Text="Show" Value="Show" />
+                                <asp:ListItem Text="Hide" Value="Hide" />
+                            </Rock:RockDropDownList>
+                            <span class="pull-left margin-all-sm">if</span>
+                            <Rock:RockDropDownList ID="ddlFilterAllAny" CssClass="input-width-sm pull-left" runat="server" >
+                                <asp:ListItem Text="All" Value="All" />
+                                <asp:ListItem Text="Any" Value="Any" />
+                            </Rock:RockDropDownList>
+                            <span class="pull-left margin-all-sm">of the following match:</span>
+                        </div>
+                        <div class="filter-actions pull-right margin-all-sm">
+                            <asp:LinkButton ID="btnAddFilterFieldCriteria" runat="server" CssClass="btn btn-xs btn-action add-action " OnClick="btnAddFilterFieldCriteria_Click" >
+                                <i class="fa fa-filter"></i>
+                                Add Criteria
+                            </asp:LinkButton>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                      <Rock:FilterRulesContainer ID="frcFieldFilter" runat="server" />
+                    </div>
+                </div>
+                
+                
             </Content>
         </Rock:ModalDialog>
 
