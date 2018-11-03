@@ -721,24 +721,40 @@ namespace Rock.Lava.Blocks
                     else
                     {
                         AttributeCache filterAttribute = null;
+                        Expression attributeWhereExpression = null;
                         foreach ( var id in AttributeCache.GetByEntity( entityTypeCache.Id ).SelectMany( a => a.AttributeIds ) )
                         {
                             var attribute = AttributeCache.Get( id );
+
+                            // TODO: Test this....
+
+
+
+                            // just in case this EntityType has multiple attributes with the same key, create a OR'd clause for each attribute that has this key
+                            // NOTE: this could easily happen if doing an entity command against a definedvalue, and the same attribute key is used in more than one defined type
                             if ( attribute.Key == property )
                             {
                                 filterAttribute = attribute;
-                                break;
+                                var attributeEntityField = EntityHelper.GetEntityFieldForAttribute( filterAttribute );
+
+                                if ( attributeWhereExpression == null )
+                                {
+                                    attributeWhereExpression = ExpressionHelper.GetAttributeExpression( service, parmExpression, attributeEntityField, selectionParms );
+                                }
+                                else
+                                {
+                                    attributeWhereExpression = Expression.OrElse( attributeWhereExpression, ExpressionHelper.GetAttributeExpression( service, parmExpression, attributeEntityField, selectionParms ) );
+                                }
                             }
                         }
 
-                        if ( filterAttribute != null )
+                        if ( attributeWhereExpression != null )
                         {
-                            var attributeEntityField = EntityHelper.GetEntityFieldForAttribute( filterAttribute );
-                            expression = ExpressionHelper.GetAttributeExpression( service, parmExpression, attributeEntityField, selectionParms );
+                            expression = attributeWhereExpression;
                         }
                     }
 
-                    if ( returnExpression == null )
+                   if ( returnExpression == null )
                     {
                         returnExpression = expression;
                     }
