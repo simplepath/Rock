@@ -1080,6 +1080,7 @@ The first registrant's information will be used to complete the registrar inform
                             formField.IsRequired = formFieldUI.IsRequired;
                             formField.Order = formFieldUI.Order;
                             formField.ShowOnWaitlist = formFieldUI.ShowOnWaitlist;
+                            formField.FieldVisibilityRules = formFieldUI.FieldVisibilityRules;
                         }
                     }
                 }
@@ -2423,10 +2424,40 @@ The first registrant's information will be used to complete the registrar inform
                 hfFormGuidFilter.Value = formGuid.ToString();
                 hfFormFieldGuidFilter.Value = formFieldGuid.ToString();
                 var formField = FormFieldsState[formGuid].FirstOrDefault( a => a.Guid == formFieldGuid );
-                var otherFormFields = FormFieldsState[formGuid].Where( a => a != formField && a.AttributeId.HasValue ).ToList();
+                var otherFormFields = FormFieldsState[formGuid].Where( a => a != formField && a.Attribute != null ).ToList();
 
-                frcFieldFilter.AttributeId = formField.AttributeId.Value;
-                frcFieldFilter.ComparableAttributesIds = otherFormFields.Select( a => a.AttributeId.Value ).ToList();
+                switch ( formField.FieldVisibilityRules.FilterExpressionType )
+                {
+                    case FilterExpressionType.GroupAllFalse:
+                        {
+                            ddlFilterShowHide.SetValue( "Hide" );
+                            ddlFilterAllAny.SetValue( "All" );
+                            break;
+                        }
+                    case FilterExpressionType.GroupAny:
+                        {
+                            ddlFilterShowHide.SetValue( "Show" );
+                            ddlFilterAllAny.SetValue( "Any" );
+                            break;
+                        }
+                    case FilterExpressionType.GroupAnyFalse:
+                        {
+                            ddlFilterShowHide.SetValue( "Hide" );
+                            ddlFilterAllAny.SetValue( "Any" );
+                            break;
+                        }
+                    default:
+                        {
+                            ddlFilterShowHide.SetValue( "Show" );
+                            ddlFilterAllAny.SetValue( "All" );
+                            break;
+                        }
+                }
+
+                freFilterRulesEditor.ValidationGroup = dlgFieldFilter.ValidationGroup;
+                freFilterRulesEditor.AttributeId = formField.AttributeId;
+                freFilterRulesEditor.ComparableAttributes = otherFormFields.Select( a => a.Attribute ).ToDictionary( k => k.Guid, v => v );
+                freFilterRulesEditor.SetFilterRules( formField.FieldVisibilityRules );
             }
 
             BuildControls( true );
@@ -2439,7 +2470,39 @@ The first registrant's information will be used to complete the registrar inform
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void dlgFieldFilter_SaveClick( object sender, EventArgs e )
         {
-            //
+            Guid formGuid = hfFormGuidFilter.Value.AsGuid();
+            Guid formFieldGuid = hfFormFieldGuidFilter.Value.AsGuid();
+            var formField = FormFieldsState[formGuid].FirstOrDefault( a => a.Guid == formFieldGuid );
+            formField.FieldVisibilityRules = freFilterRulesEditor.GetFilterRules();
+
+            if ( ddlFilterShowHide.SelectedValue.Equals( "Show", StringComparison.OrdinalIgnoreCase ) )
+            {
+                if ( ddlFilterAllAny.SelectedValue.Equals( "any", StringComparison.OrdinalIgnoreCase ) )
+                {
+                    formField.FieldVisibilityRules.FilterExpressionType = FilterExpressionType.GroupAny;
+                }
+                else
+                {
+                    formField.FieldVisibilityRules.FilterExpressionType = FilterExpressionType.GroupAll;
+                }
+            }
+            else
+            {
+                if ( ddlFilterAllAny.SelectedValue.Equals( "any", StringComparison.OrdinalIgnoreCase ) )
+                {
+                    formField.FieldVisibilityRules.FilterExpressionType = FilterExpressionType.GroupAnyFalse;
+                }
+                else
+                {
+                    formField.FieldVisibilityRules.FilterExpressionType = FilterExpressionType.GroupAllFalse;
+                }
+            }
+
+            
+
+            HideDialog();
+
+            BuildControls( true );
         }
 
         /// <summary>
@@ -2452,7 +2515,9 @@ The first registrant's information will be used to complete the registrar inform
             var formGuid = hfFormGuidFilter.Value.AsGuid();
             var formFieldGuid = hfFormFieldGuidFilter.Value.AsGuid();
             var formField = FormFieldsState[formGuid].FirstOrDefault( a => a.Guid == formFieldGuid );
-            frcFieldFilter.AddFilterRuleControl( new Rock.Field.AttributeFieldVisibilityRule(), false );
+            freFilterRulesEditor.AddFilterRule( new Rock.Field.FieldVisibilityRule() );
+
+            BuildControls( true );
         }
 
         #endregion
@@ -2902,6 +2967,6 @@ The first registrant's information will be used to complete the registrar inform
 
         #endregion
 
-       
+
     }
 }

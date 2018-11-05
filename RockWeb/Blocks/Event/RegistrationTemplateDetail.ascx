@@ -405,7 +405,7 @@
                         </div>
                     </div>
                     <div class="panel-body">
-                      <Rock:FilterRulesContainer ID="frcFieldFilter" runat="server" />
+                      <Rock:FilterRulesEditor ID="freFilterRulesEditor" runat="server" />
                     </div>
                 </div>
                 
