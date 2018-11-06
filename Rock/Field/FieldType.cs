@@ -272,15 +272,28 @@ namespace Rock.Field
             {
                 textBox.AutoPostBack = true;
                 textBox.TextChanged += ( object sender, EventArgs e ) =>
-                    {
-                        action.Invoke();
-                    };
+                {
+                    action.Invoke();
+                };
             }
-
-            if ( editControl is ListControl listControl )
+            else if ( editControl is ListControl listControl )
             {
                 listControl.AutoPostBack = true;
                 listControl.SelectedIndexChanged += ( object sender, EventArgs e ) =>
+                {
+                    action.Invoke();
+                };
+            }
+            else if ( editControl is ItemPicker itemPicker )
+            {
+                itemPicker.SelectItem += ( object sender, EventArgs e ) =>
+                {
+                    action.Invoke();
+                };
+            }
+            else if ( editControl is IRockChangeHandlerControl rockChangeHandlerControl )
+            {
+                rockChangeHandlerControl.ValueChanged += ( object sender, EventArgs e ) =>
                 {
                     action.Invoke();
                 };
@@ -575,7 +588,7 @@ namespace Rock.Field
                 filterControl.Controls != null &&
                 filterControl.Controls.Count != 0 &&
                 filterControl.Controls[0].Controls != null &&
-                filterControl.Controls[0].Controls.Count != 0  &&
+                filterControl.Controls[0].Controls.Count != 0 &&
                 filterValues != null )
             {
                 try
@@ -699,7 +712,7 @@ namespace Rock.Field
         /// <returns>A value surrounded with quotes</returns>
         public string AddQuotes( string value )
         {
-            if (value.IsNotNullOrWhiteSpace())
+            if ( value.IsNotNullOrWhiteSpace() )
             {
                 return string.Format( "'{0}'", value );
             }
