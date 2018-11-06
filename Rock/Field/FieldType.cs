@@ -250,6 +250,44 @@ namespace Rock.Field
         }
 
         /// <summary>
+        /// Determines whether this FieldType supports doing PostBack for the editControl 
+        /// </summary>
+        /// <param name="editControl">The edit control.</param>
+        /// <returns>
+        ///   <c>true</c> if [has change handler] [the specified control]; otherwise, <c>false</c>.
+        /// </returns>
+        public virtual bool HasChangeHandler( Control editControl )
+        {
+            return editControl is TextBox || editControl is ListControl;
+        }
+
+        /// <summary>
+        /// Specifies an action to perform when the EditControl's Value is changed. See also <seealso cref="HasChangeHandler(Control)" />
+        /// </summary>
+        /// <param name="editControl">The edit control.</param>
+        /// <param name="action">The action.</param>
+        public virtual void AddChangeHandler( Control editControl, Action action )
+        {
+            if ( editControl is TextBox textBox )
+            {
+                textBox.AutoPostBack = true;
+                textBox.TextChanged += ( object sender, EventArgs e ) =>
+                    {
+                        action.Invoke();
+                    };
+            }
+
+            if ( editControl is ListControl listControl )
+            {
+                listControl.AutoPostBack = true;
+                listControl.SelectedIndexChanged += ( object sender, EventArgs e ) =>
+                {
+                    action.Invoke();
+                };
+            }
+        }
+
+        /// <summary>
         /// Tests the value to ensure that it is a valid value.  If not, message will indicate why
         /// </summary>
         /// <param name="value">The value.</param>
