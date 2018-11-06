@@ -28,7 +28,7 @@ namespace Rock.Web.UI.Controls
     /// <summary>
     /// 
     /// </summary>
-    public class FilterRulesEditor : CompositeControl, IHasValidationGroup, INamingContainer
+    public class FieldVisibilityRulesEditor : CompositeControl, IHasValidationGroup, INamingContainer
     {
         #region Controls
 
@@ -162,7 +162,7 @@ namespace Rock.Web.UI.Controls
         {
             // get a new copy of the rules then get the filter rule settings from the controls
             var filterRules = _fieldVisibilityRulesState.Clone();
-            foreach ( var fieldVisibilityRule in filterRules )
+            foreach ( var fieldVisibilityRule in filterRules.ToList() )
             {
                 var rockControlWrapper = _phFilterFieldRuleControls.FindControl( $"_rockControlWrapper_{fieldVisibilityRule.Guid.ToString( "N" )}" ) as RockControlWrapper;
                 if ( rockControlWrapper == null )
@@ -193,10 +193,8 @@ namespace Rock.Web.UI.Controls
                 }
                 else
                 {
-                    // no attribute selected, so clear out the fieldVisibilityRule's properties
-                    fieldVisibilityRule.ComparedToAttributeGuid = null;
-                    fieldVisibilityRule.ComparisonType = ComparisonType.EqualTo;
-                    fieldVisibilityRule.ComparedToValue = null;
+                    // no attribute selected, so delete the rule
+                    filterRules.Remove( fieldVisibilityRule );
                 }
             }
 
@@ -255,7 +253,7 @@ namespace Rock.Web.UI.Controls
             {
                 ID = $"_ddlCompareField_{fieldVisibilityRule.Guid.ToString( "N" )}",
                 CssClass = "input-width-lg",
-                Required = true,
+                Required = false,
                 ValidationGroup = this.ValidationGroup
             };
 
