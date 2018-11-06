@@ -405,7 +405,7 @@
                         </div>
                     </div>
                     <div class="panel-body">
-                      <Rock:FilterRulesEditor ID="freFilterRulesEditor" runat="server" />
+                      <Rock:FieldVisibilityRulesEditor ID="fvreFieldVisibilityRulesEditor" runat="server" />
                     </div>
                 </div>
                 

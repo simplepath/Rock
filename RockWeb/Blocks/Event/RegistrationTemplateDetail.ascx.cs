@@ -1460,6 +1460,13 @@ The first registrant's information will be used to complete the registrar inform
                         {
                             attributeForm.Attribute = attribute.Clone( false );
                             attributeForm.Attribute.FieldType = attribute.FieldType.Clone( false );
+                            attributeForm.Attribute.AttributeQualifiers = new List<AttributeQualifier>();
+
+                            foreach ( var qualifier in attribute.AttributeQualifiers )
+                            {
+                                attributeForm.Attribute.AttributeQualifiers.Add( qualifier.Clone( false ) );
+                            }
+
                             attributeForm.AttributeId = attribute.Id;
                         }
                     }
@@ -2454,10 +2461,10 @@ The first registrant's information will be used to complete the registrar inform
                         }
                 }
 
-                freFilterRulesEditor.ValidationGroup = dlgFieldFilter.ValidationGroup;
-                freFilterRulesEditor.AttributeId = formField.AttributeId;
-                freFilterRulesEditor.ComparableAttributes = otherFormFields.Select( a => a.Attribute ).ToDictionary( k => k.Guid, v => v );
-                freFilterRulesEditor.SetFilterRules( formField.FieldVisibilityRules );
+                fvreFieldVisibilityRulesEditor.ValidationGroup = dlgFieldFilter.ValidationGroup;
+                fvreFieldVisibilityRulesEditor.AttributeId = formField.AttributeId;
+                fvreFieldVisibilityRulesEditor.ComparableAttributes = otherFormFields.Select( a => a.Attribute ).ToDictionary( k => k.Guid, v => v );
+                fvreFieldVisibilityRulesEditor.SetFilterRules( formField.FieldVisibilityRules );
             }
 
             BuildControls( true );
@@ -2473,7 +2480,7 @@ The first registrant's information will be used to complete the registrar inform
             Guid formGuid = hfFormGuidFilter.Value.AsGuid();
             Guid formFieldGuid = hfFormFieldGuidFilter.Value.AsGuid();
             var formField = FormFieldsState[formGuid].FirstOrDefault( a => a.Guid == formFieldGuid );
-            formField.FieldVisibilityRules = freFilterRulesEditor.GetFilterRules();
+            formField.FieldVisibilityRules = fvreFieldVisibilityRulesEditor.GetFilterRules();
 
             if ( ddlFilterShowHide.SelectedValue.Equals( "Show", StringComparison.OrdinalIgnoreCase ) )
             {
@@ -2515,7 +2522,7 @@ The first registrant's information will be used to complete the registrar inform
             var formGuid = hfFormGuidFilter.Value.AsGuid();
             var formFieldGuid = hfFormFieldGuidFilter.Value.AsGuid();
             var formField = FormFieldsState[formGuid].FirstOrDefault( a => a.Guid == formFieldGuid );
-            freFilterRulesEditor.AddFilterRule( new Rock.Field.FieldVisibilityRule() );
+            fvreFieldVisibilityRulesEditor.AddFilterRule( new Rock.Field.FieldVisibilityRule() );
 
             BuildControls( true );
         }

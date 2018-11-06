@@ -29,7 +29,7 @@ namespace Rock.Web.UI.Controls
         }
 
         /// <summary>
-        /// Sets the visibility based on the value of another attribute
+        /// Sets the visibility based on the value of other attributes
         /// </summary>
         /// <param name="attributeValues">The attribute values.</param>
         public void UpdateVisibility( Dictionary<int, AttributeValueCache> attributeValues )
@@ -48,9 +48,8 @@ namespace Rock.Web.UI.Controls
                 filterValues.Add( fieldVisibilityRule.ComparisonType.ConvertToString( false ) );
                 filterValues.Add( fieldVisibilityRule.ComparedToValue );
                 Expression entityCondition;
-                ParameterExpression parameterExpression;
 
-                parameterExpression = Expression.Parameter( typeof( AttributeValueCache ) );
+                ParameterExpression parameterExpression = Expression.Parameter( typeof( Rock.Model.AttributeValue ) );
 
                 var comparedToAttribute = AttributeCache.Get( fieldVisibilityRule.ComparedToAttributeGuid.Value );
                 entityCondition = comparedToAttribute.FieldType.Field.AttributeFilterExpression( comparedToAttribute.QualifierValues, filterValues, parameterExpression );
@@ -59,12 +58,20 @@ namespace Rock.Web.UI.Controls
                     continue;
                 }
 
-                var conditionLambda = Expression.Lambda<Func<AttributeValueCache, bool>>( entityCondition, parameterExpression );
+                var conditionLambda = Expression.Lambda<Func<Rock.Model.AttributeValue, bool>>( entityCondition, parameterExpression );
                 var conditionFunc = conditionLambda.Compile();
                 var comparedToAttributeValue = attributeValues.GetValueOrNull( comparedToAttribute.Id )?.Value;
 
-                var attributeValueCache = new AttributeValueCache { AttributeId = comparedToAttribute.Id, Value = comparedToAttributeValue };
-                var conditionResult = conditionFunc.Invoke( attributeValueCache );
+                var attributeValueToEvaluate = new Rock.Model.AttributeValue
+                {
+                    AttributeId = comparedToAttribute.Id,
+                    Value = comparedToAttributeValue,
+                    ValueAsBoolean = comparedToAttributeValue.AsBooleanOrNull(),
+                    ValueAsNumeric = comparedToAttributeValue.AsDecimalOrNull(),
+                    ValueAsDateTime = comparedToAttributeValue.AsDateTime()
+                };
+
+                var conditionResult = conditionFunc.Invoke( attributeValueToEvaluate );
                 switch ( this.FieldVisibilityRules.FilterExpressionType )
                 {
                     case Rock.Model.FilterExpressionType.GroupAll:

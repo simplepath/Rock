@@ -95,6 +95,16 @@ namespace Rock.Web.UI.Controls
         }
 
         /// <summary>
+        /// Outputs server control content to a provided <see cref="T:System.Web.UI.HtmlTextWriter" /> object and stores tracing information about the control if tracing is enabled.
+        /// </summary>
+        /// <param name="writer">The <see cref="T:System.Web.UI.HtmlTextWriter" /> object that receives the control content.</param>
+        public override void RenderControl( HtmlTextWriter writer )
+        {
+            ScriptManager.RegisterClientScriptInclude( this, this.GetType(), "reporting-include", this.RockBlock().RockPage.ResolveRockUrl( "~/Scripts/Rock/reportingInclude.js", true ) );
+            base.RenderControl( writer );
+        }
+
+        /// <summary>
         /// Restores view-state information from a previous request that was saved with the <see cref="M:System.Web.UI.WebControls.WebControl.SaveViewState" /> method.
         /// </summary>
         /// <param name="savedState">An object that represents the control state to restore.</param>
@@ -263,11 +273,19 @@ namespace Rock.Web.UI.Controls
                 var fieldType = FieldTypeCache.Get( attribute.FieldTypeId );
                 if ( fieldType.Field.HasFilterControl() )
                 {
-                    var listItem = new ListItem( attribute.Name, attribute.Guid.ToString() );
-                    ddlCompareField.Items.Add( listItem );
-                    if ( setValues && attribute.Guid == fieldVisibilityRule.ComparedToAttributeGuid )
+                    var qualifiers = attribute.AttributeQualifiers.ToDictionary( k => k.Key, v => new ConfigurationValue( v.Value ) );
+
+                    // get the editControl to see if the FieldType supports a ChangeHandler for it (but don't actually use the control)
+                    var editControl = fieldType.Field.EditControl( qualifiers, $"temp_editcontrol_attribute_{attribute.Id}" );
+
+                    if ( fieldType.Field.HasChangeHandler( editControl ) )
                     {
-                        listItem.Selected = true;
+                        var listItem = new ListItem( attribute.Name, attribute.Guid.ToString() );
+                        ddlCompareField.Items.Add( listItem );
+                        if ( setValues && attribute.Guid == fieldVisibilityRule.ComparedToAttributeGuid )
+                        {
+                            listItem.Selected = true;
+                        }
                     }
                 }
             }
