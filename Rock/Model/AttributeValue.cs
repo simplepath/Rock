@@ -152,7 +152,7 @@ namespace Rock.Model
         [DataMember]
         [DatabaseGenerated( DatabaseGeneratedOption.Computed )]
         [LavaIgnore]
-        public DateTime? ValueAsDateTime { get; private set; }
+        public DateTime? ValueAsDateTime { get; internal set; }
 
         /// <summary>
         /// Gets the value as boolean (computed column)
@@ -163,7 +163,7 @@ namespace Rock.Model
         [DataMember]
         [DatabaseGenerated( DatabaseGeneratedOption.Computed )]
         [LavaIgnore]
-        public bool? ValueAsBoolean { get; private set; }
+        public bool? ValueAsBoolean { get; internal set; }
 
         /// <summary>
         /// Gets a person alias guid value as a PersonId (ComputedColumn).
