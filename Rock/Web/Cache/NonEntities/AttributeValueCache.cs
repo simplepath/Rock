@@ -82,6 +82,30 @@ namespace Rock.Web.Cache
         public string Value { get; set; }
 
         /// <summary>
+        /// Gets the value as numeric.
+        /// </summary>
+        /// <value>
+        /// The value as numeric.
+        /// </value>
+        public decimal? ValueAsNumeric => Value.AsDecimalOrNull();
+
+        /// <summary>
+        /// Gets the value as date time.
+        /// </summary>
+        /// <value>
+        /// The value as date time.
+        /// </value>
+        public DateTime? ValueAsDateTime => Value.AsDateTime();
+
+        /// <summary>
+        /// Gets the value as boolean.
+        /// </summary>
+        /// <value>
+        /// The value as boolean.
+        /// </value>
+        public bool? ValueAsBoolean => Value.AsBooleanOrNull();
+
+        /// <summary>
         /// Gets the value using the most appropriate datatype
         /// </summary>
         /// <value>
