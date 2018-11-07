@@ -128,9 +128,9 @@
     <Compile Include="Migrations\201810312001375_MissingPluginMigrations.Designer.cs">
       <DependentUpon>201810312001375_MissingPluginMigrations.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201811012258422_RegistrationFieldVisibilityRules.cs" />
-    <Compile Include="Migrations\201811012258422_RegistrationFieldVisibilityRules.Designer.cs">
-      <DependentUpon>201811012258422_RegistrationFieldVisibilityRules.cs</DependentUpon>
+    <Compile Include="Migrations\201811062035033_AddCheckinFilterGroupsByDataView.cs" />
+    <Compile Include="Migrations\201811062035033_AddCheckinFilterGroupsByDataView.Designer.cs">
+      <DependentUpon>201811062035033_AddCheckinFilterGroupsByDataView.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\CreateDatabase\201311251734059_CreateDatabase.cs" />
     <Compile Include="Migrations\CreateDatabase\201311251734059_CreateDatabase.Designer.cs">
@@ -469,8 +469,8 @@
     <EmbeddedResource Include="Migrations\201810312001375_MissingPluginMigrations.resx">
       <DependentUpon>201810312001375_MissingPluginMigrations.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201811012258422_RegistrationFieldVisibilityRules.resx">
-      <DependentUpon>201811012258422_RegistrationFieldVisibilityRules.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201811062035033_AddCheckinFilterGroupsByDataView.resx">
+      <DependentUpon>201811062035033_AddCheckinFilterGroupsByDataView.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\CreateDatabase\201311251734059_CreateDatabase.resx">
       <DependentUpon>201311251734059_CreateDatabase.cs</DependentUpon>
