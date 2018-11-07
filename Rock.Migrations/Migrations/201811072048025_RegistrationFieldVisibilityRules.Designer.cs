@@ -13,7 +13,7 @@ namespace Rock.Migrations
         
         string IMigrationMetadata.Id
         {
-            get { return "201811012258422_RegistrationFieldVisibilityRules"; }
+            get { return "201811072048025_RegistrationFieldVisibilityRules"; }
         }
         
         string IMigrationMetadata.Source
