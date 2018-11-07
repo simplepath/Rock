@@ -2433,38 +2433,10 @@ The first registrant's information will be used to complete the registrar inform
                 var formField = FormFieldsState[formGuid].FirstOrDefault( a => a.Guid == formFieldGuid );
                 var otherFormFields = FormFieldsState[formGuid].Where( a => a != formField && a.Attribute != null ).ToList();
 
-                switch ( formField.FieldVisibilityRules.FilterExpressionType )
-                {
-                    case FilterExpressionType.GroupAllFalse:
-                        {
-                            ddlFilterShowHide.SetValue( "Hide" );
-                            ddlFilterAllAny.SetValue( "All" );
-                            break;
-                        }
-                    case FilterExpressionType.GroupAny:
-                        {
-                            ddlFilterShowHide.SetValue( "Show" );
-                            ddlFilterAllAny.SetValue( "Any" );
-                            break;
-                        }
-                    case FilterExpressionType.GroupAnyFalse:
-                        {
-                            ddlFilterShowHide.SetValue( "Hide" );
-                            ddlFilterAllAny.SetValue( "Any" );
-                            break;
-                        }
-                    default:
-                        {
-                            ddlFilterShowHide.SetValue( "Show" );
-                            ddlFilterAllAny.SetValue( "All" );
-                            break;
-                        }
-                }
-
                 fvreFieldVisibilityRulesEditor.ValidationGroup = dlgFieldFilter.ValidationGroup;
-                fvreFieldVisibilityRulesEditor.AttributeId = formField.AttributeId;
+                fvreFieldVisibilityRulesEditor.FieldName = formField.ToString();
                 fvreFieldVisibilityRulesEditor.ComparableAttributes = otherFormFields.Select( a => a.Attribute ).ToDictionary( k => k.Guid, v => v );
-                fvreFieldVisibilityRulesEditor.SetFilterRules( formField.FieldVisibilityRules );
+                fvreFieldVisibilityRulesEditor.SetFieldVisibilityRules( formField.FieldVisibilityRules );
             }
 
             BuildControls( true );
@@ -2480,49 +2452,9 @@ The first registrant's information will be used to complete the registrar inform
             Guid formGuid = hfFormGuidFilter.Value.AsGuid();
             Guid formFieldGuid = hfFormFieldGuidFilter.Value.AsGuid();
             var formField = FormFieldsState[formGuid].FirstOrDefault( a => a.Guid == formFieldGuid );
-            formField.FieldVisibilityRules = fvreFieldVisibilityRulesEditor.GetFilterRules();
-
-            if ( ddlFilterShowHide.SelectedValue.Equals( "Show", StringComparison.OrdinalIgnoreCase ) )
-            {
-                if ( ddlFilterAllAny.SelectedValue.Equals( "any", StringComparison.OrdinalIgnoreCase ) )
-                {
-                    formField.FieldVisibilityRules.FilterExpressionType = FilterExpressionType.GroupAny;
-                }
-                else
-                {
-                    formField.FieldVisibilityRules.FilterExpressionType = FilterExpressionType.GroupAll;
-                }
-            }
-            else
-            {
-                if ( ddlFilterAllAny.SelectedValue.Equals( "any", StringComparison.OrdinalIgnoreCase ) )
-                {
-                    formField.FieldVisibilityRules.FilterExpressionType = FilterExpressionType.GroupAnyFalse;
-                }
-                else
-                {
-                    formField.FieldVisibilityRules.FilterExpressionType = FilterExpressionType.GroupAllFalse;
-                }
-            }
-
-            
+            formField.FieldVisibilityRules = fvreFieldVisibilityRulesEditor.GetFieldVisibilityRules();
 
             HideDialog();
-
-            BuildControls( true );
-        }
-
-        /// <summary>
-        /// Handles the Click event of the btnAddFilterFieldCriteria control.
-        /// </summary>
-        /// <param name="sender">The source of the event.</param>
-        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
-        protected void btnAddFilterFieldCriteria_Click( object sender, EventArgs e )
-        {
-            var formGuid = hfFormGuidFilter.Value.AsGuid();
-            var formFieldGuid = hfFormFieldGuidFilter.Value.AsGuid();
-            var formField = FormFieldsState[formGuid].FirstOrDefault( a => a.Guid == formFieldGuid );
-            fvreFieldVisibilityRulesEditor.AddFilterRule( new Rock.Field.FieldVisibilityRule() );
 
             BuildControls( true );
         }

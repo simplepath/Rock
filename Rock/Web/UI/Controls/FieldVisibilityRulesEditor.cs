@@ -32,6 +32,16 @@ namespace Rock.Web.UI.Controls
     {
         #region Controls
 
+        private Panel _pnlFilterType;
+        private RockDropDownList _ddlFilterShowHide;
+        private Label _lblFieldName;
+        private Label _lblIfSpan;
+        private RockDropDownList _ddlFilterAllAny;
+        private Label _lblOfTheFollowingMatchSpan;
+
+        private Panel _pnlFilterActions;
+        private LinkButton _btnAddFilterFieldCriteria;
+
         private DynamicPlaceholder _phFilterFieldRuleControls;
 
         #endregion Controls
@@ -67,15 +77,24 @@ namespace Rock.Web.UI.Controls
         public Dictionary<Guid, Rock.Model.Attribute> ComparableAttributes { get; set; }
 
         /// <summary>
-        /// The Attribute to set the rule for
+        /// The Name that should be displayed for the Field that the rules are for
         /// </summary>
         /// <value>
-        /// The attribute identifier.
+        /// The name of the field.
         /// </value>
-        public int? AttributeId
+        public string FieldName
         {
-            get => ViewState["AttributeId"] as int?;
-            set => ViewState["AttributeId"] = value;
+            get
+            {
+                EnsureChildControls();
+                return _lblFieldName.Text;
+            }
+
+            set
+            {
+                EnsureChildControls();
+                _lblFieldName.Text = value;
+            }
         }
 
         #endregion Properties
@@ -89,9 +108,66 @@ namespace Rock.Web.UI.Controls
         {
             Controls.Clear();
 
+            Panel pnlPanelBlock = new Panel { CssClass = "panel panel-block" };
+            this.Controls.Add( pnlPanelBlock );
+
+            Panel pnlPanelHeading = new Panel { CssClass = "panel-heading" };
+            pnlPanelBlock.Controls.Add( pnlPanelHeading );
+            Panel pnlPanelBody = new Panel { CssClass = "panel-body " };
+            pnlPanelBlock.Controls.Add( pnlPanelBody );
+
+            // Filter Type controls
+            _pnlFilterType = new Panel { CssClass = "filtervisibilityrules-type pull-left" };
+            pnlPanelHeading.Controls.Add( _pnlFilterType );
+
+            _ddlFilterShowHide = new RockDropDownList();
+            _ddlFilterShowHide.CssClass = "input-width-sm pull-left";
+            _ddlFilterShowHide.ID = this.ID + "_ddlFilterShowHide";
+            _ddlFilterShowHide.Items.Add( new ListItem( "Show", "Show" ) );
+            _ddlFilterShowHide.Items.Add( new ListItem( "Hide", "Hide" ) );
+            _pnlFilterType.Controls.Add( _ddlFilterShowHide );
+
+            Panel pnlFieldNameIf = new Panel { CssClass = "pull-left margin-all-sm" };
+            _pnlFilterType.Controls.Add( pnlFieldNameIf );
+            _lblFieldName = new Label { CssClass = "filtervisibilityrules-fieldname" };
+            pnlFieldNameIf.Controls.Add( _lblFieldName );
+            _lblIfSpan = new Label { Text = "if", CssClass = "filtervisibilityrules-if margin-l-sm" };
+            pnlFieldNameIf.Controls.Add( _lblIfSpan );
+
+            _ddlFilterAllAny = new RockDropDownList();
+            _ddlFilterAllAny.CssClass = "input-width-sm pull-left";
+            _ddlFilterAllAny.ID = this.ID + "_ddlFilterAllAny";
+            _ddlFilterAllAny.Items.Add( new ListItem( "All", "All" ) );
+            _ddlFilterAllAny.Items.Add( new ListItem( "Any", "Any" ) );
+            _pnlFilterType.Controls.Add( _ddlFilterAllAny );
+
+            _lblOfTheFollowingMatchSpan = new Label { Text = "of the following match:", CssClass = "pull-left margin-all-sm" };
+            _pnlFilterType.Controls.Add( _lblOfTheFollowingMatchSpan );
+
+            // Filter Actions
+            _pnlFilterActions = new Panel { CssClass = "filter-actions pull-right margin-all-sm" };
+            pnlPanelHeading.Controls.Add( _pnlFilterActions );
+
+            _btnAddFilterFieldCriteria = new LinkButton();
+            _btnAddFilterFieldCriteria.ID = this.ID + "_btnAddFilterFieldCriteria";
+            _btnAddFilterFieldCriteria.CssClass = "btn btn-xs btn-action add-action";
+            _btnAddFilterFieldCriteria.Text = "<i class='fa fa-filter'></i> Add Criteria";
+            _btnAddFilterFieldCriteria.Click += _btnAddFilterFieldCriteria_Click;
+            _pnlFilterActions.Controls.Add( _btnAddFilterFieldCriteria );
+
             _phFilterFieldRuleControls = new DynamicPlaceholder();
             _phFilterFieldRuleControls.ID = this.ID + "_phFilterFieldRuleControls";
-            Controls.Add( _phFilterFieldRuleControls );
+            pnlPanelBody.Controls.Add( _phFilterFieldRuleControls );
+        }
+
+        /// <summary>
+        /// Handles the Click event of the _btnAddFilterFieldCriteria control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
+        private void _btnAddFilterFieldCriteria_Click( object sender, EventArgs e )
+        {
+            AddFilterRule( new Rock.Field.FieldVisibilityRule() );
         }
 
         /// <summary>
@@ -150,12 +226,41 @@ namespace Rock.Web.UI.Controls
         #region Methods
 
         /// <summary>
-        /// Sets the filter rules.
+        /// Sets the field visibility rules.
         /// </summary>
         /// <param name="fieldVisibilityRules">The field visibility rules.</param>
-        public void SetFilterRules( FieldVisibilityRules fieldVisibilityRules )
+        public void SetFieldVisibilityRules( FieldVisibilityRules fieldVisibilityRules )
         {
             EnsureChildControls();
+
+            switch ( fieldVisibilityRules.FilterExpressionType )
+            {
+                case FilterExpressionType.GroupAllFalse:
+                    {
+                        _ddlFilterShowHide.SetValue( "Hide" );
+                        _ddlFilterAllAny.SetValue( "All" );
+                        break;
+                    }
+                case FilterExpressionType.GroupAny:
+                    {
+                        _ddlFilterShowHide.SetValue( "Show" );
+                        _ddlFilterAllAny.SetValue( "Any" );
+                        break;
+                    }
+                case FilterExpressionType.GroupAnyFalse:
+                    {
+                        _ddlFilterShowHide.SetValue( "Hide" );
+                        _ddlFilterAllAny.SetValue( "Any" );
+                        break;
+                    }
+                default:
+                    {
+                        _ddlFilterShowHide.SetValue( "Show" );
+                        _ddlFilterAllAny.SetValue( "All" );
+                        break;
+                    }
+            }
+
             this._fieldVisibilityRulesState = new FieldVisibilityRules();
             _phFilterFieldRuleControls.Controls.Clear();
             foreach ( var fieldVisibilityRule in fieldVisibilityRules )
@@ -165,14 +270,38 @@ namespace Rock.Web.UI.Controls
         }
 
         /// <summary>
-        /// Gets the filter rules.
+        /// Gets the field visibility rules.
         /// </summary>
         /// <returns></returns>
-        public FieldVisibilityRules GetFilterRules()
+        public FieldVisibilityRules GetFieldVisibilityRules()
         {
             // get a new copy of the rules then get the filter rule settings from the controls
-            var filterRules = _fieldVisibilityRulesState.Clone();
-            foreach ( var fieldVisibilityRule in filterRules.ToList() )
+            var fieldVisibilityRules = _fieldVisibilityRulesState.Clone();
+
+            if ( _ddlFilterShowHide.SelectedValue.Equals( "Show", StringComparison.OrdinalIgnoreCase ) )
+            {
+                if ( _ddlFilterAllAny.SelectedValue.Equals( "any", StringComparison.OrdinalIgnoreCase ) )
+                {
+                    fieldVisibilityRules.FilterExpressionType = FilterExpressionType.GroupAny;
+                }
+                else
+                {
+                    fieldVisibilityRules.FilterExpressionType = FilterExpressionType.GroupAll;
+                }
+            }
+            else
+            {
+                if ( _ddlFilterAllAny.SelectedValue.Equals( "any", StringComparison.OrdinalIgnoreCase ) )
+                {
+                    fieldVisibilityRules.FilterExpressionType = FilterExpressionType.GroupAnyFalse;
+                }
+                else
+                {
+                    fieldVisibilityRules.FilterExpressionType = FilterExpressionType.GroupAllFalse;
+                }
+            }
+
+            foreach ( var fieldVisibilityRule in fieldVisibilityRules.ToList() )
             {
                 var rockControlWrapper = _phFilterFieldRuleControls.FindControl( $"_rockControlWrapper_{fieldVisibilityRule.Guid.ToString( "N" )}" ) as RockControlWrapper;
                 if ( rockControlWrapper == null )
@@ -204,11 +333,11 @@ namespace Rock.Web.UI.Controls
                 else
                 {
                     // no attribute selected, so delete the rule
-                    filterRules.Remove( fieldVisibilityRule );
+                    fieldVisibilityRules.Remove( fieldVisibilityRule );
                 }
             }
 
-            return filterRules;
+            return fieldVisibilityRules;
         }
 
         /// <summary>
