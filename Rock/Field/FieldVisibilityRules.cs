@@ -16,8 +16,11 @@
 //
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
 using System.Runtime.Serialization;
-using Newtonsoft.Json;
+
+using Rock.Data;
 using Rock.Model;
 using Rock.Web.Cache;
 
@@ -50,6 +53,90 @@ namespace Rock.Field
         /// </value>
         [DataMember]
         public FilterExpressionType FilterExpressionType { get; set; } = FilterExpressionType.GroupAll;
+
+        /// <summary>
+        /// Returns true if the field for these FieldVisibilityRules should be visible given the supplied attributeValues
+        /// </summary>
+        /// <param name="attributeValues">The attribute values.</param>
+        /// <returns></returns>
+        public bool Evaluate( Dictionary<int, AttributeValueCache> attributeValues )
+        {
+            bool visible = true;
+            var fieldVisibilityRules = this;
+
+            if ( !fieldVisibilityRules.Any() || !attributeValues.Any() )
+            {
+                // if no rules or attribute values, just exit
+                return visible;
+            }
+
+            foreach ( var fieldVisibilityRule in fieldVisibilityRules.Where( a => a.ComparedToAttributeGuid.HasValue ) )
+            {
+                var filterValues = new List<string>();
+                filterValues.Add( fieldVisibilityRule.ComparisonType.ConvertToString( false ) );
+                filterValues.Add( fieldVisibilityRule.ComparedToValue );
+                Expression entityCondition;
+
+                ParameterExpression parameterExpression = Expression.Parameter( typeof( Rock.Model.AttributeValue ) );
+
+                var comparedToAttribute = AttributeCache.Get( fieldVisibilityRule.ComparedToAttributeGuid.Value );
+                entityCondition = comparedToAttribute.FieldType.Field.AttributeFilterExpression( comparedToAttribute.QualifierValues, filterValues, parameterExpression );
+                if ( entityCondition is NoAttributeFilterExpression )
+                {
+                    continue;
+                }
+
+                var conditionLambda = Expression.Lambda<Func<Rock.Model.AttributeValue, bool>>( entityCondition, parameterExpression );
+                var conditionFunc = conditionLambda.Compile();
+                var comparedToAttributeValue = attributeValues.GetValueOrNull( comparedToAttribute.Id )?.Value;
+
+                // create an instance of an AttributeValue to run the expressions against
+                var attributeValueToEvaluate = new Rock.Model.AttributeValue
+                {
+                    AttributeId = comparedToAttribute.Id,
+                    Value = comparedToAttributeValue,
+                    ValueAsBoolean = comparedToAttributeValue.AsBooleanOrNull(),
+                    ValueAsNumeric = comparedToAttributeValue.AsDecimalOrNull(),
+                    ValueAsDateTime = comparedToAttributeValue.AsDateTime()
+                };
+
+                var conditionResult = conditionFunc.Invoke( attributeValueToEvaluate );
+                switch ( fieldVisibilityRules.FilterExpressionType )
+                {
+                    case Rock.Model.FilterExpressionType.GroupAll:
+                        {
+                            visible = visible && conditionResult;
+                            break;
+                        }
+
+                    case Rock.Model.FilterExpressionType.GroupAllFalse:
+                        {
+                            visible = visible && !conditionResult;
+                            break;
+                        }
+
+                    case Rock.Model.FilterExpressionType.GroupAny:
+                        {
+                            visible = visible || conditionResult;
+                            break;
+                        }
+
+                    case Rock.Model.FilterExpressionType.GroupAnyFalse:
+                        {
+                            visible = visible || !conditionResult;
+                            break;
+                        }
+
+                    default:
+                        {
+                            // ignore if unexpected FilterExpressionType
+                            break;
+                        }
+                }
+            }
+
+            return visible;
+        }
 
         /// <summary>
         /// Gets the debugger formatted rules.

@@ -1,10 +1,25 @@
-﻿using System;
+﻿// <copyright>
+// Copyright by the Spark Development Network
+//
+// Licensed under the Rock Community License (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.rockrms.com/license
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+// </copyright>
+//
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using Rock.Data;
+
 using Rock.Field;
 using Rock.Web.Cache;
 
@@ -13,11 +28,10 @@ namespace Rock.Web.UI.Controls
     /// <summary>
     /// Wraps content that is visible based on <see cref="FieldVisibilityRules"/>
     /// </summary>
-    /// <seealso cref="Rock.Web.UI.Controls.DynamicPlaceholder" />
     public class FieldVisibilityWrapper : DynamicPlaceholder
     {
         /// <summary>
-        /// Gets or sets the attribute identifier.
+        /// Gets or sets the attribute identifier of the Field
         /// </summary>
         /// <value>
         /// The attribute identifier.
@@ -34,75 +48,7 @@ namespace Rock.Web.UI.Controls
         /// <param name="attributeValues">The attribute values.</param>
         public void UpdateVisibility( Dictionary<int, AttributeValueCache> attributeValues )
         {
-            if ( !FieldVisibilityRules.Any() || !attributeValues.Any() )
-            {
-                // if no rules or attribute values, just exit
-                return;
-            }
-
-            bool visible = true;
-
-            foreach ( var fieldVisibilityRule in this.FieldVisibilityRules.Where( a => a.ComparedToAttributeGuid.HasValue ) )
-            {
-                var filterValues = new List<string>();
-                filterValues.Add( fieldVisibilityRule.ComparisonType.ConvertToString( false ) );
-                filterValues.Add( fieldVisibilityRule.ComparedToValue );
-                Expression entityCondition;
-
-                ParameterExpression parameterExpression = Expression.Parameter( typeof( Rock.Model.AttributeValue ) );
-
-                var comparedToAttribute = AttributeCache.Get( fieldVisibilityRule.ComparedToAttributeGuid.Value );
-                entityCondition = comparedToAttribute.FieldType.Field.AttributeFilterExpression( comparedToAttribute.QualifierValues, filterValues, parameterExpression );
-                if ( entityCondition is NoAttributeFilterExpression )
-                {
-                    continue;
-                }
-
-                var conditionLambda = Expression.Lambda<Func<Rock.Model.AttributeValue, bool>>( entityCondition, parameterExpression );
-                var conditionFunc = conditionLambda.Compile();
-                var comparedToAttributeValue = attributeValues.GetValueOrNull( comparedToAttribute.Id )?.Value;
-
-                var attributeValueToEvaluate = new Rock.Model.AttributeValue
-                {
-                    AttributeId = comparedToAttribute.Id,
-                    Value = comparedToAttributeValue,
-                    ValueAsBoolean = comparedToAttributeValue.AsBooleanOrNull(),
-                    ValueAsNumeric = comparedToAttributeValue.AsDecimalOrNull(),
-                    ValueAsDateTime = comparedToAttributeValue.AsDateTime()
-                };
-
-                var conditionResult = conditionFunc.Invoke( attributeValueToEvaluate );
-                switch ( this.FieldVisibilityRules.FilterExpressionType )
-                {
-                    case Rock.Model.FilterExpressionType.GroupAll:
-                        {
-                            visible = visible && conditionResult;
-                            break;
-                        }
-                    case Rock.Model.FilterExpressionType.GroupAllFalse:
-                        {
-                            visible = visible && !conditionResult;
-                            break;
-                        }
-                    case Rock.Model.FilterExpressionType.GroupAny:
-                        {
-                            visible = visible || conditionResult;
-                            break;
-                        }
-                    case Rock.Model.FilterExpressionType.GroupAnyFalse:
-                        {
-                            visible = visible || !conditionResult;
-                            break;
-                        }
-                    default:
-                        {
-                            // ignore if unexpected FilterExpressionType
-                            break;
-                        }
-                }
-            }
-
-            this.Visible = visible;
+            this.Visible = FieldVisibilityRules.Evaluate( attributeValues );
         }
 
         /// <summary>

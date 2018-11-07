@@ -157,6 +157,12 @@ namespace Rock.Model
         [DataMember]
         public bool ShowOnWaitlist { get; set; }
 
+        /// <summary>
+        /// JSON Serialized <see cref="FieldVisibilityRules"/>
+        /// </summary>
+        /// <value>
+        /// The field visibility rules json.
+        /// </value>
         [DataMember]
         public string FieldVisibilityRulesJSON
         {
