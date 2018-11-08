@@ -43,6 +43,8 @@ namespace Rock.Web.UI.Controls
         private Panel _pnlFilterActions;
         private LinkButton _btnAddFilterFieldCriteria;
 
+        private NotificationBox _nbNoFieldsAvailable;
+
         private DynamicPlaceholder _phFilterFieldRuleControls;
 
         #endregion Controls
@@ -112,6 +114,16 @@ namespace Rock.Web.UI.Controls
             Panel pnlContainer = new Panel { CssClass = "filtervisibilityrules-container" };
             this.Controls.Add( pnlContainer );
 
+            _nbNoFieldsAvailable = new NotificationBox
+            {
+                ID = this.ID + "_nbNoFieldsAvailable",
+                NotificationBoxType = NotificationBoxType.Warning,
+                Text = "At least one other supported attribute field is required to add criteria to this field.",
+                Visible = false
+            };
+
+            pnlContainer.Controls.Add( _nbNoFieldsAvailable );
+
             Panel pnlRulesHeaderRow = new Panel { CssClass = "filtervisibilityrules-rulesheader row" };
             pnlContainer.Controls.Add( pnlRulesHeaderRow );
             Panel pnlRulesList = new Panel { CssClass = "filtervisibilityrules-ruleslist " };
@@ -177,6 +189,9 @@ namespace Rock.Web.UI.Controls
         /// <param name="writer">The <see cref="T:System.Web.UI.HtmlTextWriter" /> object that receives the control content.</param>
         public override void RenderControl( HtmlTextWriter writer )
         {
+            // show a warning if there aren't any fields to choose from
+            _nbNoFieldsAvailable.Visible = !GetSupportedComparableAttributes().Any();
+
             ScriptManager.RegisterClientScriptInclude( this, this.GetType(), "reporting-include", this.RockBlock().RockPage.ResolveRockUrl( "~/Scripts/Rock/reportingInclude.js", true ) );
             base.RenderControl( writer );
         }
@@ -415,25 +430,13 @@ namespace Rock.Web.UI.Controls
             };
 
             ddlCompareField.Items.Add( new ListItem() );
-            foreach ( var attribute in this.ComparableAttributes.Select( a => a.Value ) )
+            foreach ( var attribute in GetSupportedComparableAttributes() )
             {
-                var fieldType = FieldTypeCache.Get( attribute.FieldTypeId );
-                if ( fieldType.Field.HasFilterControl() )
+                var listItem = new ListItem( attribute.Name, attribute.Guid.ToString() );
+                ddlCompareField.Items.Add( listItem );
+                if ( setValues && attribute.Guid == fieldVisibilityRule.ComparedToAttributeGuid )
                 {
-                    var qualifiers = attribute.AttributeQualifiers.ToDictionary( k => k.Key, v => new ConfigurationValue( v.Value ) );
-
-                    // get the editControl to see if the FieldType supports a ChangeHandler for it (but don't actually use the control)
-                    var editControl = fieldType.Field.EditControl( qualifiers, $"temp_editcontrol_attribute_{attribute.Id}" );
-
-                    if ( fieldType.Field.HasChangeHandler( editControl ) )
-                    {
-                        var listItem = new ListItem( attribute.Name, attribute.Guid.ToString() );
-                        ddlCompareField.Items.Add( listItem );
-                        if ( setValues && attribute.Guid == fieldVisibilityRule.ComparedToAttributeGuid )
-                        {
-                            listItem.Selected = true;
-                        }
-                    }
+                    listItem.Selected = true;
                 }
             }
 
@@ -450,6 +453,33 @@ namespace Rock.Web.UI.Controls
             pnlFilterRuleFieldFilter.Controls.Add( filterControlPlaceholder );
 
             CreateFilterControl( fieldVisibilityRule, setValues );
+        }
+
+        /// <summary>
+        /// Gets the supported comparable attributes.
+        /// </summary>
+        /// <returns></returns>
+        private List<Model.Attribute> GetSupportedComparableAttributes()
+        {
+            var supportedComparableAttributes = new List<Rock.Model.Attribute>();
+            foreach ( var attribute in this.ComparableAttributes.Select( a => a.Value ) )
+            {
+                var fieldType = FieldTypeCache.Get( attribute.FieldTypeId );
+                if ( fieldType.Field.HasFilterControl() )
+                {
+                    var qualifiers = attribute.AttributeQualifiers.ToDictionary( k => k.Key, v => new ConfigurationValue( v.Value ) );
+
+                    // get the editControl to see if the FieldType supports a ChangeHandler for it (but don't actually use the control)
+                    var editControl = fieldType.Field.EditControl( qualifiers, $"temp_editcontrol_attribute_{attribute.Id}" );
+
+                    if ( fieldType.Field.HasChangeHandler( editControl ) )
+                    {
+                        supportedComparableAttributes.Add( attribute );
+                    }
+                }
+            }
+
+            return supportedComparableAttributes;
         }
 
         /// <summary>
