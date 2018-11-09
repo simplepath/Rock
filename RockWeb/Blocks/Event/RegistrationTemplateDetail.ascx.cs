@@ -1131,7 +1131,7 @@ The first registrant's information will be used to complete the registrar inform
 
                     fee.Name = feeUI.Name;
                     fee.FeeType = feeUI.FeeType;
-                    fee.CostValue = feeUI.CostValue;
+                    fee.FeeItems = feeUI.FeeItems;
                     fee.DiscountApplies = feeUI.DiscountApplies;
                     fee.AllowMultiple = feeUI.AllowMultiple;
                     fee.Order = feeUI.Order;

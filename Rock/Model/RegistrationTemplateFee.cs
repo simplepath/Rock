@@ -16,7 +16,6 @@
 //
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity.ModelConfiguration;
@@ -25,7 +24,6 @@ using System.Runtime.Serialization;
 using Newtonsoft.Json;
 
 using Rock.Data;
-using Rock.Security;
 
 namespace Rock.Model
 {
@@ -74,8 +72,10 @@ namespace Rock.Model
         /// <value>
         /// The discount amount.
         /// </value>
-        [MaxLength(400)]
+        [MaxLength( 400 )]
         [DataMember]
+        [RockObsolete( "1.9" )]
+        [Obsolete( "Use FeeItems instead" )]
         public string CostValue { get; set; }
 
         /// <summary>
@@ -136,6 +136,15 @@ namespace Rock.Model
         /// </value>
         [LavaInclude]
         public virtual RegistrationTemplate RegistrationTemplate { get; set; }
+
+        /// <summary>
+        /// Gets or sets the fee items.
+        /// </summary>
+        /// <value>
+        /// The fee items.
+        /// </value>
+        [LavaInclude]
+        public ICollection<RegistrationTemplateFeeItem> FeeItems { get; set; } = new List<RegistrationTemplateFeeItem>();
 
         #endregion
 

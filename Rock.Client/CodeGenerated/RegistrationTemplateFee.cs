@@ -38,10 +38,15 @@ namespace Rock.Client
         public bool AllowMultiple { get; set; }
 
         /// <summary />
+        [RockObsolete( "1.9" )]
+        [Obsolete( "Use FeeItems instead", false )]
         public string CostValue { get; set; }
 
         /// <summary />
         public bool DiscountApplies { get; set; }
+
+        /// <summary />
+        public ICollection<RegistrationTemplateFeeItem> FeeItems { get; set; }
 
         /// <summary />
         public Rock.Client.Enums.RegistrationFeeType FeeType { get; set; }
@@ -106,8 +111,11 @@ namespace Rock.Client
         {
             this.Id = source.Id;
             this.AllowMultiple = source.AllowMultiple;
+            #pragma warning disable 612, 618
             this.CostValue = source.CostValue;
+            #pragma warning restore 612, 618
             this.DiscountApplies = source.DiscountApplies;
+            this.FeeItems = source.FeeItems;
             this.FeeType = source.FeeType;
             this.ForeignGuid = source.ForeignGuid;
             this.ForeignKey = source.ForeignKey;

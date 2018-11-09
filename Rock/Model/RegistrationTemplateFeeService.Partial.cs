@@ -29,6 +29,8 @@ namespace Rock.Model
         /// </summary>
         /// <param name="registrationTemplateFeeId">The registration template fee identifier.</param>
         /// <returns></returns>
+        [RockObsolete( "1.9" )]
+        [Obsolete( "Use RegistrationTemplateFee.FeeItems instead" )]
         public List<string> GetParsedFeeOptionsWithoutCost( int registrationTemplateFeeId )
         {
             RegistrationTemplateFee registrationTemplateFee = this.Get( registrationTemplateFeeId );
@@ -53,6 +55,8 @@ namespace Rock.Model
         /// </summary>
         /// <param name="registrationTemplateFeeId">The registration template fee identifier.</param>
         /// <returns></returns>
+        [RockObsolete( "1.9" )]
+        [Obsolete( "Use RegistrationTemplateFee.FeeItems instead" )]
         public List<Tuple<string, decimal>> GetParsedFeeOptionsWithCostAsNumber( int registrationTemplateFeeId )
         {
             RegistrationTemplateFee registrationTemplateFee = this.Get( registrationTemplateFeeId );
@@ -81,6 +85,8 @@ namespace Rock.Model
         /// </summary>
         /// <param name="registrationTemplateFeeId">The registration template fee identifier.</param>
         /// <returns></returns>
+        [RockObsolete( "1.9" )]
+        [Obsolete( "Use RegistrationTemplateFee.FeeItems instead" )]
         public Dictionary<string, string> GetParsedFeeOptionsWithNameAndValueString( int registrationTemplateFeeId )
         {
             RegistrationTemplateFee registrationTemplateFee = this.Get( registrationTemplateFeeId );

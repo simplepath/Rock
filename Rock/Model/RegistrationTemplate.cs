@@ -262,7 +262,7 @@ namespace Rock.Model
         public bool? SetCostOnInstance { get; set; }
 
         /// <summary>
-        /// Gets or sets the cost.
+        /// Gets or sets the cost (if <see cref="SetCostOnInstance"/> == false).
         /// </summary>
         /// <value>
         /// The cost.
@@ -271,13 +271,23 @@ namespace Rock.Model
         public decimal Cost { get; set; }
 
         /// <summary>
-        /// Gets or sets the minimum initial payment.
+        /// Gets or sets the minimum initial payment (if <see cref="SetCostOnInstance"/> == false).
         /// </summary>
         /// <value>
         /// The minimum initial payment.
         /// </value>
         [DataMember]
         public decimal? MinimumInitialPayment { get; set; }
+
+        /// <summary>
+        /// Gets or sets the default amount to pay per registrant (if <see cref="SetCostOnInstance"/> == false).
+        /// If this is null, the default payment will be the <see cref="Cost"/>
+        /// </summary>
+        /// <value>
+        /// The default payment.
+        /// </value>
+        [DataMember]
+        public decimal? DefaultPayment { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether [login required].
