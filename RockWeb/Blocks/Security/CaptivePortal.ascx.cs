@@ -530,6 +530,20 @@ namespace RockWeb.Blocks.Security
                 return person.PrimaryAlias.Id;
             }
 
+            // Just match off email if no other fields are showing.
+            if ( tbEmail.Visible && !tbFirstName.Visible && !tbLastName.Visible && !tbMobilePhone.Visible )
+            {
+                person = personService
+                .Queryable()
+                .Where( p => p.Email == tbEmail.Text )
+                .FirstOrDefault();
+                if ( person != null )
+                {
+                    RockPage.LinkPersonAliasToDevice( person.PrimaryAlias.Id, hfMacAddress.Value );
+                    return person.PrimaryAliasId;
+                }
+            }
+
             // Just match off phone number if no other fields are showing.
             if ( tbMobilePhone.Visible && !tbFirstName.Visible && !tbLastName.Visible && !tbEmail.Visible )
             {
